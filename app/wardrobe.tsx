@@ -2,7 +2,6 @@ import { DancingScript_400Regular, useFonts } from '@expo-google-fonts/dancing-s
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
-  Alert,
   FlatList,
   Image,
   SafeAreaView,
@@ -15,6 +14,7 @@ import {
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
 import { supabase } from '../supabase'
+import { showAlert, showConfirm } from '../utils/alert'
 
 const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SEASONS = ['Alla', 'Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
@@ -123,17 +123,11 @@ export default function Wardrobe() {
   }
 
   async function markAsSold(item: any) {
-    Alert.alert('Markera som såld', `Är "${item.name}" såld?`, [
-      { text: 'Avbryt', style: 'cancel' },
-      {
-        text: 'Ja, arkivera', style: 'destructive',
-        onPress: async () => {
-          await supabase.from('garments').update({ sold: true, archived: true, for_sale: false }).eq('id', item.id)
-          fetchGarments()
-          Alert.alert('🍒 Sålt!', `${item.name} har arkiverats.`)
-        }
-      }
-    ])
+    showConfirm('Markera som såld', `Är "${item.name}" såld?`, async () => {
+      await supabase.from('garments').update({ sold: true, archived: true, for_sale: false }).eq('id', item.id)
+      fetchGarments()
+      showAlert('🍒 Sålt!', `${item.name} har arkiverats.`)
+    }, 'Ja, arkivera', true)
   }
 
   async function removeFromSale(item: any) {
@@ -153,16 +147,10 @@ export default function Wardrobe() {
   }
 
   async function deleteWishItem(item: any) {
-    Alert.alert('Ta bort', `Ta bort "${item.name}" från köplistan?`, [
-      { text: 'Avbryt', style: 'cancel' },
-      {
-        text: 'Ta bort', style: 'destructive',
-        onPress: async () => {
-          await supabase.from('wishlist').delete().eq('id', item.id)
-          fetchWishlist()
-        }
-      }
-    ])
+    showConfirm('Ta bort', `Ta bort "${item.name}" från köplistan?`, async () => {
+      await supabase.from('wishlist').delete().eq('id', item.id)
+      fetchWishlist()
+    }, 'Ta bort', true)
   }
 
   const hasActiveFilters = activeCategory !== 'Alla' || activeSeason !== 'Alla' || activeColor !== 'Alla' || search !== ''
@@ -207,7 +195,6 @@ export default function Wardrobe() {
         ))}
       </View>
 
-      {/* NUVARANDE */}
       {activeTab === 'nuvarande' && (
         <>
           {showFilters && (
@@ -293,7 +280,6 @@ export default function Wardrobe() {
         </>
       )}
 
-      {/* KÖP */}
       {activeTab === 'köp' && (
         <ScrollView contentContainerStyle={styles.wishScroll}>
           {wishlist.length === 0 ? (
@@ -316,7 +302,6 @@ export default function Wardrobe() {
                     onPress={() => router.push(`/garment-detail?wishlistId=${item.id}`)}
                     activeOpacity={0.8}
                   >
-                    {/* Reorder-pilar */}
                     <View style={styles.reorderCol}>
                       <TouchableOpacity
                         style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
@@ -334,13 +319,9 @@ export default function Wardrobe() {
                         <Text style={styles.arrowText}>▼</Text>
                       </TouchableOpacity>
                     </View>
-
-                    {/* Prioritetsnummer */}
                     <View style={styles.priorityBadge}>
                       <Text style={styles.priorityNum}>{index + 1}</Text>
                     </View>
-
-                    {/* Bild */}
                     {item.image_url ? (
                       <Image source={{ uri: item.image_url }} style={styles.wishImage} />
                     ) : (
@@ -348,8 +329,6 @@ export default function Wardrobe() {
                         <Text style={{ fontSize: 22 }}>🛍️</Text>
                       </View>
                     )}
-
-                    {/* Info */}
                     <View style={styles.wishInfo}>
                       <Text style={styles.wishName}>{item.name}</Text>
                       {item.category ? <Text style={styles.wishCategory}>{item.category}</Text> : null}
@@ -359,8 +338,6 @@ export default function Wardrobe() {
                         </View>
                       )}
                     </View>
-
-                    {/* Ta bort */}
                     <TouchableOpacity style={styles.deleteBtn} onPress={() => deleteWishItem(item)}>
                       <Text style={styles.deleteBtnText}>✕</Text>
                     </TouchableOpacity>
@@ -372,7 +349,6 @@ export default function Wardrobe() {
         </ScrollView>
       )}
 
-      {/* SÄLJ */}
       {activeTab === 'sälj' && (
         <ScrollView contentContainerStyle={styles.saleScroll}>
           {!showArchive ? (
@@ -453,7 +429,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#150408' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#DDA0A7', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#DDA0A7' },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#DDA0A7' },
   iconBtnActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
   iconBtnText: { fontSize: 16 },
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
@@ -491,15 +467,9 @@ const styles = StyleSheet.create({
   emptyTabIcon: { fontSize: 48, marginBottom: 12 },
   emptyTabText: { color: '#C4737A', fontSize: 16, marginBottom: 8, fontWeight: '500' },
   emptyTabHint: { color: 'rgba(196,115,122,0.5)', fontSize: 13, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
-
-  // Köp-flik
   wishScroll: { padding: 16, paddingBottom: 100 },
   wishHint: { fontSize: 11, color: 'rgba(196,115,122,0.4)', fontStyle: 'italic', textAlign: 'center', marginBottom: 12 },
-  wishItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 10, marginBottom: 8,
-    borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', minHeight: 76,
-  },
+  wishItem: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', minHeight: 76 },
   reorderCol: { alignItems: 'center', gap: 2 },
   dragDots: { color: 'rgba(196,115,122,0.3)', fontSize: 14 },
   arrowBtn: { width: 22, height: 22, borderRadius: 6, backgroundColor: 'rgba(122,24,40,0.6)', alignItems: 'center', justifyContent: 'center' },
@@ -516,8 +486,6 @@ const styles = StyleSheet.create({
   outfitBadgeText: { fontSize: 10, color: '#DDA0A7' },
   deleteBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.6)', alignItems: 'center', justifyContent: 'center' },
   deleteBtnText: { color: '#C4737A', fontSize: 13 },
-
-  // Sälj-flik
   saleScroll: { padding: 16, paddingBottom: 100 },
   saleItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   archivedItem: { opacity: 0.7 },

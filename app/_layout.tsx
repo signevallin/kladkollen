@@ -7,7 +7,7 @@ export default function Layout() {
        <Stack.Screen name="profile" />
       <Stack.Screen name="wardrobe" />
       <Stack.Screen name="outfit" />
-      <Stack.Screen name="my-outfits" />
+      <Stack.Screen name="my-outfit" />
       <Stack.Screen name="inspiration" />
       <Stack.Screen name="stats" />
       <Stack.Screen name="add-garment" />
