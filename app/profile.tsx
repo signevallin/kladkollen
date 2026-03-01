@@ -1,17 +1,18 @@
+import { Alert, Platform, ... } from 'react-native'
 import { DancingScript_400Regular, useFonts } from '@expo-google-fonts/dancing-script'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
-    Alert,
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native'
 import { supabase } from '../supabase'
 
@@ -132,9 +133,13 @@ export default function Profile() {
         text: 'Logga ut',
         style: 'destructive',
         onPress: async () => {
-          await supabase.auth.signOut()
-          router.replace('/login')
-        }
+  await supabase.auth.signOut()
+  if (Platform.OS === 'web') {
+    window.location.href = '/login'
+  } else {
+    router.replace('/login')
+  }
+}
       }
     ])
   }
