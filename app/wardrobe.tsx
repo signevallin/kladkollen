@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#150408' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#9E2035', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#DDA0A7' },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#DDA0A7', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#DDA0A7' },
   iconBtnActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
   iconBtnText: { fontSize: 16 },
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
