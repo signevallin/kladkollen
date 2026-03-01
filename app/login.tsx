@@ -25,9 +25,14 @@ export default function Login() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password })
-        if (error) throw error
-        Alert.alert('Konto skapat! 🍒', 'Kolla din email för att verifiera ditt konto.')
+  const { error } = await supabase.auth.signUp({ email, password })
+  if (error) throw error
+  if (Platform.OS === 'web') {
+    window.alert('Konto skapat! 🍒 Kolla din email för att verifiera ditt konto.')
+  } else {
+    Alert.alert('Konto skapat! 🍒', 'Kolla din email för att verifiera ditt konto.')
+  }
+}
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
 if (error) throw error
@@ -37,12 +42,13 @@ if (Platform.OS === 'web') {
   router.replace('/home')
 }
       }
-    } catch (error: any) {
-      Alert.alert('Något gick fel', error.message)
-    } finally {
-      setLoading(false)
-    }
+  } catch (error: any) {
+  if (Platform.OS === 'web') {
+    window.alert('Något gick fel: ' + error.message)
+  } else {
+    Alert.alert('Något gick fel', error.message)
   }
+}
 
   return (
     <SafeAreaView style={styles.container}>
