@@ -23,7 +23,12 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Klädkollen",
+      "shortName": "Klädkollen",
+      "description": "Din digitala garderob",
+      "themeColor": "#150408",
+      "backgroundColor": "#150408"
     },
     "plugins": [
       "expo-router",
@@ -38,7 +43,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
