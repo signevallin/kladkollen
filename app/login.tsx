@@ -1,12 +1,12 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
-    Alert, KeyboardAvoidingView, Platform,
-    SafeAreaView,
-    StyleSheet, Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert, KeyboardAvoidingView, Platform,
+  SafeAreaView,
+  StyleSheet, Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native'
 import { supabase } from '../supabase'
 
@@ -30,8 +30,12 @@ export default function Login() {
         Alert.alert('Konto skapat! 🍒', 'Kolla din email för att verifiera ditt konto.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        router.replace('/home')
+if (error) throw error
+if (Platform.OS === 'web') {
+  window.location.href = '/home'
+} else {
+  router.replace('/home')
+}
       }
     } catch (error: any) {
       Alert.alert('Något gick fel', error.message)
