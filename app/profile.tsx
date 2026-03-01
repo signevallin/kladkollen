@@ -1,4 +1,4 @@
-import { Alert, Platform, ... } from 'react-native'
+
 import { DancingScript_400Regular, useFonts } from '@expo-google-fonts/dancing-script'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import {
   Alert,
   Image,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -126,23 +127,26 @@ export default function Profile() {
     }
   }
 
-  async function signOut() {
+ async function signOut() {
+  if (Platform.OS === 'web') {
+    if (window.confirm('Vill du logga ut?')) {
+      await supabase.auth.signOut()
+      window.location.href = '/login'
+    }
+  } else {
     Alert.alert('Logga ut', 'Är du säker?', [
       { text: 'Avbryt', style: 'cancel' },
       {
         text: 'Logga ut',
         style: 'destructive',
         onPress: async () => {
-  await supabase.auth.signOut()
-  if (Platform.OS === 'web') {
-    window.location.href = '/login'
-  } else {
-    router.replace('/login')
-  }
-}
+          await supabase.auth.signOut()
+          router.replace('/login')
+        }
       }
     ])
   }
+}
 
   return (
     <SafeAreaView style={styles.container}>
