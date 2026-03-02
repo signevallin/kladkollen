@@ -257,6 +257,8 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
       const { data: outfitData, error } = await supabase.from('outfits').insert([{
         user_id: user?.id, name: outfit.outfitName,
         garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
+        mood: selectedMood !== null ? MOODS[selectedMood].label : null,
+        context,
       }]).select('id').single()
       if (error) throw error
       setSaved(true)
@@ -283,6 +285,8 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
         const { data: outfitData, error: outfitError } = await supabase.from('outfits').insert([{
           user_id: user?.id, name: outfit.outfitName,
           garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
+          mood: selectedMood !== null ? MOODS[selectedMood].label : null,
+          context,
         }]).select('id').single()
         if (outfitError) throw outfitError
         outfitId = outfitData.id
@@ -332,6 +336,8 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
         const { data: outfitData, error: outfitError } = await supabase.from('outfits').insert([{
           user_id: user?.id, name: outfit.outfitName,
           garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
+          mood: selectedMood !== null ? MOODS[selectedMood].label : null,
+          context,
         }]).select('id').single()
         if (outfitError) throw outfitError
         outfitId = outfitData.id
