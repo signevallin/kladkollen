@@ -442,9 +442,9 @@ const styles = StyleSheet.create({
 
   // Mood grid
   moodGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 24, gap: 10, marginBottom: 24 },
-  moodBtn: { width: '30%', aspectRatio: 1, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.25)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', gap: 4 },
-  moodEmoji: { fontSize: 32 },
-  moodLabel: { fontSize: 11, color: 'rgba(196,115,122,0.7)', fontWeight: '500' },
+  moodBtn: { width: '30%', aspectRatio: 1.3, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.25)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', gap: 4 },
+  moodEmoji: { fontSize: 26 },
+  moodLabel: { fontSize: 10, color: 'rgba(196,115,122,0.7)', fontWeight: '500' },
 
   // Section
   section: { paddingHorizontal: 24, marginBottom: 16, gap: 12 },
