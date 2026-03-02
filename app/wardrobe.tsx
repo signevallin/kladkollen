@@ -1,3 +1,4 @@
+
 import { DancingScript_400Regular, useFonts } from '@expo-google-fonts/dancing-script'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
@@ -171,9 +172,10 @@ export default function Wardrobe() {
     fetchGarments()
   }
 
-  const filteredSaleGarments = saleSearch.trim()
+  const filteredSaleGarments = (saleSearch.trim()
     ? saleGarments.filter(g => g.name.toLowerCase().includes(saleSearch.toLowerCase()))
     : saleGarments
+  ).sort((a, b) => (a.times_worn || 0) - (b.times_worn || 0))
 
   // --- Wardrobe filters ---
   function applyFilters(searchText: string, category: string, season: string, color: string, data: any[]) {
@@ -341,13 +343,10 @@ export default function Wardrobe() {
                     <View style={styles.salePickerInfo}>
                       <Text style={styles.salePickerName}>{item.name}</Text>
                       <Text style={styles.salePickerCategory}>{item.category}{item.color ? ` · ${item.color}` : ''}</Text>
-                      <View style={styles.salePickerStats}>
-                        <Text style={styles.salePickerStat}>👗 {item.times_worn || 0} gånger</Text>
-                        {item.last_worn
-                          ? <Text style={styles.salePickerStat}>· {new Date(item.last_worn).toLocaleDateString('sv-SE')}</Text>
-                          : <Text style={styles.salePickerStat}>· Aldrig använd</Text>
-                        }
-                      </View>
+                      <Text style={styles.salePickerStat}>👗 Använd {item.times_worn || 0} gånger</Text>
+                      <Text style={styles.salePickerStat}>
+                        {item.last_worn ? `Senast använd: ${new Date(item.last_worn).toLocaleDateString('sv-SE')}` : 'Aldrig använd'}
+                      </Text>
                     </View>
                     <View style={styles.addSaleBtn}>
                       <Text style={styles.addSaleBtnText}>＋</Text>
