@@ -1,4 +1,5 @@
 import { DancingScript_400Regular, useFonts } from '@expo-google-fonts/dancing-script'
+import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
@@ -41,13 +42,19 @@ export default function Wardrobe() {
   const [showFilters, setShowFilters] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
 
-  // Add to wishlist modal
+  // Wishlist modal
   const [showAddWish, setShowAddWish] = useState(false)
   const [wishName, setWishName] = useState('')
   const [wishCategory, setWishCategory] = useState('')
   const [wishColor, setWishColor] = useState('')
   const [wishSeason, setWishSeason] = useState('')
+  const [wishImage, setWishImage] = useState<string | null>(null)
   const [savingWish, setSavingWish] = useState(false)
+
+  // Sale modal
+  const [showAddSale, setShowAddSale] = useState(false)
+  const [saleSearch, setSaleSearch] = useState('')
+  const [saleGarments, setSaleGarments] = useState([])
 
   useFocusEffect(
     useCallback(() => {
@@ -66,6 +73,8 @@ export default function Wardrobe() {
       setFiltered(active)
       setForSale(sale)
       setArchived(arch)
+      // Garments eligible for sale: active, not already for sale
+      setSaleGarments(active.filter(g => !g.for_sale))
     }
   }
 
@@ -99,26 +108,47 @@ export default function Wardrobe() {
     setOutfitCounts(counts)
   }
 
+  // --- Wishlist image ---
+  async function pickWishImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    })
+    if (!result.canceled) setWishImage(result.assets[0].uri)
+  }
+
+  async function uploadWishImage(uri: string) {
+    const filename = `wish-${Date.now()}.jpg`
+    const filePath = `public/${filename}`
+    const response = await fetch(uri)
+    const arrayBuffer = await response.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
+    const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
+    if (error) throw error
+    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+    return urlData.publicUrl
+  }
+
   async function addWishItem() {
-    if (!wishName.trim()) {
-      showAlert('Fyll i ett namn!')
-      return
-    }
+    if (!wishName.trim()) { showAlert('Fyll i ett namn!'); return }
     setSavingWish(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      let imageUrl: string | null = null
+      if (wishImage) imageUrl = await uploadWishImage(wishImage)
       const { error } = await supabase.from('wishlist').insert([{
         user_id: user.id,
         name: wishName.trim(),
         category: wishCategory || null,
         color: wishColor || null,
         season: wishSeason || null,
+        image_url: imageUrl,
         sort_order: wishlist.length,
       }])
       if (error) throw error
-      setShowAddWish(false)
-      setWishName(''); setWishCategory(''); setWishColor(''); setWishSeason('')
+      closeWishModal()
       fetchWishlist()
     } catch (error: any) {
       showAlert('Något gick fel', error.message)
@@ -127,6 +157,25 @@ export default function Wardrobe() {
     }
   }
 
+  function closeWishModal() {
+    setShowAddWish(false)
+    setWishName(''); setWishCategory(''); setWishColor(''); setWishSeason(''); setWishImage(null)
+  }
+
+  // --- Sale ---
+  async function addToSale(item: any) {
+    await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
+    showAlert(`${item.name} är nu till salu! 🍒`)
+    setShowAddSale(false)
+    setSaleSearch('')
+    fetchGarments()
+  }
+
+  const filteredSaleGarments = saleSearch.trim()
+    ? saleGarments.filter(g => g.name.toLowerCase().includes(saleSearch.toLowerCase()))
+    : saleGarments
+
+  // --- Wardrobe filters ---
   function applyFilters(searchText: string, category: string, season: string, color: string, data: any[]) {
     let result = data
     if (category !== 'Alla') result = result.filter(g => g.category === category)
@@ -141,22 +190,10 @@ export default function Wardrobe() {
     setFiltered(result)
   }
 
-  function handleSearch(text: string) {
-    setSearch(text)
-    applyFilters(text, activeCategory, activeSeason, activeColor, garments)
-  }
-  function handleCategory(cat: string) {
-    setActiveCategory(cat); setOpenDropdown(null)
-    applyFilters(search, cat, activeSeason, activeColor, garments)
-  }
-  function handleSeason(s: string) {
-    setActiveSeason(s); setOpenDropdown(null)
-    applyFilters(search, activeCategory, s, activeColor, garments)
-  }
-  function handleColor(c: string) {
-    setActiveColor(c); setOpenDropdown(null)
-    applyFilters(search, activeCategory, activeSeason, c, garments)
-  }
+  function handleSearch(text: string) { setSearch(text); applyFilters(text, activeCategory, activeSeason, activeColor, garments) }
+  function handleCategory(cat: string) { setActiveCategory(cat); setOpenDropdown(null); applyFilters(search, cat, activeSeason, activeColor, garments) }
+  function handleSeason(s: string) { setActiveSeason(s); setOpenDropdown(null); applyFilters(search, activeCategory, s, activeColor, garments) }
+  function handleColor(c: string) { setActiveColor(c); setOpenDropdown(null); applyFilters(search, activeCategory, activeSeason, c, garments) }
   function clearFilters() {
     setActiveCategory('Alla'); setActiveSeason('Alla'); setActiveColor('Alla')
     setSearch(''); setFiltered(garments); setOpenDropdown(null)
@@ -204,15 +241,29 @@ export default function Wardrobe() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Lägg till på köplistan</Text>
-              <TouchableOpacity onPress={() => {
-                setShowAddWish(false)
-                setWishName(''); setWishCategory(''); setWishColor(''); setWishSeason('')
-              }}>
+              <TouchableOpacity onPress={closeWishModal}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-
             <ScrollView showsVerticalScrollIndicator={false}>
+
+              {/* Bildväljare */}
+              <TouchableOpacity style={styles.imagePicker} onPress={pickWishImage}>
+                {wishImage ? (
+                  <Image source={{ uri: wishImage }} style={styles.imagePickerPreview} />
+                ) : (
+                  <View style={styles.imagePickerInner}>
+                    <Text style={styles.imagePickerEmoji}>📷</Text>
+                    <Text style={styles.imagePickerText}>Lägg till bild (valfritt)</Text>
+                  </View>
+                )}
+                {wishImage && (
+                  <View style={styles.imageOverlay}>
+                    <Text style={styles.imageOverlayText}>Byt foto</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
               <Text style={styles.modalLabel}>Namn *</Text>
               <TextInput
                 style={styles.modalInput}
@@ -225,11 +276,7 @@ export default function Wardrobe() {
               <Text style={styles.modalLabel}>Kategori</Text>
               <View style={styles.pillsWrap}>
                 {WISH_CATEGORIES.map(c => (
-                  <TouchableOpacity
-                    key={c}
-                    style={[styles.pill, wishCategory === c && styles.pillActive]}
-                    onPress={() => setWishCategory(wishCategory === c ? '' : c)}
-                  >
+                  <TouchableOpacity key={c} style={[styles.pill, wishCategory === c && styles.pillActive]} onPress={() => setWishCategory(wishCategory === c ? '' : c)}>
                     <Text style={[styles.pillText, wishCategory === c && styles.pillTextActive]}>{c}</Text>
                   </TouchableOpacity>
                 ))}
@@ -238,11 +285,7 @@ export default function Wardrobe() {
               <Text style={styles.modalLabel}>Färg</Text>
               <View style={styles.pillsWrap}>
                 {WISH_COLORS.map(c => (
-                  <TouchableOpacity
-                    key={c}
-                    style={[styles.pill, wishColor === c && styles.pillActive]}
-                    onPress={() => setWishColor(wishColor === c ? '' : c)}
-                  >
+                  <TouchableOpacity key={c} style={[styles.pill, wishColor === c && styles.pillActive]} onPress={() => setWishColor(wishColor === c ? '' : c)}>
                     <Text style={[styles.pillText, wishColor === c && styles.pillTextActive]}>{c}</Text>
                   </TouchableOpacity>
                 ))}
@@ -251,11 +294,7 @@ export default function Wardrobe() {
               <Text style={styles.modalLabel}>Säsong</Text>
               <View style={styles.pillsWrap}>
                 {WISH_SEASONS.map(s => (
-                  <TouchableOpacity
-                    key={s}
-                    style={[styles.pill, wishSeason === s && styles.pillActive]}
-                    onPress={() => setWishSeason(wishSeason === s ? '' : s)}
-                  >
+                  <TouchableOpacity key={s} style={[styles.pill, wishSeason === s && styles.pillActive]} onPress={() => setWishSeason(wishSeason === s ? '' : s)}>
                     <Text style={[styles.pillText, wishSeason === s && styles.pillTextActive]}>{s}</Text>
                   </TouchableOpacity>
                 ))}
@@ -264,6 +303,58 @@ export default function Wardrobe() {
               <TouchableOpacity style={styles.modalSaveBtn} onPress={addWishItem} disabled={savingWish}>
                 <Text style={styles.modalSaveBtnText}>{savingWish ? 'Sparar...' : 'Lägg till 🍒'}</Text>
               </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add to sale modal */}
+      <Modal visible={showAddSale} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lägg till till salu</Text>
+              <TouchableOpacity onPress={() => { setShowAddSale(false); setSaleSearch('') }}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Sök plagg..."
+              placeholderTextColor="rgba(196,115,122,0.4)"
+              value={saleSearch}
+              onChangeText={setSaleSearch}
+            />
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 8 }}>
+              {filteredSaleGarments.length === 0 ? (
+                <View style={styles.emptyTab}>
+                  <Text style={styles.emptyTabText}>Inga plagg att lägga till</Text>
+                  <Text style={styles.emptyTabHint}>Alla plagg är redan till salu eller garderoben är tom</Text>
+                </View>
+              ) : (
+                filteredSaleGarments.map((item: any) => (
+                  <TouchableOpacity key={item.id} style={styles.salePickerItem} onPress={() => addToSale(item)}>
+                    {item.image_url
+                      ? <Image source={{ uri: item.image_url }} style={styles.salePickerImage} />
+                      : <View style={styles.salePickerImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>
+                    }
+                    <View style={styles.salePickerInfo}>
+                      <Text style={styles.salePickerName}>{item.name}</Text>
+                      <Text style={styles.salePickerCategory}>{item.category}{item.color ? ` · ${item.color}` : ''}</Text>
+                      <View style={styles.salePickerStats}>
+                        <Text style={styles.salePickerStat}>👗 {item.times_worn || 0} gånger</Text>
+                        {item.last_worn
+                          ? <Text style={styles.salePickerStat}>· {new Date(item.last_worn).toLocaleDateString('sv-SE')}</Text>
+                          : <Text style={styles.salePickerStat}>· Aldrig använd</Text>
+                        }
+                      </View>
+                    </View>
+                    <View style={styles.addSaleBtn}>
+                      <Text style={styles.addSaleBtnText}>＋</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
             </ScrollView>
           </View>
         </View>
@@ -278,16 +369,17 @@ export default function Wardrobe() {
         </View>
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
-            <TouchableOpacity
-              style={[styles.iconBtn, showFilters && styles.iconBtnActive]}
-              onPress={() => setShowFilters(!showFilters)}
-            >
+            <TouchableOpacity style={[styles.iconBtn, showFilters && styles.iconBtnActive]} onPress={() => setShowFilters(!showFilters)}>
               <Text style={styles.iconBtnText}>🔍</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
             style={styles.iconBtn}
-            onPress={() => activeTab === 'köp' ? setShowAddWish(true) : router.push('/add-garment')}
+            onPress={() => {
+              if (activeTab === 'köp') setShowAddWish(true)
+              else if (activeTab === 'sälj') setShowAddSale(true)
+              else router.push('/add-garment')
+            }}
           >
             <Text style={styles.iconBtnText}>＋</Text>
           </TouchableOpacity>
@@ -310,6 +402,7 @@ export default function Wardrobe() {
         ))}
       </View>
 
+      {/* NUVARANDE */}
       {activeTab === 'nuvarande' && (
         <>
           {showFilters && (
@@ -395,15 +488,14 @@ export default function Wardrobe() {
         </>
       )}
 
+      {/* KÖP */}
       {activeTab === 'köp' && (
         <ScrollView contentContainerStyle={styles.wishScroll}>
           {wishlist.length === 0 ? (
             <View style={styles.emptyTab}>
               <Text style={styles.emptyTabIcon}>🛍️</Text>
               <Text style={styles.emptyTabText}>Din köplista är tom</Text>
-              <Text style={styles.emptyTabHint}>
-                Tryck ＋ för att lägga till ett plagg{'\n'}eller analysera en inspirationsbild
-              </Text>
+              <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga till ett plagg{'\n'}eller analysera en inspirationsbild</Text>
             </View>
           ) : (
             <>
@@ -418,32 +510,21 @@ export default function Wardrobe() {
                     activeOpacity={0.8}
                   >
                     <View style={styles.reorderCol}>
-                      <TouchableOpacity
-                        style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
-                        onPress={() => moveWishItem(index, 'up')}
-                        disabled={index === 0}
-                      >
+                      <TouchableOpacity style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]} onPress={() => moveWishItem(index, 'up')} disabled={index === 0}>
                         <Text style={styles.arrowText}>▲</Text>
                       </TouchableOpacity>
                       <Text style={styles.dragDots}>⠿</Text>
-                      <TouchableOpacity
-                        style={[styles.arrowBtn, index === wishlist.length - 1 && styles.arrowBtnDisabled]}
-                        onPress={() => moveWishItem(index, 'down')}
-                        disabled={index === wishlist.length - 1}
-                      >
+                      <TouchableOpacity style={[styles.arrowBtn, index === wishlist.length - 1 && styles.arrowBtnDisabled]} onPress={() => moveWishItem(index, 'down')} disabled={index === wishlist.length - 1}>
                         <Text style={styles.arrowText}>▼</Text>
                       </TouchableOpacity>
                     </View>
                     <View style={styles.priorityBadge}>
                       <Text style={styles.priorityNum}>{index + 1}</Text>
                     </View>
-                    {item.image_url ? (
-                      <Image source={{ uri: item.image_url }} style={styles.wishImage} />
-                    ) : (
-                      <View style={styles.wishImageEmpty}>
-                        <Text style={{ fontSize: 22 }}>🛍️</Text>
-                      </View>
-                    )}
+                    {item.image_url
+                      ? <Image source={{ uri: item.image_url }} style={styles.wishImage} />
+                      : <View style={styles.wishImageEmpty}><Text style={{ fontSize: 22 }}>🛍️</Text></View>
+                    }
                     <View style={styles.wishInfo}>
                       <Text style={styles.wishName}>{item.name}</Text>
                       <View style={styles.wishMeta}>
@@ -468,22 +549,20 @@ export default function Wardrobe() {
         </ScrollView>
       )}
 
+      {/* SÄLJ */}
       {activeTab === 'sälj' && (
         <ScrollView contentContainerStyle={styles.saleScroll}>
           {!showArchive ? (
             <>
               {forSale.length === 0 ? (
                 <View style={styles.emptyTab}>
-                  <Text style={styles.emptyTabText}>💰 Inga plagg till salu ännu</Text>
-                  <Text style={styles.emptyTabHint}>Lägg till plagg via Statistik-fliken</Text>
+                  <Text style={styles.emptyTabIcon}>💰</Text>
+                  <Text style={styles.emptyTabText}>Inga plagg till salu ännu</Text>
+                  <Text style={styles.emptyTabHint}>Tryck ＋ för att välja plagg från garderoben</Text>
                 </View>
               ) : (
                 forSale.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.saleItem}
-                    onPress={() => router.push(`/garment-detail?id=${item.id}`)}
-                  >
+                  <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                     {item.image_url
                       ? <Image source={{ uri: item.image_url }} style={styles.saleImage} />
                       : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
@@ -517,11 +596,7 @@ export default function Wardrobe() {
                 <View style={styles.emptyTab}><Text style={styles.emptyTabText}>📦 Inga arkiverade plagg</Text></View>
               ) : (
                 archived.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.saleItem, styles.archivedItem]}
-                    onPress={() => router.push(`/garment-detail?id=${item.id}`)}
-                  >
+                  <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                     {item.image_url
                       ? <Image source={{ uri: item.image_url }} style={[styles.saleImage, { opacity: 0.6 }]} />
                       : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
@@ -549,7 +624,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#9E2035', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#DDA0A7' },
-  iconBtnActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  iconBtnActive: { backgroundColor: '#7A1828', borderColor: '#9E2035' },
   iconBtnText: { fontSize: 16 },
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
@@ -586,6 +661,8 @@ const styles = StyleSheet.create({
   emptyTabIcon: { fontSize: 48, marginBottom: 12 },
   emptyTabText: { color: '#C4737A', fontSize: 16, marginBottom: 8, fontWeight: '500' },
   emptyTabHint: { color: 'rgba(196,115,122,0.5)', fontSize: 13, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
+
+  // Köp
   wishScroll: { padding: 16, paddingBottom: 100 },
   wishHint: { fontSize: 11, color: 'rgba(196,115,122,0.4)', fontStyle: 'italic', textAlign: 'center', marginBottom: 12 },
   wishItem: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', minHeight: 76 },
@@ -606,6 +683,8 @@ const styles = StyleSheet.create({
   outfitBadgeText: { fontSize: 10, color: '#DDA0A7' },
   deleteBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.6)', alignItems: 'center', justifyContent: 'center' },
   deleteBtnText: { color: '#C4737A', fontSize: 13 },
+
+  // Sälj
   saleScroll: { padding: 16, paddingBottom: 100 },
   saleItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   archivedItem: { opacity: 0.7 },
@@ -626,10 +705,22 @@ const styles = StyleSheet.create({
   backToSaleText: { color: '#C4737A', fontSize: 15 },
   archiveTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 16 },
 
-  // Modal
+  // Sale picker modal
+  salePickerItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
+  salePickerImage: { width: 56, height: 56, borderRadius: 10 },
+  salePickerImageEmpty: { width: 56, height: 56, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center' },
+  salePickerInfo: { flex: 1, gap: 2 },
+  salePickerName: { fontSize: 14, color: '#FBF3EF', fontWeight: '500' },
+  salePickerCategory: { fontSize: 11, color: '#C4737A' },
+  salePickerStats: { flexDirection: 'row', gap: 4, marginTop: 2 },
+  salePickerStat: { fontSize: 11, color: 'rgba(196,115,122,0.6)', fontStyle: 'italic' },
+  addSaleBtn: { width: 32, height: 32, borderRadius: 10, backgroundColor: '#9E2035', alignItems: 'center', justifyContent: 'center' },
+  addSaleBtnText: { color: '#FBF3EF', fontSize: 18, fontWeight: '600' },
+
+  // Modal (shared)
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#1E0509', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#FBF3EF' },
   modalClose: { fontSize: 18, color: '#C4737A', padding: 4 },
   modalLabel: { color: '#FBF3EF', fontSize: 13, fontWeight: '600', marginBottom: 8, marginTop: 12 },
@@ -641,4 +732,13 @@ const styles = StyleSheet.create({
   pillTextActive: { color: '#FBF3EF' },
   modalSaveBtn: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 20, marginBottom: 8 },
   modalSaveBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
+
+  // Image picker in modal
+  imagePicker: { borderRadius: 16, height: 160, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed', marginBottom: 8, overflow: 'hidden', backgroundColor: 'rgba(122,24,40,0.3)' },
+  imagePickerPreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  imagePickerInner: { alignItems: 'center', gap: 6 },
+  imagePickerEmoji: { fontSize: 32 },
+  imagePickerText: { color: '#C4737A', fontSize: 13 },
+  imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 6, alignItems: 'center' },
+  imageOverlayText: { color: '#FBF3EF', fontSize: 12 },
 })
