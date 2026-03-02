@@ -43,6 +43,7 @@ export default function Home() {
   const [rating, setRating] = useState<number | null>(null)
   const [ratingLoading, setRatingLoading] = useState(false)
   const [userName, setUserName] = useState('')
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   // Mood state
   const [selectedMood, setSelectedMood] = useState<number | null>(null)
@@ -68,9 +69,10 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url').eq('id', user.id).single()
       if (profile?.name) setUserName(profile.name)
       else setUserName(user.email?.split('@')[0] || '')
+      if (profile?.avatar_url) setUserAvatar(profile.avatar_url)
     }
   }
 
@@ -369,7 +371,10 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
             <Text style={styles.question}>Hur vill du{'\n'}känna dig idag?</Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/profile')} style={styles.profileBtn}>
-            <Text style={styles.profileBtnText}>👤</Text>
+            {userAvatar
+              ? <Image source={{ uri: userAvatar }} style={styles.profileBtnImage} />
+              : <Text style={styles.profileBtnText}>👤</Text>
+            }
           </TouchableOpacity>
         </View>
 
@@ -570,8 +575,9 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 16 },
   greeting: { fontSize: 22, color: '#C4737A', marginBottom: 4 },
   question: { fontSize: 34, fontWeight: 'bold', color: '#FBF3EF', lineHeight: 40 },
-  profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
+  profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', overflow: 'hidden' },
   profileBtnText: { fontSize: 18 },
+  profileBtnImage: { width: 40, height: 40, borderRadius: 20 },
 
   // Mood grid
   moodGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 24, gap: 10, marginBottom: 24 },
