@@ -37,6 +37,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savedOutfitId, setSavedOutfitId] = useState<string | null>(null)
+  const [wornToday, setWornToday] = useState(false)
+  const [wearingToday, setWearingToday] = useState(false)
   const [userName, setUserName] = useState('')
 
   // Mood state
@@ -126,6 +129,8 @@ export default function Home() {
     setSelectedMood(index)
     setOutfit(null)
     setSaved(false)
+    setSavedOutfitId(null)
+    setWornToday(false)
 
     // Animate glow
     Animated.sequence([
@@ -148,6 +153,8 @@ export default function Home() {
 
     setLoading(true)
     setSaved(false)
+    setSavedOutfitId(null)
+    setWornToday(false)
     setOutfit(null)
 
     const mood = MOODS[selectedMood]
@@ -230,17 +237,67 @@ Välj 3–4 plagg. Det måste alltid vara en nederdel (byxor eller kjol) och en 
       const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
       const garmentNames = outfit.itemsWithImages.map((i: any) => i.name)
       const imageUrls = outfit.itemsWithImages.map((i: any) => i.image_url).filter(Boolean)
-      const { error } = await supabase.from('outfits').insert([{
+      const { data: outfitData, error } = await supabase.from('outfits').insert([{
         user_id: user?.id, name: outfit.outfitName,
         garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
-      }])
+      }]).select('id').single()
       if (error) throw error
       setSaved(true)
+      setSavedOutfitId(outfitData.id)
       showAlert('Outfit sparad! 🍒', 'Du hittar den under Outfits.')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function wearToday() {
+    if (!outfit) return
+    setWearingToday(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      let outfitId = savedOutfitId
+
+      if (!outfitId) {
+        const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
+        const garmentNames = outfit.itemsWithImages.map((i: any) => i.name)
+        const imageUrls = outfit.itemsWithImages.map((i: any) => i.image_url).filter(Boolean)
+        const { data: outfitData, error: outfitError } = await supabase.from('outfits').insert([{
+          user_id: user?.id, name: outfit.outfitName,
+          garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
+        }]).select('id').single()
+        if (outfitError) throw outfitError
+        outfitId = outfitData.id
+        setSaved(true)
+        setSavedOutfitId(outfitId)
+      }
+
+      const today = new Date().toISOString().split('T')[0]
+      const { error: calError } = await supabase.from('outfit_calendar').upsert({
+        user_id: user?.id,
+        outfit_id: outfitId,
+        date: today,
+      }, { onConflict: 'user_id,date' })
+      if (calError) throw calError
+
+      const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
+      for (const gId of garmentIds) {
+        const garment = garments.find(g => g.id === gId)
+        if (garment) {
+          await supabase.from('garments').update({
+            times_worn: (garment.times_worn || 0) + 1,
+            last_worn: today,
+          }).eq('id', gId)
+        }
+      }
+
+      setWornToday(true)
+      showAlert('Outfit vald för idag! 🍒', 'Den syns nu i din kalender och plaggen räknas som använda.')
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setWearingToday(false)
     }
   }
 
@@ -405,6 +462,15 @@ Välj 3–4 plagg. Det måste alltid vara en nederdel (byxor eller kjol) och en 
                 <Text style={styles.newBtnText}>↻</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={[styles.wearTodayBtn, wornToday && styles.wearTodayBtnDone]}
+              onPress={wearToday}
+              disabled={wearingToday || wornToday}
+            >
+              <Text style={styles.wearTodayBtnText}>
+                {wearingToday ? '...' : wornToday ? '✓ Vald för idag' : '👗 Vill ha på mig idag'}
+              </Text>
+            </TouchableOpacity>
           </Animated.View>
         )}
 
@@ -496,6 +562,9 @@ const styles = StyleSheet.create({
   saveBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
   newBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   newBtnText: { color: '#DDA0A7', fontSize: 18 },
+  wearTodayBtn: { borderRadius: 12, padding: 13, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.5)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
+  wearTodayBtnDone: { backgroundColor: 'transparent', borderColor: 'rgba(196,115,122,0.2)' },
+  wearTodayBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
 
   // Stats
   statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 24 },
