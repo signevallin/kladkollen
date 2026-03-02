@@ -40,6 +40,8 @@ export default function Home() {
   const [savedOutfitId, setSavedOutfitId] = useState<string | null>(null)
   const [wornToday, setWornToday] = useState(false)
   const [wearingToday, setWearingToday] = useState(false)
+  const [rating, setRating] = useState<number | null>(null)
+  const [ratingLoading, setRatingLoading] = useState(false)
   const [userName, setUserName] = useState('')
 
   // Mood state
@@ -131,6 +133,7 @@ export default function Home() {
     setSaved(false)
     setSavedOutfitId(null)
     setWornToday(false)
+    setRating(null)
 
     // Animate glow
     Animated.sequence([
@@ -155,6 +158,7 @@ export default function Home() {
     setSaved(false)
     setSavedOutfitId(null)
     setWornToday(false)
+    setRating(null)
     setOutfit(null)
 
     const mood = MOODS[selectedMood]
@@ -163,11 +167,18 @@ export default function Home() {
     try {
       const { data: recentOutfits } = await supabase
         .from('outfits')
-        .select('garment_names')
+        .select('garment_names, rating')
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(10)
 
-      const recentGarments = recentOutfits?.flatMap(o => o.garment_names || []) || []
+      const recentGarments = recentOutfits?.slice(0, 5).flatMap(o => o.garment_names || []) || []
+
+      const likedOutfits = recentOutfits?.filter(o => o.rating >= 4).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
+      const dislikedOutfits = recentOutfits?.filter(o => o.rating <= 2 && o.rating !== null).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
+      const feedbackStr = [
+        likedOutfits.length > 0 ? `Användaren GILLADE dessa kombinationer (sträva efter liknande stil/känsla): ${likedOutfits.slice(0, 3).join(' | ')}` : '',
+        dislikedOutfits.length > 0 ? `Användaren GILLADE INTE dessa kombinationer (undvik liknande): ${dislikedOutfits.slice(0, 3).join(' | ')}` : '',
+      ].filter(Boolean).join('\n')
 
       const garmentList = garments
         .filter(g => !g.archived)
@@ -178,6 +189,7 @@ export default function Home() {
       const weatherStr = useWeather ? `Det är ${currentWeather.temp}°C ute, ${currentWeather.description}${currentWeather.rain ? ' – regn/fukt' : ''}.` : ''
       const intensityStr = INTENSITY_LABELS[intensity - 1]
       const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt dessa plagg som nyss använts: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
+      const ratingCtx = feedbackStr ? `\nAnvändarens smakprofil baserat på betyg:\n${feedbackStr}` : ''
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -192,7 +204,7 @@ Humör: ${mood.label} (${mood.emoji}) – ${mood.logic}
 Intensitet: ${intensityStr} (${intensity}/5)
 Kontext: ${contextStr}
 ${weatherStr}
-${avoidStr}
+${avoidStr}${ratingCtx}
 
 Garderob:
 ${garmentList}
@@ -303,6 +315,36 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
       showAlert('Något gick fel', e.message)
     } finally {
       setWearingToday(false)
+    }
+  }
+
+  async function rateOutfit(stars: number) {
+    if (!outfit || ratingLoading) return
+    setRatingLoading(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      let outfitId = savedOutfitId
+
+      if (!outfitId) {
+        const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
+        const garmentNames = outfit.itemsWithImages.map((i: any) => i.name)
+        const imageUrls = outfit.itemsWithImages.map((i: any) => i.image_url).filter(Boolean)
+        const { data: outfitData, error: outfitError } = await supabase.from('outfits').insert([{
+          user_id: user?.id, name: outfit.outfitName,
+          garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
+        }]).select('id').single()
+        if (outfitError) throw outfitError
+        outfitId = outfitData.id
+        setSaved(true)
+        setSavedOutfitId(outfitId)
+      }
+
+      await supabase.from('outfits').update({ rating: stars }).eq('id', outfitId)
+      setRating(stars)
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setRatingLoading(false)
     }
   }
 
@@ -455,6 +497,20 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
               </View>
             </ScrollView>
 
+            {/* Star rating */}
+            <View style={styles.ratingRow}>
+              <Text style={styles.ratingLabel}>Vad tyckte du om looken?</Text>
+              <View style={styles.stars}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <TouchableOpacity key={star} onPress={() => rateOutfit(star)} disabled={ratingLoading} activeOpacity={0.7}>
+                    <Text style={[styles.star, star <= (rating || 0) && { color: activeMood?.color || '#9E2035' }]}>
+                      {star <= (rating || 0) ? '★' : '☆'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
             <View style={styles.outfitActions}>
               <TouchableOpacity
                 style={[styles.saveBtn, saved && styles.saveBtnDone, { backgroundColor: activeMood?.color || '#9E2035' }]}
@@ -567,6 +623,11 @@ const styles = StyleSheet.create({
   saveBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
   newBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   newBtnText: { color: '#DDA0A7', fontSize: 18 },
+  ratingRow: { alignItems: 'center', gap: 8 },
+  ratingLabel: { fontSize: 12, color: '#C4737A', fontStyle: 'italic' },
+  stars: { flexDirection: 'row', gap: 6 },
+  star: { fontSize: 28, color: 'rgba(196,115,122,0.3)' },
+
   wearTodayBtn: { borderRadius: 12, padding: 13, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.5)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
   wearTodayBtnDone: { backgroundColor: 'transparent', borderColor: 'rgba(196,115,122,0.2)' },
   wearTodayBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
