@@ -190,7 +190,7 @@ ${avoidStr}
 Garderob:
 ${garmentList}
 
-Välj 3–4 plagg. Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger för känsla. Svara ENDAST med JSON, inga backticks:
+Välj 3–4 plagg. Det måste alltid vara en nederdel (byxor eller kjol) och en överdel (topp, tröja, kavaj) om inte en klänning föreslås. Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger för känsla. Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["plagg1", "plagg2", "plagg3"], "message": "Emotionellt budskap om looken."}`
           }],
           max_tokens: 250,
