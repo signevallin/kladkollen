@@ -125,18 +125,26 @@ export default function MyOutfits() {
     return days
   }
 
-  function dateStr(date: Date) {
-    return date.toISOString().split('T')[0]
-  }
+   
+function dateStr(date: Date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 
-  function isToday(date: Date) {
-    return dateStr(date) === dateStr(new Date())
-  }
+function isToday(date: Date) {
+  const t = new Date()
+  return date.getFullYear() === t.getFullYear() &&
+    date.getMonth() === t.getMonth() &&
+    date.getDate() === t.getDate()
+}
 
-  function isPast(date: Date) {
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    return date < today
-  }
+function isPast(date: Date) {
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const d = new Date(date); d.setHours(0, 0, 0, 0)
+  return d < today
+}
 
   const calendarDays = getCalendarDays()
   const today = new Date()
