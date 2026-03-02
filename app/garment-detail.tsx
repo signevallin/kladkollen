@@ -25,6 +25,7 @@ const COLORS = [
   { name: 'Grön', hex: '#43A047' }, { name: 'Gul', hex: '#FDD835' },
   { name: 'Orange', hex: '#FB8C00' }, { name: 'Guld', hex: '#C9A96E' },
 ]
+const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Gul', 'Orange', 'Guld']
 
 export default function GarmentDetail() {
   const { id, wishlistId } = useLocalSearchParams()
@@ -47,7 +48,13 @@ export default function GarmentDetail() {
 
   async function fetchWishlistItem() {
     const { data } = await supabase.from('wishlist').select('*').eq('id', wishlistId).single()
-    if (data) { setName(data.name); setCategory(data.category || ''); setImageUrl(data.image_url) }
+    if (data) {
+      setName(data.name)
+      setCategory(data.category || '')
+      setColor(data.color || '')
+      setSeasons(data.season ? [data.season] : [])
+      setImageUrl(data.image_url)
+    }
   }
 
   async function fetchGarment() {
@@ -60,7 +67,11 @@ export default function GarmentDetail() {
   }
 
   function toggleSeason(s: string) {
-    setSeasons(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
+    if (isWishlistItem) {
+      setSeasons(prev => prev.includes(s) ? [] : [s])
+    } else {
+      setSeasons(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
+    }
   }
 
   async function pickImage() {
@@ -90,7 +101,13 @@ export default function GarmentDetail() {
     try {
       let updatedImageUrl = imageUrl
       if (newImage) updatedImageUrl = await uploadImage(newImage)
-      const { error } = await supabase.from('wishlist').update({ name, category: category || null, image_url: updatedImageUrl }).eq('id', wishlistId)
+      const { error } = await supabase.from('wishlist').update({
+        name,
+        category: category || null,
+        color: color || null,
+        season: seasons[0] || null,
+        image_url: updatedImageUrl,
+      }).eq('id', wishlistId)
       if (error) throw error
       showAlert('Sparat! 🍒')
       router.back()
@@ -191,9 +208,18 @@ export default function GarmentDetail() {
           ))}
         </View>
 
-        {!isWishlistItem && (
+        {/* Färg – visas för både garderob och köplista */}
+        <Text style={styles.label}>Färg</Text>
+        {isWishlistItem ? (
+          <View style={styles.pills}>
+            {COLOR_NAMES.map((c) => (
+              <TouchableOpacity key={c} style={[styles.pill, color === c && styles.pillActive]} onPress={() => setColor(color === c ? '' : c)}>
+                <Text style={[styles.pillText, color === c && styles.pillTextActive]}>{c}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
           <>
-            <Text style={styles.label}>Färg</Text>
             <View style={styles.colorGrid}>
               {COLORS.map((c) => (
                 <TouchableOpacity key={c.name} style={[styles.colorDot, { backgroundColor: c.hex }, color === c.name && styles.colorDotActive]} onPress={() => setColor(c.name)}>
@@ -202,26 +228,30 @@ export default function GarmentDetail() {
               ))}
             </View>
             {color ? <Text style={styles.colorSelected}>Vald färg: {color}</Text> : null}
-
-            <Text style={styles.label}>Säsong</Text>
-            <View style={styles.pills}>
-              {SEASONS.map((s) => (
-                <TouchableOpacity key={s} style={[styles.pill, seasons.includes(s) && styles.pillActive]} onPress={() => toggleSeason(s)}>
-                  <Text style={[styles.pillText, seasons.includes(s) && styles.pillTextActive]}>{s}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.wornSection}>
-              <View style={styles.wornInfo}>
-                <Text style={styles.wornCount}>{timesWorn} gånger</Text>
-                <Text style={styles.wornLabel}>{lastWorn ? `Senast använd: ${new Date(lastWorn).toLocaleDateString('sv-SE')}` : 'Aldrig använd'}</Text>
-              </View>
-              <TouchableOpacity style={styles.wornButton} onPress={markAsWorn}>
-                <Text style={styles.wornButtonText}>👗 Använd idag</Text>
-              </TouchableOpacity>
-            </View>
           </>
+        )}
+
+        {/* Säsong – visas för både garderob och köplista */}
+        <Text style={styles.label}>Säsong</Text>
+        <View style={styles.pills}>
+          {SEASONS.map((s) => (
+            <TouchableOpacity key={s} style={[styles.pill, seasons.includes(s) && styles.pillActive]} onPress={() => toggleSeason(s)}>
+              <Text style={[styles.pillText, seasons.includes(s) && styles.pillTextActive]}>{s}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Bara för riktiga garderobs-plagg */}
+        {!isWishlistItem && (
+          <View style={styles.wornSection}>
+            <View style={styles.wornInfo}>
+              <Text style={styles.wornCount}>{timesWorn} gånger</Text>
+              <Text style={styles.wornLabel}>{lastWorn ? `Senast använd: ${new Date(lastWorn).toLocaleDateString('sv-SE')}` : 'Aldrig använd'}</Text>
+            </View>
+            <TouchableOpacity style={styles.wornButton} onPress={markAsWorn}>
+              <Text style={styles.wornButtonText}>👗 Använd idag</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         <TouchableOpacity style={styles.saveButton} onPress={saveChanges} disabled={loading}>

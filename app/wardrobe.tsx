@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 import {
   FlatList,
   Image,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -17,8 +18,11 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 
 const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
+const WISH_CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SEASONS = ['Alla', 'Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
+const WISH_SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const COLORS = ['Alla', 'Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Gul', 'Orange', 'Guld']
+const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Gul', 'Orange', 'Guld']
 
 export default function Wardrobe() {
   const [fontsLoaded] = useFonts({ DancingScript_400Regular })
@@ -36,6 +40,14 @@ export default function Wardrobe() {
   const [activeTab, setActiveTab] = useState('nuvarande')
   const [showFilters, setShowFilters] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
+
+  // Add to wishlist modal
+  const [showAddWish, setShowAddWish] = useState(false)
+  const [wishName, setWishName] = useState('')
+  const [wishCategory, setWishCategory] = useState('')
+  const [wishColor, setWishColor] = useState('')
+  const [wishSeason, setWishSeason] = useState('')
+  const [savingWish, setSavingWish] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
@@ -85,6 +97,34 @@ export default function Wardrobe() {
       }).length
     })
     setOutfitCounts(counts)
+  }
+
+  async function addWishItem() {
+    if (!wishName.trim()) {
+      showAlert('Fyll i ett namn!')
+      return
+    }
+    setSavingWish(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { error } = await supabase.from('wishlist').insert([{
+        user_id: user.id,
+        name: wishName.trim(),
+        category: wishCategory || null,
+        color: wishColor || null,
+        season: wishSeason || null,
+        sort_order: wishlist.length,
+      }])
+      if (error) throw error
+      setShowAddWish(false)
+      setWishName(''); setWishCategory(''); setWishColor(''); setWishSeason('')
+      fetchWishlist()
+    } catch (error: any) {
+      showAlert('Något gick fel', error.message)
+    } finally {
+      setSavingWish(false)
+    }
   }
 
   function applyFilters(searchText: string, category: string, season: string, color: string, data: any[]) {
@@ -157,6 +197,78 @@ export default function Wardrobe() {
 
   return (
     <SafeAreaView style={styles.container}>
+
+      {/* Add wishlist modal */}
+      <Modal visible={showAddWish} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lägg till på köplistan</Text>
+              <TouchableOpacity onPress={() => {
+                setShowAddWish(false)
+                setWishName(''); setWishCategory(''); setWishColor(''); setWishSeason('')
+              }}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalLabel}>Namn *</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="t.ex. Svart kappa"
+                placeholderTextColor="rgba(196,115,122,0.4)"
+                value={wishName}
+                onChangeText={setWishName}
+              />
+
+              <Text style={styles.modalLabel}>Kategori</Text>
+              <View style={styles.pillsWrap}>
+                {WISH_CATEGORIES.map(c => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[styles.pill, wishCategory === c && styles.pillActive]}
+                    onPress={() => setWishCategory(wishCategory === c ? '' : c)}
+                  >
+                    <Text style={[styles.pillText, wishCategory === c && styles.pillTextActive]}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.modalLabel}>Färg</Text>
+              <View style={styles.pillsWrap}>
+                {WISH_COLORS.map(c => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[styles.pill, wishColor === c && styles.pillActive]}
+                    onPress={() => setWishColor(wishColor === c ? '' : c)}
+                  >
+                    <Text style={[styles.pillText, wishColor === c && styles.pillTextActive]}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.modalLabel}>Säsong</Text>
+              <View style={styles.pillsWrap}>
+                {WISH_SEASONS.map(s => (
+                  <TouchableOpacity
+                    key={s}
+                    style={[styles.pill, wishSeason === s && styles.pillActive]}
+                    onPress={() => setWishSeason(wishSeason === s ? '' : s)}
+                  >
+                    <Text style={[styles.pillText, wishSeason === s && styles.pillTextActive]}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={addWishItem} disabled={savingWish}>
+                <Text style={styles.modalSaveBtnText}>{savingWish ? 'Sparar...' : 'Lägg till 🍒'}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Min garderob</Text>
@@ -173,7 +285,10 @@ export default function Wardrobe() {
               <Text style={styles.iconBtnText}>🔍</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/add-garment')}>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => activeTab === 'köp' ? setShowAddWish(true) : router.push('/add-garment')}
+          >
             <Text style={styles.iconBtnText}>＋</Text>
           </TouchableOpacity>
         </View>
@@ -287,12 +402,12 @@ export default function Wardrobe() {
               <Text style={styles.emptyTabIcon}>🛍️</Text>
               <Text style={styles.emptyTabText}>Din köplista är tom</Text>
               <Text style={styles.emptyTabHint}>
-                Analysera en inspirationsbild{'\n'}för att lägga till plagg du saknar
+                Tryck ＋ för att lägga till ett plagg{'\n'}eller analysera en inspirationsbild
               </Text>
             </View>
           ) : (
             <>
-              <Text style={styles.wishHint}>Tryck ▲▼ för att prioritera · Klicka på ett plagg för att lägga till bild</Text>
+              <Text style={styles.wishHint}>Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera</Text>
               {wishlist.map((item, index) => {
                 const count = outfitCounts[item.id] || 0
                 return (
@@ -331,7 +446,11 @@ export default function Wardrobe() {
                     )}
                     <View style={styles.wishInfo}>
                       <Text style={styles.wishName}>{item.name}</Text>
-                      {item.category ? <Text style={styles.wishCategory}>{item.category}</Text> : null}
+                      <View style={styles.wishMeta}>
+                        {item.category ? <Text style={styles.wishMetaText}>{item.category}</Text> : null}
+                        {item.color ? <Text style={styles.wishMetaText}>· {item.color}</Text> : null}
+                        {item.season ? <Text style={styles.wishMetaText}>· {item.season}</Text> : null}
+                      </View>
                       {count > 0 && (
                         <View style={styles.outfitBadge}>
                           <Text style={styles.outfitBadgeText}>👗 {count} outfit{count !== 1 ? 's' : ''}</Text>
@@ -481,7 +600,8 @@ const styles = StyleSheet.create({
   wishImageEmpty: { width: 52, height: 52, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed' },
   wishInfo: { flex: 1 },
   wishName: { fontSize: 14, color: '#FBF3EF', fontWeight: '500' },
-  wishCategory: { fontSize: 11, color: '#C4737A', marginTop: 2 },
+  wishMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 3 },
+  wishMetaText: { fontSize: 10, color: '#C4737A' },
   outfitBadge: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: 'rgba(122,24,40,0.5)', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   outfitBadgeText: { fontSize: 10, color: '#DDA0A7' },
   deleteBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.6)', alignItems: 'center', justifyContent: 'center' },
@@ -505,4 +625,20 @@ const styles = StyleSheet.create({
   backToSale: { marginBottom: 16 },
   backToSaleText: { color: '#C4737A', fontSize: 15 },
   archiveTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 16 },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#1E0509', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#FBF3EF' },
+  modalClose: { fontSize: 18, color: '#C4737A', padding: 4 },
+  modalLabel: { color: '#FBF3EF', fontSize: 13, fontWeight: '600', marginBottom: 8, marginTop: 12 },
+  modalInput: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 12, padding: 14, color: '#FBF3EF', fontSize: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', marginBottom: 4 },
+  pillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
+  pillActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  pillText: { color: '#C4737A', fontSize: 13 },
+  pillTextActive: { color: '#FBF3EF' },
+  modalSaveBtn: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 20, marginBottom: 8 },
+  modalSaveBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
 })
