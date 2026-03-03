@@ -26,11 +26,13 @@ export default function Inspiration() {
   const [activeTab, setActiveTab] = useState<'analys' | 'moodboard'>('analys')
 
   // AI-analys state
-  const [inspoImage, setInspoImage] = useState(null)
-  const [inspoBase64, setInspoBase64] = useState(null)
-  const [outfit, setOutfit] = useState(null)
+  const [inspoImage, setInspoImage] = useState<string | null>(null)
+  const [inspoBase64, setInspoBase64] = useState<string | null>(null)
+  const [outfit, setOutfit] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [addedToWishlist, setAddedToWishlist] = useState<string[]>([])
+  const [savedInspo, setSavedInspo] = useState(false)
+  const [savingInspo, setSavingInspo] = useState(false)
 
   // Moodboard state
   const [moodboardImages, setMoodboardImages] = useState<any[]>([])
@@ -56,7 +58,7 @@ export default function Inspiration() {
 
   async function pickMoodboardImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'] as any,
       allowsEditing: false,
       quality: 0.8,
     })
@@ -106,7 +108,7 @@ export default function Inspiration() {
 
   async function pickInspoImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'] as any,
       allowsEditing: true,
       aspect: [3, 4],
       quality: 0.6,
@@ -114,9 +116,10 @@ export default function Inspiration() {
     })
     if (!result.canceled) {
       setInspoImage(result.assets[0].uri)
-      setInspoBase64(result.assets[0].base64)
+      setInspoBase64(result.assets[0].base64 ?? null)
       setOutfit(null)
       setAddedToWishlist([])
+      setSavedInspo(false)
     }
   }
 
@@ -179,13 +182,39 @@ export default function Inspiration() {
           g.name.toLowerCase().includes(itemName.toLowerCase()) ||
           itemName.toLowerCase().includes(g.name.toLowerCase())
         )
-        return { name: itemName, image_url: match?.image_url || null }
+        return { name: itemName, image_url: match?.image_url || null, id: match?.id || null }
       })
       setOutfit({ ...parsed, missing: missingArray, itemsWithImages })
+      setSavedInspo(false)
     } catch (error: any) {
       Alert.alert('Något gick fel', error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function saveInspoOutfit() {
+    if (!outfit) return
+    setSavingInspo(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
+      const garmentNames = outfit.itemsWithImages.map((i: any) => i.name)
+      const imageUrls = outfit.itemsWithImages.map((i: any) => i.image_url).filter(Boolean)
+      const { error } = await supabase.from('outfits').insert([{
+        user_id: user?.id,
+        name: outfit.outfitName,
+        garment_ids: garmentIds,
+        garment_names: garmentNames,
+        image_urls: imageUrls,
+      }])
+      if (error) throw error
+      setSavedInspo(true)
+      Alert.alert('Outfit sparad! 🍒', 'Du hittar den under Outfits.')
+    } catch (e: any) {
+      Alert.alert('Något gick fel', e.message)
+    } finally {
+      setSavingInspo(false)
     }
   }
 
@@ -330,6 +359,15 @@ export default function Inspiration() {
                   <Text style={styles.tipIcon}>🍒</Text>
                   <Text style={styles.tipText}>{outfit.tip}</Text>
                 </View>
+                <TouchableOpacity
+                  style={[styles.saveInspoBtn, savedInspo && styles.saveInspoBtnDone]}
+                  onPress={saveInspoOutfit}
+                  disabled={savingInspo || savedInspo}
+                >
+                  <Text style={styles.saveInspoBtnText}>
+                    {savingInspo ? '...' : savedInspo ? '✓ Sparad i outfits' : '🍒 Spara outfit'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
           </>
@@ -425,6 +463,9 @@ const styles = StyleSheet.create({
   tipCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   tipIcon: { fontSize: 18 },
   tipText: { fontSize: 13, color: '#DDA0A7', lineHeight: 20, flex: 1, fontStyle: 'italic' },
+  saveInspoBtn: { backgroundColor: '#9E2035', borderRadius: 14, padding: 14, alignItems: 'center' },
+  saveInspoBtnDone: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
+  saveInspoBtnText: { color: '#FBF3EF', fontSize: 15, fontWeight: '600' },
 
   moodboardUploadBtn: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 20 },
   moodboardUploadBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
