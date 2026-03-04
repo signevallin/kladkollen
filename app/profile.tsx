@@ -155,7 +155,8 @@ export default function Profile() {
 
       if (inputMode === 'image') {
         // Server-side Gemini via API route
-        const apiRes = await fetch('/api/analyze-color', {
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kladkollen.vercel.app'
+        const apiRes = await fetch(`${origin}/api/analyze-color`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ base64: colorBase64 }),
