@@ -154,9 +154,9 @@ export default function Profile() {
       let text: string | null = null
 
       if (inputMode === 'image') {
-        // Gemini Vision direkt från klienten
-        const key = process.env.EXPO_PUBLIC_GEMINI_API_KEY
-        if (!key) throw new Error('GEMINI_API_KEY saknas – lägg till EXPO_PUBLIC_GEMINI_API_KEY i Vercel')
+        // Claude Vision direkt från klienten
+        const key = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY
+        if (!key) throw new Error('Anthropic API-nyckel saknas – lägg till EXPO_PUBLIC_ANTHROPIC_API_KEY i Vercel')
         const prompt = `Du är en professionell färgkonsult. Analysera färgerna i bilden och generera en detaljerad färgpalett.
 
 STEG 1 – Färgtonanalys: Identifiera undertone (varm/kall/neutral), värde (ljust/mörkt), intensitet och kontrastnivå. Beskriv hur mörka och ljusa neutraler fungerar.
@@ -169,24 +169,29 @@ STEG 4 – Säsongsanpassning: Sommar (ljusare) och vinter (djupare kontrast).
 
 Svara ENDAST med JSON, inga backticks:
 {"biologisk":{"undertone":"...","varde":"...","intensitet":"...","kontrast":"...","hudreaktion":"...","svartVitt":"..."},"palett":{"bas":[{"hex":"#...","namn":"...","motivering":"..."}],"kompletterande":[{"hex":"#...","namn":"...","motivering":"..."}],"accent":[{"hex":"#...","namn":"...","motivering":"..."}],"undvik":[{"hex":"#...","namn":"..."}]},"strategi":{"auktoritet":{"text":"...","farger":["#..."]},"tillganglighet":{"text":"...","farger":["#..."]},"kreativitet":{"text":"...","farger":["#..."]},"professionalism":{"text":"...","farger":["#..."]}},"sasong":{"sommar":"...","vinter":"..."},"sammanfattning":["...","...","...","...","..."],"garderobsAlgoritm":"..."}`
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [
-                { text: prompt },
-                { inline_data: { mime_type: 'image/jpeg', data: colorBase64 } },
-              ]}],
-              generationConfig: { maxOutputTokens: 4096 },
-            }),
-          }
-        )
-        const geminiData = await geminiRes.json()
-        if (geminiData.error) throw new Error(`Gemini: ${geminiData.error.message}`)
-        text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
-        if (!text) throw new Error('Inget svar från Gemini')
+        const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': key,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 4096,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: colorBase64 } },
+                { type: 'text', text: prompt },
+              ],
+            }],
+          }),
+        })
+        const claudeData = await claudeRes.json()
+        if (claudeData.error) throw new Error(`Claude: ${claudeData.error.message}`)
+        text = claudeData.content?.[0]?.text
+        if (!text) throw new Error('Inget svar från Claude')
       } else {
         // GPT-4o text
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
