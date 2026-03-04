@@ -55,6 +55,8 @@ export default function Profile() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
+  const [profileTab, setProfileTab] = useState<'profil' | 'farg'>('profil')
+
   // Färganalys
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysis | null>(null)
   const [analyzingColor, setAnalyzingColor] = useState(false)
@@ -315,6 +317,22 @@ Svara ENDAST med JSON, inga backticks:
           <View style={styles.avatarBadge}><Text style={styles.avatarBadgeText}>📷</Text></View>
         </TouchableOpacity>
 
+        {/* Flikar */}
+        <View style={styles.profileTabRow}>
+          {(['profil', 'farg'] as const).map(tab => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.profileTab, profileTab === tab && styles.profileTabActive]}
+              onPress={() => setProfileTab(tab)}
+            >
+              <Text style={[styles.profileTabText, profileTab === tab && styles.profileTabTextActive]}>
+                {tab === 'profil' ? '👤 Profil' : '🎨 Färganalys'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {profileTab === 'profil' && <>
         <Text style={styles.label}>Namn</Text>
         <TextInput
           style={styles.input}
@@ -355,9 +373,9 @@ Svara ENDAST med JSON, inga backticks:
         <TouchableOpacity style={styles.saveButton} onPress={saveProfile} disabled={loading}>
           <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara profil 🍒'}</Text>
         </TouchableOpacity>
+        </>}
 
-        {/* ─── FÄRGANALYS ─── */}
-        <View style={styles.colorSection}>
+        {profileTab === 'farg' && <View style={styles.colorSection}>
           <Text style={styles.colorTitle}>🎨 Färganalys</Text>
           <Text style={styles.colorSubtitle}>
             {colorAnalysis ? 'Din personliga färgprofil' : 'Ladda upp en bild eller fyll i formuläret'}
@@ -567,7 +585,7 @@ Svara ENDAST med JSON, inga backticks:
               )}
             </View>
           )}
-        </View>
+        </View>}
 
         <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
           <Text style={styles.signOutText}>Logga ut</Text>
@@ -601,8 +619,14 @@ const styles = StyleSheet.create({
   saveButton: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
   saveButtonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
 
+  profileTabRow: { flexDirection: 'row', gap: 8, marginBottom: 24, marginTop: 4 },
+  profileTab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
+  profileTabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  profileTabText: { color: '#C4737A', fontSize: 14, fontWeight: '500' },
+  profileTabTextActive: { color: '#FBF3EF', fontWeight: '700' },
+
   // ── Färganalys ──
-  colorSection: { borderTopWidth: 1, borderTopColor: 'rgba(196,115,122,0.15)', paddingTop: 24, marginTop: 12, marginBottom: 24 },
+  colorSection: { marginBottom: 24 },
   colorTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
   colorSubtitle: { fontSize: 13, color: '#C4737A', marginBottom: 16, fontStyle: 'italic' },
 
