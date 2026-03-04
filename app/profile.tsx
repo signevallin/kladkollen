@@ -154,19 +154,39 @@ export default function Profile() {
       let text: string | null = null
 
       if (inputMode === 'image') {
-        // Server-side Gemini via API route
-        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kladkollen.vercel.app'
-        const apiRes = await fetch(`${origin}/api/analyze-color`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64: colorBase64 }),
-        })
-        const apiData = await apiRes.json()
-        if (apiData.error) throw new Error(apiData.error)
-        setColorAnalysis(apiData)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) await supabase.from('profiles').update({ color_analysis: apiData }).eq('id', user.id)
-        return
+        // Gemini Vision direkt från klienten
+        const key = process.env.EXPO_PUBLIC_GEMINI_API_KEY
+        if (!key) throw new Error('GEMINI_API_KEY saknas – lägg till EXPO_PUBLIC_GEMINI_API_KEY i Vercel')
+        const prompt = `Du är en professionell färgkonsult. Analysera färgerna i bilden och generera en detaljerad färgpalett.
+
+STEG 1 – Färgtonanalys: Identifiera undertone (varm/kall/neutral), värde (ljust/mörkt), intensitet och kontrastnivå. Beskriv hur mörka och ljusa neutraler fungerar.
+
+STEG 2 – Optimal färgriktning: Ge 5 basfärger, 5 kompletterande, 3 accentfärger och 5 att undvika – med hex-koder och motivering.
+
+STEG 3 – Strategisk stilanalys: Färgkombinationer (hex) för: Auktoritet, Tillgänglighet, Kreativitet, Professionalism.
+
+STEG 4 – Säsongsanpassning: Sommar (ljusare) och vinter (djupare kontrast).
+
+Svara ENDAST med JSON, inga backticks:
+{"biologisk":{"undertone":"...","varde":"...","intensitet":"...","kontrast":"...","hudreaktion":"...","svartVitt":"..."},"palett":{"bas":[{"hex":"#...","namn":"...","motivering":"..."}],"kompletterande":[{"hex":"#...","namn":"...","motivering":"..."}],"accent":[{"hex":"#...","namn":"...","motivering":"..."}],"undvik":[{"hex":"#...","namn":"..."}]},"strategi":{"auktoritet":{"text":"...","farger":["#..."]},"tillganglighet":{"text":"...","farger":["#..."]},"kreativitet":{"text":"...","farger":["#..."]},"professionalism":{"text":"...","farger":["#..."]}},"sasong":{"sommar":"...","vinter":"..."},"sammanfattning":["...","...","...","...","..."],"garderobsAlgoritm":"..."}`
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [
+                { text: prompt },
+                { inline_data: { mime_type: 'image/jpeg', data: colorBase64 } },
+              ]}],
+              generationConfig: { maxOutputTokens: 4096 },
+            }),
+          }
+        )
+        const geminiData = await geminiRes.json()
+        if (geminiData.error) throw new Error(`Gemini: ${geminiData.error.message}`)
+        text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
+        if (!text) throw new Error('Inget svar från Gemini')
       } else {
         // GPT-4o text
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
