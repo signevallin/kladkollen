@@ -59,6 +59,9 @@ export default function Profile() {
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysis | null>(null)
   const [analyzingColor, setAnalyzingColor] = useState(false)
   const [colorSection, setColorSection] = useState<'bio' | 'palett' | 'strategi' | 'sasong'>('bio')
+  const [inputMode, setInputMode] = useState<'image' | 'form'>('image')
+  const [colorImage, setColorImage] = useState<string | null>(null)
+  const [colorBase64, setColorBase64] = useState<string | null>(null)
   const [skinTone, setSkinTone] = useState('')
   const [skinUndertone, setSkinUndertone] = useState('')
   const [hairColor, setHairColor] = useState('')
@@ -124,21 +127,104 @@ export default function Profile() {
     setAvatar(urlData.publicUrl)
   }
 
+  async function pickColorImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'] as any,
+      allowsEditing: true,
+      base64: true,
+      quality: 0.7,
+    })
+    if (!result.canceled) {
+      setColorImage(result.assets[0].uri)
+      setColorBase64(result.assets[0].base64 || null)
+    }
+  }
+
   async function analyzeColor() {
-    if (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel) {
+    if (inputMode === 'image' && !colorBase64) {
+      showAlert('Ladda upp en bild för att analysera din färgprofil')
+      return
+    }
+    if (inputMode === 'form' && (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel)) {
       showAlert('Fyll i alla fält för att analysera din färgprofil')
       return
     }
     setAnalyzingColor(true)
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{
-            role: 'user',
-            content: `Du är en professionell färgkonsult. Generera en detaljerad färgpalett baserat på följande färgprofil:
+      let text: string | null = null
+
+      if (inputMode === 'image') {
+        // Gemini Vision
+        const prompt = `Du är en professionell färgkonsult. Analysera färgerna i bilden och generera en detaljerad färgpalett.
+
+STEG 1 – Färgtonanalys:
+Identifiera undertone (varm/kall/neutral), värde (ljust/mörkt), intensitet och kontrastnivå mellan hud och hår. Beskriv hur mörka och ljusa neutraler fungerar för denna profil.
+
+STEG 2 – Optimal färgriktning:
+Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära ansiktet – alla med hex-koder och kortfattad motivering.
+
+STEG 3 – Strategisk stilanalys:
+Ge konkreta färgkombinationer (hex) som signalerar: Auktoritet, Tillgänglighet, Kreativitet, Professionalism.
+
+STEG 4 – Säsongsanpassning:
+Beskriv hur paletten justeras för sommar (ljusare) och vinter (djupare kontrast).
+
+Svara ENDAST med JSON, inga backticks:
+{
+  "biologisk": {
+    "undertone": "...",
+    "varde": "...",
+    "intensitet": "...",
+    "kontrast": "...",
+    "hudreaktion": "...",
+    "svartVitt": "..."
+  },
+  "palett": {
+    "bas": [{"hex":"#...","namn":"...","motivering":"..."}],
+    "kompletterande": [{"hex":"#...","namn":"...","motivering":"..."}],
+    "accent": [{"hex":"#...","namn":"...","motivering":"..."}],
+    "undvik": [{"hex":"#...","namn":"..."}]
+  },
+  "strategi": {
+    "auktoritet": {"text":"...","farger":["#...","#..."]},
+    "tillganglighet": {"text":"...","farger":["#...","#..."]},
+    "kreativitet": {"text":"...","farger":["#...","#..."]},
+    "professionalism": {"text":"...","farger":["#...","#..."]}
+  },
+  "sasong": {
+    "sommar": "...",
+    "vinter": "..."
+  },
+  "sammanfattning": ["punkt1","punkt2","punkt3","punkt4","punkt5"],
+  "garderobsAlgoritm": "..."
+}`
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.EXPO_PUBLIC_GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [
+                { text: prompt },
+                { inline_data: { mime_type: 'image/jpeg', data: colorBase64 } },
+              ]}],
+              generationConfig: { maxOutputTokens: 4096 },
+            }),
+          }
+        )
+        const geminiData = await geminiRes.json()
+        if (geminiData.error) throw new Error(geminiData.error.message || 'Gemini API-fel')
+        text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
+      } else {
+        // GPT-4o text
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [{
+              role: 'user',
+              content: `Du är en professionell färgkonsult. Generera en detaljerad färgpalett baserat på följande färgprofil:
 
 Hudton: ${skinTone}
 Undertone: ${skinUndertone}
@@ -190,10 +276,12 @@ Svara ENDAST med JSON, inga backticks:
           }],
           max_tokens: 4096,
         }),
-      })
-      const data = await response.json()
-      if (data.error) throw new Error(data.error.message || 'API-fel')
-      const text = data.choices?.[0]?.message?.content
+        })
+        const data = await response.json()
+        if (data.error) throw new Error(data.error.message || 'API-fel')
+        text = data.choices?.[0]?.message?.content
+      }
+
       if (!text) throw new Error('Tomt svar från AI')
       const jsonStart = text.indexOf('{')
       const jsonEnd = text.lastIndexOf('}')
@@ -205,11 +293,13 @@ Svara ENDAST med JSON, inga backticks:
       if (user) {
         await supabase.from('profiles').update({
           color_analysis: parsed,
-          skin_tone: skinTone,
-          skin_undertone: skinUndertone,
-          hair_color: hairColor,
-          eye_color: eyeColor,
-          contrast_level: contrastLevel,
+          ...(inputMode === 'form' && {
+            skin_tone: skinTone,
+            skin_undertone: skinUndertone,
+            hair_color: hairColor,
+            eye_color: eyeColor,
+            contrast_level: contrastLevel,
+          }),
         }).eq('id', user.id)
       }
     } catch (e: any) {
@@ -316,37 +406,70 @@ Svara ENDAST med JSON, inga backticks:
         <View style={styles.colorSection}>
           <Text style={styles.colorTitle}>🎨 Färganalys</Text>
           <Text style={styles.colorSubtitle}>
-            {colorAnalysis ? 'Din personliga färgprofil' : 'Beskriv din färgtyp för att få en personlig palett'}
+            {colorAnalysis ? 'Din personliga färgprofil' : 'Ladda upp en bild eller fyll i formuläret'}
           </Text>
 
+          {/* Toggle bild / formulär */}
+          <View style={styles.inputModeRow}>
+            {(['image', 'form'] as const).map(mode => (
+              <TouchableOpacity
+                key={mode}
+                style={[styles.inputModeBtn, inputMode === mode && styles.inputModeBtnActive]}
+                onPress={() => setInputMode(mode)}
+              >
+                <Text style={[styles.inputModeBtnText, inputMode === mode && styles.inputModeBtnTextActive]}>
+                  {mode === 'image' ? '📷 Ladda upp bild' : '✏️ Fyll i formulär'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Bilduppladdning */}
+          {inputMode === 'image' && (
+            <TouchableOpacity style={styles.colorUploadZone} onPress={pickColorImage}>
+              {colorImage
+                ? <Image source={{ uri: colorImage }} style={styles.colorUploadPreview} resizeMode="cover" />
+                : <>
+                    <Text style={styles.colorUploadIcon}>📸</Text>
+                    <Text style={styles.colorUploadText}>Tryck för att välja bild</Text>
+                    <Text style={styles.colorUploadHint}>Helst ett foto i naturligt ljus</Text>
+                  </>
+              }
+            </TouchableOpacity>
+          )}
+
           {/* Formulär */}
-          {[
-            { label: 'Hudton', value: skinTone, set: setSkinTone, options: ['Ljus', 'Ljus-medium', 'Medium', 'Medium-mörk', 'Mörk'] },
-            { label: 'Undertone', value: skinUndertone, set: setSkinUndertone, options: ['Varm', 'Neutral-varm', 'Neutral', 'Neutral-kall', 'Kall'] },
-            { label: 'Hårfärg', value: hairColor, set: setHairColor, options: ['Svart', 'Mörkbrun', 'Mellanbrun', 'Ljusbrun', 'Blond', 'Röd/Auburn', 'Grå/Silver'] },
-            { label: 'Ögonfärg', value: eyeColor, set: setEyeColor, options: ['Mörkbrun', 'Mellanbrun', 'Hasselnöt', 'Grön', 'Blå', 'Grå'] },
-            { label: 'Kontrast (hud vs hår)', value: contrastLevel, set: setContrastLevel, options: ['Låg', 'Medel', 'Hög'] },
-          ].map(field => (
-            <View key={field.label} style={styles.colorFormGroup}>
-              <Text style={styles.colorFormLabel}>{field.label}</Text>
-              <View style={styles.colorFormPills}>
-                {field.options.map(opt => (
-                  <TouchableOpacity
-                    key={opt}
-                    style={[styles.colorFormPill, field.value === opt && styles.colorFormPillActive]}
-                    onPress={() => field.set(opt)}
-                  >
-                    <Text style={[styles.colorFormPillText, field.value === opt && styles.colorFormPillTextActive]}>{opt}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+          {inputMode === 'form' && (
+            <View>
+              {[
+                { label: 'Hudton', value: skinTone, set: setSkinTone, options: ['Ljus', 'Ljus-medium', 'Medium', 'Medium-mörk', 'Mörk'] },
+                { label: 'Undertone', value: skinUndertone, set: setSkinUndertone, options: ['Varm', 'Neutral-varm', 'Neutral', 'Neutral-kall', 'Kall'] },
+                { label: 'Hårfärg', value: hairColor, set: setHairColor, options: ['Svart', 'Mörkbrun', 'Mellanbrun', 'Ljusbrun', 'Blond', 'Röd/Auburn', 'Grå/Silver'] },
+                { label: 'Ögonfärg', value: eyeColor, set: setEyeColor, options: ['Mörkbrun', 'Mellanbrun', 'Hasselnöt', 'Grön', 'Blå', 'Grå'] },
+                { label: 'Kontrast (hud vs hår)', value: contrastLevel, set: setContrastLevel, options: ['Låg', 'Medel', 'Hög'] },
+              ].map(field => (
+                <View key={field.label} style={styles.colorFormGroup}>
+                  <Text style={styles.colorFormLabel}>{field.label}</Text>
+                  <View style={styles.colorFormPills}>
+                    {field.options.map(opt => (
+                      <TouchableOpacity
+                        key={opt}
+                        style={[styles.colorFormPill, field.value === opt && styles.colorFormPillActive]}
+                        onPress={() => field.set(opt)}
+                      >
+                        <Text style={[styles.colorFormPillText, field.value === opt && styles.colorFormPillTextActive]}>{opt}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))}
             </View>
-          ))}
+          )}
 
           <TouchableOpacity
-            style={[styles.analyzeBtn, (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel) && styles.analyzeBtnDisabled]}
+            style={[styles.analyzeBtn, (inputMode === 'image' ? !colorBase64 : (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel)) && styles.analyzeBtnDisabled]}
             onPress={analyzeColor}
-            disabled={analyzingColor || !skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel}
+            disabled={analyzingColor || (inputMode === 'image' ? !colorBase64 : (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel))}
           >
             {analyzingColor
               ? <><ActivityIndicator color="#FBF3EF" size="small" /><Text style={styles.analyzeBtnText}> Analyserar...</Text></>
@@ -528,6 +651,18 @@ const styles = StyleSheet.create({
   colorSection: { borderTopWidth: 1, borderTopColor: 'rgba(196,115,122,0.15)', paddingTop: 24, marginTop: 12, marginBottom: 24 },
   colorTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
   colorSubtitle: { fontSize: 13, color: '#C4737A', marginBottom: 16, fontStyle: 'italic' },
+
+  inputModeRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  inputModeBtn: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
+  inputModeBtnActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  inputModeBtnText: { color: '#C4737A', fontSize: 13, fontWeight: '500' },
+  inputModeBtnTextActive: { color: '#FBF3EF', fontWeight: '700' },
+
+  colorUploadZone: { borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed', height: 180, alignItems: 'center', justifyContent: 'center', marginBottom: 16, overflow: 'hidden', backgroundColor: 'rgba(122,24,40,0.15)' },
+  colorUploadPreview: { width: '100%', height: '100%' },
+  colorUploadIcon: { fontSize: 36, marginBottom: 8 },
+  colorUploadText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
+  colorUploadHint: { color: '#C4737A', fontSize: 11, marginTop: 4 },
 
   colorFormGroup: { marginBottom: 12 },
   colorFormLabel: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5, marginBottom: 8 },
