@@ -155,6 +155,8 @@ export default function Profile() {
 
       if (inputMode === 'image') {
         // Gemini Vision
+        const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY
+        if (!geminiKey) throw new Error('Gemini API-nyckel saknas i .env (EXPO_PUBLIC_GEMINI_API_KEY)')
         const prompt = `Du är en professionell färgkonsult. Analysera färgerna i bilden och generera en detaljerad färgpalett.
 
 STEG 1 – Färgtonanalys:
@@ -199,7 +201,7 @@ Svara ENDAST med JSON, inga backticks:
   "garderobsAlgoritm": "..."
 }`
         const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
