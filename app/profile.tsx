@@ -170,7 +170,7 @@ STEG 4 – Säsongsanpassning: Sommar (ljusare) och vinter (djupare kontrast).
 Svara ENDAST med JSON, inga backticks:
 {"biologisk":{"undertone":"...","varde":"...","intensitet":"...","kontrast":"...","hudreaktion":"...","svartVitt":"..."},"palett":{"bas":[{"hex":"#...","namn":"...","motivering":"..."}],"kompletterande":[{"hex":"#...","namn":"...","motivering":"..."}],"accent":[{"hex":"#...","namn":"...","motivering":"..."}],"undvik":[{"hex":"#...","namn":"..."}]},"strategi":{"auktoritet":{"text":"...","farger":["#..."]},"tillganglighet":{"text":"...","farger":["#..."]},"kreativitet":{"text":"...","farger":["#..."]},"professionalism":{"text":"...","farger":["#..."]}},"sasong":{"sommar":"...","vinter":"..."},"sammanfattning":["...","...","...","...","..."],"garderobsAlgoritm":"..."}`
         const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${key}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${key}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
