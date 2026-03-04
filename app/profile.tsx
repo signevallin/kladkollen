@@ -144,16 +144,16 @@ export default function Profile() {
             content: [
               {
                 type: 'text',
-                text: `Du är en professionell färganalytiker. Utför en strukturerad färganalys av personen i bilden.
+                text: `Du är en professionell färgkonsult och stilanalytiker. Analysera färgtonerna som är synliga i bilden – hudton, hårfärg och eventuella plagg – för att ta fram en personlig färgpalett.
 
-STEG 1 – Biologisk analys:
-Analysera undertone (varm/kall/neutral/neutral-kall/neutral-varm), värde (ljus/medium/djup), intensitet (klar/mjuk/dämpad), kontrastnivå (låg/medel/hög), hur huden reagerar på färgen personen bär, om svart/kritvitt är harmoniskt eller hårt. Var teknisk i motiveringen.
+STEG 1 – Färgtonanalys:
+Bestäm undertone (varm/kall/neutral/neutral-kall/neutral-varm), värde (ljus/medium/djup), intensitet (klar/mjuk/dämpad) och kontrastnivå (låg/medel/hög) baserat på de synliga färgtonerna. Beskriv hur befintliga färger i bilden harmonierar eller krockar med hudtonen. Beskriv om mörka och ljusa neutraler fungerar med de synliga hudtonerna.
 
 STEG 2 – Optimal färgriktning:
-Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger, 5 färger att undvika nära ansiktet – alla med hex-koder. Förklara kort varför varje kategori fungerar.
+Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära ansiktet – alla med hex-koder. Basera detta på de synliga färgtonerna i bilden.
 
-STEG 3 – Strategisk analys:
-Ge konkreta färgkombinationer (hex) som signalerar: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
+STEG 3 – Strategisk stilanalys:
+Ge konkreta färgkombinationer (hex) för att signalera: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
 
 STEG 4 – Säsongsanpassning:
 Beskriv hur paletten justeras för sommar (ljusare, luftigare) och vinter (djupare, mer kontrast).
