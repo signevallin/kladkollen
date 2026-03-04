@@ -56,11 +56,14 @@ export default function Profile() {
   const [email, setEmail] = useState('')
 
   // Färganalys
-  const [colorImage, setColorImage] = useState<string | null>(null)
-  const [colorBase64, setColorBase64] = useState<string | null>(null)
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysis | null>(null)
   const [analyzingColor, setAnalyzingColor] = useState(false)
   const [colorSection, setColorSection] = useState<'bio' | 'palett' | 'strategi' | 'sasong'>('bio')
+  const [skinTone, setSkinTone] = useState('')
+  const [skinUndertone, setSkinUndertone] = useState('')
+  const [hairColor, setHairColor] = useState('')
+  const [eyeColor, setEyeColor] = useState('')
+  const [contrastLevel, setContrastLevel] = useState('')
 
   useEffect(() => { loadProfile() }, [])
 
@@ -76,6 +79,11 @@ export default function Profile() {
         setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
         setCurrentSeason(data.current_season || '')
         if (data.color_analysis) setColorAnalysis(data.color_analysis)
+        if (data.skin_tone) setSkinTone(data.skin_tone)
+        if (data.skin_undertone) setSkinUndertone(data.skin_undertone)
+        if (data.hair_color) setHairColor(data.hair_color)
+        if (data.eye_color) setEyeColor(data.eye_color)
+        if (data.contrast_level) setContrastLevel(data.contrast_level)
       }
     }
   }
@@ -116,22 +124,11 @@ export default function Profile() {
     setAvatar(urlData.publicUrl)
   }
 
-  async function pickColorImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'] as any,
-      allowsEditing: true,
-      aspect: [3, 4],
-      quality: 0.7,
-      base64: true,
-    })
-    if (!result.canceled) {
-      setColorImage(result.assets[0].uri)
-      setColorBase64(result.assets[0].base64 ?? null)
-    }
-  }
-
   async function analyzeColor() {
-    if (!colorBase64) return
+    if (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel) {
+      showAlert('Fyll i alla fält för att analysera din färgprofil')
+      return
+    }
     setAnalyzingColor(true)
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -139,29 +136,27 @@ export default function Profile() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
         body: JSON.stringify({
           model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a color theory expert and wardrobe consultant tool. Your task is to analyze colors visible in images — such as skin tone undertones, hair color, and clothing — using color theory principles to generate palette recommendations. You provide technical color analysis based solely on visible color values, undertones, and contrast ratios. This is a color science and fashion tool.',
-            },
-            {
+          messages: [{
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Analysera de synliga färgtonerna i denna referensbild för garderobsplanering. Identifiera hudtonens undertone, hårfärgens värde och kontrastförhållanden för att generera en harmonisk färgpalett.
+            content: `Du är en professionell färgkonsult. Generera en detaljerad färgpalett baserat på följande färgprofil:
+
+Hudton: ${skinTone}
+Undertone: ${skinUndertone}
+Hårfärg: ${hairColor}
+Ögonfärg: ${eyeColor}
+Kontrastnivå (hud vs hår): ${contrastLevel}
 
 STEG 1 – Färgtonanalys:
-Bestäm undertone (varm/kall/neutral/neutral-kall/neutral-varm), värde (ljus/medium/djup), intensitet (klar/mjuk/dämpad) och kontrastnivå (låg/medel/hög) baserat på de synliga färgtonerna. Beskriv hur färgerna i bilden harmonierar med hudtonen. Beskriv om mörka respektive ljusa neutraler fungerar med de synliga hudtonerna.
+Bekräfta undertone, värde, intensitet och kontrastnivå. Beskriv hur mörka och ljusa neutraler fungerar för denna profil, och hur svart/kritvitt upplevs.
 
 STEG 2 – Optimal färgriktning:
-Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära hudtonen – alla med hex-koder.
+Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära ansiktet – alla med hex-koder och kortfattad motivering.
 
 STEG 3 – Strategisk stilanalys:
-Ge konkreta färgkombinationer (hex) som passar för: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
+Ge konkreta färgkombinationer (hex) som signalerar: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
 
 STEG 4 – Säsongsanpassning:
-Beskriv hur paletten justeras för sommar (ljusare, luftigare) och vinter (djupare, mer kontrast).
+Beskriv hur paletten justeras för sommar (ljusare) och vinter (djupare kontrast).
 
 Svara ENDAST med JSON, inga backticks:
 {
@@ -191,10 +186,7 @@ Svara ENDAST med JSON, inga backticks:
   },
   "sammanfattning": ["punkt1","punkt2","punkt3","punkt4","punkt5"],
   "garderobsAlgoritm": "..."
-}`
-              },
-              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${colorBase64}`, detail: 'high' } },
-            ],
+}`,
           }],
           max_tokens: 4096,
         }),
@@ -205,14 +197,20 @@ Svara ENDAST med JSON, inga backticks:
       if (!text) throw new Error('Tomt svar från AI')
       const jsonStart = text.indexOf('{')
       const jsonEnd = text.lastIndexOf('}')
-      if (jsonStart === -1 || jsonEnd === -1) throw new Error(`AI svarade utan JSON: ${text.slice(0, 200)}`)
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error('AI returnerade ogiltigt svar')
       const parsed: ColorAnalysis = JSON.parse(text.slice(jsonStart, jsonEnd + 1))
       setColorAnalysis(parsed)
 
-      // Spara i profilen
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        await supabase.from('profiles').update({ color_analysis: parsed }).eq('id', user.id)
+        await supabase.from('profiles').update({
+          color_analysis: parsed,
+          skin_tone: skinTone,
+          skin_undertone: skinUndertone,
+          hair_color: hairColor,
+          eye_color: eyeColor,
+          contrast_level: contrastLevel,
+        }).eq('id', user.id)
       }
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
@@ -318,30 +316,37 @@ Svara ENDAST med JSON, inga backticks:
         <View style={styles.colorSection}>
           <Text style={styles.colorTitle}>🎨 Färganalys</Text>
           <Text style={styles.colorSubtitle}>
-            {colorAnalysis ? 'Din personliga färgprofil' : 'Ladda upp en bild för att analysera din färgprofil'}
+            {colorAnalysis ? 'Din personliga färgprofil' : 'Beskriv din färgtyp för att få en personlig palett'}
           </Text>
 
-          {/* Upload area */}
-          <TouchableOpacity style={styles.colorUploadZone} onPress={pickColorImage}>
-            {colorImage
-              ? <Image source={{ uri: colorImage }} style={styles.colorUploadImage} />
-              : <View style={styles.colorUploadPlaceholder}>
-                  <Text style={styles.colorUploadIcon}>📸</Text>
-                  <Text style={styles.colorUploadText}>Ladda upp ett foto</Text>
-                  <Text style={styles.colorUploadHint}>Bäst resultat med tydligt ansikte i naturligt ljus</Text>
-                </View>
-            }
-            {colorImage && (
-              <View style={styles.colorUploadOverlay}>
-                <Text style={styles.colorUploadOverlayText}>Byt bild</Text>
+          {/* Formulär */}
+          {[
+            { label: 'Hudton', value: skinTone, set: setSkinTone, options: ['Ljus', 'Ljus-medium', 'Medium', 'Medium-mörk', 'Mörk'] },
+            { label: 'Undertone', value: skinUndertone, set: setSkinUndertone, options: ['Varm', 'Neutral-varm', 'Neutral', 'Neutral-kall', 'Kall'] },
+            { label: 'Hårfärg', value: hairColor, set: setHairColor, options: ['Svart', 'Mörkbrun', 'Mellanbrun', 'Ljusbrun', 'Blond', 'Röd/Auburn', 'Grå/Silver'] },
+            { label: 'Ögonfärg', value: eyeColor, set: setEyeColor, options: ['Mörkbrun', 'Mellanbrun', 'Hasselnöt', 'Grön', 'Blå', 'Grå'] },
+            { label: 'Kontrast (hud vs hår)', value: contrastLevel, set: setContrastLevel, options: ['Låg', 'Medel', 'Hög'] },
+          ].map(field => (
+            <View key={field.label} style={styles.colorFormGroup}>
+              <Text style={styles.colorFormLabel}>{field.label}</Text>
+              <View style={styles.colorFormPills}>
+                {field.options.map(opt => (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[styles.colorFormPill, field.value === opt && styles.colorFormPillActive]}
+                    onPress={() => field.set(opt)}
+                  >
+                    <Text style={[styles.colorFormPillText, field.value === opt && styles.colorFormPillTextActive]}>{opt}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            )}
-          </TouchableOpacity>
+            </View>
+          ))}
 
           <TouchableOpacity
-            style={[styles.analyzeBtn, !colorImage && styles.analyzeBtnDisabled]}
+            style={[styles.analyzeBtn, (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel) && styles.analyzeBtnDisabled]}
             onPress={analyzeColor}
-            disabled={analyzingColor || !colorImage}
+            disabled={analyzingColor || !skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel}
           >
             {analyzingColor
               ? <><ActivityIndicator color="#FBF3EF" size="small" /><Text style={styles.analyzeBtnText}> Analyserar...</Text></>
@@ -524,14 +529,13 @@ const styles = StyleSheet.create({
   colorTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
   colorSubtitle: { fontSize: 13, color: '#C4737A', marginBottom: 16, fontStyle: 'italic' },
 
-  colorUploadZone: { height: 200, borderRadius: 18, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed', backgroundColor: 'rgba(122,24,40,0.2)', marginBottom: 12 },
-  colorUploadImage: { width: '100%', height: '100%' },
-  colorUploadPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
-  colorUploadIcon: { fontSize: 36 },
-  colorUploadText: { fontSize: 15, color: '#FBF3EF', fontWeight: '500' },
-  colorUploadHint: { fontSize: 11, color: 'rgba(196,115,122,0.6)', textAlign: 'center', paddingHorizontal: 16 },
-  colorUploadOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, alignItems: 'center' },
-  colorUploadOverlayText: { color: '#FBF3EF', fontSize: 13 },
+  colorFormGroup: { marginBottom: 12 },
+  colorFormLabel: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5, marginBottom: 8 },
+  colorFormPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  colorFormPill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
+  colorFormPillActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  colorFormPillText: { color: '#C4737A', fontSize: 12 },
+  colorFormPillTextActive: { color: '#FBF3EF', fontWeight: '600' },
 
   analyzeBtn: { backgroundColor: '#9E2035', borderRadius: 14, padding: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 16 },
   analyzeBtnDisabled: { opacity: 0.4 },
