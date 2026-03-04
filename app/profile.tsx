@@ -154,70 +154,18 @@ export default function Profile() {
       let text: string | null = null
 
       if (inputMode === 'image') {
-        // Gemini Vision
-        const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY
-        if (!geminiKey) throw new Error('Gemini API-nyckel saknas i .env (EXPO_PUBLIC_GEMINI_API_KEY)')
-        const prompt = `Du är en professionell färgkonsult. Analysera färgerna i bilden och generera en detaljerad färgpalett.
-
-STEG 1 – Färgtonanalys:
-Identifiera undertone (varm/kall/neutral), värde (ljust/mörkt), intensitet och kontrastnivå mellan hud och hår. Beskriv hur mörka och ljusa neutraler fungerar för denna profil.
-
-STEG 2 – Optimal färgriktning:
-Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära ansiktet – alla med hex-koder och kortfattad motivering.
-
-STEG 3 – Strategisk stilanalys:
-Ge konkreta färgkombinationer (hex) som signalerar: Auktoritet, Tillgänglighet, Kreativitet, Professionalism.
-
-STEG 4 – Säsongsanpassning:
-Beskriv hur paletten justeras för sommar (ljusare) och vinter (djupare kontrast).
-
-Svara ENDAST med JSON, inga backticks:
-{
-  "biologisk": {
-    "undertone": "...",
-    "varde": "...",
-    "intensitet": "...",
-    "kontrast": "...",
-    "hudreaktion": "...",
-    "svartVitt": "..."
-  },
-  "palett": {
-    "bas": [{"hex":"#...","namn":"...","motivering":"..."}],
-    "kompletterande": [{"hex":"#...","namn":"...","motivering":"..."}],
-    "accent": [{"hex":"#...","namn":"...","motivering":"..."}],
-    "undvik": [{"hex":"#...","namn":"..."}]
-  },
-  "strategi": {
-    "auktoritet": {"text":"...","farger":["#...","#..."]},
-    "tillganglighet": {"text":"...","farger":["#...","#..."]},
-    "kreativitet": {"text":"...","farger":["#...","#..."]},
-    "professionalism": {"text":"...","farger":["#...","#..."]}
-  },
-  "sasong": {
-    "sommar": "...",
-    "vinter": "..."
-  },
-  "sammanfattning": ["punkt1","punkt2","punkt3","punkt4","punkt5"],
-  "garderobsAlgoritm": "..."
-}`
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [
-                { text: prompt },
-                { inline_data: { mime_type: 'image/jpeg', data: colorBase64 } },
-              ]}],
-              generationConfig: { maxOutputTokens: 4096 },
-            }),
-          }
-        )
-        const geminiData = await geminiRes.json()
-        if (geminiData.error) throw new Error(`Gemini: ${geminiData.error.message || JSON.stringify(geminiData.error)}`)
-        text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
-        if (!text) throw new Error(`Gemini returnerade inget svar. Raw: ${JSON.stringify(geminiData).slice(0, 300)}`)
+        // Server-side Gemini via API route
+        const apiRes = await fetch('/api/analyze-color', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base64: colorBase64 }),
+        })
+        const apiData = await apiRes.json()
+        if (apiData.error) throw new Error(apiData.error)
+        setColorAnalysis(apiData)
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) await supabase.from('profiles').update({ color_analysis: apiData }).eq('id', user.id)
+        return
       } else {
         // GPT-4o text
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
