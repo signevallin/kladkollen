@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
+  ActivityIndicator,
   Image,
   SafeAreaView,
   ScrollView,
@@ -19,35 +20,62 @@ const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig'
 const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter']
 
+const STRATEGY_LABELS: Record<string, { label: string; emoji: string }> = {
+  auktoritet:      { label: 'Auktoritet',      emoji: '👑' },
+  tillganglighet:  { label: 'Tillgänglighet',  emoji: '🤝' },
+  kreativitet:     { label: 'Kreativitet',      emoji: '🎨' },
+  professionalism: { label: 'Professionalism',  emoji: '💼' },
+}
+
+interface ColorItem { hex: string; namn: string; motivering?: string }
+interface ColorAnalysis {
+  biologisk: {
+    undertone: string; varde: string; intensitet: string; kontrast: string
+    hudreaktion: string; svartVitt: string
+  }
+  palett: {
+    bas: ColorItem[]
+    kompletterande: ColorItem[]
+    accent: ColorItem[]
+    undvik: ColorItem[]
+  }
+  strategi: Record<string, { text: string; farger: string[] }>
+  sasong: { sommar: string; vinter: string }
+  sammanfattning: string[]
+  garderobsAlgoritm: string
+}
+
 export default function Profile() {
   const [fontsLoaded] = useFonts({ DancingScript_400Regular })
   const [name, setName] = useState('')
-  const [avatar, setAvatar] = useState(null)
+  const [avatar, setAvatar] = useState<string | null>(null)
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
   const [colorPrefs, setColorPrefs] = useState<string[]>([])
   const [currentSeason, setCurrentSeason] = useState('')
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
-  useEffect(() => {
-    loadProfile()
-  }, [])
+  // Färganalys
+  const [colorImage, setColorImage] = useState<string | null>(null)
+  const [colorBase64, setColorBase64] = useState<string | null>(null)
+  const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysis | null>(null)
+  const [analyzingColor, setAnalyzingColor] = useState(false)
+  const [colorSection, setColorSection] = useState<'bio' | 'palett' | 'strategi' | 'sasong'>('bio')
+
+  useEffect(() => { loadProfile() }, [])
 
   async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       setEmail(user.email || '')
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
       if (data) {
         setName(data.name || '')
         setAvatar(data.avatar_url || null)
         setStylePrefs(data.style_prefs ? data.style_prefs.split(', ') : [])
         setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
         setCurrentSeason(data.current_season || '')
+        if (data.color_analysis) setColorAnalysis(data.color_analysis)
       }
     }
   }
@@ -62,7 +90,7 @@ export default function Profile() {
 
   async function pickAvatar() {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'] as any,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -82,11 +110,105 @@ export default function Profile() {
     const arrayBuffer = await response.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
     await supabase.storage.from('garments').upload(`avatars/${filename}`, uint8Array, {
-      contentType: 'image/jpeg',
-      upsert: true,
+      contentType: 'image/jpeg', upsert: true,
     })
     const { data: urlData } = supabase.storage.from('garments').getPublicUrl(`avatars/${filename}`)
     setAvatar(urlData.publicUrl)
+  }
+
+  async function pickColorImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'] as any,
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 0.7,
+      base64: true,
+    })
+    if (!result.canceled) {
+      setColorImage(result.assets[0].uri)
+      setColorBase64(result.assets[0].base64 ?? null)
+    }
+  }
+
+  async function analyzeColor() {
+    if (!colorBase64) return
+    setAnalyzingColor(true)
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `Du är en professionell färganalytiker. Utför en strukturerad färganalys av personen i bilden.
+
+STEG 1 – Biologisk analys:
+Analysera undertone (varm/kall/neutral/neutral-kall/neutral-varm), värde (ljus/medium/djup), intensitet (klar/mjuk/dämpad), kontrastnivå (låg/medel/hög), hur huden reagerar på färgen personen bär, om svart/kritvitt är harmoniskt eller hårt. Var teknisk i motiveringen.
+
+STEG 2 – Optimal färgriktning:
+Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger, 5 färger att undvika nära ansiktet – alla med hex-koder. Förklara kort varför varje kategori fungerar.
+
+STEG 3 – Strategisk analys:
+Ge konkreta färgkombinationer (hex) som signalerar: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
+
+STEG 4 – Säsongsanpassning:
+Beskriv hur paletten justeras för sommar (ljusare, luftigare) och vinter (djupare, mer kontrast).
+
+Svara ENDAST med JSON, inga backticks:
+{
+  "biologisk": {
+    "undertone": "...",
+    "varde": "...",
+    "intensitet": "...",
+    "kontrast": "...",
+    "hudreaktion": "...",
+    "svartVitt": "..."
+  },
+  "palett": {
+    "bas": [{"hex":"#...","namn":"...","motivering":"..."}],
+    "kompletterande": [{"hex":"#...","namn":"...","motivering":"..."}],
+    "accent": [{"hex":"#...","namn":"...","motivering":"..."}],
+    "undvik": [{"hex":"#...","namn":"..."}]
+  },
+  "strategi": {
+    "auktoritet": {"text":"...","farger":["#...","#..."]},
+    "tillganglighet": {"text":"...","farger":["#...","#..."]},
+    "kreativitet": {"text":"...","farger":["#...","#..."]},
+    "professionalism": {"text":"...","farger":["#...","#..."]}
+  },
+  "sasong": {
+    "sommar": "...",
+    "vinter": "..."
+  },
+  "sammanfattning": ["punkt1","punkt2","punkt3","punkt4","punkt5"],
+  "garderobsAlgoritm": "..."
+}`
+              },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${colorBase64}`, detail: 'high' } },
+            ],
+          }],
+          max_tokens: 1500,
+        }),
+      })
+      const data = await response.json()
+      const text = data.choices[0].message.content
+      const parsed: ColorAnalysis = JSON.parse(text.replace(/```json|```/g, '').trim())
+      setColorAnalysis(parsed)
+
+      // Spara i profilen
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('profiles').update({ color_analysis: parsed }).eq('id', user.id)
+      }
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setAnalyzingColor(false)
+    }
   }
 
   async function saveProfile() {
@@ -131,21 +253,14 @@ export default function Profile() {
         </TouchableOpacity>
 
         <Text style={styles.title}>Min profil</Text>
-        {fontsLoaded && (
-          <Text style={styles.subtitle}>{email}</Text>
-        )}
+        {fontsLoaded && <Text style={styles.subtitle}>{email}</Text>}
 
         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar}>
-          {avatar ? (
-            <Image source={{ uri: avatar }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarEmoji}>👤</Text>
-            </View>
-          )}
-          <View style={styles.avatarBadge}>
-            <Text style={styles.avatarBadgeText}>📷</Text>
-          </View>
+          {avatar
+            ? <Image source={{ uri: avatar }} style={styles.avatar} />
+            : <View style={styles.avatarPlaceholder}><Text style={styles.avatarEmoji}>👤</Text></View>
+          }
+          <View style={styles.avatarBadge}><Text style={styles.avatarBadgeText}>📷</Text></View>
         </TouchableOpacity>
 
         <Text style={styles.label}>Namn</Text>
@@ -161,11 +276,7 @@ export default function Profile() {
         <Text style={styles.hint}>Välj en eller flera</Text>
         <View style={styles.pills}>
           {STYLES.map(s => (
-            <TouchableOpacity
-              key={s}
-              style={[styles.pill, stylePrefs.includes(s) && styles.pillActive]}
-              onPress={() => toggleStyle(s)}
-            >
+            <TouchableOpacity key={s} style={[styles.pill, stylePrefs.includes(s) && styles.pillActive]} onPress={() => toggleStyle(s)}>
               <Text style={[styles.pillText, stylePrefs.includes(s) && styles.pillTextActive]}>{s}</Text>
             </TouchableOpacity>
           ))}
@@ -174,11 +285,7 @@ export default function Profile() {
         <Text style={styles.label}>Favoritfärger</Text>
         <View style={styles.pills}>
           {FAVORITE_COLORS.map(c => (
-            <TouchableOpacity
-              key={c}
-              style={[styles.pill, colorPrefs.includes(c) && styles.pillActive]}
-              onPress={() => toggleColor(c)}
-            >
+            <TouchableOpacity key={c} style={[styles.pill, colorPrefs.includes(c) && styles.pillActive]} onPress={() => toggleColor(c)}>
               <Text style={[styles.pillText, colorPrefs.includes(c) && styles.pillTextActive]}>{c}</Text>
             </TouchableOpacity>
           ))}
@@ -187,11 +294,7 @@ export default function Profile() {
         <Text style={styles.label}>Nuvarande säsong</Text>
         <View style={styles.pills}>
           {SEASONS.map(s => (
-            <TouchableOpacity
-              key={s}
-              style={[styles.pill, currentSeason === s && styles.pillActive]}
-              onPress={() => setCurrentSeason(s)}
-            >
+            <TouchableOpacity key={s} style={[styles.pill, currentSeason === s && styles.pillActive]} onPress={() => setCurrentSeason(s)}>
               <Text style={[styles.pillText, currentSeason === s && styles.pillTextActive]}>{s}</Text>
             </TouchableOpacity>
           ))}
@@ -200,6 +303,179 @@ export default function Profile() {
         <TouchableOpacity style={styles.saveButton} onPress={saveProfile} disabled={loading}>
           <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara profil 🍒'}</Text>
         </TouchableOpacity>
+
+        {/* ─── FÄRGANALYS ─── */}
+        <View style={styles.colorSection}>
+          <Text style={styles.colorTitle}>🎨 Färganalys</Text>
+          <Text style={styles.colorSubtitle}>
+            {colorAnalysis ? 'Din personliga färgprofil' : 'Ladda upp en bild för att analysera din färgprofil'}
+          </Text>
+
+          {/* Upload area */}
+          <TouchableOpacity style={styles.colorUploadZone} onPress={pickColorImage}>
+            {colorImage
+              ? <Image source={{ uri: colorImage }} style={styles.colorUploadImage} />
+              : <View style={styles.colorUploadPlaceholder}>
+                  <Text style={styles.colorUploadIcon}>📸</Text>
+                  <Text style={styles.colorUploadText}>Ladda upp ett foto</Text>
+                  <Text style={styles.colorUploadHint}>Bäst resultat med tydligt ansikte i naturligt ljus</Text>
+                </View>
+            }
+            {colorImage && (
+              <View style={styles.colorUploadOverlay}>
+                <Text style={styles.colorUploadOverlayText}>Byt bild</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.analyzeBtn, !colorImage && styles.analyzeBtnDisabled]}
+            onPress={analyzeColor}
+            disabled={analyzingColor || !colorImage}
+          >
+            {analyzingColor
+              ? <><ActivityIndicator color="#FBF3EF" size="small" /><Text style={styles.analyzeBtnText}> Analyserar...</Text></>
+              : <Text style={styles.analyzeBtnText}>✨ {colorAnalysis ? 'Analysera igen' : 'Analysera färgprofil'}</Text>
+            }
+          </TouchableOpacity>
+
+          {/* Results */}
+          {colorAnalysis && (
+            <View style={styles.colorResults}>
+
+              {/* Bio chips */}
+              <View style={styles.bioChips}>
+                {[
+                  { label: 'Undertone', value: colorAnalysis.biologisk.undertone },
+                  { label: 'Värde',     value: colorAnalysis.biologisk.varde },
+                  { label: 'Intensitet',value: colorAnalysis.biologisk.intensitet },
+                  { label: 'Kontrast',  value: colorAnalysis.biologisk.kontrast },
+                ].map(chip => (
+                  <View key={chip.label} style={styles.bioChip}>
+                    <Text style={styles.bioChipLabel}>{chip.label.toUpperCase()}</Text>
+                    <Text style={styles.bioChipValue}>{chip.value}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Tab nav */}
+              <View style={styles.colorTabRow}>
+                {(['bio', 'palett', 'strategi', 'sasong'] as const).map(tab => (
+                  <TouchableOpacity
+                    key={tab}
+                    style={[styles.colorTab, colorSection === tab && styles.colorTabActive]}
+                    onPress={() => setColorSection(tab)}
+                  >
+                    <Text style={[styles.colorTabText, colorSection === tab && styles.colorTabTextActive]}>
+                      {tab === 'bio' ? 'Analys' : tab === 'palett' ? 'Palett' : tab === 'strategi' ? 'Stil' : 'Säsong'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* BIO tab */}
+              {colorSection === 'bio' && (
+                <View style={styles.tabContent}>
+                  <View style={styles.bioCard}>
+                    <Text style={styles.bioCardTitle}>Hudreaktion</Text>
+                    <Text style={styles.bioCardText}>{colorAnalysis.biologisk.hudreaktion}</Text>
+                  </View>
+                  <View style={styles.bioCard}>
+                    <Text style={styles.bioCardTitle}>Svart & kritvitt</Text>
+                    <Text style={styles.bioCardText}>{colorAnalysis.biologisk.svartVitt}</Text>
+                  </View>
+                  {colorAnalysis.sammanfattning.length > 0 && (
+                    <View style={styles.summaryCard}>
+                      <Text style={styles.summaryTitle}>Sammanfattning</Text>
+                      {colorAnalysis.sammanfattning.map((punkt, i) => (
+                        <View key={i} style={styles.summaryRow}>
+                          <View style={styles.summaryDot} />
+                          <Text style={styles.summaryText}>{punkt}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* PALETT tab */}
+              {colorSection === 'palett' && (
+                <View style={styles.tabContent}>
+                  {([
+                    { key: 'bas',            label: 'Basfärger',          items: colorAnalysis.palett.bas },
+                    { key: 'kompletterande', label: 'Kompletterande',      items: colorAnalysis.palett.kompletterande },
+                    { key: 'accent',         label: 'Accenter',            items: colorAnalysis.palett.accent },
+                    { key: 'undvik',         label: 'Undvik nära ansiktet',items: colorAnalysis.palett.undvik },
+                  ] as { key: string; label: string; items: ColorItem[] }[]).map(group => (
+                    <View key={group.key} style={styles.paletteGroup}>
+                      <Text style={styles.paletteGroupLabel}>
+                        {group.key === 'undvik' ? '🚫 ' : '✓ '}{group.label}
+                      </Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View style={styles.swatchRow}>
+                          {group.items.map((item, i) => (
+                            <View key={i} style={styles.swatchWrap}>
+                              <View style={[styles.swatch, { backgroundColor: item.hex }, group.key === 'undvik' && styles.swatchAvoid]}>
+                                {group.key === 'undvik' && <Text style={styles.swatchX}>✕</Text>}
+                              </View>
+                              <Text style={styles.swatchHex}>{item.hex}</Text>
+                              <Text style={styles.swatchName} numberOfLines={1}>{item.namn}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* STRATEGI tab */}
+              {colorSection === 'strategi' && (
+                <View style={styles.tabContent}>
+                  {Object.entries(colorAnalysis.strategi).map(([key, val]) => {
+                    const meta = STRATEGY_LABELS[key] || { label: key, emoji: '🎯' }
+                    return (
+                      <View key={key} style={styles.strategiCard}>
+                        <View style={styles.strategiHeader}>
+                          <Text style={styles.strategiEmoji}>{meta.emoji}</Text>
+                          <Text style={styles.strategiLabel}>{meta.label}</Text>
+                          <View style={styles.strategiSwatches}>
+                            {val.farger.slice(0, 4).map((hex, i) => (
+                              <View key={i} style={[styles.strategiSwatch, { backgroundColor: hex }]} />
+                            ))}
+                          </View>
+                        </View>
+                        <Text style={styles.strategiText}>{val.text}</Text>
+                      </View>
+                    )
+                  })}
+                </View>
+              )}
+
+              {/* SÄSONG tab */}
+              {colorSection === 'sasong' && (
+                <View style={styles.tabContent}>
+                  <View style={styles.sasongsCard}>
+                    <Text style={styles.sasongsIcon}>🌞</Text>
+                    <Text style={styles.sasongsTitle}>Sommar</Text>
+                    <Text style={styles.sasongsText}>{colorAnalysis.sasong.sommar}</Text>
+                  </View>
+                  <View style={styles.sasongsCard}>
+                    <Text style={styles.sasongsIcon}>❄️</Text>
+                    <Text style={styles.sasongsTitle}>Vinter</Text>
+                    <Text style={styles.sasongsText}>{colorAnalysis.sasong.vinter}</Text>
+                  </View>
+                  {colorAnalysis.garderobsAlgoritm && (
+                    <View style={styles.algoritmCard}>
+                      <Text style={styles.algoritmTitle}>🤖 Garderobsalgoritm</Text>
+                      <Text style={styles.algoritmText}>{colorAnalysis.garderobsAlgoritm}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
 
         <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
           <Text style={styles.signOutText}>Logga ut</Text>
@@ -211,7 +487,7 @@ export default function Profile() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#150408' },
-  scroll: { padding: 24 },
+  scroll: { padding: 24, paddingBottom: 60 },
   backButton: { marginBottom: 16 },
   backButtonText: { color: '#C4737A', fontSize: 15 },
   title: { fontSize: 32, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
@@ -232,6 +508,77 @@ const styles = StyleSheet.create({
   pillTextActive: { color: '#FBF3EF' },
   saveButton: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
   saveButtonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
+
+  // ── Färganalys ──
+  colorSection: { borderTopWidth: 1, borderTopColor: 'rgba(196,115,122,0.15)', paddingTop: 24, marginTop: 12, marginBottom: 24 },
+  colorTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
+  colorSubtitle: { fontSize: 13, color: '#C4737A', marginBottom: 16, fontStyle: 'italic' },
+
+  colorUploadZone: { height: 200, borderRadius: 18, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed', backgroundColor: 'rgba(122,24,40,0.2)', marginBottom: 12 },
+  colorUploadImage: { width: '100%', height: '100%' },
+  colorUploadPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
+  colorUploadIcon: { fontSize: 36 },
+  colorUploadText: { fontSize: 15, color: '#FBF3EF', fontWeight: '500' },
+  colorUploadHint: { fontSize: 11, color: 'rgba(196,115,122,0.6)', textAlign: 'center', paddingHorizontal: 16 },
+  colorUploadOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, alignItems: 'center' },
+  colorUploadOverlayText: { color: '#FBF3EF', fontSize: 13 },
+
+  analyzeBtn: { backgroundColor: '#9E2035', borderRadius: 14, padding: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 16 },
+  analyzeBtnDisabled: { opacity: 0.4 },
+  analyzeBtnText: { color: '#FBF3EF', fontSize: 15, fontWeight: '600' },
+
+  colorResults: { gap: 14 },
+
+  bioChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  bioChip: { backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', minWidth: '45%', flex: 1 },
+  bioChipLabel: { fontSize: 9, color: '#C4737A', letterSpacing: 1.5, fontWeight: '600', marginBottom: 2 },
+  bioChipValue: { fontSize: 14, color: '#FBF3EF', fontWeight: '600', textTransform: 'capitalize' },
+
+  colorTabRow: { flexDirection: 'row', gap: 6 },
+  colorTab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  colorTabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  colorTabText: { fontSize: 11, color: '#C4737A', fontWeight: '500' },
+  colorTabTextActive: { color: '#FBF3EF', fontWeight: '700' },
+
+  tabContent: { gap: 12 },
+
+  bioCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  bioCardTitle: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5, marginBottom: 6 },
+  bioCardText: { fontSize: 13, color: '#FBF3EF', lineHeight: 20 },
+
+  summaryCard: { backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  summaryTitle: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5, marginBottom: 2 },
+  summaryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  summaryDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#C4737A', marginTop: 7, flexShrink: 0 },
+  summaryText: { fontSize: 13, color: '#FBF3EF', lineHeight: 20, flex: 1 },
+
+  paletteGroup: { gap: 8 },
+  paletteGroupLabel: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5 },
+  swatchRow: { flexDirection: 'row', gap: 10, paddingVertical: 4 },
+  swatchWrap: { alignItems: 'center', gap: 4, width: 56 },
+  swatch: { width: 48, height: 48, borderRadius: 12 },
+  swatchAvoid: { opacity: 0.7 },
+  swatchX: { position: 'absolute', color: 'rgba(255,255,255,0.9)', fontSize: 18, fontWeight: 'bold', textAlign: 'center', lineHeight: 48, width: 48 },
+  swatchHex: { fontSize: 9, color: '#C4737A', fontFamily: 'monospace' },
+  swatchName: { fontSize: 9, color: 'rgba(196,115,122,0.7)', textAlign: 'center', width: 56 },
+
+  strategiCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  strategiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  strategiEmoji: { fontSize: 18 },
+  strategiLabel: { fontSize: 14, color: '#FBF3EF', fontWeight: '600', flex: 1 },
+  strategiSwatches: { flexDirection: 'row', gap: 4 },
+  strategiSwatch: { width: 20, height: 20, borderRadius: 10 },
+  strategiText: { fontSize: 13, color: '#DDA0A7', lineHeight: 20 },
+
+  sasongsCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 16, gap: 6, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  sasongsIcon: { fontSize: 22 },
+  sasongsTitle: { fontSize: 15, color: '#FBF3EF', fontWeight: '600' },
+  sasongsText: { fontSize: 13, color: '#DDA0A7', lineHeight: 20 },
+
+  algoritmCard: { backgroundColor: 'rgba(122,24,40,0.2)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.1)' },
+  algoritmTitle: { fontSize: 13, color: '#C4737A', fontWeight: '600' },
+  algoritmText: { fontSize: 12, color: 'rgba(196,115,122,0.8)', lineHeight: 18, fontStyle: 'italic' },
+
   signOutButton: { borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
   signOutText: { color: '#C4737A', fontSize: 16 },
 })
