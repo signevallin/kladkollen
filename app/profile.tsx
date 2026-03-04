@@ -199,7 +199,7 @@ Svara ENDAST med JSON, inga backticks:
   "garderobsAlgoritm": "..."
 }`
         const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.EXPO_PUBLIC_GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.EXPO_PUBLIC_GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -213,8 +213,9 @@ Svara ENDAST med JSON, inga backticks:
           }
         )
         const geminiData = await geminiRes.json()
-        if (geminiData.error) throw new Error(geminiData.error.message || 'Gemini API-fel')
+        if (geminiData.error) throw new Error(`Gemini: ${geminiData.error.message || JSON.stringify(geminiData.error)}`)
         text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
+        if (!text) throw new Error(`Gemini returnerade inget svar. Raw: ${JSON.stringify(geminiData).slice(0, 300)}`)
       } else {
         // GPT-4o text
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
