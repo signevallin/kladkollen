@@ -191,14 +191,16 @@ Svara ENDAST med JSON, inga backticks:
               { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${colorBase64}`, detail: 'high' } },
             ],
           }],
-          max_tokens: 1500,
+          max_tokens: 4096,
         }),
       })
       const data = await response.json()
-      const text = data.choices[0].message.content
+      if (data.error) throw new Error(data.error.message || 'API-fel')
+      const text = data.choices?.[0]?.message?.content
+      if (!text) throw new Error('Tomt svar från AI')
       const jsonStart = text.indexOf('{')
       const jsonEnd = text.lastIndexOf('}')
-      if (jsonStart === -1 || jsonEnd === -1) throw new Error('AI returnerade inget giltigt JSON-svar')
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error(`AI svarade utan JSON: ${text.slice(0, 200)}`)
       const parsed: ColorAnalysis = JSON.parse(text.slice(jsonStart, jsonEnd + 1))
       setColorAnalysis(parsed)
 
