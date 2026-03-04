@@ -139,21 +139,26 @@ export default function Profile() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
         body: JSON.stringify({
           model: 'gpt-4o',
-          messages: [{
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a color theory expert and wardrobe consultant tool. Your task is to analyze colors visible in images — such as skin tone undertones, hair color, and clothing — using color theory principles to generate palette recommendations. You provide technical color analysis based solely on visible color values, undertones, and contrast ratios. This is a color science and fashion tool.',
+            },
+            {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Du är en professionell färgkonsult och stilanalytiker. Analysera färgtonerna som är synliga i bilden – hudton, hårfärg och eventuella plagg – för att ta fram en personlig färgpalett.
+                text: `Analysera de synliga färgtonerna i denna referensbild för garderobsplanering. Identifiera hudtonens undertone, hårfärgens värde och kontrastförhållanden för att generera en harmonisk färgpalett.
 
 STEG 1 – Färgtonanalys:
-Bestäm undertone (varm/kall/neutral/neutral-kall/neutral-varm), värde (ljus/medium/djup), intensitet (klar/mjuk/dämpad) och kontrastnivå (låg/medel/hög) baserat på de synliga färgtonerna. Beskriv hur befintliga färger i bilden harmonierar eller krockar med hudtonen. Beskriv om mörka och ljusa neutraler fungerar med de synliga hudtonerna.
+Bestäm undertone (varm/kall/neutral/neutral-kall/neutral-varm), värde (ljus/medium/djup), intensitet (klar/mjuk/dämpad) och kontrastnivå (låg/medel/hög) baserat på de synliga färgtonerna. Beskriv hur färgerna i bilden harmonierar med hudtonen. Beskriv om mörka respektive ljusa neutraler fungerar med de synliga hudtonerna.
 
 STEG 2 – Optimal färgriktning:
-Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära ansiktet – alla med hex-koder. Basera detta på de synliga färgtonerna i bilden.
+Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära hudtonen – alla med hex-koder.
 
 STEG 3 – Strategisk stilanalys:
-Ge konkreta färgkombinationer (hex) för att signalera: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
+Ge konkreta färgkombinationer (hex) som passar för: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
 
 STEG 4 – Säsongsanpassning:
 Beskriv hur paletten justeras för sommar (ljusare, luftigare) och vinter (djupare, mer kontrast).
