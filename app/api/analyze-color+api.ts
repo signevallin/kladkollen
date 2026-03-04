@@ -1,5 +1,3 @@
-import { type ExpoRequest, type ExpoResponse } from 'expo-router/server'
-
 const PROMPT = `Du är en professionell färgkonsult. Analysera färgerna i bilden och generera en detaljerad färgpalett.
 
 STEG 1 – Färgtonanalys:
@@ -44,16 +42,16 @@ Svara ENDAST med JSON, inga backticks:
   "garderobsAlgoritm": "..."
 }`
 
-export async function POST(request: ExpoRequest): Promise<ExpoResponse> {
+export async function POST(request: Request): Promise<Response> {
   try {
     const { base64 } = await request.json()
     if (!base64) {
-      return Response.json({ error: 'base64 saknas' }, { status: 400 }) as ExpoResponse
+      return Response.json({ error: 'base64 saknas' }, { status: 400 })
     }
 
     const key = process.env.GEMINI_API_KEY
     if (!key) {
-      return Response.json({ error: 'GEMINI_API_KEY saknas på servern' }, { status: 500 }) as ExpoResponse
+      return Response.json({ error: 'GEMINI_API_KEY saknas på servern' }, { status: 500 })
     }
 
     const geminiRes = await fetch(
@@ -73,23 +71,23 @@ export async function POST(request: ExpoRequest): Promise<ExpoResponse> {
 
     const data = await geminiRes.json()
     if (data.error) {
-      return Response.json({ error: data.error.message || 'Gemini API-fel' }, { status: 400 }) as ExpoResponse
+      return Response.json({ error: data.error.message || 'Gemini API-fel' }, { status: 400 })
     }
 
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text
     if (!text) {
-      return Response.json({ error: 'Inget svar från Gemini' }, { status: 500 }) as ExpoResponse
+      return Response.json({ error: 'Inget svar från Gemini' }, { status: 500 })
     }
 
     const jsonStart = text.indexOf('{')
     const jsonEnd = text.lastIndexOf('}')
     if (jsonStart === -1 || jsonEnd === -1) {
-      return Response.json({ error: `Ogiltigt JSON-svar: ${text.slice(0, 200)}` }, { status: 500 }) as ExpoResponse
+      return Response.json({ error: `Ogiltigt JSON-svar: ${text.slice(0, 200)}` }, { status: 500 })
     }
 
     const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1))
-    return Response.json(parsed) as ExpoResponse
+    return Response.json(parsed)
   } catch (e: any) {
-    return Response.json({ error: e.message }, { status: 500 }) as ExpoResponse
+    return Response.json({ error: e.message }, { status: 500 })
   }
 }
