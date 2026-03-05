@@ -38,11 +38,13 @@ type GarmentDraft = {
   id: string
   uri: string
   base64: string
+  processedBase64: string | null
   name: string
   category: string
   color: string
   seasons: string[]
   analyzing: boolean
+  removingBg: boolean
 }
 
 export default function AddGarment() {
@@ -63,32 +65,63 @@ export default function AddGarment() {
       id: `${Date.now()}-${i}`,
       uri: asset.uri,
       base64: asset.base64 || '',
+      processedBase64: null,
       name: '',
       category: '',
       color: '',
       seasons: [],
       analyzing: true,
+      removingBg: true,
     }))
     setDrafts(newDrafts)
     setStep('review')
 
-    // Analyze each photo sequentially
+    // Process each photo sequentially; AI analysis + BG removal run in parallel per photo
     for (const draft of newDrafts) {
-      try {
-        const res = await fetch('/api/analyze-garment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64: draft.base64 }),
-        })
-        const data = await res.json()
-        setDrafts(prev => prev.map(d =>
-          d.id === draft.id
-            ? { ...d, name: data.name || '', category: data.category || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
-            : d
-        ))
-      } catch {
-        setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, analyzing: false } : d))
-      }
+      await Promise.all([
+        // AI analysis
+        (async () => {
+          try {
+            const res = await fetch('/api/analyze-garment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ base64: draft.base64 }),
+            })
+            const data = await res.json()
+            setDrafts(prev => prev.map(d =>
+              d.id === draft.id
+                ? { ...d, name: data.name || '', category: data.category || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
+                : d
+            ))
+          } catch {
+            setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, analyzing: false } : d))
+          }
+        })(),
+
+        // Background removal
+        (async () => {
+          try {
+            const res = await fetch('/api/remove-background', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ base64: draft.base64 }),
+            })
+            const data = await res.json()
+            if (data.base64) {
+              const dataUri = `data:image/png;base64,${data.base64}`
+              setDrafts(prev => prev.map(d =>
+                d.id === draft.id
+                  ? { ...d, processedBase64: data.base64, uri: dataUri, removingBg: false }
+                  : d
+              ))
+            } else {
+              setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
+            }
+          } catch {
+            setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
+          }
+        })(),
+      ])
     }
   }
 
@@ -114,20 +147,36 @@ export default function AddGarment() {
     })
   }
 
-  async function uploadImage(uri: string) {
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`
-    const filePath = `public/${filename}`
-    const response = await fetch(uri)
-    const arrayBuffer = await response.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-    const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
-    if (error) throw error
-    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-    return urlData.publicUrl
+  async function uploadImage(draft: GarmentDraft) {
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(2)}`
+
+    if (draft.processedBase64) {
+      // Upload background-removed PNG
+      const filePath = `public/${filename}.png`
+      const binaryStr = atob(draft.processedBase64)
+      const bytes = new Uint8Array(binaryStr.length)
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i)
+      }
+      const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: 'image/png', upsert: true })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+      return urlData.publicUrl
+    } else {
+      // Fall back to original JPEG
+      const filePath = `public/${filename}.jpg`
+      const response = await fetch(draft.uri)
+      const arrayBuffer = await response.arrayBuffer()
+      const uint8Array = new Uint8Array(arrayBuffer)
+      const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+      return urlData.publicUrl
+    }
   }
 
   async function saveAll() {
-    const ready = drafts.filter(d => !d.analyzing)
+    const ready = drafts.filter(d => !d.analyzing && !d.removingBg)
     if (ready.some(d => !d.name || !d.category)) {
       Alert.alert('Fyll i namn och kategori för alla plagg')
       return
@@ -137,7 +186,7 @@ export default function AddGarment() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Inte inloggad')
       for (const draft of ready) {
-        const imageUrl = draft.uri ? await uploadImage(draft.uri) : null
+        const imageUrl = await uploadImage(draft)
         await supabase.from('garments').insert([{
           user_id: user.id,
           name: draft.name,
@@ -168,7 +217,7 @@ export default function AddGarment() {
           <TouchableOpacity style={styles.pickBtn} onPress={pickImages}>
             <Text style={styles.pickBtnIcon}>📷</Text>
             <Text style={styles.pickBtnTitle}>Välj foton</Text>
-            <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna</Text>
+            <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -176,7 +225,7 @@ export default function AddGarment() {
   }
 
   // ── REVIEW STEP ────────────────────────────────────────────
-  const readyCount = drafts.filter(d => !d.analyzing).length
+  const processingCount = drafts.filter(d => d.analyzing || d.removingBg).length
   const totalCount = drafts.length
 
   return (
@@ -187,93 +236,104 @@ export default function AddGarment() {
         </TouchableOpacity>
         <Text style={styles.title}>Granska plagg</Text>
 
-        {readyCount < totalCount && (
+        {processingCount > 0 && (
           <View style={styles.progressRow}>
             <ActivityIndicator color="#C4737A" size="small" />
-            <Text style={styles.progressText}>AI analyserar {readyCount}/{totalCount}...</Text>
+            <Text style={styles.progressText}>Bearbetar {totalCount - processingCount}/{totalCount}...</Text>
           </View>
         )}
 
-        {drafts.map((draft) => (
-          <View key={draft.id} style={styles.card}>
-            {/* Header: thumbnail + name + remove */}
-            <View style={styles.cardHeader}>
-              <Image source={{ uri: draft.uri }} style={styles.cardThumb} resizeMode="cover" />
-              <View style={styles.cardNameWrap}>
-                {draft.analyzing ? (
-                  <View style={styles.analyzingRow}>
-                    <ActivityIndicator color="#C4737A" size="small" />
-                    <Text style={styles.analyzingText}>Analyserar...</Text>
-                  </View>
-                ) : (
-                  <TextInput
-                    style={styles.cardNameInput}
-                    value={draft.name}
-                    onChangeText={v => updateDraft(draft.id, 'name', v)}
-                    placeholder="Namn på plagget"
-                    placeholderTextColor="rgba(196,115,122,0.5)"
-                  />
-                )}
-              </View>
-              <TouchableOpacity style={styles.removeBtn} onPress={() => removeDraft(draft.id)}>
-                <Text style={styles.removeBtnText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+        {drafts.map((draft) => {
+          const isProcessing = draft.analyzing || draft.removingBg
+          const statusText = draft.analyzing && draft.removingBg
+            ? 'Analyserar & tar bort bakgrund...'
+            : draft.analyzing
+            ? 'AI analyserar...'
+            : 'Tar bort bakgrund...'
 
-            {!draft.analyzing && (
-              <>
-                {/* Category */}
-                <Text style={styles.cardLabel}>KATEGORI</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View style={styles.pillRow}>
-                    {CATEGORIES.map(cat => (
+          return (
+            <View key={draft.id} style={styles.card}>
+              {/* Header: thumbnail + name + remove */}
+              <View style={styles.cardHeader}>
+                <View style={[styles.cardThumbWrap, !!draft.processedBase64 && styles.cardThumbBg]}>
+                  <Image source={{ uri: draft.uri }} style={styles.cardThumb} resizeMode="contain" />
+                </View>
+                <View style={styles.cardNameWrap}>
+                  {isProcessing ? (
+                    <View style={styles.analyzingRow}>
+                      <ActivityIndicator color="#C4737A" size="small" />
+                      <Text style={styles.analyzingText}>{statusText}</Text>
+                    </View>
+                  ) : (
+                    <TextInput
+                      style={styles.cardNameInput}
+                      value={draft.name}
+                      onChangeText={v => updateDraft(draft.id, 'name', v)}
+                      placeholder="Namn på plagget"
+                      placeholderTextColor="rgba(196,115,122,0.5)"
+                    />
+                  )}
+                </View>
+                <TouchableOpacity style={styles.removeBtn} onPress={() => removeDraft(draft.id)}>
+                  <Text style={styles.removeBtnText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {!isProcessing && (
+                <>
+                  {/* Category */}
+                  <Text style={styles.cardLabel}>KATEGORI</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.pillRow}>
+                      {CATEGORIES.map(cat => (
+                        <TouchableOpacity
+                          key={cat}
+                          style={[styles.pill, draft.category === cat && styles.pillActive]}
+                          onPress={() => updateDraft(draft.id, 'category', cat)}
+                        >
+                          <Text style={[styles.pillText, draft.category === cat && styles.pillTextActive]}>{cat}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
+
+                  {/* Color */}
+                  <Text style={styles.cardLabel}>FÄRG</Text>
+                  <View style={styles.colorRow}>
+                    {COLORS.map(c => (
                       <TouchableOpacity
-                        key={cat}
-                        style={[styles.pill, draft.category === cat && styles.pillActive]}
-                        onPress={() => updateDraft(draft.id, 'category', cat)}
+                        key={c.name}
+                        style={[styles.colorDot, { backgroundColor: c.hex }, draft.color === c.name && styles.colorDotActive]}
+                        onPress={() => updateDraft(draft.id, 'color', c.name)}
                       >
-                        <Text style={[styles.pillText, draft.category === cat && styles.pillTextActive]}>{cat}</Text>
+                        {draft.color === c.name && <Text style={styles.colorCheck}>✓</Text>}
                       </TouchableOpacity>
                     ))}
                   </View>
-                </ScrollView>
 
-                {/* Color */}
-                <Text style={styles.cardLabel}>FÄRG</Text>
-                <View style={styles.colorRow}>
-                  {COLORS.map(c => (
-                    <TouchableOpacity
-                      key={c.name}
-                      style={[styles.colorDot, { backgroundColor: c.hex }, draft.color === c.name && styles.colorDotActive]}
-                      onPress={() => updateDraft(draft.id, 'color', c.name)}
-                    >
-                      {draft.color === c.name && <Text style={styles.colorCheck}>✓</Text>}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Season */}
-                <Text style={styles.cardLabel}>SÄSONG</Text>
-                <View style={styles.pillRow}>
-                  {SEASONS.map(s => (
-                    <TouchableOpacity
-                      key={s}
-                      style={[styles.pill, draft.seasons.includes(s) && styles.pillActive]}
-                      onPress={() => toggleDraftSeason(draft.id, s)}
-                    >
-                      <Text style={[styles.pillText, draft.seasons.includes(s) && styles.pillTextActive]}>{s}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            )}
-          </View>
-        ))}
+                  {/* Season */}
+                  <Text style={styles.cardLabel}>SÄSONG</Text>
+                  <View style={styles.pillRow}>
+                    {SEASONS.map(s => (
+                      <TouchableOpacity
+                        key={s}
+                        style={[styles.pill, draft.seasons.includes(s) && styles.pillActive]}
+                        onPress={() => toggleDraftSeason(draft.id, s)}
+                      >
+                        <Text style={[styles.pillText, draft.seasons.includes(s) && styles.pillTextActive]}>{s}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+            </View>
+          )
+        })}
 
         <TouchableOpacity
-          style={[styles.saveButton, (saving || readyCount < totalCount) && styles.saveButtonDisabled]}
+          style={[styles.saveButton, (saving || processingCount > 0) && styles.saveButtonDisabled]}
           onPress={saveAll}
-          disabled={saving || readyCount < totalCount}
+          disabled={saving || processingCount > 0}
         >
           <Text style={styles.saveButtonText}>
             {saving ? 'Sparar...' : `Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'} 🍒`}
@@ -319,7 +379,15 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', gap: 10,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  cardThumb: { width: 64, height: 80, borderRadius: 10 },
+  cardThumbWrap: {
+    width: 64, height: 80, borderRadius: 10, overflow: 'hidden',
+  },
+  cardThumbBg: {
+    backgroundColor: 'rgba(251,243,239,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(196,115,122,0.15)',
+  },
+  cardThumb: { width: 64, height: 80 },
   cardNameWrap: { flex: 1 },
   cardNameInput: {
     backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 10,
