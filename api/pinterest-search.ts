@@ -6,16 +6,27 @@ export default async function handler(request: Request): Promise<Response> {
   }
   try {
     const { query } = await request.json() as any
-    const token = process.env.PINTEREST_ACCESS_TOKEN
-    if (!token) {
-      return new Response(JSON.stringify({ error: 'Pinterest-token saknas på servern' }), { status: 500 })
+    const key = process.env.UNSPLASH_ACCESS_KEY
+    if (!key) {
+      return new Response(JSON.stringify({ error: 'Unsplash-nyckel saknas på servern' }), { status: 500 })
     }
     const res = await fetch(
-      `https://api.pinterest.com/v5/pins/search?query=${encodeURIComponent(query)}&page_size=24`,
-      { headers: { 'Authorization': `Bearer ${token}` } }
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=24&orientation=portrait`,
+      { headers: { 'Authorization': `Client-ID ${key}` } }
     )
     const data = await res.json()
-    return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } })
+    // Normalize to same shape as before: { items: [...] }
+    const items = (data.results || []).map((photo: any) => ({
+      id: photo.id,
+      media: {
+        images: {
+          '600x': { url: photo.urls?.regular || photo.urls?.small },
+          '400x300': { url: photo.urls?.small },
+          '150x150': { url: photo.urls?.thumb },
+        }
+      }
+    }))
+    return new Response(JSON.stringify({ items }), { headers: { 'Content-Type': 'application/json' } })
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500 })
   }

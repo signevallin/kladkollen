@@ -430,12 +430,12 @@ export default function Inspiration() {
             {/* Pinterest-sektion */}
             <View style={styles.pinterestSection}>
               <View style={styles.pinterestHeader}>
-                <Text style={styles.pinterestTitle}>📌 Pinterest</Text>
+                <Text style={styles.pinterestTitle}>🔍 Sök inspiration</Text>
               </View>
               <View style={styles.pinterestSearchRow}>
                 <TextInput
                   style={styles.pinterestInput}
-                  placeholder="Sök t.ex. outfit, minimalist..."
+                  placeholder="Sök t.ex. outfit, minimalist, boho..."
                   placeholderTextColor="rgba(196,115,122,0.5)"
                   value={pinterestQuery}
                   onChangeText={setPinterestQuery}
