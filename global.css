@@ -3,3 +3,9 @@ html, body, #root {
   margin: 0;
   padding: 0;
 }
+
+/* React Native Web wraps Image in a div that can default to white.
+   Force transparent so PNG cut-outs show the card background correctly. */
+img {
+  background-color: transparent !important;
+}

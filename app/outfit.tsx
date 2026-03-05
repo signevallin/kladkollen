@@ -368,6 +368,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 12,
+    backgroundColor: 'transparent',
   },
   outfitItemEmoji: {
     fontSize: 32,

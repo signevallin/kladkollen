@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   imagePickerInner: { alignItems: 'center', gap: 8 },
   imagePickerEmoji: { fontSize: 40 },
   imagePickerText: { color: '#C4737A', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
-  previewImage: { width: '100%', height: '100%', resizeMode: 'contain' },
+  previewImage: { width: '100%', height: '100%', resizeMode: 'contain', backgroundColor: 'transparent' },
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
   imageOverlayText: { color: '#FBF3EF', fontSize: 12, fontWeight: '500' },
   label: { color: '#FBF3EF', fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 4 },

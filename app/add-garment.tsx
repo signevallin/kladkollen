@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(196,115,122,0.15)',
   },
-  cardThumb: { width: 64, height: 80 },
+  cardThumb: { width: 64, height: 80, backgroundColor: 'transparent' },
   cardNameWrap: { flex: 1 },
   cardNameInput: {
     backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 10,
