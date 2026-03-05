@@ -41,7 +41,6 @@ export default function Inspiration() {
   const [uploadingMoodboard, setUploadingMoodboard] = useState(false)
 
   // Pinterest state
-  const [pinterestToken, setPinterestToken] = useState<string | null>(null)
   const [pinterestQuery, setPinterestQuery] = useState('')
   const [pinterestPins, setPinterestPins] = useState<any[]>([])
   const [searchingPins, setSearchingPins] = useState(false)
@@ -50,10 +49,6 @@ export default function Inspiration() {
   useFocusEffect(
     useCallback(() => {
       fetchMoodboard()
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('pinterest_access_token')
-        setPinterestToken(token)
-      }
     }, [])
   )
 
@@ -118,37 +113,16 @@ export default function Inspiration() {
     ])
   }
 
-  function connectPinterest() {
-    if (typeof window === 'undefined') return
-    const appId = process.env.EXPO_PUBLIC_PINTEREST_APP_ID
-    if (!appId) { Alert.alert('Pinterest App ID saknas'); return }
-    const redirectUri = encodeURIComponent(`${window.location.origin}/oauth/pinterest`)
-    const state = Math.random().toString(36).substring(2)
-    localStorage.setItem('pinterest_oauth_state', state)
-    window.location.href = `https://www.pinterest.com/oauth/?client_id=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=boards:read,pins:read&state=${state}`
-  }
-
-  function disconnectPinterest() {
-    if (typeof window !== 'undefined') localStorage.removeItem('pinterest_access_token')
-    setPinterestToken(null)
-    setPinterestPins([])
-  }
-
   async function searchPinterest() {
-    if (!pinterestToken || !pinterestQuery.trim()) return
+    if (!pinterestQuery.trim()) return
     setSearchingPins(true)
     setPinterestPins([])
     try {
       const res = await fetch('/api/pinterest-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: pinterestQuery, token: pinterestToken }),
+        body: JSON.stringify({ query: pinterestQuery }),
       })
-      if (res.status === 401) {
-        disconnectPinterest()
-        Alert.alert('Pinterest-sessionen har gått ut', 'Anslut Pinterest igen.')
-        return
-      }
       const data = await res.json()
       if (data.error) throw new Error(data.error)
       setPinterestPins(data.items || [])
@@ -454,71 +428,58 @@ export default function Inspiration() {
             </TouchableOpacity>
 
             {/* Pinterest-sektion */}
-            {!pinterestToken ? (
-              <TouchableOpacity style={styles.pinterestConnectBtn} onPress={connectPinterest}>
-                <Text style={styles.pinterestConnectIcon}>📌</Text>
-                <View>
-                  <Text style={styles.pinterestConnectTitle}>Sök inspiration på Pinterest</Text>
-                  <Text style={styles.pinterestConnectHint}>Anslut ditt Pinterest-konto</Text>
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.pinterestSection}>
-                <View style={styles.pinterestHeader}>
-                  <Text style={styles.pinterestTitle}>📌 Pinterest</Text>
-                  <TouchableOpacity onPress={disconnectPinterest}>
-                    <Text style={styles.pinterestDisconnect}>Koppla bort</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.pinterestSearchRow}>
-                  <TextInput
-                    style={styles.pinterestInput}
-                    placeholder="Sök t.ex. outfit, minimalist..."
-                    placeholderTextColor="rgba(196,115,122,0.5)"
-                    value={pinterestQuery}
-                    onChangeText={setPinterestQuery}
-                    onSubmitEditing={searchPinterest}
-                    returnKeyType="search"
-                  />
-                  <TouchableOpacity
-                    style={[styles.pinterestSearchBtn, (!pinterestQuery.trim() || searchingPins) && styles.pinterestSearchBtnDisabled]}
-                    onPress={searchPinterest}
-                    disabled={!pinterestQuery.trim() || searchingPins}
-                  >
-                    {searchingPins
-                      ? <ActivityIndicator color="#FBF3EF" size="small" />
-                      : <Text style={styles.pinterestSearchBtnText}>Sök</Text>
-                    }
-                  </TouchableOpacity>
-                </View>
-
-                {pinterestPins.length > 0 && (
-                  <View style={styles.pinterestGrid}>
-                    {pinterestPins.map((pin) => {
-                      const imgUrl = getPinImageUrl(pin)
-                      if (!imgUrl) return null
-                      const added = addedPins.has(pin.id)
-                      return (
-                        <View key={pin.id} style={styles.pinterestPinWrap}>
-                          <Image source={{ uri: imgUrl }} style={styles.pinterestPinImage} resizeMode="cover" />
-                          <TouchableOpacity
-                            style={[styles.pinterestAddBtn, added && styles.pinterestAddBtnDone]}
-                            onPress={() => !added && addPinToMoodboard(pin)}
-                            disabled={added}
-                          >
-                            <Text style={styles.pinterestAddBtnText}>{added ? '✓' : '+'}</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )
-                    })}
-                  </View>
-                )}
-
-                {!searchingPins && pinterestPins.length === 0 && pinterestQuery.trim() && (
-                  <Text style={styles.pinterestNoResults}>Inga pins hittades – prova ett annat sökord</Text>
-                )}
+            <View style={styles.pinterestSection}>
+              <View style={styles.pinterestHeader}>
+                <Text style={styles.pinterestTitle}>📌 Pinterest</Text>
               </View>
-            )}
+              <View style={styles.pinterestSearchRow}>
+                <TextInput
+                  style={styles.pinterestInput}
+                  placeholder="Sök t.ex. outfit, minimalist..."
+                  placeholderTextColor="rgba(196,115,122,0.5)"
+                  value={pinterestQuery}
+                  onChangeText={setPinterestQuery}
+                  onSubmitEditing={searchPinterest}
+                  returnKeyType="search"
+                />
+                <TouchableOpacity
+                  style={[styles.pinterestSearchBtn, (!pinterestQuery.trim() || searchingPins) && styles.pinterestSearchBtnDisabled]}
+                  onPress={searchPinterest}
+                  disabled={!pinterestQuery.trim() || searchingPins}
+                >
+                  {searchingPins
+                    ? <ActivityIndicator color="#FBF3EF" size="small" />
+                    : <Text style={styles.pinterestSearchBtnText}>Sök</Text>
+                  }
+                </TouchableOpacity>
+              </View>
+
+              {pinterestPins.length > 0 && (
+                <View style={styles.pinterestGrid}>
+                  {pinterestPins.map((pin) => {
+                    const imgUrl = getPinImageUrl(pin)
+                    if (!imgUrl) return null
+                    const added = addedPins.has(pin.id)
+                    return (
+                      <View key={pin.id} style={styles.pinterestPinWrap}>
+                        <Image source={{ uri: imgUrl }} style={styles.pinterestPinImage} resizeMode="cover" />
+                        <TouchableOpacity
+                          style={[styles.pinterestAddBtn, added && styles.pinterestAddBtnDone]}
+                          onPress={() => !added && addPinToMoodboard(pin)}
+                          disabled={added}
+                        >
+                          <Text style={styles.pinterestAddBtnText}>{added ? '✓' : '+'}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )
+                  })}
+                </View>
+              )}
+
+              {!searchingPins && pinterestPins.length === 0 && pinterestQuery.trim() && (
+                <Text style={styles.pinterestNoResults}>Inga pins hittades – prova ett annat sökord</Text>
+              )}
+            </View>
 
             {moodboardImages.length === 0 ? (
               <View style={styles.moodboardEmpty}>
@@ -604,15 +565,9 @@ const styles = StyleSheet.create({
   saveInspoBtnDone: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
   saveInspoBtnText: { color: '#FBF3EF', fontSize: 15, fontWeight: '600' },
 
-  pinterestConnectBtn: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  pinterestConnectIcon: { fontSize: 28 },
-  pinterestConnectTitle: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
-  pinterestConnectHint: { color: '#C4737A', fontSize: 12, marginTop: 2 },
-
   pinterestSection: { backgroundColor: 'rgba(122,24,40,0.2)', borderRadius: 16, padding: 14, marginBottom: 20, gap: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   pinterestHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   pinterestTitle: { color: '#FBF3EF', fontSize: 15, fontWeight: '700' },
-  pinterestDisconnect: { color: '#C4737A', fontSize: 12 },
   pinterestSearchRow: { flexDirection: 'row', gap: 8 },
   pinterestInput: { flex: 1, backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, color: '#FBF3EF', fontSize: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.25)' },
   pinterestSearchBtn: { backgroundColor: '#9E2035', borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' },
