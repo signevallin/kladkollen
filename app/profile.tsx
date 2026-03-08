@@ -19,6 +19,9 @@ import { showAlert, showConfirm } from '../utils/alert'
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter']
+const STIL_PROFIL = ['Minimal', 'Casual', 'Elegant', 'Sport', 'Bohemisk', 'Streetwear']
+const COLOR_PROFILES = ['Varm', 'Kall', 'Neutral']
+const LIFESTYLE = ['Kontor', 'Hybridjobb', 'Fritid', 'Träning']
 
 const STRATEGY_LABELS: Record<string, { label: string; emoji: string }> = {
   auktoritet:      { label: 'Auktoritet',      emoji: '👑' },
@@ -55,7 +58,12 @@ export default function Profile() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
-  const [profileTab, setProfileTab] = useState<'profil' | 'farg'>('profil')
+  const [profileTab, setProfileTab] = useState<'profil' | 'stilprofil' | 'farg'>('profil')
+
+  // Stilprofil
+  const [stilProfil, setStilProfil] = useState<string[]>([])
+  const [fargsatt, setFargsatt] = useState('')
+  const [livsstil, setLivsstil] = useState<string[]>([])
 
   // Färganalys
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysis | null>(null)
@@ -89,6 +97,9 @@ export default function Profile() {
         if (data.hair_color) setHairColor(data.hair_color)
         if (data.eye_color) setEyeColor(data.eye_color)
         if (data.contrast_level) setContrastLevel(data.contrast_level)
+        if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
+        if (data.fargsatt) setFargsatt(data.fargsatt)
+        if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
       }
     }
   }
@@ -277,6 +288,9 @@ Svara ENDAST med JSON, inga backticks:
         style_prefs: stylePrefs.join(', '),
         color_prefs: colorPrefs.join(', '),
         current_season: currentSeason,
+        stil_profil: stilProfil.join(', '),
+        fargsatt,
+        livsstil: livsstil.join(', '),
       })
       if (error) throw error
       showAlert('Sparat! 🍒')
@@ -319,14 +333,14 @@ Svara ENDAST med JSON, inga backticks:
 
         {/* Flikar */}
         <View style={styles.profileTabRow}>
-          {(['profil', 'farg'] as const).map(tab => (
+          {(['profil', 'stilprofil', 'farg'] as const).map(tab => (
             <TouchableOpacity
               key={tab}
               style={[styles.profileTab, profileTab === tab && styles.profileTabActive]}
               onPress={() => setProfileTab(tab)}
             >
               <Text style={[styles.profileTabText, profileTab === tab && styles.profileTabTextActive]}>
-                {tab === 'profil' ? '👤 Profil' : '🎨 Färganalys'}
+                {tab === 'profil' ? '👤 Profil' : tab === 'stilprofil' ? '✨ Stilprofil' : '🎨 Färg'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -374,6 +388,82 @@ Svara ENDAST med JSON, inga backticks:
           <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara profil 🍒'}</Text>
         </TouchableOpacity>
         </>}
+
+        {/* STILPROFIL */}
+        {profileTab === 'stilprofil' && (
+          <View style={styles.stilprofilSection}>
+
+            <Text style={styles.label}>Stilriktning</Text>
+            <Text style={styles.hint}>Välj en eller flera</Text>
+            <View style={styles.pills}>
+              {STIL_PROFIL.map(s => (
+                <TouchableOpacity
+                  key={s}
+                  style={[styles.pill, stilProfil.includes(s) && styles.pillActive]}
+                  onPress={() => setStilProfil(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
+                >
+                  <Text style={[styles.pillText, stilProfil.includes(s) && styles.pillTextActive]}>{s}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.label}>Färgprofil</Text>
+            <View style={styles.pills}>
+              {COLOR_PROFILES.map(c => (
+                <TouchableOpacity
+                  key={c}
+                  style={[styles.pill, fargsatt === c && styles.pillActive]}
+                  onPress={() => setFargsatt(prev => prev === c ? '' : c)}
+                >
+                  <Text style={[styles.pillText, fargsatt === c && styles.pillTextActive]}>{c}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.label}>Livsstil</Text>
+            <Text style={styles.hint}>Välj en eller flera</Text>
+            <View style={styles.pills}>
+              {LIFESTYLE.map(l => (
+                <TouchableOpacity
+                  key={l}
+                  style={[styles.pill, livsstil.includes(l) && styles.pillActive]}
+                  onPress={() => setLivsstil(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l])}
+                >
+                  <Text style={[styles.pillText, livsstil.includes(l) && styles.pillTextActive]}>{l}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Generated style profile card */}
+            {(stilProfil.length > 0 || fargsatt || livsstil.length > 0) && (
+              <View style={styles.stilprofilCard}>
+                <Text style={styles.stilprofilCardLabel}>Din stilprofil</Text>
+                {stilProfil.length > 0 && (
+                  <View style={styles.stilprofilRow}>
+                    <Text style={styles.stilprofilEmoji}>✨</Text>
+                    <Text style={styles.stilprofilValue}>{stilProfil.join(' · ')}</Text>
+                  </View>
+                )}
+                {fargsatt !== '' && (
+                  <View style={styles.stilprofilRow}>
+                    <Text style={styles.stilprofilEmoji}>🎨</Text>
+                    <Text style={styles.stilprofilValue}>{fargsatt} färgpalett</Text>
+                  </View>
+                )}
+                {livsstil.length > 0 && (
+                  <View style={styles.stilprofilRow}>
+                    <Text style={styles.stilprofilEmoji}>💼</Text>
+                    <Text style={styles.stilprofilValue}>{livsstil.join(' · ')}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            <TouchableOpacity style={styles.saveButton} onPress={saveProfile} disabled={loading}>
+              <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara stilprofil 🍒'}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {profileTab === 'farg' && <View style={styles.colorSection}>
           <Text style={styles.colorTitle}>🎨 Färganalys</Text>
@@ -622,8 +712,16 @@ const styles = StyleSheet.create({
   profileTabRow: { flexDirection: 'row', gap: 8, marginBottom: 24, marginTop: 4 },
   profileTab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   profileTabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  profileTabText: { color: '#C4737A', fontSize: 14, fontWeight: '500' },
+  profileTabText: { color: '#C4737A', fontSize: 12, fontWeight: '500' },
   profileTabTextActive: { color: '#FBF3EF', fontWeight: '700' },
+
+  // ── Stilprofil ──
+  stilprofilSection: { marginBottom: 24 },
+  stilprofilCard: { backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 16, padding: 16, marginTop: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', gap: 10 },
+  stilprofilCardLabel: { fontSize: 11, color: '#C4737A', fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
+  stilprofilRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  stilprofilEmoji: { fontSize: 16, width: 24 },
+  stilprofilValue: { fontSize: 15, color: '#FBF3EF', fontWeight: '600', flex: 1 },
 
   // ── Färganalys ──
   colorSection: { marginBottom: 24 },

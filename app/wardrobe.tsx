@@ -372,31 +372,25 @@ export default function Wardrobe() {
               <Text style={styles.iconBtnText}>🔍</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => {
-              if (activeTab === 'köp') setShowAddWish(true)
-              else if (activeTab === 'sälj') setShowAddSale(true)
-              else router.push('/add-garment')
-            }}
-          >
-            <Text style={styles.iconBtnText}>＋</Text>
-          </TouchableOpacity>
+            {activeTab === 'nuvarande' && (
+            <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/add-garment')}>
+              <Text style={styles.iconBtnText}>＋</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
       <View style={styles.tabRow}>
-        {['nuvarande', 'köp', 'sälj'].map(tab => (
+        {[
+          { id: 'nuvarande', label: 'Garderob' },
+          { id: 'capsule', label: `✨ Capsule${wishlist.length + forSale.length > 0 ? ` (${wishlist.length + forSale.length})` : ''}` },
+        ].map(({ id, label }) => (
           <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.tabActive]}
-            onPress={() => { setActiveTab(tab); setShowArchive(false) }}
+            key={id}
+            style={[styles.tab, activeTab === id && styles.tabActive]}
+            onPress={() => { setActiveTab(id); setShowArchive(false) }}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {tab === 'köp' && wishlist.length > 0 ? ` (${wishlist.length})` : ''}
-              {tab === 'sälj' && forSale.length > 0 ? ` (${forSale.length})` : ''}
-            </Text>
+            <Text style={[styles.tabText, activeTab === id && styles.tabTextActive]}>{label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -487,14 +481,39 @@ export default function Wardrobe() {
         </>
       )}
 
-      {/* KÖP */}
-      {activeTab === 'köp' && (
-        <ScrollView contentContainerStyle={styles.wishScroll}>
+      {/* CAPSULE WARDROBE */}
+      {activeTab === 'capsule' && (
+        <ScrollView contentContainerStyle={styles.capsuleScroll}>
+
+          {/* Hero card */}
+          <View style={styles.capsuleHeroCard}>
+            <View>
+              <Text style={styles.capsuleHeroTitle}>Capsule Wardrobe</Text>
+              <Text style={styles.capsuleHeroStats}>
+                {garments.length} plagg · {Math.min(garments.length * 4, 99)}+ möjliga outfits
+              </Text>
+            </View>
+            <Text style={styles.capsuleHeroEmoji}>✨</Text>
+          </View>
+
+          {/* Generate capsule button */}
+          <TouchableOpacity style={styles.capsuleGenerateBtn}>
+            <Text style={styles.capsuleGenerateBtnText}>✨ Skapa capsule</Text>
+            <Text style={styles.capsuleGenerateBtnSub}>AI analyserar din garderob</Text>
+          </TouchableOpacity>
+
+          {/* ── Köplista ── */}
+          <View style={styles.capsuleSectionRow}>
+            <Text style={styles.capsuleSectionTitle}>🛍️ Köplista</Text>
+            <TouchableOpacity style={styles.capsuleAddBtn} onPress={() => setShowAddWish(true)}>
+              <Text style={styles.capsuleAddBtnText}>＋ Lägg till</Text>
+            </TouchableOpacity>
+          </View>
+
           {wishlist.length === 0 ? (
-            <View style={styles.emptyTab}>
-              <Text style={styles.emptyTabIcon}>🛍️</Text>
-              <Text style={styles.emptyTabText}>Din köplista är tom</Text>
-              <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga till ett plagg{'\n'}eller analysera en inspirationsbild</Text>
+            <View style={styles.capsuleEmpty}>
+              <Text style={styles.capsuleEmptyText}>Köplistan är tom</Text>
+              <Text style={styles.capsuleEmptyHint}>Lägg till plagg du vill köpa för att komplettera din capsule</Text>
             </View>
           ) : (
             <>
@@ -545,19 +564,23 @@ export default function Wardrobe() {
               })}
             </>
           )}
-        </ScrollView>
-      )}
 
-      {/* SÄLJ */}
-      {activeTab === 'sälj' && (
-        <ScrollView contentContainerStyle={styles.saleScroll}>
+          <View style={styles.capsuleDivider} />
+
+          {/* ── Till salu ── */}
+          <View style={styles.capsuleSectionRow}>
+            <Text style={styles.capsuleSectionTitle}>💰 Till salu</Text>
+            <TouchableOpacity style={styles.capsuleAddBtn} onPress={() => setShowAddSale(true)}>
+              <Text style={styles.capsuleAddBtnText}>＋ Lägg till</Text>
+            </TouchableOpacity>
+          </View>
+
           {!showArchive ? (
             <>
               {forSale.length === 0 ? (
-                <View style={styles.emptyTab}>
-                  <Text style={styles.emptyTabIcon}>💰</Text>
-                  <Text style={styles.emptyTabText}>Inga plagg till salu ännu</Text>
-                  <Text style={styles.emptyTabHint}>Tryck ＋ för att välja plagg från garderoben</Text>
+                <View style={styles.capsuleEmpty}>
+                  <Text style={styles.capsuleEmptyText}>Inga plagg till salu</Text>
+                  <Text style={styles.capsuleEmptyHint}>Plagg du inte använder kan säljas för att frigöra plats</Text>
                 </View>
               ) : (
                 forSale.map((item) => (
@@ -592,7 +615,7 @@ export default function Wardrobe() {
               </TouchableOpacity>
               <Text style={styles.archiveTitle}>Arkiv</Text>
               {archived.length === 0 ? (
-                <View style={styles.emptyTab}><Text style={styles.emptyTabText}>📦 Inga arkiverade plagg</Text></View>
+                <View style={styles.capsuleEmpty}><Text style={styles.capsuleEmptyText}>📦 Inga arkiverade plagg</Text></View>
               ) : (
                 archived.map((item) => (
                   <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
@@ -660,6 +683,24 @@ const styles = StyleSheet.create({
   emptyTabIcon: { fontSize: 48, marginBottom: 12 },
   emptyTabText: { color: '#C4737A', fontSize: 16, marginBottom: 8, fontWeight: '500' },
   emptyTabHint: { color: 'rgba(196,115,122,0.5)', fontSize: 13, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
+
+  // Capsule
+  capsuleScroll: { padding: 16, paddingBottom: 100 },
+  capsuleHeroCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 18, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.25)' },
+  capsuleHeroTitle: { fontSize: 18, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
+  capsuleHeroStats: { fontSize: 12, color: '#DDA0A7' },
+  capsuleHeroEmoji: { fontSize: 32 },
+  capsuleGenerateBtn: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(221,160,167,0.3)' },
+  capsuleGenerateBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '700', marginBottom: 2 },
+  capsuleGenerateBtnSub: { color: 'rgba(251,243,239,0.6)', fontSize: 11 },
+  capsuleSectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  capsuleSectionTitle: { fontSize: 15, color: '#FBF3EF', fontWeight: '700' },
+  capsuleAddBtn: { backgroundColor: 'rgba(122,24,40,0.5)', borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
+  capsuleAddBtnText: { color: '#C4737A', fontSize: 12, fontWeight: '600' },
+  capsuleEmpty: { alignItems: 'center', paddingVertical: 20, marginBottom: 8 },
+  capsuleEmptyText: { color: '#C4737A', fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  capsuleEmptyHint: { color: 'rgba(196,115,122,0.5)', fontSize: 12, fontStyle: 'italic', textAlign: 'center' },
+  capsuleDivider: { height: 1, backgroundColor: 'rgba(196,115,122,0.2)', marginVertical: 20 },
 
   // Köp
   wishScroll: { padding: 16, paddingBottom: 100 },
