@@ -47,6 +47,7 @@ export default function Wardrobe() {
   const [capsuleGenerated, setCapsuleGenerated] = useState(false)
   const [generatingCapsule, setGeneratingCapsule] = useState(false)
   const [capsuleSelected, setCapsuleSelected] = useState<Set<string>>(new Set())
+  const [showOutfitList, setShowOutfitList] = useState(false)
 
   // Wishlist modal
   const [showAddWish, setShowAddWish] = useState(false)
@@ -287,13 +288,34 @@ export default function Wardrobe() {
   }
 
   function calcOutfits(ids: Set<string>): number {
+    return getOutfitCombinations(ids).length
+  }
+
+  function getOutfitCombinations(ids: Set<string>): any[][] {
     const sel = garments.filter((g: any) => ids.has(g.id))
-    const tops = sel.filter((g: any) => ['Toppar', 'Tröjor', 'Kavajer'].includes(g.category)).length
-    const bottoms = sel.filter((g: any) => ['Byxor', 'Kjolar'].includes(g.category)).length
-    const dresses = sel.filter((g: any) => g.category === 'Klänningar').length
-    const outer = sel.filter((g: any) => g.category === 'Ytterkläder').length
-    const base = tops * bottoms + dresses
-    return base + (outer > 0 ? base * outer : 0)
+    const tops = sel.filter((g: any) => ['Toppar', 'Tröjor', 'Kavajer'].includes(g.category))
+    const bottoms = sel.filter((g: any) => ['Byxor', 'Kjolar'].includes(g.category))
+    const dresses = sel.filter((g: any) => g.category === 'Klänningar')
+    const outers = sel.filter((g: any) => g.category === 'Ytterkläder')
+
+    const combos: any[][] = []
+
+    for (const top of tops) {
+      for (const bottom of bottoms) {
+        combos.push([top, bottom])
+        for (const outer of outers) {
+          combos.push([top, bottom, outer])
+        }
+      }
+    }
+    for (const dress of dresses) {
+      combos.push([dress])
+      for (const outer of outers) {
+        combos.push([dress, outer])
+      }
+    }
+
+    return combos
   }
 
   return (
@@ -720,6 +742,47 @@ export default function Wardrobe() {
                 <Text style={styles.capsuleOutfitLabel}>möjliga outfits</Text>
               </View>
 
+              {/* Toggle outfit list */}
+              <TouchableOpacity
+                style={styles.capsuleOutfitToggle}
+                onPress={() => setShowOutfitList(v => !v)}
+              >
+                <Text style={styles.capsuleOutfitToggleText}>
+                  {showOutfitList ? '▲ Dölj outfits' : `👗 Se alla outfits (${calcOutfits(capsuleSelected)})`}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Outfit combination list */}
+              {showOutfitList && (() => {
+                const combos = getOutfitCombinations(capsuleSelected)
+                const visible = combos.slice(0, 30)
+                const rest = combos.length - visible.length
+                return (
+                  <View style={styles.outfitListWrap}>
+                    {visible.map((outfit, i) => (
+                      <View key={i} style={styles.outfitCard}>
+                        <Text style={styles.outfitCardNum}>#{i + 1}</Text>
+                        <View style={styles.outfitCardPieces}>
+                          {outfit.map((piece: any, j: number) => (
+                            <View key={j} style={styles.outfitPiece}>
+                              {piece.image_url
+                                ? <Image source={{ uri: piece.image_url }} style={styles.outfitPieceImage} />
+                                : <View style={styles.outfitPieceEmpty}><Text style={{ fontSize: 18 }}>👗</Text></View>
+                              }
+                              <Text style={styles.outfitPieceName} numberOfLines={1}>{piece.name}</Text>
+                              <Text style={styles.outfitPieceCat}>{piece.category}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    ))}
+                    {rest > 0 && (
+                      <Text style={styles.outfitListMore}>…och {rest} outfit{rest !== 1 ? 's' : ''} till</Text>
+                    )}
+                  </View>
+                )
+              })()}
+
               {/* Instructions */}
               <Text style={styles.capsuleSelectHint}>
                 Tryck på ett plagg för att lägga till eller ta bort det ur din capsule
@@ -839,6 +902,18 @@ const styles = StyleSheet.create({
   capsuleCheckText: { color: '#FBF3EF', fontSize: 10, fontWeight: '700' },
   capsuleRegenBtn: { padding: 14, borderRadius: 14, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', alignItems: 'center' },
   capsuleRegenBtnText: { color: '#C4737A', fontSize: 14 },
+  capsuleOutfitToggle: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, backgroundColor: 'rgba(122,24,40,0.4)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.25)', alignItems: 'center', marginBottom: 12 },
+  capsuleOutfitToggleText: { color: '#DDA0A7', fontSize: 13, fontWeight: '600' },
+  outfitListWrap: { marginBottom: 16, gap: 8 },
+  outfitCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 14, padding: 10, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', gap: 10 },
+  outfitCardNum: { fontSize: 11, color: 'rgba(196,115,122,0.5)', fontWeight: '700', minWidth: 24, textAlign: 'center' },
+  outfitCardPieces: { flex: 1, flexDirection: 'row', gap: 8 },
+  outfitPiece: { flex: 1, alignItems: 'center' },
+  outfitPieceImage: { width: '100%', height: 60, borderRadius: 8, resizeMode: 'contain', backgroundColor: 'transparent', marginBottom: 3 },
+  outfitPieceEmpty: { width: '100%', height: 60, borderRadius: 8, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
+  outfitPieceName: { fontSize: 9, color: '#FBF3EF', fontWeight: '500', textAlign: 'center' },
+  outfitPieceCat: { fontSize: 8, color: '#C4737A', textAlign: 'center' },
+  outfitListMore: { color: 'rgba(196,115,122,0.5)', fontSize: 12, fontStyle: 'italic', textAlign: 'center', paddingVertical: 8 },
   capsuleSectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   capsuleSectionTitle: { fontSize: 15, color: '#FBF3EF', fontWeight: '700' },
   capsuleAddBtn: { backgroundColor: 'rgba(122,24,40,0.5)', borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
