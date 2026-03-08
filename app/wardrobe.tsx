@@ -44,9 +44,9 @@ export default function Wardrobe() {
   const [showArchive, setShowArchive] = useState(false)
 
   // Capsule
-  const [capsuleResult, setCapsuleResult] = useState<any[]>([])
   const [capsuleGenerated, setCapsuleGenerated] = useState(false)
   const [generatingCapsule, setGeneratingCapsule] = useState(false)
+  const [capsuleSelected, setCapsuleSelected] = useState<Set<string>>(new Set())
 
   // Wishlist modal
   const [showAddWish, setShowAddWish] = useState(false)
@@ -271,10 +271,29 @@ export default function Wardrobe() {
     }
 
     setTimeout(() => {
-      setCapsuleResult(result)
+      setCapsuleSelected(new Set(result.map((g: any) => g.id)))
       setCapsuleGenerated(true)
       setGeneratingCapsule(false)
     }, 1400)
+  }
+
+  function toggleCapsuleItem(id: string) {
+    setCapsuleSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function calcOutfits(ids: Set<string>): number {
+    const sel = garments.filter((g: any) => ids.has(g.id))
+    const tops = sel.filter((g: any) => ['Toppar', 'Tröjor', 'Kavajer'].includes(g.category)).length
+    const bottoms = sel.filter((g: any) => ['Byxor', 'Kjolar'].includes(g.category)).length
+    const dresses = sel.filter((g: any) => g.category === 'Klänningar').length
+    const outer = sel.filter((g: any) => g.category === 'Ytterkläder').length
+    const base = tops * bottoms + dresses
+    return base + (outer > 0 ? base * outer : 0)
   }
 
   return (
@@ -668,10 +687,12 @@ export default function Wardrobe() {
 
           {/* Hero card */}
           <View style={styles.capsuleHeroCard}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.capsuleHeroTitle}>Capsule Wardrobe</Text>
               <Text style={styles.capsuleHeroStats}>
-                {garments.length} plagg · {Math.min(garments.length * 4, 99)}+ möjliga outfits
+                {capsuleGenerated
+                  ? `${capsuleSelected.size} plagg valda`
+                  : `${garments.length} plagg i garderoben`}
               </Text>
             </View>
             <Text style={styles.capsuleHeroEmoji}>✨</Text>
@@ -688,39 +709,54 @@ export default function Wardrobe() {
                 {generatingCapsule ? '✨ Analyserar...' : '✨ Skapa capsule'}
               </Text>
               <Text style={styles.capsuleGenerateBtnSub}>
-                {generatingCapsule ? 'Väljer ut dina bästa plagg' : 'Väljer ut dina mest versatila plagg'}
+                {generatingCapsule ? 'Väljer ut dina bästa plagg' : 'AI föreslår – du bestämmer'}
               </Text>
             </TouchableOpacity>
           ) : (
-            /* Result */
             <>
-              <View style={styles.capsuleResultHeader}>
-                <Text style={styles.capsuleResultTitle}>Din capsule 🎉</Text>
-                <Text style={styles.capsuleResultSub}>{capsuleResult.length} utvalda plagg</Text>
+              {/* Live outfit counter */}
+              <View style={styles.capsuleOutfitBanner}>
+                <Text style={styles.capsuleOutfitNum}>{calcOutfits(capsuleSelected)}</Text>
+                <Text style={styles.capsuleOutfitLabel}>möjliga outfits</Text>
               </View>
 
+              {/* Instructions */}
+              <Text style={styles.capsuleSelectHint}>
+                Tryck på ett plagg för att lägga till eller ta bort det ur din capsule
+              </Text>
+
+              {/* Full wardrobe grid – each garment toggleable */}
               <View style={styles.capsuleGrid}>
-                {capsuleResult.map((item: any) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.capsuleGridItem}
-                    onPress={() => router.push(`/garment-detail?id=${item.id}`)}
-                  >
-                    {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={styles.capsuleGridImage} />
-                      : <View style={styles.capsuleGridImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
-                    }
-                    <Text style={styles.capsuleGridName} numberOfLines={1}>{item.name}</Text>
-                    <Text style={styles.capsuleGridCat}>{item.category}</Text>
-                  </TouchableOpacity>
-                ))}
+                {garments.map((item: any) => {
+                  const isSelected = capsuleSelected.has(item.id)
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[styles.capsuleGridItem, isSelected && styles.capsuleGridItemSelected]}
+                      onPress={() => toggleCapsuleItem(item.id)}
+                      activeOpacity={0.7}
+                    >
+                      {item.image_url
+                        ? <Image source={{ uri: item.image_url }} style={[styles.capsuleGridImage, !isSelected && styles.capsuleGridImageDim]} />
+                        : <View style={[styles.capsuleGridImageEmpty, !isSelected && { opacity: 0.35 }]}><Text style={{ fontSize: 24 }}>👗</Text></View>
+                      }
+                      {isSelected && (
+                        <View style={styles.capsuleCheckBadge}>
+                          <Text style={styles.capsuleCheckText}>✓</Text>
+                        </View>
+                      )}
+                      <Text style={[styles.capsuleGridName, !isSelected && styles.capsuleGridNameDim]} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.capsuleGridCat}>{item.category}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
               </View>
 
               <TouchableOpacity
                 style={styles.capsuleRegenBtn}
-                onPress={() => { setCapsuleGenerated(false); setCapsuleResult([]) }}
+                onPress={() => { setCapsuleGenerated(false); setCapsuleSelected(new Set()) }}
               >
-                <Text style={styles.capsuleRegenBtnText}>🔄 Generera om</Text>
+                <Text style={styles.capsuleRegenBtnText}>🔄 Börja om</Text>
               </TouchableOpacity>
             </>
           )}
@@ -786,15 +822,21 @@ const styles = StyleSheet.create({
   capsuleGenerateBtnLoading: { opacity: 0.7 },
   capsuleGenerateBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '700', marginBottom: 2 },
   capsuleGenerateBtnSub: { color: 'rgba(251,243,239,0.6)', fontSize: 11 },
-  capsuleResultHeader: { marginBottom: 14 },
-  capsuleResultTitle: { fontSize: 20, fontWeight: '700', color: '#FBF3EF', marginBottom: 2 },
-  capsuleResultSub: { fontSize: 12, color: '#DDA0A7' },
+  capsuleOutfitBanner: { backgroundColor: 'rgba(158,32,53,0.25)', borderRadius: 16, paddingVertical: 16, paddingHorizontal: 20, alignItems: 'center', marginBottom: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
+  capsuleOutfitNum: { fontSize: 48, fontWeight: '800', color: '#FBF3EF', lineHeight: 54 },
+  capsuleOutfitLabel: { fontSize: 13, color: '#DDA0A7', marginTop: 2 },
+  capsuleSelectHint: { fontSize: 11, color: 'rgba(196,115,122,0.5)', fontStyle: 'italic', textAlign: 'center', marginBottom: 12 },
   capsuleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  capsuleGridItem: { width: '30%', alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  capsuleGridItem: { width: '30%', alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', position: 'relative' },
+  capsuleGridItemSelected: { borderColor: '#9E2035', borderWidth: 2, backgroundColor: 'rgba(158,32,53,0.35)' },
   capsuleGridImage: { width: '100%', height: 80, borderRadius: 10, marginBottom: 5, resizeMode: 'contain', backgroundColor: 'transparent' },
+  capsuleGridImageDim: { opacity: 0.3 },
   capsuleGridImageEmpty: { width: '100%', height: 80, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
   capsuleGridName: { fontSize: 10, color: '#FBF3EF', fontWeight: '500', textAlign: 'center' },
+  capsuleGridNameDim: { opacity: 0.35 },
   capsuleGridCat: { fontSize: 9, color: '#C4737A', textAlign: 'center', marginTop: 1 },
+  capsuleCheckBadge: { position: 'absolute', top: 5, right: 5, width: 18, height: 18, borderRadius: 9, backgroundColor: '#9E2035', alignItems: 'center', justifyContent: 'center' },
+  capsuleCheckText: { color: '#FBF3EF', fontSize: 10, fontWeight: '700' },
   capsuleRegenBtn: { padding: 14, borderRadius: 14, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', alignItems: 'center' },
   capsuleRegenBtnText: { color: '#C4737A', fontSize: 14 },
   capsuleSectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
