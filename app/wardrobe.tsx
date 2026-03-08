@@ -372,8 +372,18 @@ export default function Wardrobe() {
               <Text style={styles.iconBtnText}>🔍</Text>
             </TouchableOpacity>
           )}
-            {activeTab === 'nuvarande' && (
+          {activeTab === 'nuvarande' && (
             <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/add-garment')}>
+              <Text style={styles.iconBtnText}>＋</Text>
+            </TouchableOpacity>
+          )}
+          {activeTab === 'köp' && (
+            <TouchableOpacity style={styles.iconBtn} onPress={() => setShowAddWish(true)}>
+              <Text style={styles.iconBtnText}>＋</Text>
+            </TouchableOpacity>
+          )}
+          {activeTab === 'sälj' && (
+            <TouchableOpacity style={styles.iconBtn} onPress={() => setShowAddSale(true)}>
               <Text style={styles.iconBtnText}>＋</Text>
             </TouchableOpacity>
           )}
@@ -383,7 +393,9 @@ export default function Wardrobe() {
       <View style={styles.tabRow}>
         {[
           { id: 'nuvarande', label: 'Garderob' },
-          { id: 'capsule', label: `✨ Capsule${wishlist.length + forSale.length > 0 ? ` (${wishlist.length + forSale.length})` : ''}` },
+          { id: 'köp', label: `Köp${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` },
+          { id: 'sälj', label: `Sälj${forSale.length > 0 ? ` (${forSale.length})` : ''}` },
+          { id: 'capsule', label: '✨ Capsule' },
         ].map(({ id, label }) => (
           <TouchableOpacity
             key={id}
@@ -481,39 +493,14 @@ export default function Wardrobe() {
         </>
       )}
 
-      {/* CAPSULE WARDROBE */}
-      {activeTab === 'capsule' && (
-        <ScrollView contentContainerStyle={styles.capsuleScroll}>
-
-          {/* Hero card */}
-          <View style={styles.capsuleHeroCard}>
-            <View>
-              <Text style={styles.capsuleHeroTitle}>Capsule Wardrobe</Text>
-              <Text style={styles.capsuleHeroStats}>
-                {garments.length} plagg · {Math.min(garments.length * 4, 99)}+ möjliga outfits
-              </Text>
-            </View>
-            <Text style={styles.capsuleHeroEmoji}>✨</Text>
-          </View>
-
-          {/* Generate capsule button */}
-          <TouchableOpacity style={styles.capsuleGenerateBtn}>
-            <Text style={styles.capsuleGenerateBtnText}>✨ Skapa capsule</Text>
-            <Text style={styles.capsuleGenerateBtnSub}>AI analyserar din garderob</Text>
-          </TouchableOpacity>
-
-          {/* ── Köplista ── */}
-          <View style={styles.capsuleSectionRow}>
-            <Text style={styles.capsuleSectionTitle}>🛍️ Köplista</Text>
-            <TouchableOpacity style={styles.capsuleAddBtn} onPress={() => setShowAddWish(true)}>
-              <Text style={styles.capsuleAddBtnText}>＋ Lägg till</Text>
-            </TouchableOpacity>
-          </View>
-
+      {/* KÖP */}
+      {activeTab === 'köp' && (
+        <ScrollView contentContainerStyle={styles.wishScroll}>
           {wishlist.length === 0 ? (
-            <View style={styles.capsuleEmpty}>
-              <Text style={styles.capsuleEmptyText}>Köplistan är tom</Text>
-              <Text style={styles.capsuleEmptyHint}>Lägg till plagg du vill köpa för att komplettera din capsule</Text>
+            <View style={styles.emptyTab}>
+              <Text style={styles.emptyTabIcon}>🛍️</Text>
+              <Text style={styles.emptyTabText}>Köplistan är tom</Text>
+              <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga till plagg du drömmer om</Text>
             </View>
           ) : (
             <>
@@ -564,23 +551,19 @@ export default function Wardrobe() {
               })}
             </>
           )}
+        </ScrollView>
+      )}
 
-          <View style={styles.capsuleDivider} />
-
-          {/* ── Till salu ── */}
-          <View style={styles.capsuleSectionRow}>
-            <Text style={styles.capsuleSectionTitle}>💰 Till salu</Text>
-            <TouchableOpacity style={styles.capsuleAddBtn} onPress={() => setShowAddSale(true)}>
-              <Text style={styles.capsuleAddBtnText}>＋ Lägg till</Text>
-            </TouchableOpacity>
-          </View>
-
+      {/* SÄLJ */}
+      {activeTab === 'sälj' && (
+        <ScrollView contentContainerStyle={styles.saleScroll}>
           {!showArchive ? (
             <>
               {forSale.length === 0 ? (
-                <View style={styles.capsuleEmpty}>
-                  <Text style={styles.capsuleEmptyText}>Inga plagg till salu</Text>
-                  <Text style={styles.capsuleEmptyHint}>Plagg du inte använder kan säljas för att frigöra plats</Text>
+                <View style={styles.emptyTab}>
+                  <Text style={styles.emptyTabIcon}>💰</Text>
+                  <Text style={styles.emptyTabText}>Inga plagg till salu</Text>
+                  <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga ut plagg du inte använder</Text>
                 </View>
               ) : (
                 forSale.map((item) => (
@@ -615,7 +598,7 @@ export default function Wardrobe() {
               </TouchableOpacity>
               <Text style={styles.archiveTitle}>Arkiv</Text>
               {archived.length === 0 ? (
-                <View style={styles.capsuleEmpty}><Text style={styles.capsuleEmptyText}>📦 Inga arkiverade plagg</Text></View>
+                <View style={styles.emptyTab}><Text style={styles.emptyTabText}>📦 Inga arkiverade plagg</Text></View>
               ) : (
                 archived.map((item) => (
                   <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
@@ -636,6 +619,30 @@ export default function Wardrobe() {
         </ScrollView>
       )}
 
+      {/* CAPSULE WARDROBE */}
+      {activeTab === 'capsule' && (
+        <ScrollView contentContainerStyle={styles.capsuleScroll}>
+
+          {/* Hero card */}
+          <View style={styles.capsuleHeroCard}>
+            <View>
+              <Text style={styles.capsuleHeroTitle}>Capsule Wardrobe</Text>
+              <Text style={styles.capsuleHeroStats}>
+                {garments.length} plagg · {Math.min(garments.length * 4, 99)}+ möjliga outfits
+              </Text>
+            </View>
+            <Text style={styles.capsuleHeroEmoji}>✨</Text>
+          </View>
+
+          {/* Generate capsule button */}
+          <TouchableOpacity style={styles.capsuleGenerateBtn}>
+            <Text style={styles.capsuleGenerateBtnText}>✨ Skapa capsule</Text>
+            <Text style={styles.capsuleGenerateBtnSub}>AI analyserar din garderob</Text>
+          </TouchableOpacity>
+
+        </ScrollView>
+      )}
+
       <BottomNav />
     </SafeAreaView>
   )
@@ -651,7 +658,7 @@ const styles = StyleSheet.create({
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   tabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  tabText: { color: '#C4737A', fontSize: 12, fontWeight: '500' },
+  tabText: { color: '#C4737A', fontSize: 11, fontWeight: '500' },
   tabTextActive: { color: '#FBF3EF', fontWeight: '600' },
   title: { fontSize: 32, fontWeight: 'bold', color: '#FBF3EF' },
   subtitle: { color: '#C4737A', marginBottom: 4 },
