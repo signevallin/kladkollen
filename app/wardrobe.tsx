@@ -48,6 +48,7 @@ export default function Wardrobe() {
   const [generatingCapsule, setGeneratingCapsule] = useState(false)
   const [capsuleSelected, setCapsuleSelected] = useState<Set<string>>(new Set())
   const [showOutfitList, setShowOutfitList] = useState(false)
+  const [capsuleSaved, setCapsuleSaved] = useState(false)
 
   // Wishlist modal
   const [showAddWish, setShowAddWish] = useState(false)
@@ -67,6 +68,7 @@ export default function Wardrobe() {
     useCallback(() => {
       fetchGarments()
       fetchWishlist()
+      loadCapsule()
     }, [])
   )
 
@@ -97,6 +99,27 @@ export default function Wardrobe() {
       setWishlist(data)
       fetchOutfitCounts(data)
     }
+  }
+
+  async function loadCapsule() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase.from('profiles').select('capsule_garment_ids').eq('id', user.id).single()
+    if (data?.capsule_garment_ids) {
+      const ids = data.capsule_garment_ids.split(',').filter(Boolean)
+      if (ids.length > 0) {
+        setCapsuleSelected(new Set(ids))
+        setCapsuleGenerated(true)
+        setCapsuleSaved(true)
+      }
+    }
+  }
+
+  async function saveCapsule(ids: Set<string>) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('profiles').upsert({ id: user.id, capsule_garment_ids: [...ids].join(',') })
+    setCapsuleSaved(true)
   }
 
   async function fetchOutfitCounts(items: any[]) {
@@ -272,9 +295,11 @@ export default function Wardrobe() {
     }
 
     setTimeout(() => {
-      setCapsuleSelected(new Set(result.map((g: any) => g.id)))
+      const selected = new Set(result.map((g: any) => g.id))
+      setCapsuleSelected(selected)
       setCapsuleGenerated(true)
       setGeneratingCapsule(false)
+      saveCapsule(selected)
     }, 1400)
   }
 
@@ -283,6 +308,7 @@ export default function Wardrobe() {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
+      saveCapsule(next)
       return next
     })
   }
@@ -716,6 +742,9 @@ export default function Wardrobe() {
                   ? `${capsuleSelected.size} plagg valda`
                   : `${garments.length} plagg i garderoben`}
               </Text>
+              {capsuleSaved && capsuleGenerated && (
+                <Text style={styles.capsuleAutoSaved}>✓ Autosparad</Text>
+              )}
             </View>
             <Text style={styles.capsuleHeroEmoji}>✨</Text>
           </View>
@@ -817,7 +846,12 @@ export default function Wardrobe() {
 
               <TouchableOpacity
                 style={styles.capsuleRegenBtn}
-                onPress={() => { setCapsuleGenerated(false); setCapsuleSelected(new Set()) }}
+                onPress={() => {
+                  setCapsuleGenerated(false)
+                  setCapsuleSelected(new Set())
+                  setCapsuleSaved(false)
+                  saveCapsule(new Set())
+                }}
               >
                 <Text style={styles.capsuleRegenBtnText}>🔄 Börja om</Text>
               </TouchableOpacity>
@@ -881,6 +915,7 @@ const styles = StyleSheet.create({
   capsuleHeroTitle: { fontSize: 18, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
   capsuleHeroStats: { fontSize: 12, color: '#DDA0A7' },
   capsuleHeroEmoji: { fontSize: 32 },
+  capsuleAutoSaved: { fontSize: 10, color: 'rgba(196,115,122,0.5)', marginTop: 4 },
   capsuleGenerateBtn: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(221,160,167,0.3)' },
   capsuleGenerateBtnLoading: { opacity: 0.7 },
   capsuleGenerateBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '700', marginBottom: 2 },
