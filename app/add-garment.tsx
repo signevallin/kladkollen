@@ -16,6 +16,18 @@ import {
 import { supabase } from '../supabase'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
+const SUBCATEGORIES: Record<string, string[]> = {
+  'Toppar': ['Linne', 'T-shirt', 'Långärmad topp', 'Body', 'Blus', 'Skjorta'],
+  'Tröjor': ['Sweatshirt', 'Hoodie', 'Stickad tröja', 'Collegetröja', 'Kofta'],
+  'Byxor': ['Jeans', 'Chinos', 'Kostymbyxor', 'Leggings', 'Shorts', 'Mjukisbyxor'],
+  'Kjolar': ['Minikjol', 'Midikjol', 'Maxikjol', 'Plisserad kjol', 'Pennkjol'],
+  'Klänningar': ['Miniklänning', 'Midiklänning', 'Maxiklänning', 'Festklänning', 'Vardagsklänning'],
+  'Kavajer': ['Kavaj', 'Blazer', 'Kostymjacka'],
+  'Ytterkläder': ['Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka'],
+  'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor'],
+  'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
+  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Mössa', 'Smycken', 'Solglasögon'],
+}
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const COLORS = [
   { name: 'Svart', hex: '#1A1A1A' },
@@ -41,6 +53,7 @@ type GarmentDraft = {
   processedBase64: string | null
   name: string
   category: string
+  subcategory: string
   color: string
   seasons: string[]
   analyzing: boolean
@@ -68,6 +81,7 @@ export default function AddGarment() {
       processedBase64: null,
       name: '',
       category: '',
+      subcategory: '',
       color: '',
       seasons: [],
       analyzing: true,
@@ -90,7 +104,7 @@ export default function AddGarment() {
             const data = await res.json()
             setDrafts(prev => prev.map(d =>
               d.id === draft.id
-                ? { ...d, name: data.name || '', category: data.category || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
+                ? { ...d, name: data.name || '', category: data.category || '', subcategory: data.subcategory || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
                 : d
             ))
           } catch {
@@ -126,7 +140,11 @@ export default function AddGarment() {
   }
 
   function updateDraft(id: string, field: keyof GarmentDraft, value: any) {
-    setDrafts(prev => prev.map(d => d.id === id ? { ...d, [field]: value } : d))
+    setDrafts(prev => prev.map(d => {
+      if (d.id !== id) return d
+      if (field === 'category') return { ...d, category: value, subcategory: '' }
+      return { ...d, [field]: value }
+    }))
   }
 
   function toggleDraftSeason(id: string, season: string) {
@@ -191,6 +209,7 @@ export default function AddGarment() {
           user_id: user.id,
           name: draft.name,
           category: draft.category,
+          subcategory: draft.subcategory || null,
           color: draft.color,
           season: draft.seasons.join(', '),
           image_url: imageUrl,
@@ -296,6 +315,26 @@ export default function AddGarment() {
                       ))}
                     </View>
                   </ScrollView>
+
+                  {/* Subcategory */}
+                  {draft.category && SUBCATEGORIES[draft.category] && (
+                    <>
+                      <Text style={styles.cardLabel}>TYP</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View style={styles.pillRow}>
+                          {SUBCATEGORIES[draft.category].map(sub => (
+                            <TouchableOpacity
+                              key={sub}
+                              style={[styles.pill, draft.subcategory === sub && styles.pillActive]}
+                              onPress={() => updateDraft(draft.id, 'subcategory', draft.subcategory === sub ? '' : sub)}
+                            >
+                              <Text style={[styles.pillText, draft.subcategory === sub && styles.pillTextActive]}>{sub}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    </>
+                  )}
 
                   {/* Color */}
                   <Text style={styles.cardLabel}>FÄRG</Text>

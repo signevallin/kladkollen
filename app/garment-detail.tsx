@@ -15,6 +15,18 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
+const SUBCATEGORIES: Record<string, string[]> = {
+  'Toppar': ['Linne', 'T-shirt', 'Långärmad topp', 'Body', 'Blus', 'Skjorta'],
+  'Tröjor': ['Sweatshirt', 'Hoodie', 'Stickad tröja', 'Collegetröja', 'Kofta'],
+  'Byxor': ['Jeans', 'Chinos', 'Kostymbyxor', 'Leggings', 'Shorts', 'Mjukisbyxor'],
+  'Kjolar': ['Minikjol', 'Midikjol', 'Maxikjol', 'Plisserad kjol', 'Pennkjol'],
+  'Klänningar': ['Miniklänning', 'Midiklänning', 'Maxiklänning', 'Festklänning', 'Vardagsklänning'],
+  'Kavajer': ['Kavaj', 'Blazer', 'Kostymjacka'],
+  'Ytterkläder': ['Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka'],
+  'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor'],
+  'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
+  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Mössa', 'Smycken', 'Solglasögon'],
+}
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const COLORS = [
   { name: 'Svart', hex: '#1A1A1A' }, { name: 'Vit', hex: '#F5F5F5' },
@@ -33,6 +45,7 @@ export default function GarmentDetail() {
 
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
+  const [subcategory, setSubcategory] = useState('')
   const [color, setColor] = useState('')
   const [seasons, setSeasons] = useState<string[]>([])
   const [timesWorn, setTimesWorn] = useState(0)
@@ -60,7 +73,7 @@ export default function GarmentDetail() {
   async function fetchGarment() {
     const { data } = await supabase.from('garments').select('*').eq('id', id).single()
     if (data) {
-      setName(data.name); setCategory(data.category); setColor(data.color || '')
+      setName(data.name); setCategory(data.category); setSubcategory(data.subcategory || ''); setColor(data.color || '')
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
     }
@@ -125,7 +138,7 @@ export default function GarmentDetail() {
     try {
       let updatedImageUrl = imageUrl
       if (newImage) updatedImageUrl = await uploadImage(newImage)
-      const { error } = await supabase.from('garments').update({ name, category, season: seasons.join(', '), color, image_url: updatedImageUrl }).eq('id', id)
+      const { error } = await supabase.from('garments').update({ name, category, subcategory: subcategory || null, season: seasons.join(', '), color, image_url: updatedImageUrl }).eq('id', id)
       if (error) throw error
       showAlert('Sparat! 🍒')
       router.back()
@@ -202,11 +215,24 @@ export default function GarmentDetail() {
         <Text style={styles.label}>Kategori</Text>
         <View style={styles.pills}>
           {CATEGORIES.map((cat) => (
-            <TouchableOpacity key={cat} style={[styles.pill, category === cat && styles.pillActive]} onPress={() => setCategory(cat)}>
+            <TouchableOpacity key={cat} style={[styles.pill, category === cat && styles.pillActive]} onPress={() => { setCategory(cat); setSubcategory('') }}>
               <Text style={[styles.pillText, category === cat && styles.pillTextActive]}>{cat}</Text>
             </TouchableOpacity>
           ))}
         </View>
+
+        {category && SUBCATEGORIES[category] && (
+          <>
+            <Text style={styles.label}>Typ</Text>
+            <View style={styles.pills}>
+              {SUBCATEGORIES[category].map((sub) => (
+                <TouchableOpacity key={sub} style={[styles.pill, subcategory === sub && styles.pillActive]} onPress={() => setSubcategory(subcategory === sub ? '' : sub)}>
+                  <Text style={[styles.pillText, subcategory === sub && styles.pillTextActive]}>{sub}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Färg – visas för både garderob och köplista */}
         <Text style={styles.label}>Färg</Text>
