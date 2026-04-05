@@ -130,6 +130,63 @@ export default function Home() {
     setRating(null)
   }
 
+  function buildGroupedGarmentList(garmentList: any[]) {
+    const groups: Record<string, string[]> = {
+      'KLÄNNING (välj 1 om du vill ha heldress – då skippar du nederdel och överdel)': [],
+      'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)': [],
+      'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)': [],
+      'YTTERPLAGG / KAVAJ – valfritt, lägg till om kontexten/vädret kräver': [],
+      'SKOR – alltid obligatorisk (välj exakt 1)': [],
+      'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken': [],
+    }
+    const categoryMap: Record<string, string> = {
+      'Klänningar': 'KLÄNNING (välj 1 om du vill ha heldress – då skippar du nederdel och överdel)',
+      'Byxor': 'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)',
+      'Kjolar': 'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)',
+      'Toppar': 'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)',
+      'Tröjor': 'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)',
+      'Kavajer': 'YTTERPLAGG / KAVAJ – valfritt, lägg till om kontexten/vädret kräver',
+      'Ytterkläder': 'YTTERPLAGG / KAVAJ – valfritt, lägg till om kontexten/vädret kräver',
+      'Skor': 'SKOR – alltid obligatorisk (välj exakt 1)',
+      'Väskor': 'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken',
+      'Accessoarer': 'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken',
+    }
+    for (const g of garmentList) {
+      const group = categoryMap[g.category]
+      if (group) {
+        groups[group].push(`  • ${g.name}${g.color ? ' (' + g.color + ')' : ''}`)
+      }
+    }
+    return Object.entries(groups)
+      .filter(([, items]) => items.length > 0)
+      .map(([group, items]) => `${group}:\n${items.join('\n')}`)
+      .join('\n\n')
+  }
+
+  function validateOutfit(items: string[], garmentList: any[]): { valid: boolean; missing: string } {
+    const BOTTOM_CATS = ['Byxor', 'Kjolar']
+    const TOP_CATS = ['Toppar', 'Tröjor']
+    const DRESS_CATS = ['Klänningar']
+    const SHOE_CATS = ['Skor']
+
+    const matched = items.map(name =>
+      garmentList.find(g =>
+        g.name.toLowerCase().includes(name.toLowerCase()) ||
+        name.toLowerCase().includes(g.name.toLowerCase())
+      )
+    ).filter(Boolean)
+
+    const hasDress = matched.some(g => DRESS_CATS.includes(g.category))
+    const hasBottom = matched.some(g => BOTTOM_CATS.includes(g.category))
+    const hasTop = matched.some(g => TOP_CATS.includes(g.category))
+    const hasShoes = matched.some(g => SHOE_CATS.includes(g.category))
+
+    if (!hasShoes) return { valid: false, missing: 'skor saknas' }
+    if (!hasDress && !hasBottom) return { valid: false, missing: 'nederdel (byxor/kjol) saknas' }
+    if (!hasDress && !hasTop) return { valid: false, missing: 'överdel saknas' }
+    return { valid: true, missing: '' }
+  }
+
   async function generateOutfit() {
     if (garments.length === 0) {
       showAlert('Lägg till plagg i garderoben först!')
@@ -158,55 +215,69 @@ export default function Home() {
       const likedOutfits = recentOutfits?.filter(o => o.rating >= 4).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
       const dislikedOutfits = recentOutfits?.filter(o => o.rating <= 2 && o.rating !== null).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
       const feedbackStr = [
-        likedOutfits.length > 0 ? `Användaren GILLADE dessa kombinationer (sträva efter liknande stil/känsla): ${likedOutfits.slice(0, 3).join(' | ')}` : '',
-        dislikedOutfits.length > 0 ? `Användaren GILLADE INTE dessa kombinationer (undvik liknande): ${dislikedOutfits.slice(0, 3).join(' | ')}` : '',
+        likedOutfits.length > 0 ? `Användaren GILLADE dessa kombinationer: ${likedOutfits.slice(0, 3).join(' | ')}` : '',
+        dislikedOutfits.length > 0 ? `Användaren GILLADE INTE dessa: ${dislikedOutfits.slice(0, 3).join(' | ')}` : '',
       ].filter(Boolean).join('\n')
 
-      const garmentList = garments
-        .filter(g => !g.archived)
-        .map(g => `- ${g.name} (${g.category}${g.color ? ', ' + g.color : ''}${g.season ? ', ' + g.season : ''})`)
-        .join('\n')
+      const activeGarments = garments.filter(g => !g.archived)
+      const groupedList = buildGroupedGarmentList(activeGarments)
 
-      const weatherStr = useWeather ? `Det är ${currentWeather.temp}°C ute, ${currentWeather.description}${currentWeather.rain ? ' – regn/fukt' : ''}.` : ''
+      const weatherStr = useWeather ? `Väder: ${currentWeather.temp}°C, ${currentWeather.description}${currentWeather.rain ? ' (regn – ta med regnplagg om tillgängligt)' : ''}.` : ''
       const intensityStr = INTENSITY_LABELS[intensity - 1]
-      const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt dessa plagg som nyss använts: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
-      const ratingCtx = feedbackStr ? `\nAnvändarens smakprofil baserat på betyg:\n${feedbackStr}` : ''
+      const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
+      const ratingCtx = feedbackStr ? `\nSmakprofil:\n${feedbackStr}` : ''
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{
-            role: 'user',
-            content: `Du är en personlig stylist. Skapa en outfit baserat på följande:
+      const buildPrompt = (extraInstruction = '') => `Du är en personlig stylist. Välj en komplett outfit från garderoben nedan.
 
-Kontext: ${ctx.label} (${ctx.emoji}) – ${ctx.logic}
+Kontext: ${ctx.label} – ${ctx.logic}
 Intensitet: ${intensityStr} (${intensity}/5)
 ${weatherStr}
 ${avoidStr}${ratingCtx}
+${extraInstruction}
 
-Garderob:
-${garmentList}
+GARDEROB (välj ENDAST plagg från listan nedan, exakt som de heter):
 
-REGLER FÖR OUTFIT-SAMMANSÄTTNING:
-- Utan klänning: välj ALLTID en nederdel (byxor eller kjol) + en överdel (topp, tröja eller kavaj) + skor. Lägg till väska eller accessoar om det passar.
-- Med klänning: välj ALLTID skor + klänning. Lägg till ytterkläder, väska och/eller accessoar om det passar.
-- Skor MÅSTE alltid ingå.
+${groupedList}
 
-Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger för känsla. Svara ENDAST med JSON, inga backticks:
-{"outfitName": "namn", "items": ["plagg1", "plagg2", "plagg3"], "message": "Emotionellt budskap om looken."}`
-          }],
-          max_tokens: 300,
-        }),
-      })
+OBLIGATORISKA REGLER – följ dessa EXAKT:
+1. SKOR: Du MÅSTE välja ett par skor. Outfit utan skor är ogiltig.
+2. NEDERDEL: Du MÅSTE välja byxor eller kjol – SÅVIDA du inte väljer klänning.
+3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning.
+4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
 
-      const data = await response.json()
-      const text = data.choices[0].message.content
-      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+Svara ENDAST med JSON, inga backticks:
+{"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar)."}`
+
+      let parsed: any = null
+      let attempts = 0
+      const maxAttempts = 3
+
+      while (attempts < maxAttempts) {
+        attempts++
+        const extraInstruction = attempts > 1
+          ? `\nVIKTIGT: Föregående försök saknade obligatoriska plagg. Se till att inkludera SKOR och NEDERDEL (eller klänning) denna gång.`
+          : ''
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: buildPrompt(extraInstruction) }],
+            max_tokens: 350,
+          }),
+        })
+
+        const data = await response.json()
+        const text = data.choices[0].message.content
+        parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+
+        const { valid } = validateOutfit(parsed.items, activeGarments)
+        if (valid) break
+      }
 
       const itemsWithImages = parsed.items.map((name: string) => {
-        const match = garments.find(g =>
+        const match = activeGarments.find(g =>
           g.name.toLowerCase().includes(name.toLowerCase()) ||
           name.toLowerCase().includes(g.name.toLowerCase())
         )
