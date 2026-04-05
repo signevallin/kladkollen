@@ -50,14 +50,12 @@ type GarmentDraft = {
   id: string
   uri: string
   base64: string
-  processedBase64: string | null
   name: string
   category: string
   subcategory: string
   color: string
   seasons: string[]
   analyzing: boolean
-  removingBg: boolean
 }
 
 export default function AddGarment() {
@@ -78,64 +76,32 @@ export default function AddGarment() {
       id: `${Date.now()}-${i}`,
       uri: asset.uri,
       base64: asset.base64 || '',
-      processedBase64: null,
       name: '',
       category: '',
       subcategory: '',
       color: '',
       seasons: [],
       analyzing: true,
-      removingBg: true,
     }))
     setDrafts(newDrafts)
     setStep('review')
 
-    // Process each photo sequentially; AI analysis + BG removal run in parallel per photo
     for (const draft of newDrafts) {
-      await Promise.all([
-        // AI analysis
-        (async () => {
-          try {
-            const res = await fetch('/api/analyze-garment', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ base64: draft.base64 }),
-            })
-            const data = await res.json()
-            setDrafts(prev => prev.map(d =>
-              d.id === draft.id
-                ? { ...d, name: data.name || '', category: data.category || '', subcategory: data.subcategory || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
-                : d
-            ))
-          } catch {
-            setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, analyzing: false } : d))
-          }
-        })(),
-
-        // Background removal
-        (async () => {
-          try {
-            const res = await fetch('/api/remove-background', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ base64: draft.base64 }),
-            })
-            const data = await res.json()
-            if (data.base64) {
-              const dataUri = `data:image/png;base64,${data.base64}`
-              setDrafts(prev => prev.map(d =>
-                d.id === draft.id
-                  ? { ...d, processedBase64: data.base64, uri: dataUri, removingBg: false }
-                  : d
-              ))
-            } else {
-              setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
-            }
-          } catch {
-            setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
-          }
-        })(),
-      ])
+      try {
+        const res = await fetch('/api/analyze-garment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base64: draft.base64 }),
+        })
+        const data = await res.json()
+        setDrafts(prev => prev.map(d =>
+          d.id === draft.id
+            ? { ...d, name: data.name || '', category: data.category || '', subcategory: data.subcategory || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
+            : d
+        ))
+      } catch {
+        setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, analyzing: false } : d))
+      }
     }
   }
 
@@ -167,34 +133,18 @@ export default function AddGarment() {
 
   async function uploadImage(draft: GarmentDraft) {
     const filename = `${Date.now()}-${Math.random().toString(36).substring(2)}`
-
-    if (draft.processedBase64) {
-      // Upload background-removed PNG
-      const filePath = `public/${filename}.png`
-      const binaryStr = atob(draft.processedBase64)
-      const bytes = new Uint8Array(binaryStr.length)
-      for (let i = 0; i < binaryStr.length; i++) {
-        bytes[i] = binaryStr.charCodeAt(i)
-      }
-      const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: 'image/png', upsert: true })
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-      return urlData.publicUrl
-    } else {
-      // Fall back to original JPEG
-      const filePath = `public/${filename}.jpg`
-      const response = await fetch(draft.uri)
-      const arrayBuffer = await response.arrayBuffer()
-      const uint8Array = new Uint8Array(arrayBuffer)
-      const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-      return urlData.publicUrl
-    }
+    const filePath = `public/${filename}.jpg`
+    const response = await fetch(draft.uri)
+    const arrayBuffer = await response.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
+    const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
+    if (error) throw error
+    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+    return urlData.publicUrl
   }
 
   async function saveAll() {
-    const ready = drafts.filter(d => !d.analyzing && !d.removingBg)
+    const ready = drafts.filter(d => !d.analyzing)
     if (ready.some(d => !d.name || !d.category)) {
       Alert.alert('Fyll i namn och kategori för alla plagg')
       return
@@ -236,7 +186,7 @@ export default function AddGarment() {
           <TouchableOpacity style={styles.pickBtn} onPress={pickImages}>
             <Text style={styles.pickBtnIcon}>📷</Text>
             <Text style={styles.pickBtnTitle}>Välj foton</Text>
-            <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden</Text>
+            <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna automatiskt</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -244,7 +194,7 @@ export default function AddGarment() {
   }
 
   // ── REVIEW STEP ────────────────────────────────────────────
-  const processingCount = drafts.filter(d => d.analyzing || d.removingBg).length
+  const processingCount = drafts.filter(d => d.analyzing).length
   const totalCount = drafts.length
 
   return (
@@ -263,18 +213,14 @@ export default function AddGarment() {
         )}
 
         {drafts.map((draft) => {
-          const isProcessing = draft.analyzing || draft.removingBg
-          const statusText = draft.analyzing && draft.removingBg
-            ? 'Analyserar & tar bort bakgrund...'
-            : draft.analyzing
-            ? 'AI analyserar...'
-            : 'Tar bort bakgrund...'
+          const isProcessing = draft.analyzing
+          const statusText = 'AI analyserar...'
 
           return (
             <View key={draft.id} style={styles.card}>
               {/* Header: thumbnail + name + remove */}
               <View style={styles.cardHeader}>
-                <View style={[styles.cardThumbWrap, !!draft.processedBase64 && styles.cardThumbBg]}>
+                <View style={styles.cardThumbWrap}>
                   <Image source={{ uri: draft.uri }} style={styles.cardThumb} resizeMode="contain" />
                 </View>
                 <View style={styles.cardNameWrap}>

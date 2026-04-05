@@ -12,7 +12,6 @@ import {
   View
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
-import DressForm from '../components/DressForm'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 
@@ -24,7 +23,7 @@ const WEEKDAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön']
 const MONTHS = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December']
 
 export default function MyOutfits() {
-  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'provdocka'>('kalender')
+  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits'>('kalender')
 
   // Outfit state
   const [outfits, setOutfits] = useState<any[]>([])
@@ -441,23 +440,17 @@ function isPast(date: Date) {
         </View>
 
         <View style={styles.tabRow}>
-          {(['kalender', 'outfits', 'provdocka'] as const).map(tab => (
+          {(['kalender', 'outfits'] as const).map(tab => (
             <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'kalender' ? '📅 Kalender' : tab === 'outfits' ? '👗 Outfits' : '🧍 Docka'}
+                {tab === 'kalender' ? '📅 Kalender' : '👗 Outfits'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      {/* ── Provdocka tab (no ScrollView – needs PanResponder) ── */}
-      {activeTab === 'provdocka' && (
-        <DressForm garments={garments} onSaved={fetchOutfits} />
-      )}
-
       {/* ── Scrollable content for kalender / outfits ── */}
-      {activeTab !== 'provdocka' && (
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll}>
 
         {/* KALENDER */}
@@ -567,7 +560,6 @@ function isPast(date: Date) {
           </>
         )}
       </ScrollView>
-      )}
 
       <BottomNav />
     </SafeAreaView>
