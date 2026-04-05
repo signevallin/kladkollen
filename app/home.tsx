@@ -43,7 +43,7 @@ export default function Home() {
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   const [selectedContext, setSelectedContext] = useState(1) // 0=Jobb, 1=Ledig, 2=Fest
-  const [intensity, setIntensity] = useState(3)
+  const intensity = 3 // Fast: Balanserad
   const [useWeather, setUseWeather] = useState(true)
 
   const outfitAnim = useRef(new Animated.Value(0)).current
@@ -446,29 +446,6 @@ Svara ENDAST med JSON, inga backticks:
               </TouchableOpacity>
             )
           })}
-        </View>
-
-        {/* Intensity slider */}
-        <View style={styles.section}>
-          <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionTitle}>Intensitet</Text>
-            <Text style={styles.intensityLabel}>{INTENSITY_LABELS[intensity - 1]}</Text>
-          </View>
-          <View style={styles.sliderRow}>
-            {[1, 2, 3, 4, 5].map(val => (
-              <TouchableOpacity
-                key={val}
-                style={styles.sliderStepWrap}
-                onPress={() => setIntensity(val)}
-              >
-                <View style={[
-                  styles.sliderDot,
-                  val <= intensity && styles.sliderDotFilled,
-                  val === intensity && styles.sliderDotActive,
-                ]} />
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
 
         {/* Weather toggle */}
