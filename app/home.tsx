@@ -17,13 +17,10 @@ import BottomNav from '../components/BottomNav'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 
-const MOODS = [
-  { emoji: '😌', label: 'Lugn', color: '#A8B5A0', bg: 'rgba(168,181,160,0.15)', logic: 'mjuka material, neutrala färger, stickat, oversized, lager', energy: 1, expression: 1 },
-  { emoji: '🔥', label: 'Power', color: '#9E2035', bg: 'rgba(158,32,53,0.15)', logic: 'skräddat, markerad siluett, svart/vitt, statement-plagg', energy: 5, expression: 5 },
-  { emoji: '💕', label: 'Romantisk', color: '#E8A0B4', bg: 'rgba(232,160,180,0.15)', logic: 'klänning, pasteller, flöde, feminina detaljer', energy: 2, expression: 5 },
-  { emoji: '⚡', label: 'Energisk', color: '#F5C842', bg: 'rgba(245,200,66,0.15)', logic: 'sportigt, funktionellt, lager som går att röra sig i', energy: 5, expression: 3 },
-  { emoji: '☁️', label: 'Introvert', color: '#8B9BB4', bg: 'rgba(139,155,180,0.15)', logic: 'hoodie, stickat, mörka färger, bekvämt', energy: 1, expression: 2 },
-  { emoji: '🪩', label: 'Fest', color: '#B57BDB', bg: 'rgba(181,123,219,0.15)', logic: 'glans, klackar, accessoarer, statement pieces', energy: 5, expression: 6 },
+const CONTEXTS = [
+  { label: 'Jobb', emoji: '💼', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
+  { label: 'Ledig', emoji: '🌿', logic: 'casual, bekvämt, avslappnat men snyggt, vardaglig känsla' },
+  { label: 'Fest', emoji: '🪩', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
 ]
 
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
@@ -45,16 +42,11 @@ export default function Home() {
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
-  // Mood state
-  const [selectedMood, setSelectedMood] = useState<number | null>(null)
-  const [intensity, setIntensity] = useState(3) // 1-5
+  const [selectedContext, setSelectedContext] = useState(1) // 0=Jobb, 1=Ledig, 2=Fest
+  const [intensity, setIntensity] = useState(3)
   const [useWeather, setUseWeather] = useState(true)
-  const [context, setContext] = useState<'båda' | 'jobb' | 'fritid'>('båda')
 
-  // Animations
-  const moodAnim = useRef(new Animated.Value(0)).current
   const outfitAnim = useRef(new Animated.Value(0)).current
-  const glowAnim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     loadUser()
@@ -129,28 +121,16 @@ export default function Home() {
     return 'God kväll'
   }
 
-  function selectMood(index: number) {
-    setSelectedMood(index)
+  function selectContext(index: number) {
+    setSelectedContext(index)
     setOutfit(null)
     setSaved(false)
     setSavedOutfitId(null)
     setWornToday(false)
     setRating(null)
-
-    // Animate glow
-    Animated.sequence([
-      Animated.timing(glowAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.timing(glowAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
-    ]).start()
-
-    Animated.spring(moodAnim, { toValue: 1, friction: 6, useNativeDriver: true }).start()
   }
 
   async function generateOutfit() {
-    if (selectedMood === null) {
-      showAlert('Välj ett humör först!')
-      return
-    }
     if (garments.length === 0) {
       showAlert('Lägg till plagg i garderoben först!')
       return
@@ -163,7 +143,7 @@ export default function Home() {
     setRating(null)
     setOutfit(null)
 
-    const mood = MOODS[selectedMood]
+    const ctx = CONTEXTS[selectedContext]
     const currentWeather = weather ?? { temp: 10, description: 'okänt', rain: false }
 
     try {
@@ -187,7 +167,6 @@ export default function Home() {
         .map(g => `- ${g.name} (${g.category}${g.color ? ', ' + g.color : ''}${g.season ? ', ' + g.season : ''})`)
         .join('\n')
 
-      const contextStr = context === 'jobb' ? 'jobbkontext' : context === 'fritid' ? 'fritid/ledigt' : 'generellt'
       const weatherStr = useWeather ? `Det är ${currentWeather.temp}°C ute, ${currentWeather.description}${currentWeather.rain ? ' – regn/fukt' : ''}.` : ''
       const intensityStr = INTENSITY_LABELS[intensity - 1]
       const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt dessa plagg som nyss använts: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
@@ -202,9 +181,8 @@ export default function Home() {
             role: 'user',
             content: `Du är en personlig stylist. Skapa en outfit baserat på följande:
 
-Humör: ${mood.label} (${mood.emoji}) – ${mood.logic}
+Kontext: ${ctx.label} (${ctx.emoji}) – ${ctx.logic}
 Intensitet: ${intensityStr} (${intensity}/5)
-Kontext: ${contextStr}
 ${weatherStr}
 ${avoidStr}${ratingCtx}
 
@@ -237,7 +215,6 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
 
       setOutfit({ ...parsed, itemsWithImages })
 
-      // Animate outfit in
       outfitAnim.setValue(0)
       Animated.spring(outfitAnim, { toValue: 1, friction: 7, useNativeDriver: true }).start()
 
@@ -259,8 +236,8 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
       const { data: outfitData, error } = await supabase.from('outfits').insert([{
         user_id: user?.id, name: outfit.outfitName,
         garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
-        mood: selectedMood !== null ? MOODS[selectedMood].label : null,
-        context,
+        mood: CONTEXTS[selectedContext].label,
+        context: CONTEXTS[selectedContext].label.toLowerCase(),
       }]).select('id').single()
       if (error) throw error
       setSaved(true)
@@ -287,8 +264,8 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
         const { data: outfitData, error: outfitError } = await supabase.from('outfits').insert([{
           user_id: user?.id, name: outfit.outfitName,
           garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
-          mood: selectedMood !== null ? MOODS[selectedMood].label : null,
-          context,
+          mood: CONTEXTS[selectedContext].label,
+          context: CONTEXTS[selectedContext].label.toLowerCase(),
         }]).select('id').single()
         if (outfitError) throw outfitError
         outfitId = outfitData.id
@@ -338,8 +315,8 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
         const { data: outfitData, error: outfitError } = await supabase.from('outfits').insert([{
           user_id: user?.id, name: outfit.outfitName,
           garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
-          mood: selectedMood !== null ? MOODS[selectedMood].label : null,
-          context,
+          mood: CONTEXTS[selectedContext].label,
+          context: CONTEXTS[selectedContext].label.toLowerCase(),
         }]).select('id').single()
         if (outfitError) throw outfitError
         outfitId = outfitData.id
@@ -356,19 +333,23 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
     }
   }
 
-  const activeMood = selectedMood !== null ? MOODS[selectedMood] : null
+  const activeCtx = CONTEXTS[selectedContext]
 
   return (
-    <SafeAreaView style={[styles.container, activeMood && { backgroundColor: '#150408' }]}>
+    <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
 
         {/* Header */}
         <View style={styles.headerRow}>
-          <View>
-            <Text style={[styles.greeting, fontsLoaded && { fontFamily: 'DancingScript_400Regular', fontSize: 22 }]}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.greeting, fontsLoaded && { fontFamily: 'DancingScript_400Regular' }]}>
               {getGreeting()}, {userName} 🍒
             </Text>
-            <Text style={styles.question}>Hur vill du{'\n'}känna dig idag?</Text>
+            {weather && (
+              <Text style={styles.weatherLine}>
+                {weather.emoji} {weather.temp}° · {weather.description}
+              </Text>
+            )}
           </View>
           <TouchableOpacity onPress={() => router.push('/profile')} style={styles.profileBtn}>
             {userAvatar
@@ -378,22 +359,19 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
           </TouchableOpacity>
         </View>
 
-        {/* Mood grid */}
-        <View style={styles.moodGrid}>
-          {MOODS.map((mood, index) => {
-            const isSelected = selectedMood === index
+        {/* Quick-select context */}
+        <View style={styles.contextRow}>
+          {CONTEXTS.map((ctx, index) => {
+            const isSelected = selectedContext === index
             return (
               <TouchableOpacity
                 key={index}
-                style={[
-                  styles.moodBtn,
-                  isSelected && { backgroundColor: mood.bg, borderColor: mood.color, borderWidth: 2 }
-                ]}
-                onPress={() => selectMood(index)}
+                style={[styles.contextBtn, isSelected && styles.contextBtnSelected]}
+                onPress={() => selectContext(index)}
                 activeOpacity={0.75}
               >
-                <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-                <Text style={[styles.moodLabel, isSelected && { color: mood.color }]}>{mood.label}</Text>
+                <Text style={styles.contextEmoji}>{ctx.emoji}</Text>
+                <Text style={[styles.contextLabel, isSelected && styles.contextLabelSelected]}>{ctx.label}</Text>
               </TouchableOpacity>
             )
           })}
@@ -414,7 +392,7 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
               >
                 <View style={[
                   styles.sliderDot,
-                  val <= intensity && { backgroundColor: activeMood?.color || '#9E2035' },
+                  val <= intensity && styles.sliderDotFilled,
                   val === intensity && styles.sliderDotActive,
                 ]} />
               </TouchableOpacity>
@@ -422,9 +400,8 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
           </View>
         </View>
 
-        {/* Options */}
+        {/* Weather toggle */}
         <View style={styles.section}>
-          {/* Weather toggle */}
           <TouchableOpacity
             style={styles.optionRow}
             onPress={() => setUseWeather(!useWeather)}
@@ -437,42 +414,21 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
                 {weather && <Text style={styles.optionSub}>{weather.temp}° · {weather.description}</Text>}
               </View>
             </View>
-            <View style={[styles.toggle, useWeather && { backgroundColor: activeMood?.color || '#9E2035' }]}>
+            <View style={[styles.toggle, useWeather && styles.toggleOn]}>
               <View style={[styles.toggleKnob, useWeather && styles.toggleKnobOn]} />
             </View>
           </TouchableOpacity>
-
-          {/* Context segmented control */}
-          <View style={styles.segmentedRow}>
-            {(['jobb', 'båda', 'fritid'] as const).map(opt => (
-              <TouchableOpacity
-                key={opt}
-                style={[styles.segmentBtn, context === opt && { backgroundColor: activeMood?.color || '#9E2035' }]}
-                onPress={() => setContext(opt)}
-              >
-                <Text style={[styles.segmentText, context === opt && { color: '#FBF3EF' }]}>
-                  {opt === 'jobb' ? '💼 Jobb' : opt === 'fritid' ? '🌿 Fritid' : '✨ Båda'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
 
         {/* Generate button */}
         <TouchableOpacity
-          style={[
-            styles.generateBtn,
-            selectedMood === null && styles.generateBtnDisabled,
-            activeMood && { backgroundColor: activeMood.color }
-          ]}
+          style={styles.generateBtn}
           onPress={generateOutfit}
-          disabled={loading || selectedMood === null}
+          disabled={loading}
         >
           {loading
             ? <ActivityIndicator color="#FBF3EF" />
-            : <Text style={styles.generateBtnText}>
-                {selectedMood !== null ? `${activeMood?.emoji} Generera outfit` : 'Välj ett humör först'}
-              </Text>
+            : <Text style={styles.generateBtnText}>{activeCtx.emoji} Generera outfit</Text>
           }
         </TouchableOpacity>
 
@@ -481,19 +437,16 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
           <Animated.View style={[styles.outfitCard, {
             opacity: outfitAnim,
             transform: [{ translateY: outfitAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-            borderColor: activeMood?.color || 'rgba(196,115,122,0.2)',
           }]}>
-            {/* Emotional message */}
             {outfit.message && (
-              <View style={[styles.messageBox, { backgroundColor: activeMood?.bg || 'rgba(122,24,40,0.2)' }]}>
-                <Text style={[styles.messageEmoji]}>{activeMood?.emoji}</Text>
+              <View style={styles.messageBox}>
+                <Text style={styles.messageEmoji}>{activeCtx.emoji}</Text>
                 <Text style={styles.messageText}>{outfit.message}</Text>
               </View>
             )}
 
             <Text style={styles.outfitName}>{outfit.outfitName}</Text>
 
-            {/* Garment images */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.outfitImagesScroll}>
               <View style={styles.outfitImages}>
                 {outfit.itemsWithImages.map((item: any, i: number) => (
@@ -508,13 +461,12 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
               </View>
             </ScrollView>
 
-            {/* Star rating */}
             <View style={styles.ratingRow}>
               <Text style={styles.ratingLabel}>Vad tyckte du om looken?</Text>
               <View style={styles.stars}>
                 {[1, 2, 3, 4, 5].map(star => (
                   <TouchableOpacity key={star} onPress={() => rateOutfit(star)} disabled={ratingLoading} activeOpacity={0.7}>
-                    <Text style={[styles.star, star <= (rating || 0) && { color: activeMood?.color || '#9E2035' }]}>
+                    <Text style={[styles.star, star <= (rating || 0) && styles.starFilled]}>
                       {star <= (rating || 0) ? '★' : '☆'}
                     </Text>
                   </TouchableOpacity>
@@ -524,7 +476,7 @@ Skriv ett emotionellt, personligt budskap (1–2 meningar) om vad looken ger fö
 
             <View style={styles.outfitActions}>
               <TouchableOpacity
-                style={[styles.saveBtn, saved && styles.saveBtnDone, { backgroundColor: activeMood?.color || '#9E2035' }]}
+                style={[styles.saveBtn, saved && styles.saveBtnDone]}
                 onPress={saveOutfit}
                 disabled={saving || saved}
               >
@@ -572,54 +524,54 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#150408' },
   scroll: { paddingBottom: 100 },
 
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 16 },
-  greeting: { fontSize: 22, color: '#C4737A', marginBottom: 4 },
-  question: { fontSize: 34, fontWeight: 'bold', color: '#FBF3EF', lineHeight: 40 },
-  profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', overflow: 'hidden' },
+  // Header
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 28, paddingTop: 28, paddingBottom: 32 },
+  headerLeft: { flex: 1 },
+  greeting: { fontSize: 28, color: '#C4737A', marginBottom: 6 },
+  weatherLine: { fontSize: 13, color: 'rgba(196,115,122,0.6)', marginTop: 2 },
+  profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', overflow: 'hidden', marginLeft: 16 },
   profileBtnText: { fontSize: 18 },
   profileBtnImage: { width: 40, height: 40, borderRadius: 20 },
 
-  // Mood grid
-  moodGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 24, gap: 10, marginBottom: 24 },
-  moodBtn: { width: '30%', aspectRatio: 1.3, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.25)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', gap: 4 },
-  moodEmoji: { fontSize: 26 },
-  moodLabel: { fontSize: 10, color: 'rgba(196,115,122,0.7)', fontWeight: '500' },
+  // Context quick-select
+  contextRow: { flexDirection: 'row', paddingHorizontal: 28, gap: 12, marginBottom: 36 },
+  contextBtn: { flex: 1, borderRadius: 18, paddingVertical: 18, alignItems: 'center', gap: 6, backgroundColor: 'rgba(122,24,40,0.2)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
+  contextBtnSelected: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  contextEmoji: { fontSize: 22 },
+  contextLabel: { fontSize: 13, color: 'rgba(196,115,122,0.7)', fontWeight: '600', letterSpacing: 0.3 },
+  contextLabelSelected: { color: '#FBF3EF' },
 
   // Section
-  section: { paddingHorizontal: 24, marginBottom: 16, gap: 12 },
+  section: { paddingHorizontal: 28, marginBottom: 20, gap: 12 },
   sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: '#FBF3EF' },
+  sectionTitle: { fontSize: 14, fontWeight: '600', color: 'rgba(251,243,239,0.6)', letterSpacing: 0.5 },
   intensityLabel: { fontSize: 13, color: '#C4737A', fontStyle: 'italic' },
 
   // Slider
-  sliderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8 },
+  sliderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
   sliderStepWrap: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  sliderDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(196,115,122,0.2)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  sliderDotActive: { width: 20, height: 20, borderRadius: 10 },
+  sliderDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(196,115,122,0.15)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
+  sliderDotFilled: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  sliderDotActive: { width: 18, height: 18, borderRadius: 9 },
 
   // Options
-  optionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  optionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(122,24,40,0.2)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
   optionLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  optionIcon: { fontSize: 24 },
+  optionIcon: { fontSize: 22 },
   optionText: { fontSize: 14, color: '#FBF3EF', fontWeight: '500' },
   optionSub: { fontSize: 11, color: '#C4737A', marginTop: 2 },
   toggle: { width: 44, height: 24, borderRadius: 12, backgroundColor: 'rgba(122,24,40,0.4)', padding: 2, justifyContent: 'center' },
+  toggleOn: { backgroundColor: '#9E2035' },
   toggleKnob: { width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(196,115,122,0.5)' },
   toggleKnobOn: { alignSelf: 'flex-end', backgroundColor: '#FBF3EF' },
 
-  // Segmented
-  segmentedRow: { flexDirection: 'row', gap: 6 },
-  segmentBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.25)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  segmentText: { fontSize: 12, color: '#C4737A', fontWeight: '500' },
-
   // Generate
-  generateBtn: { marginHorizontal: 24, backgroundColor: '#9E2035', borderRadius: 18, padding: 18, alignItems: 'center', marginBottom: 20 },
-  generateBtnDisabled: { opacity: 0.4 },
+  generateBtn: { marginHorizontal: 28, backgroundColor: '#9E2035', borderRadius: 18, padding: 18, alignItems: 'center', marginBottom: 28 },
   generateBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
 
   // Outfit card
-  outfitCard: { marginHorizontal: 24, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 22, padding: 18, marginBottom: 20, borderWidth: 1.5, gap: 14 },
-  messageBox: { borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  outfitCard: { marginHorizontal: 28, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 22, padding: 20, marginBottom: 28, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', gap: 16 },
+  messageBox: { borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: 'rgba(158,32,53,0.15)' },
   messageEmoji: { fontSize: 22 },
   messageText: { flex: 1, fontSize: 14, color: '#FBF3EF', lineHeight: 20, fontStyle: 'italic' },
   outfitName: { fontSize: 20, fontWeight: 'bold', color: '#FBF3EF' },
@@ -639,14 +591,15 @@ const styles = StyleSheet.create({
   ratingLabel: { fontSize: 12, color: '#C4737A', fontStyle: 'italic' },
   stars: { flexDirection: 'row', gap: 6 },
   star: { fontSize: 28, color: 'rgba(196,115,122,0.3)' },
+  starFilled: { color: '#9E2035' },
 
   wearTodayBtn: { borderRadius: 12, padding: 13, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.5)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
   wearTodayBtnDone: { backgroundColor: 'transparent', borderColor: 'rgba(196,115,122,0.2)' },
   wearTodayBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
 
   // Stats
-  statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 24 },
-  statCard: { flex: 1, backgroundColor: 'rgba(122,24,40,0.35)', borderRadius: 16, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  statNum: { fontSize: 28, fontWeight: 'bold', color: '#DDA0A7' },
+  statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 28 },
+  statCard: { flex: 1, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
+  statNum: { fontSize: 26, fontWeight: 'bold', color: '#DDA0A7' },
   statLabel: { fontSize: 9, color: '#C4737A', letterSpacing: 1.5, marginTop: 2, fontWeight: '600' },
 })
