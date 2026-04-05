@@ -130,12 +130,48 @@ export default function Home() {
     setRating(null)
   }
 
-  function buildGroupedGarmentList(garmentList: any[]) {
+  function buildWeatherContext(w: any): { summary: string; rules: string; requiresOuterwear: boolean } {
+    if (!w) return { summary: '', rules: '', requiresOuterwear: false }
+    const temp = w.temp
+    const rain = w.rain
+
+    let summary = `Väder just nu: ${temp}°C, ${w.description}.`
+    const rules: string[] = []
+    let requiresOuterwear = false
+
+    if (temp <= 5) {
+      summary += ' Det är kallt.'
+      rules.push('KALLT VÄDER: Ytterkläder (jacka/kappa) är OBLIGATORISKT om det finns i garderoben. Välj varma material.')
+      requiresOuterwear = true
+    } else if (temp <= 12) {
+      summary += ' Det är svalt.'
+      rules.push('SVALT VÄDER: Lägg till ytterkläder eller kavaj om det finns – annars välj en tjockare tröja.')
+    } else if (temp <= 18) {
+      summary += ' Det är milt.'
+      rules.push('MILT VÄDER: En lätt kavaj eller tröja kan passa, men ytterkläder är inte nödvändigt.')
+    } else if (temp >= 23) {
+      summary += ' Det är varmt.'
+      rules.push('VARMT VÄDER: Välj lätta material. Undvik tjocka lager och ytterkläder.')
+    }
+
+    if (rain) {
+      rules.push('REGN: Prioritera ytterkläder med regnbeskyddande funktion om det finns. Undvik vita eller känsliga material.')
+      requiresOuterwear = true
+    }
+
+    return { summary, rules: rules.join('\n'), requiresOuterwear }
+  }
+
+  function buildGroupedGarmentList(garmentList: any[], requiresOuterwear: boolean) {
+    const outerwearLabel = requiresOuterwear
+      ? 'YTTERPLAGG / KAVAJ – OBLIGATORISK pga vädret (välj 1 om tillgängligt)'
+      : 'YTTERPLAGG / KAVAJ – valfritt, lägg till om kontexten/vädret kräver'
+
     const groups: Record<string, string[]> = {
       'KLÄNNING (välj 1 om du vill ha heldress – då skippar du nederdel och överdel)': [],
       'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)': [],
       'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)': [],
-      'YTTERPLAGG / KAVAJ – valfritt, lägg till om kontexten/vädret kräver': [],
+      [outerwearLabel]: [],
       'SKOR – alltid obligatorisk (välj exakt 1)': [],
       'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken': [],
     }
@@ -145,8 +181,8 @@ export default function Home() {
       'Kjolar': 'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)',
       'Toppar': 'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)',
       'Tröjor': 'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)',
-      'Kavajer': 'YTTERPLAGG / KAVAJ – valfritt, lägg till om kontexten/vädret kräver',
-      'Ytterkläder': 'YTTERPLAGG / KAVAJ – valfritt, lägg till om kontexten/vädret kräver',
+      'Kavajer': outerwearLabel,
+      'Ytterkläder': outerwearLabel,
       'Skor': 'SKOR – alltid obligatorisk (välj exakt 1)',
       'Väskor': 'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken',
       'Accessoarer': 'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken',
@@ -163,11 +199,12 @@ export default function Home() {
       .join('\n\n')
   }
 
-  function validateOutfit(items: string[], garmentList: any[]): { valid: boolean; missing: string } {
+  function validateOutfit(items: string[], garmentList: any[], requiresOuterwear: boolean): { valid: boolean; missing: string } {
     const BOTTOM_CATS = ['Byxor', 'Kjolar']
     const TOP_CATS = ['Toppar', 'Tröjor']
     const DRESS_CATS = ['Klänningar']
     const SHOE_CATS = ['Skor']
+    const OUTER_CATS = ['Ytterkläder', 'Kavajer']
 
     const matched = items.map(name =>
       garmentList.find(g =>
@@ -180,10 +217,14 @@ export default function Home() {
     const hasBottom = matched.some(g => BOTTOM_CATS.includes(g.category))
     const hasTop = matched.some(g => TOP_CATS.includes(g.category))
     const hasShoes = matched.some(g => SHOE_CATS.includes(g.category))
+    const hasOuter = matched.some(g => OUTER_CATS.includes(g.category))
 
     if (!hasShoes) return { valid: false, missing: 'skor saknas' }
     if (!hasDress && !hasBottom) return { valid: false, missing: 'nederdel (byxor/kjol) saknas' }
     if (!hasDress && !hasTop) return { valid: false, missing: 'överdel saknas' }
+    // Only require outerwear if the wardrobe actually has some
+    const hasOuterwearInWardrobe = garmentList.some(g => OUTER_CATS.includes(g.category))
+    if (requiresOuterwear && hasOuterwearInWardrobe && !hasOuter) return { valid: false, missing: 'ytterkläder saknas trots kallt/regnigt väder' }
     return { valid: true, missing: '' }
   }
 
@@ -220,9 +261,9 @@ export default function Home() {
       ].filter(Boolean).join('\n')
 
       const activeGarments = garments.filter(g => !g.archived)
-      const groupedList = buildGroupedGarmentList(activeGarments)
+      const weatherCtx = useWeather ? buildWeatherContext(currentWeather) : { summary: '', rules: '', requiresOuterwear: false }
+      const groupedList = buildGroupedGarmentList(activeGarments, weatherCtx.requiresOuterwear)
 
-      const weatherStr = useWeather ? `Väder: ${currentWeather.temp}°C, ${currentWeather.description}${currentWeather.rain ? ' (regn – ta med regnplagg om tillgängligt)' : ''}.` : ''
       const intensityStr = INTENSITY_LABELS[intensity - 1]
       const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
       const ratingCtx = feedbackStr ? `\nSmakprofil:\n${feedbackStr}` : ''
@@ -231,7 +272,7 @@ export default function Home() {
 
 Kontext: ${ctx.label} – ${ctx.logic}
 Intensitet: ${intensityStr} (${intensity}/5)
-${weatherStr}
+${weatherCtx.summary}
 ${avoidStr}${ratingCtx}
 ${extraInstruction}
 
@@ -244,6 +285,7 @@ OBLIGATORISKA REGLER – följ dessa EXAKT:
 2. NEDERDEL: Du MÅSTE välja byxor eller kjol – SÅVIDA du inte väljer klänning.
 3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning.
 4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
+${weatherCtx.rules ? '5. VÄDER: ' + weatherCtx.rules : ''}
 
 Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar)."}`
@@ -272,7 +314,7 @@ Svara ENDAST med JSON, inga backticks:
         const text = data.choices[0].message.content
         parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
 
-        const { valid } = validateOutfit(parsed.items, activeGarments)
+        const { valid } = validateOutfit(parsed.items, activeGarments, weatherCtx.requiresOuterwear)
         if (valid) break
       }
 
