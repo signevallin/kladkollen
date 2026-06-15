@@ -448,20 +448,25 @@ button{font-family:'Sora',sans-serif;cursor:pointer;}
 
 function LandingPage() {
   useEffect(() => {
-    document.documentElement.style.overflow = 'auto'
-    document.documentElement.style.height = 'auto'
-    document.body.style.overflow = 'auto'
-    document.body.style.height = 'auto'
+    const html = document.documentElement
+    const body = document.body
     const root = document.getElementById('root')
-    if (root) { root.style.position = 'static'; root.style.height = 'auto' }
+
+    html.style.cssText += ';overflow:auto!important;height:auto!important;'
+    body.style.cssText += ';overflow:auto!important;height:auto!important;'
+    if (root) root.style.cssText += ';position:static!important;height:auto!important;overflow:visible!important;display:block!important;'
 
     return () => {
-      document.documentElement.style.overflow = ''
-      document.documentElement.style.height = ''
-      document.body.style.overflow = ''
-      document.body.style.height = ''
-      const root = document.getElementById('root')
-      if (root) { root.style.position = ''; root.style.height = '' }
+      html.style.overflow = ''
+      html.style.height = ''
+      body.style.overflow = ''
+      body.style.height = ''
+      if (root) {
+        root.style.position = ''
+        root.style.height = ''
+        root.style.overflow = ''
+        root.style.display = ''
+      }
     }
   }, [])
 
