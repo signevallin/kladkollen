@@ -464,7 +464,12 @@ Svara ENDAST med JSON, inga backticks:
               </Text>
             )}
           </View>
-          <TouchableOpacity onPress={() => router.push('/profile')} style={styles.profileBtn}>
+          <TouchableOpacity
+            onPress={() => router.push('/profile')}
+            style={styles.profileBtn}
+            accessibilityLabel="Min profil"
+            accessibilityRole="button"
+          >
             {userAvatar
               ? <Image source={{ uri: userAvatar }} style={styles.profileBtnImage} />
               : <Text style={styles.profileBtnText}>👤</Text>
@@ -482,8 +487,11 @@ Svara ENDAST med JSON, inga backticks:
                 style={[styles.contextBtn, isSelected && styles.contextBtnSelected]}
                 onPress={() => selectContext(index)}
                 activeOpacity={0.75}
+                accessibilityLabel={`Kontext: ${ctx.label}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
               >
-                <Text style={styles.contextEmoji}>{ctx.emoji}</Text>
+                <Text style={[styles.contextEmoji, isSelected && styles.contextEmojiSelected]}>{ctx.emoji}</Text>
                 <Text style={[styles.contextLabel, isSelected && styles.contextLabelSelected]}>{ctx.label}</Text>
               </TouchableOpacity>
             )
@@ -555,7 +563,16 @@ Svara ENDAST med JSON, inga backticks:
               <Text style={styles.ratingLabel}>Vad tyckte du om looken?</Text>
               <View style={styles.stars}>
                 {[1, 2, 3, 4, 5].map(star => (
-                  <TouchableOpacity key={star} onPress={() => rateOutfit(star)} disabled={ratingLoading} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => rateOutfit(star)}
+                    disabled={ratingLoading}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                    accessibilityLabel={`Betyg ${star} av 5`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: star <= (rating || 0) }}
+                  >
                     <Text style={[styles.star, star <= (rating || 0) && styles.starFilled]}>
                       {star <= (rating || 0) ? '★' : '☆'}
                     </Text>
@@ -569,8 +586,13 @@ Svara ENDAST med JSON, inga backticks:
                 style={[styles.saveBtn, saved && styles.saveBtnDone]}
                 onPress={saveOutfit}
                 disabled={saving || saved}
+                accessibilityLabel={saved ? 'Outfit sparad' : 'Spara outfit'}
+                accessibilityRole="button"
               >
-                <Text style={styles.saveBtnText}>{saving ? '...' : saved ? '✓ Sparad' : '🍒 Spara outfit'}</Text>
+                {saving
+                  ? <ActivityIndicator color="#FBF3EF" size="small" />
+                  : <Text style={styles.saveBtnText}>{saved ? '✓ Sparad' : '🍒 Spara outfit'}</Text>
+                }
               </TouchableOpacity>
               <TouchableOpacity style={styles.newBtn} onPress={generateOutfit}>
                 <Text style={styles.newBtnText}>↻</Text>
@@ -580,10 +602,13 @@ Svara ENDAST med JSON, inga backticks:
               style={[styles.wearTodayBtn, wornToday && styles.wearTodayBtnDone]}
               onPress={wearToday}
               disabled={wearingToday || wornToday}
+              accessibilityLabel={wornToday ? 'Vald för idag' : 'Vill ha på mig idag'}
+              accessibilityRole="button"
             >
-              <Text style={styles.wearTodayBtnText}>
-                {wearingToday ? '...' : wornToday ? '✓ Vald för idag' : '👗 Vill ha på mig idag'}
-              </Text>
+              {wearingToday
+                ? <ActivityIndicator color="#FBF3EF" size="small" />
+                : <Text style={styles.wearTodayBtnText}>{wornToday ? '✓ Vald för idag' : '👗 Vill ha på mig idag'}</Text>
+              }
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -625,10 +650,11 @@ const styles = StyleSheet.create({
 
   // Context quick-select
   contextRow: { flexDirection: 'row', paddingHorizontal: 28, gap: 12, marginBottom: 36 },
-  contextBtn: { flex: 1, borderRadius: 18, paddingVertical: 18, alignItems: 'center', gap: 6, backgroundColor: 'rgba(122,24,40,0.2)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
-  contextBtnSelected: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  contextEmoji: { fontSize: 22 },
-  contextLabel: { fontSize: 13, color: 'rgba(196,115,122,0.7)', fontWeight: '600', letterSpacing: 0.3 },
+  contextBtn: { flex: 1, borderRadius: 18, paddingVertical: 18, alignItems: 'center', gap: 6, backgroundColor: 'rgba(122,24,40,0.15)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.1)' },
+  contextBtnSelected: { backgroundColor: '#9E2035', borderColor: '#C4737A' },
+  contextEmoji: { fontSize: 22, opacity: 0.5 },
+  contextEmojiSelected: { opacity: 1 },
+  contextLabel: { fontSize: 13, color: 'rgba(196,115,122,0.45)', fontWeight: '600', letterSpacing: 0.3 },
   contextLabelSelected: { color: '#FBF3EF' },
 
   // Section
@@ -670,7 +696,7 @@ const styles = StyleSheet.create({
   outfitItemWrap: { alignItems: 'center', gap: 4, width: 80 },
   outfitImage: { width: 80, height: 80, borderRadius: 14 },
   outfitImageEmpty: { width: 80, height: 80, borderRadius: 14, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center' },
-  outfitItemName: { fontSize: 10, color: '#C4737A', textAlign: 'center', width: 80 },
+  outfitItemName: { fontSize: 11, color: '#C4737A', textAlign: 'center', width: 80 },
   outfitActions: { flexDirection: 'row', gap: 8 },
   saveBtn: { flex: 1, backgroundColor: '#9E2035', borderRadius: 12, padding: 12, alignItems: 'center' },
   saveBtnDone: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
@@ -691,5 +717,5 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 28 },
   statCard: { flex: 1, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
   statNum: { fontSize: 26, fontWeight: 'bold', color: '#DDA0A7' },
-  statLabel: { fontSize: 9, color: '#C4737A', letterSpacing: 1.5, marginTop: 2, fontWeight: '600' },
+  statLabel: { fontSize: 11, color: '#C4737A', letterSpacing: 1.5, marginTop: 2, fontWeight: '600' },
 })

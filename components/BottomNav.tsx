@@ -22,11 +22,15 @@ export default function BottomNav() {
             key={tab.name}
             style={styles.tab}
             onPress={() => router.push(tab.path)}
+            accessibilityLabel={tab.label}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
           >
+            {active && <View style={styles.activeIndicator} />}
             <Ionicons
               name={(active ? tab.icon : tab.iconOutline) as any}
               size={22}
-              color={active ? '#DDA0A7' : '#DDA0A7'}
+              color={active ? '#FBF3EF' : 'rgba(221,160,167,0.45)'}
             />
             <Text style={[styles.label, active && styles.labelActive]}>
               {tab.label}
@@ -53,13 +57,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 3,
   },
+  activeIndicator: {
+    position: 'absolute',
+    top: -10,
+    width: 24,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: '#9E2035',
+  },
   label: {
-    fontSize: 9,
-    color: '#DDA0A7',
+    fontSize: 11,
+    color: 'rgba(221,160,167,0.45)',
     fontWeight: '500',
   },
   labelActive: {
-    color: '#DDA0A7',
+    color: '#FBF3EF',
     fontWeight: '700',
   },
 })

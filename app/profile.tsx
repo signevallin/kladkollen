@@ -316,14 +316,20 @@ Svara ENDAST med JSON, inga backticks:
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Gå tillbaka"
+          accessibilityRole="button"
+        >
           <Text style={styles.backButtonText}>← Tillbaka</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>Min profil</Text>
         {fontsLoaded && <Text style={styles.subtitle}>{email}</Text>}
 
-        <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar}>
+        <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel="Byt profilbild" accessibilityRole="button">
           {avatar
             ? <Image source={{ uri: avatar }} style={styles.avatar} />
             : <View style={styles.avatarPlaceholder}><Text style={styles.avatarEmoji}>👤</Text></View>
@@ -756,13 +762,13 @@ const styles = StyleSheet.create({
 
   bioChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   bioChip: { backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', minWidth: '45%', flex: 1 },
-  bioChipLabel: { fontSize: 9, color: '#C4737A', letterSpacing: 1.5, fontWeight: '600', marginBottom: 2 },
+  bioChipLabel: { fontSize: 11, color: '#C4737A', letterSpacing: 1.5, fontWeight: '600', marginBottom: 2 },
   bioChipValue: { fontSize: 14, color: '#FBF3EF', fontWeight: '600', textTransform: 'capitalize' },
 
   colorTabRow: { flexDirection: 'row', gap: 6 },
   colorTab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
   colorTabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  colorTabText: { fontSize: 11, color: '#C4737A', fontWeight: '500' },
+  colorTabText: { fontSize: 12, color: '#C4737A', fontWeight: '500' },
   colorTabTextActive: { color: '#FBF3EF', fontWeight: '700' },
 
   tabContent: { gap: 12 },

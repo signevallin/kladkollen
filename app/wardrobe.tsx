@@ -294,13 +294,11 @@ export default function Wardrobe() {
       }
     }
 
-    setTimeout(() => {
-      const selected = new Set(result.map((g: any) => g.id))
-      setCapsuleSelected(selected)
-      setCapsuleGenerated(true)
-      setGeneratingCapsule(false)
-      saveCapsule(selected)
-    }, 1400)
+    const selected = new Set(result.map((g: any) => g.id))
+    setCapsuleSelected(selected)
+    setCapsuleGenerated(true)
+    setGeneratingCapsule(false)
+    saveCapsule(selected)
   }
 
   function toggleCapsuleItem(id: string) {
@@ -353,7 +351,12 @@ export default function Wardrobe() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Lägg till på köplistan</Text>
-              <TouchableOpacity onPress={closeWishModal}>
+              <TouchableOpacity
+                onPress={closeWishModal}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Stäng"
+                accessibilityRole="button"
+              >
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -426,7 +429,12 @@ export default function Wardrobe() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Lägg till till salu</Text>
-              <TouchableOpacity onPress={() => { setShowAddSale(false); setSaleSearch('') }}>
+              <TouchableOpacity
+                onPress={() => { setShowAddSale(false); setSaleSearch('') }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Stäng"
+                accessibilityRole="button"
+              >
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -478,22 +486,42 @@ export default function Wardrobe() {
         </View>
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
-            <TouchableOpacity style={[styles.iconBtn, showFilters && styles.iconBtnActive]} onPress={() => setShowFilters(!showFilters)}>
+            <TouchableOpacity
+              style={[styles.iconBtn, showFilters && styles.iconBtnActive]}
+              onPress={() => setShowFilters(!showFilters)}
+              accessibilityLabel="Sök och filtrera"
+              accessibilityRole="button"
+            >
               <Text style={styles.iconBtnText}>🔍</Text>
             </TouchableOpacity>
           )}
           {activeTab === 'nuvarande' && (
-            <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/add-garment')}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => router.push('/add-garment')}
+              accessibilityLabel="Lägg till plagg"
+              accessibilityRole="button"
+            >
               <Text style={styles.iconBtnText}>＋</Text>
             </TouchableOpacity>
           )}
           {activeTab === 'köp' && (
-            <TouchableOpacity style={styles.iconBtn} onPress={() => setShowAddWish(true)}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => setShowAddWish(true)}
+              accessibilityLabel="Lägg till på köplistan"
+              accessibilityRole="button"
+            >
               <Text style={styles.iconBtnText}>＋</Text>
             </TouchableOpacity>
           )}
           {activeTab === 'sälj' && (
-            <TouchableOpacity style={styles.iconBtn} onPress={() => setShowAddSale(true)}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => setShowAddSale(true)}
+              accessibilityLabel="Lägg till till salu"
+              accessibilityRole="button"
+            >
               <Text style={styles.iconBtnText}>＋</Text>
             </TouchableOpacity>
           )}
@@ -625,11 +653,25 @@ export default function Wardrobe() {
                     activeOpacity={0.8}
                   >
                     <View style={styles.reorderCol}>
-                      <TouchableOpacity style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]} onPress={() => moveWishItem(index, 'up')} disabled={index === 0}>
+                      <TouchableOpacity
+                        style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
+                        onPress={() => moveWishItem(index, 'up')}
+                        disabled={index === 0}
+                        hitSlop={{ top: 10, bottom: 6, left: 10, right: 10 }}
+                        accessibilityLabel="Flytta upp"
+                        accessibilityRole="button"
+                      >
                         <Text style={styles.arrowText}>▲</Text>
                       </TouchableOpacity>
                       <Text style={styles.dragDots}>⠿</Text>
-                      <TouchableOpacity style={[styles.arrowBtn, index === wishlist.length - 1 && styles.arrowBtnDisabled]} onPress={() => moveWishItem(index, 'down')} disabled={index === wishlist.length - 1}>
+                      <TouchableOpacity
+                        style={[styles.arrowBtn, index === wishlist.length - 1 && styles.arrowBtnDisabled]}
+                        onPress={() => moveWishItem(index, 'down')}
+                        disabled={index === wishlist.length - 1}
+                        hitSlop={{ top: 6, bottom: 10, left: 10, right: 10 }}
+                        accessibilityLabel="Flytta ner"
+                        accessibilityRole="button"
+                      >
                         <Text style={styles.arrowText}>▼</Text>
                       </TouchableOpacity>
                     </View>
@@ -653,7 +695,13 @@ export default function Wardrobe() {
                         </View>
                       )}
                     </View>
-                    <TouchableOpacity style={styles.deleteBtn} onPress={() => deleteWishItem(item)}>
+                    <TouchableOpacity
+                      style={styles.deleteBtn}
+                      onPress={() => deleteWishItem(item)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityLabel={`Ta bort ${item.name}`}
+                      accessibilityRole="button"
+                    >
                       <Text style={styles.deleteBtnText}>✕</Text>
                     </TouchableOpacity>
                   </TouchableOpacity>
@@ -876,7 +924,7 @@ const styles = StyleSheet.create({
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   tabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  tabText: { color: '#C4737A', fontSize: 11, fontWeight: '500' },
+  tabText: { color: '#C4737A', fontSize: 12, fontWeight: '500' },
   tabTextActive: { color: '#FBF3EF', fontWeight: '600' },
   title: { fontSize: 32, fontWeight: 'bold', color: '#FBF3EF' },
   subtitle: { color: '#C4737A', marginBottom: 4 },
@@ -900,8 +948,8 @@ const styles = StyleSheet.create({
   item: { width: '31%', margin: '1%', alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
   itemImage: { width: '100%', height: 90, borderRadius: 10, marginBottom: 6, resizeMode: 'contain', backgroundColor: 'transparent' },
   itemEmoji: { fontSize: 32, marginBottom: 6 },
-  itemName: { fontSize: 11, color: '#FBF3EF', textAlign: 'center', fontWeight: '500' },
-  itemCategory: { fontSize: 10, color: '#C4737A', textAlign: 'center', marginTop: 2 },
+  itemName: { fontSize: 12, color: '#FBF3EF', textAlign: 'center', fontWeight: '500' },
+  itemCategory: { fontSize: 11, color: '#C4737A', textAlign: 'center', marginTop: 2 },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyText: { color: '#C4737A', fontSize: 15, textAlign: 'center', lineHeight: 24 },
   emptyTab: { alignItems: 'center', paddingTop: 60 },
@@ -930,11 +978,11 @@ const styles = StyleSheet.create({
   capsuleGridImage: { width: '100%', height: 80, borderRadius: 10, marginBottom: 5, resizeMode: 'contain', backgroundColor: 'transparent' },
   capsuleGridImageDim: { opacity: 0.3 },
   capsuleGridImageEmpty: { width: '100%', height: 80, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
-  capsuleGridName: { fontSize: 10, color: '#FBF3EF', fontWeight: '500', textAlign: 'center' },
+  capsuleGridName: { fontSize: 11, color: '#FBF3EF', fontWeight: '500', textAlign: 'center' },
   capsuleGridNameDim: { opacity: 0.35 },
-  capsuleGridCat: { fontSize: 9, color: '#C4737A', textAlign: 'center', marginTop: 1 },
+  capsuleGridCat: { fontSize: 11, color: '#C4737A', textAlign: 'center', marginTop: 1 },
   capsuleCheckBadge: { position: 'absolute', top: 5, right: 5, width: 18, height: 18, borderRadius: 9, backgroundColor: '#9E2035', alignItems: 'center', justifyContent: 'center' },
-  capsuleCheckText: { color: '#FBF3EF', fontSize: 10, fontWeight: '700' },
+  capsuleCheckText: { color: '#FBF3EF', fontSize: 11, fontWeight: '700' },
   capsuleRegenBtn: { padding: 14, borderRadius: 14, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', alignItems: 'center' },
   capsuleRegenBtnText: { color: '#C4737A', fontSize: 14 },
   capsuleOutfitToggle: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, backgroundColor: 'rgba(122,24,40,0.4)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.25)', alignItems: 'center', marginBottom: 12 },
@@ -946,8 +994,8 @@ const styles = StyleSheet.create({
   outfitPiece: { flex: 1, alignItems: 'center' },
   outfitPieceImage: { width: '100%', height: 60, borderRadius: 8, resizeMode: 'contain', backgroundColor: 'transparent', marginBottom: 3 },
   outfitPieceEmpty: { width: '100%', height: 60, borderRadius: 8, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
-  outfitPieceName: { fontSize: 9, color: '#FBF3EF', fontWeight: '500', textAlign: 'center' },
-  outfitPieceCat: { fontSize: 8, color: '#C4737A', textAlign: 'center' },
+  outfitPieceName: { fontSize: 11, color: '#FBF3EF', fontWeight: '500', textAlign: 'center' },
+  outfitPieceCat: { fontSize: 11, color: '#C4737A', textAlign: 'center' },
   outfitListMore: { color: 'rgba(196,115,122,0.5)', fontSize: 12, fontStyle: 'italic', textAlign: 'center', paddingVertical: 8 },
   capsuleSectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   capsuleSectionTitle: { fontSize: 15, color: '#FBF3EF', fontWeight: '700' },

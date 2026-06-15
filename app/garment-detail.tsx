@@ -2,6 +2,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
+  ActivityIndicator,
   Image,
   SafeAreaView,
   ScrollView,
@@ -183,7 +184,13 @@ export default function GarmentDetail() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Gå tillbaka"
+          accessibilityRole="button"
+        >
           <Text style={styles.backButtonText}>← Tillbaka</Text>
         </TouchableOpacity>
 
@@ -280,8 +287,17 @@ export default function GarmentDetail() {
           </View>
         )}
 
-        <TouchableOpacity style={styles.saveButton} onPress={saveChanges} disabled={loading}>
-          <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara 🍒'}</Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={saveChanges}
+          disabled={loading}
+          accessibilityLabel="Spara ändringar"
+          accessibilityRole="button"
+        >
+          {loading
+            ? <ActivityIndicator color="#FBF3EF" size="small" />
+            : <Text style={styles.saveButtonText}>Spara 🍒</Text>
+          }
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.deleteButton} onPress={isWishlistItem ? deleteWishlistItem : deleteGarment}>
@@ -321,7 +337,7 @@ const styles = StyleSheet.create({
   wornSection: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
   wornInfo: { gap: 2 },
   wornCount: { fontSize: 20, fontWeight: 'bold', color: '#DDA0A7' },
-  wornLabel: { fontSize: 11, color: '#C4737A', fontStyle: 'italic' },
+  wornLabel: { fontSize: 12, color: '#C4737A', fontStyle: 'italic' },
   wornButton: { backgroundColor: '#9E2035', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
   wornButtonText: { color: '#FBF3EF', fontSize: 13, fontWeight: '600' },
   saveButton: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },

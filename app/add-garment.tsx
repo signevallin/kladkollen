@@ -319,10 +319,13 @@ export default function AddGarment() {
           style={[styles.saveButton, (saving || processingCount > 0) && styles.saveButtonDisabled]}
           onPress={saveAll}
           disabled={saving || processingCount > 0}
+          accessibilityLabel={saving ? 'Sparar plagg' : `Spara ${drafts.length} plagg`}
+          accessibilityRole="button"
         >
-          <Text style={styles.saveButtonText}>
-            {saving ? 'Sparar...' : `Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'} 🍒`}
-          </Text>
+          {saving
+            ? <ActivityIndicator color="#FBF3EF" size="small" />
+            : <Text style={styles.saveButtonText}>{`Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'} 🍒`}</Text>
+          }
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -384,7 +387,7 @@ const styles = StyleSheet.create({
   removeBtn: { padding: 6 },
   removeBtnText: { color: 'rgba(196,115,122,0.6)', fontSize: 18 },
 
-  cardLabel: { color: 'rgba(196,115,122,0.7)', fontSize: 10, fontWeight: '700', letterSpacing: 1.5 },
+  cardLabel: { color: 'rgba(196,115,122,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
 
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   pill: {
