@@ -7,7 +7,7 @@ import { supabase } from '../supabase'
 const MARKUP = `
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{overflow:auto!important;height:auto!important;scroll-behavior:smooth;}
+html{scroll-behavior:smooth;}
 img{display:block;max-width:100%;}
 button{font-family:'Sora',sans-serif;cursor:pointer;}
 ::-webkit-scrollbar{width:6px;}
@@ -447,6 +447,24 @@ button{font-family:'Sora',sans-serif;cursor:pointer;}
 `;
 
 function LandingPage() {
+  useEffect(() => {
+    document.documentElement.style.overflow = 'auto'
+    document.documentElement.style.height = 'auto'
+    document.body.style.overflow = 'auto'
+    document.body.style.height = 'auto'
+    const root = document.getElementById('root')
+    if (root) { root.style.position = 'static'; root.style.height = 'auto' }
+
+    return () => {
+      document.documentElement.style.overflow = ''
+      document.documentElement.style.height = ''
+      document.body.style.overflow = ''
+      document.body.style.height = ''
+      const root = document.getElementById('root')
+      if (root) { root.style.position = ''; root.style.height = '' }
+    }
+  }, [])
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
