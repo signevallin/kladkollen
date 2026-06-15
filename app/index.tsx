@@ -7,7 +7,7 @@ import { supabase } from '../supabase'
 const MARKUP = `
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
+html,body{overflow:auto!important;height:auto!important;scroll-behavior:smooth;}
 img{display:block;max-width:100%;}
 button{font-family:'Sora',sans-serif;cursor:pointer;}
 ::-webkit-scrollbar{width:6px;}
