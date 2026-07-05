@@ -3,7 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
-  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 
@@ -202,7 +202,7 @@ export default function GarmentDetail() {
 
         <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
           {newImage || imageUrl ? (
-            <Image source={{ uri: newImage || imageUrl }} style={styles.previewImage} />
+            <SignedImage path={newImage || imageUrl} style={styles.previewImage} />
           ) : (
             <View style={styles.imagePickerInner}>
               <Text style={styles.imagePickerEmoji}>{isWishlistItem ? '🛍️' : '📷'}</Text>

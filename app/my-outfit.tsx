@@ -1,7 +1,6 @@
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
-  Image,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   View
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
+import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 
@@ -235,7 +235,7 @@ function isPast(date: Date) {
                   {selectedGarments.map((g: any) => (
                     <View key={g.id} style={styles.selectedItem}>
                       {g.image_url
-                        ? <Image source={{ uri: g.image_url }} style={[styles.selectedImage, g.isWishlist && styles.wishlistImageBorder]} />
+                        ? <SignedImage path={g.image_url} style={[styles.selectedImage, g.isWishlist && styles.wishlistImageBorder]} />
                         : <View style={[styles.selectedImageEmpty, g.isWishlist && styles.wishlistImageEmptyBorder]}><Text style={{ fontSize: 20 }}>{g.isWishlist ? '🛍️' : '👗'}</Text></View>
                       }
                       {g.isWishlist && <View style={styles.notOwnedBadgeTiny}><Text style={styles.notOwnedBadgeTinyText}>Äger ej</Text></View>}
@@ -291,7 +291,7 @@ function isPast(date: Date) {
               const selected = selectedGarments.find(s => s.id === g.id)
               return (
                 <TouchableOpacity key={g.id} style={[styles.garmentItem, selected && styles.garmentItemSelected]} onPress={() => toggleGarment(g)}>
-                  {g.image_url ? <Image source={{ uri: g.image_url }} style={styles.garmentImage} /> : <View style={styles.garmentImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>}
+                  {g.image_url ? <SignedImage path={g.image_url} style={styles.garmentImage} /> : <View style={styles.garmentImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>}
                   {selected && <View style={styles.checkmark}><Text style={styles.checkmarkText}>✓</Text></View>}
                   <Text style={styles.garmentName} numberOfLines={1}>{g.name}</Text>
                 </TouchableOpacity>
@@ -317,7 +317,7 @@ function isPast(date: Date) {
                     const selected = selectedGarments.find(s => s.id === g.id)
                     return (
                       <TouchableOpacity key={g.id} style={[styles.garmentItem, styles.wishlistGarmentItem, selected && styles.garmentItemSelected]} onPress={() => toggleGarment(g)}>
-                        {g.image_url ? <Image source={{ uri: g.image_url }} style={[styles.garmentImage, { opacity: 0.85 }]} /> : <View style={[styles.garmentImageEmpty, styles.wishlistImageEmptyStyle]}><Text style={{ fontSize: 22 }}>🛍️</Text></View>}
+                        {g.image_url ? <SignedImage path={g.image_url} style={[styles.garmentImage, { opacity: 0.85 }]} /> : <View style={[styles.garmentImageEmpty, styles.wishlistImageEmptyStyle]}><Text style={{ fontSize: 22 }}>🛍️</Text></View>}
                         {selected && <View style={styles.checkmark}><Text style={styles.checkmarkText}>✓</Text></View>}
                         <View style={styles.notOwnedBadge}><Text style={styles.notOwnedBadgeText}>Äger ej</Text></View>
                         <Text style={styles.garmentName} numberOfLines={1}>{g.name}</Text>
@@ -360,7 +360,7 @@ function isPast(date: Date) {
                   <TouchableOpacity key={outfit.id} style={styles.outfitPickerItem} onPress={() => assignOutfitToDate(outfit.id)}>
                     <View style={styles.outfitPickerImages}>
                       {(outfit.image_urls || []).slice(0, 3).map((url: string, i: number) => (
-                        <Image key={i} source={{ uri: url }} style={styles.outfitPickerImage} />
+                        <SignedImage key={i} path={url} style={styles.outfitPickerImage} />
                       ))}
                       {(outfit.image_urls || []).length === 0 && (
                         <View style={styles.outfitPickerImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
@@ -401,7 +401,7 @@ function isPast(date: Date) {
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }}>
                       <View style={{ flexDirection: 'row', gap: 8 }}>
                         {(dayDetailEntry.outfits?.image_urls || []).map((url: string, i: number) => (
-                          <Image key={i} source={{ uri: url }} style={styles.dayDetailImage} />
+                          <SignedImage key={i} path={url} style={styles.dayDetailImage} />
                         ))}
                       </View>
                     </ScrollView>
@@ -491,7 +491,7 @@ function isPast(date: Date) {
                     </Text>
                     {entry ? (
                       entry.outfits?.image_urls?.[0]
-                        ? <Image source={{ uri: entry.outfits.image_urls[0] }} style={styles.dayCellImage} />
+                        ? <SignedImage path={entry.outfits.image_urls[0]} style={styles.dayCellImage} />
                         : <Text style={styles.dayCellOutfitDot}>●</Text>
                     ) : (
                       <Text style={styles.dayCellPlus}>＋</Text>
@@ -545,7 +545,7 @@ function isPast(date: Date) {
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.outfitImages}>
                       {(outfit.image_urls || []).map((url: string, i: number) => (
-                        <Image key={i} source={{ uri: url }} style={styles.outfitImage} />
+                        <SignedImage key={i} path={url} style={styles.outfitImage} />
                       ))}
                       {(outfit.garment_names || []).filter((_: any, i: number) => !outfit.image_urls?.[i]).map((_: string, i: number) => (
                         <View key={`emoji-${i}`} style={styles.outfitImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>

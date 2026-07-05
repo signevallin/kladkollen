@@ -13,8 +13,10 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
+import { apiPost } from '../utils/api'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
@@ -164,96 +166,9 @@ export default function Profile() {
     }
     setAnalyzingColor(true)
     try {
-      let text: string | null = null
-
-      if (inputMode === 'image') {
-        // Anropar serverless-funktion som proxar till Claude Vision
-        const apiRes = await fetch('/api/analyze-color', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64: colorBase64 }),
-        })
-        const apiData = await apiRes.json()
-        if (apiData.error) throw new Error(apiData.error)
-        const parsed: ColorAnalysis = apiData
-        setColorAnalysis(parsed)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          await supabase.from('profiles').update({ color_analysis: parsed }).eq('id', user.id)
-        }
-        return
-      } else {
-        // GPT-4o text
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [{
-              role: 'user',
-              content: `Du är en professionell färgkonsult. Generera en detaljerad färgpalett baserat på följande färgprofil:
-
-Hudton: ${skinTone}
-Undertone: ${skinUndertone}
-Hårfärg: ${hairColor}
-Ögonfärg: ${eyeColor}
-Kontrastnivå (hud vs hår): ${contrastLevel}
-
-STEG 1 – Färgtonanalys:
-Bekräfta undertone, värde, intensitet och kontrastnivå. Beskriv hur mörka och ljusa neutraler fungerar för denna profil, och hur svart/kritvitt upplevs.
-
-STEG 2 – Optimal färgriktning:
-Ge 5 basfärger, 5 kompletterande färger, 3 accentfärger och 5 färger att undvika nära ansiktet – alla med hex-koder och kortfattad motivering.
-
-STEG 3 – Strategisk stilanalys:
-Ge konkreta färgkombinationer (hex) som signalerar: Auktoritet, Tillgänglighet, Kreativitet, Professionalism i digitala möten.
-
-STEG 4 – Säsongsanpassning:
-Beskriv hur paletten justeras för sommar (ljusare) och vinter (djupare kontrast).
-
-Svara ENDAST med JSON, inga backticks:
-{
-  "biologisk": {
-    "undertone": "...",
-    "varde": "...",
-    "intensitet": "...",
-    "kontrast": "...",
-    "hudreaktion": "...",
-    "svartVitt": "..."
-  },
-  "palett": {
-    "bas": [{"hex":"#...","namn":"...","motivering":"..."}],
-    "kompletterande": [{"hex":"#...","namn":"...","motivering":"..."}],
-    "accent": [{"hex":"#...","namn":"...","motivering":"..."}],
-    "undvik": [{"hex":"#...","namn":"..."}]
-  },
-  "strategi": {
-    "auktoritet": {"text":"...","farger":["#...","#..."]},
-    "tillganglighet": {"text":"...","farger":["#...","#..."]},
-    "kreativitet": {"text":"...","farger":["#...","#..."]},
-    "professionalism": {"text":"...","farger":["#...","#..."]}
-  },
-  "sasong": {
-    "sommar": "...",
-    "vinter": "..."
-  },
-  "sammanfattning": ["punkt1","punkt2","punkt3","punkt4","punkt5"],
-  "garderobsAlgoritm": "..."
-}`,
-          }],
-          max_tokens: 4096,
-        }),
-        })
-        const data = await response.json()
-        if (data.error) throw new Error(data.error.message || 'API-fel')
-        text = data.choices?.[0]?.message?.content
-      }
-
-      if (!text) throw new Error('Tomt svar från AI')
-      const jsonStart = text.indexOf('{')
-      const jsonEnd = text.lastIndexOf('}')
-      if (jsonStart === -1 || jsonEnd === -1) throw new Error('AI returnerade ogiltigt svar')
-      const parsed: ColorAnalysis = JSON.parse(text.slice(jsonStart, jsonEnd + 1))
+      const parsed: ColorAnalysis = inputMode === 'image'
+        ? await apiPost('/api/analyze-color', { base64: colorBase64 })
+        : await apiPost('/api/analyze-color-form', { skinTone, skinUndertone, hairColor, eyeColor, contrastLevel })
       setColorAnalysis(parsed)
 
       const { data: { user } } = await supabase.auth.getUser()
@@ -313,6 +228,28 @@ Svara ENDAST med JSON, inga backticks:
     }, 'Logga ut', true)
   }
 
+  async function deleteAccount() {
+    showConfirm(
+      'Radera konto',
+      'Detta raderar ditt konto och ALL din data permanent – plagg, outfits, bilder och profil. Det går inte att ångra. Är du helt säker?',
+      async () => {
+        try {
+          await apiPost('/api/delete-account', {})
+          await supabase.auth.signOut()
+          if (typeof window !== 'undefined') {
+            window.location.href = '/'
+          } else {
+            router.replace('/login')
+          }
+        } catch (e: any) {
+          showAlert('Något gick fel', e.message)
+        }
+      },
+      'Radera permanent',
+      true
+    )
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -331,7 +268,7 @@ Svara ENDAST med JSON, inga backticks:
 
         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel="Byt profilbild" accessibilityRole="button">
           {avatar
-            ? <Image source={{ uri: avatar }} style={styles.avatar} />
+            ? <SignedImage path={avatar} style={styles.avatar} />
             : <View style={styles.avatarPlaceholder}><Text style={styles.avatarEmoji}>👤</Text></View>
           }
           <View style={styles.avatarBadge}><Text style={styles.avatarBadgeText}>📷</Text></View>
@@ -686,6 +623,10 @@ Svara ENDAST med JSON, inga backticks:
         <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
           <Text style={styles.signOutText}>Logga ut</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.deleteAccountButton} onPress={deleteAccount}>
+          <Text style={styles.deleteAccountText}>Radera konto permanent</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   )
@@ -812,4 +753,6 @@ const styles = StyleSheet.create({
 
   signOutButton: { borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
   signOutText: { color: '#C4737A', fontSize: 16 },
+  deleteAccountButton: { marginTop: 12, padding: 12, alignItems: 'center' },
+  deleteAccountText: { color: 'rgba(196,115,122,0.6)', fontSize: 13, textDecorationLine: 'underline' },
 })

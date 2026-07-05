@@ -5,7 +5,6 @@ import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
   FlatList,
-  Image,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -16,6 +15,7 @@ import {
   View
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
+import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 
@@ -365,7 +365,7 @@ export default function Wardrobe() {
               {/* Bildväljare */}
               <TouchableOpacity style={styles.imagePicker} onPress={pickWishImage}>
                 {wishImage ? (
-                  <Image source={{ uri: wishImage }} style={styles.imagePickerPreview} />
+                  <SignedImage path={wishImage} style={styles.imagePickerPreview} />
                 ) : (
                   <View style={styles.imagePickerInner}>
                     <Text style={styles.imagePickerEmoji}>📷</Text>
@@ -455,7 +455,7 @@ export default function Wardrobe() {
                 filteredSaleGarments.map((item: any) => (
                   <TouchableOpacity key={item.id} style={styles.salePickerItem} onPress={() => addToSale(item)}>
                     {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={styles.salePickerImage} />
+                      ? <SignedImage path={item.image_url} style={styles.salePickerImage} />
                       : <View style={styles.salePickerImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>
                     }
                     <View style={styles.salePickerInfo}>
@@ -620,7 +620,7 @@ export default function Wardrobe() {
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.item} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 {item.image_url
-                  ? <Image source={{ uri: item.image_url }} style={styles.itemImage} />
+                  ? <SignedImage path={item.image_url} style={styles.itemImage} />
                   : <Text style={styles.itemEmoji}>👗</Text>
                 }
                 <Text style={styles.itemName}>{item.name}</Text>
@@ -679,7 +679,7 @@ export default function Wardrobe() {
                       <Text style={styles.priorityNum}>{index + 1}</Text>
                     </View>
                     {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={styles.wishImage} />
+                      ? <SignedImage path={item.image_url} style={styles.wishImage} />
                       : <View style={styles.wishImageEmpty}><Text style={{ fontSize: 22 }}>🛍️</Text></View>
                     }
                     <View style={styles.wishInfo}>
@@ -727,7 +727,7 @@ export default function Wardrobe() {
                 forSale.map((item) => (
                   <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                     {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={styles.saleImage} />
+                      ? <SignedImage path={item.image_url} style={styles.saleImage} />
                       : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
                     }
                     <View style={styles.saleInfo}>
@@ -761,7 +761,7 @@ export default function Wardrobe() {
                 archived.map((item) => (
                   <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                     {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={[styles.saleImage, { opacity: 0.6 }]} />
+                      ? <SignedImage path={item.image_url} style={[styles.saleImage, { opacity: 0.6 }]} />
                       : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
                     }
                     <View style={styles.saleInfo}>
@@ -843,7 +843,7 @@ export default function Wardrobe() {
                           {outfit.map((piece: any, j: number) => (
                             <View key={j} style={styles.outfitPiece}>
                               {piece.image_url
-                                ? <Image source={{ uri: piece.image_url }} style={styles.outfitPieceImage} />
+                                ? <SignedImage path={piece.image_url} style={styles.outfitPieceImage} />
                                 : <View style={styles.outfitPieceEmpty}><Text style={{ fontSize: 18 }}>👗</Text></View>
                               }
                               <Text style={styles.outfitPieceName} numberOfLines={1}>{piece.name}</Text>
@@ -877,7 +877,7 @@ export default function Wardrobe() {
                       activeOpacity={0.7}
                     >
                       {item.image_url
-                        ? <Image source={{ uri: item.image_url }} style={[styles.capsuleGridImage, !isSelected && styles.capsuleGridImageDim]} />
+                        ? <SignedImage path={item.image_url} style={[styles.capsuleGridImage, !isSelected && styles.capsuleGridImageDim]} />
                         : <View style={[styles.capsuleGridImageEmpty, !isSelected && { opacity: 0.35 }]}><Text style={{ fontSize: 24 }}>👗</Text></View>
                       }
                       {isSelected && (

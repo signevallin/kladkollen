@@ -9,6 +9,7 @@ import {
   View
 } from 'react-native'
 import { supabase } from '../supabase'
+import { showAlert } from '../utils/alert'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -18,12 +19,7 @@ export default function Login() {
 
   async function handleAuth() {
     if (!email || !password) {
-      if (Platform.OS === 'web') {
-        window.alert('Fyll i email och lösenord!')
-      } else {
-        const { Alert } = require('react-native')
-        Alert.alert('Fyll i email och lösenord!')
-      }
+      showAlert('Fyll i email och lösenord!')
       return
     }
     setLoading(true)
@@ -32,12 +28,7 @@ export default function Login() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        if (Platform.OS === 'web') {
-          window.alert('Konto skapat! 🍒 Kolla din email för att verifiera ditt konto.')
-        } else {
-          const { Alert } = require('react-native')
-          Alert.alert('Konto skapat! 🍒', 'Kolla din email för att verifiera ditt konto.')
-        }
+        showAlert('Konto skapat! 🍒', 'Kolla din email för att verifiera ditt konto.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -48,14 +39,26 @@ export default function Login() {
         }
       }
     } catch (error: any) {
-      if (Platform.OS === 'web') {
-        window.alert('Något gick fel: ' + error.message)
-      } else {
-        const { Alert } = require('react-native')
-        Alert.alert('Något gick fel', error.message)
-      }
+      showAlert('Något gick fel', error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function forgotPassword() {
+    if (!email) {
+      showAlert('Fyll i din email först', 'Skriv din emailadress i fältet ovan så skickar vi en återställningslänk.')
+      return
+    }
+    try {
+      const redirectTo = Platform.OS === 'web'
+        ? `${window.location.origin}/reset-password`
+        : 'kladkollen://reset-password'
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+      if (error) throw error
+      showAlert('Mail skickat! 🍒', 'Kolla din inkorg för en länk att återställa lösenordet.')
+    } catch (error: any) {
+      showAlert('Något gick fel', error.message)
     }
   }
 
@@ -114,6 +117,12 @@ export default function Login() {
                 : 'Inget konto? Skapa ett här'}
             </Text>
           </TouchableOpacity>
+
+          {!isSignUp && (
+            <TouchableOpacity style={styles.forgotButton} onPress={forgotPassword}>
+              <Text style={styles.forgotText}>Glömt lösenord?</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -133,4 +142,6 @@ const styles = StyleSheet.create({
   buttonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
   switchButton: { alignItems: 'center', marginTop: 16, padding: 8 },
   switchText: { color: '#C4737A', fontSize: 14 },
+  forgotButton: { alignItems: 'center', padding: 8 },
+  forgotText: { color: 'rgba(196,115,122,0.7)', fontSize: 13, textDecorationLine: 'underline' },
 })

@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native'
 import { supabase } from '../supabase'
+import { apiPost } from '../utils/api'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SUBCATEGORIES: Record<string, string[]> = {
@@ -88,12 +89,7 @@ export default function AddGarment() {
 
     for (const draft of newDrafts) {
       try {
-        const res = await fetch('/api/analyze-garment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64: draft.base64 }),
-        })
-        const data = await res.json()
+        const data = await apiPost('/api/analyze-garment', { base64: draft.base64 })
         setDrafts(prev => prev.map(d =>
           d.id === draft.id
             ? { ...d, name: data.name || '', category: data.category || '', subcategory: data.subcategory || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }

@@ -16,7 +16,9 @@ import {
   View
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
+import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
+import { apiPost } from '../utils/api'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
@@ -155,27 +157,7 @@ export default function Inspiration() {
       const { data: currentGarments } = await supabase.from('garments').select('*')
       const garments = currentGarments || []
       const garmentList = garments.map(g => `- ${g.name} (${g.category}, ${g.season || 'alla årstider'})`).join('\n')
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Du är en personlig stylist. Analysera inspirationsbilden och matcha stilen mot användarens garderob.\n\nGarderob:\n${garmentList}\n\n1. Beskriv stilen i inspirationsbilden kort.\n2. Välj 3-4 plagg från garderoben som matchar stilen bäst.\n3. Lista upp till 3 specifika plagg som SAKNAS i garderoben för att uppnå denna look.\n\nSvara ENDAST med ett JSON-objekt:\n{\n  "styleDescription": "beskrivning",\n  "outfitName": "namn",\n  "items": ["plagg1", "plagg2", "plagg3"],\n  "missing": ["Saknat plagg 1", "Saknat plagg 2"],\n  "tip": "styling-tips"\n}\n\nOm inget saknas, sätt "missing" till [].`,
-              },
-              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${inspoBase64}`, detail: 'low' } },
-            ],
-          }],
-          max_tokens: 500,
-        }),
-      })
-      const data = await response.json()
-      const text = data.choices[0].message.content
-      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+      const parsed = await apiPost('/api/analyze-inspo', { base64: inspoBase64, garmentList })
       const missingArray = Array.isArray(parsed.missing) ? parsed.missing.filter(Boolean) : (parsed.missing ? [parsed.missing] : [])
       const itemsWithImages = parsed.items.map((itemName: string) => {
         const match = garments.find(g =>
@@ -229,8 +211,8 @@ export default function Inspiration() {
           </TouchableOpacity>
           {selectedImage && (
             <>
-              <Image
-                source={{ uri: selectedImage }}
+              <SignedImage
+                path={selectedImage}
                 style={styles.imageModalImage}
                 resizeMode="contain"
               />
@@ -317,7 +299,7 @@ export default function Inspiration() {
                   {outfit.itemsWithImages.map((item: any, index: number) => (
                     <View key={index} style={styles.outfitItem}>
                       {item.image_url
-                        ? <Image source={{ uri: item.image_url }} style={styles.outfitItemImage} />
+                        ? <SignedImage path={item.image_url} style={styles.outfitItemImage} />
                         : <View style={styles.outfitItemEmptyBox}><Text style={styles.outfitItemEmoji}>👗</Text></View>
                       }
                       <Text style={styles.outfitItemName}>{item.name}</Text>
@@ -398,7 +380,7 @@ export default function Inspiration() {
                     onPress={() => setSelectedImage(item.image_url)}
                     activeOpacity={0.85}
                   >
-                    <Image source={{ uri: item.image_url }} style={styles.moodboardImage} resizeMode="cover" />
+                    <SignedImage path={item.image_url} style={styles.moodboardImage} resizeMode="cover" />
                   </TouchableOpacity>
                 ))}
               </View>

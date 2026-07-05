@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Animated,
-  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -14,8 +13,10 @@ import {
   View
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
+import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
+import { apiPost } from '../utils/api'
 
 const CONTEXTS = [
   { label: 'Jobb', emoji: '💼', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
@@ -266,29 +267,6 @@ export default function Home() {
 
       const intensityStr = INTENSITY_LABELS[intensity - 1]
       const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
-      const ratingCtx = feedbackStr ? `\nSmakprofil:\n${feedbackStr}` : ''
-
-      const buildPrompt = (extraInstruction = '') => `Du är en personlig stylist. Välj en komplett outfit från garderoben nedan.
-
-Kontext: ${ctx.label} – ${ctx.logic}
-Intensitet: ${intensityStr} (${intensity}/5)
-${weatherCtx.summary}
-${avoidStr}${ratingCtx}
-${extraInstruction}
-
-GARDEROB (välj ENDAST plagg från listan nedan, exakt som de heter):
-
-${groupedList}
-
-OBLIGATORISKA REGLER – följ dessa EXAKT:
-1. SKOR: Du MÅSTE välja ett par skor. Outfit utan skor är ogiltig.
-2. NEDERDEL: Du MÅSTE välja byxor eller kjol – SÅVIDA du inte väljer klänning.
-3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning.
-4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
-${weatherCtx.rules ? '5. VÄDER: ' + weatherCtx.rules : ''}
-
-Svara ENDAST med JSON, inga backticks:
-{"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar)."}`
 
       let parsed: any = null
       let attempts = 0
@@ -296,27 +274,23 @@ Svara ENDAST med JSON, inga backticks:
 
       while (attempts < maxAttempts) {
         attempts++
-        const extraInstruction = attempts > 1
-          ? `\nVIKTIGT: Föregående försök saknade obligatoriska plagg. Se till att inkludera SKOR och NEDERDEL (eller klänning) denna gång.`
-          : ''
-
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.EXPO_PUBLIC_OPENAI_API_KEY}` },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'user', content: buildPrompt(extraInstruction) }],
-            max_tokens: 350,
-          }),
+        parsed = await apiPost('/api/generate-outfit', {
+          contextLabel: ctx.label,
+          contextLogic: ctx.logic,
+          intensity: `${intensityStr} (${intensity}/5)`,
+          weatherSummary: weatherCtx.summary,
+          weatherRules: weatherCtx.rules,
+          avoid: avoidStr,
+          feedback: feedbackStr,
+          groupedList,
+          retry: attempts > 1,
         })
-
-        const data = await response.json()
-        const text = data.choices[0].message.content
-        parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
 
         const { valid } = validateOutfit(parsed.items, activeGarments, weatherCtx.requiresOuterwear)
         if (valid) break
       }
+
+      if (!parsed?.items?.length) throw new Error('AI:n gav inget giltigt förslag – försök igen.')
 
       const itemsWithImages = parsed.items.map((name: string) => {
         const match = activeGarments.find(g =>
@@ -471,7 +445,7 @@ Svara ENDAST med JSON, inga backticks:
             accessibilityRole="button"
           >
             {userAvatar
-              ? <Image source={{ uri: userAvatar }} style={styles.profileBtnImage} />
+              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} />
               : <Text style={styles.profileBtnText}>👤</Text>
             }
           </TouchableOpacity>
@@ -550,7 +524,7 @@ Svara ENDAST med JSON, inga backticks:
                 {outfit.itemsWithImages.map((item: any, i: number) => (
                   <View key={i} style={styles.outfitItemWrap}>
                     {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={styles.outfitImage} />
+                      ? <SignedImage path={item.image_url} style={styles.outfitImage} />
                       : <View style={styles.outfitImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
                     }
                     <Text style={styles.outfitItemName} numberOfLines={1}>{item.name}</Text>
