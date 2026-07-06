@@ -73,8 +73,9 @@ export default function Home() {
     const { data } = await supabase.from('garments').select('*')
     if (data) {
       setGarments(data)
-      const vintedTips = data.filter(g => !g.times_worn || g.times_worn === 0).length
-      setStats({ total: data.length, vintedTips })
+      const active = data.filter(g => !g.archived)
+      const vintedTips = active.filter(g => !g.times_worn || g.times_worn === 0).length
+      setStats({ total: active.length, vintedTips })
     }
     fetchWeather()
   }

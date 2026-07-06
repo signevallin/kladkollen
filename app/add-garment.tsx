@@ -30,6 +30,7 @@ const SUBCATEGORIES: Record<string, string[]> = {
   'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Mössa', 'Smycken', 'Solglasögon'],
 }
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
+const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 const COLORS = [
   { name: 'Svart', hex: '#1A1A1A' },
   { name: 'Vit', hex: '#F5F5F5' },
@@ -56,6 +57,7 @@ type GarmentDraft = {
   subcategory: string
   color: string
   seasons: string[]
+  size: string
   analyzing: boolean
 }
 
@@ -82,6 +84,7 @@ export default function AddGarment() {
       subcategory: '',
       color: '',
       seasons: [],
+      size: '',
       analyzing: true,
     }))
     setDrafts(newDrafts)
@@ -158,6 +161,7 @@ export default function AddGarment() {
           subcategory: draft.subcategory || null,
           color: draft.color,
           season: draft.seasons.join(', '),
+          size: draft.size.trim() || null,
           image_url: imageUrl,
         }])
       }
@@ -305,6 +309,29 @@ export default function AddGarment() {
                       </TouchableOpacity>
                     ))}
                   </View>
+
+                  {/* Size */}
+                  <Text style={styles.cardLabel}>STORLEK (VALFRITT)</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.pillRow}>
+                      {SIZES.map(s => (
+                        <TouchableOpacity
+                          key={s}
+                          style={[styles.pill, draft.size === s && styles.pillActive]}
+                          onPress={() => updateDraft(draft.id, 'size', draft.size === s ? '' : s)}
+                        >
+                          <Text style={[styles.pillText, draft.size === s && styles.pillTextActive]}>{s}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
+                  <TextInput
+                    style={styles.sizeInput}
+                    placeholder="Egen storlek, t.ex. 38 eller W29/L32"
+                    placeholderTextColor="rgba(196,115,122,0.4)"
+                    value={SIZES.includes(draft.size) ? '' : draft.size}
+                    onChangeText={v => updateDraft(draft.id, 'size', v)}
+                  />
                 </>
               )}
             </View>
@@ -384,6 +411,7 @@ const styles = StyleSheet.create({
   removeBtnText: { color: 'rgba(196,115,122,0.6)', fontSize: 18 },
 
   cardLabel: { color: 'rgba(196,115,122,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
+  sizeInput: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 10, padding: 10, color: '#FBF3EF', fontSize: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
 
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   pill: {

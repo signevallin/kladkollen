@@ -39,6 +39,8 @@ const COLORS = [
   { name: 'Orange', hex: '#FB8C00' }, { name: 'Guld', hex: '#C9A96E' },
 ]
 const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Gul', 'Orange', 'Guld']
+const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
+const LOCATIONS = ['Garderoben', 'Källaren', 'Vinden', 'Förrådet', 'Utlånad']
 
 export default function GarmentDetail() {
   const { id, wishlistId } = useLocalSearchParams()
@@ -50,10 +52,14 @@ export default function GarmentDetail() {
   const [color, setColor] = useState('')
   const [seasons, setSeasons] = useState<string[]>([])
   const [timesWorn, setTimesWorn] = useState(0)
-  const [lastWorn, setLastWorn] = useState(null)
-  const [imageUrl, setImageUrl] = useState(null)
-  const [newImage, setNewImage] = useState(null)
+  const [lastWorn, setLastWorn] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [newImage, setNewImage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [size, setSize] = useState('')
+  const [location, setLocation] = useState('')
+  const [archived, setArchived] = useState(false)
+  const [sold, setSold] = useState(false)
 
   useEffect(() => {
     if (isWishlistItem) fetchWishlistItem()
@@ -77,6 +83,8 @@ export default function GarmentDetail() {
       setName(data.name); setCategory(data.category); setSubcategory(data.subcategory || ''); setColor(data.color || '')
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
+      setSize(data.size || ''); setLocation(data.location || '')
+      setArchived(!!data.archived); setSold(!!data.sold)
     }
   }
 
@@ -139,7 +147,7 @@ export default function GarmentDetail() {
     try {
       let updatedImageUrl = imageUrl
       if (newImage) updatedImageUrl = await uploadImage(newImage)
-      const { error } = await supabase.from('garments').update({ name, category, subcategory: subcategory || null, season: seasons.join(', '), color, image_url: updatedImageUrl }).eq('id', id)
+      const { error } = await supabase.from('garments').update({ name, category, subcategory: subcategory || null, season: seasons.join(', '), color, image_url: updatedImageUrl, size: size.trim() || null, location: location.trim() || null }).eq('id', id)
       if (error) throw error
       showAlert('Sparat! 🍒')
       router.back()
@@ -163,6 +171,30 @@ export default function GarmentDetail() {
       await supabase.from('wishlist').delete().eq('id', wishlistId)
       router.back()
     }, 'Ta bort', true)
+  }
+
+  async function toggleArchive() {
+    if (!archived) {
+      showConfirm(
+        'Arkivera plagg',
+        `"${name}" flyttas till arkivet och föreslås inte i outfits. Perfekt för plagg som inte passar just nu eller är undanpackade. Ange gärna plats så du vet var det finns!`,
+        async () => {
+          const { error } = await supabase.from('garments').update({
+            archived: true,
+            for_sale: false,
+            size: size.trim() || null,
+            location: location.trim() || null,
+          }).eq('id', id)
+          if (error) showAlert('Något gick fel', error.message)
+          else { setArchived(true); showAlert('Arkiverat! 📦', location ? `Plagget finns: ${location}` : 'Tips: ange plats så du hittar det sen.') }
+        },
+        'Arkivera'
+      )
+    } else {
+      const { error } = await supabase.from('garments').update({ archived: false, sold: false }).eq('id', id)
+      if (error) showAlert('Något gick fel', error.message)
+      else { setArchived(false); setSold(false); showAlert('Välkommen tillbaka! 🍒', `${name} är nu i garderoben igen.`) }
+    }
   }
 
   async function markAsWorn() {
@@ -197,6 +229,14 @@ export default function GarmentDetail() {
         {isWishlistItem && (
           <View style={styles.wishlistBadge}>
             <Text style={styles.wishlistBadgeText}>🛍️ Köplista – äger ej ännu</Text>
+          </View>
+        )}
+
+        {archived && (
+          <View style={styles.archivedBadge}>
+            <Text style={styles.archivedBadgeText}>
+              📦 Arkiverad{sold ? ' · Såld' : ''}{location ? ` · Finns: ${location}` : ''}
+            </Text>
           </View>
         )}
 
@@ -274,6 +314,43 @@ export default function GarmentDetail() {
           ))}
         </View>
 
+        {/* Storlek & plats – bara för egna plagg */}
+        {!isWishlistItem && (
+          <>
+            <Text style={styles.label}>Storlek</Text>
+            <View style={styles.pills}>
+              {SIZES.map((s) => (
+                <TouchableOpacity key={s} style={[styles.pill, size === s && styles.pillActive]} onPress={() => setSize(size === s ? '' : s)}>
+                  <Text style={[styles.pillText, size === s && styles.pillTextActive]}>{s}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Egen storlek, t.ex. 38 eller W29/L32"
+              placeholderTextColor="rgba(196,115,122,0.5)"
+              value={SIZES.includes(size) ? '' : size}
+              onChangeText={setSize}
+            />
+
+            <Text style={styles.label}>Var finns plagget?</Text>
+            <View style={styles.pills}>
+              {LOCATIONS.map((l) => (
+                <TouchableOpacity key={l} style={[styles.pill, location === l && styles.pillActive]} onPress={() => setLocation(location === l ? '' : l)}>
+                  <Text style={[styles.pillText, location === l && styles.pillTextActive]}>{l}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Egen plats, t.ex. Flyttlåda 3 hos mamma"
+              placeholderTextColor="rgba(196,115,122,0.5)"
+              value={LOCATIONS.includes(location) ? '' : location}
+              onChangeText={setLocation}
+            />
+          </>
+        )}
+
         {/* Bara för riktiga garderobs-plagg */}
         {!isWishlistItem && (
           <View style={styles.wornSection}>
@@ -300,6 +377,14 @@ export default function GarmentDetail() {
           }
         </TouchableOpacity>
 
+        {!isWishlistItem && (
+          <TouchableOpacity style={styles.archiveButton} onPress={toggleArchive}>
+            <Text style={styles.archiveButtonText}>
+              {archived ? '👗 Ta tillbaka till garderoben' : '📦 Arkivera (passar inte / används ej)'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity style={styles.deleteButton} onPress={isWishlistItem ? deleteWishlistItem : deleteGarment}>
           <Text style={styles.deleteButtonText}>{isWishlistItem ? 'Ta bort från köplistan' : 'Ta bort plagg'}</Text>
         </TouchableOpacity>
@@ -315,6 +400,8 @@ const styles = StyleSheet.create({
   backButtonText: { color: '#C4737A', fontSize: 15 },
   wishlistBadge: { backgroundColor: 'rgba(201,169,110,0.15)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(201,169,110,0.3)' },
   wishlistBadgeText: { color: '#C9A96E', fontSize: 13, fontWeight: '600' },
+  archivedBadge: { backgroundColor: 'rgba(122,24,40,0.35)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(196,115,122,0.35)' },
+  archivedBadgeText: { color: '#DDA0A7', fontSize: 13, fontWeight: '600' },
   imagePicker: { borderRadius: 20, height: 240, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed', marginBottom: 24, overflow: 'hidden', backgroundColor: 'rgba(122,24,40,0.3)' },
   imagePickerInner: { alignItems: 'center', gap: 8 },
   imagePickerEmoji: { fontSize: 40 },
@@ -342,6 +429,8 @@ const styles = StyleSheet.create({
   wornButtonText: { color: '#FBF3EF', fontSize: 13, fontWeight: '600' },
   saveButton: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
   saveButtonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
+  archiveButton: { backgroundColor: 'rgba(122,24,40,0.35)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', marginBottom: 12 },
+  archiveButtonText: { color: '#DDA0A7', fontSize: 15, fontWeight: '600' },
   deleteButton: { backgroundColor: 'transparent', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
   deleteButtonText: { color: '#C4737A', fontSize: 16 },
 })

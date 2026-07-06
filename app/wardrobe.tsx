@@ -28,17 +28,17 @@ const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'L
 
 export default function Wardrobe() {
   const [fontsLoaded] = useFonts({ DancingScript_400Regular })
-  const [garments, setGarments] = useState([])
-  const [filtered, setFiltered] = useState([])
-  const [forSale, setForSale] = useState([])
-  const [archived, setArchived] = useState([])
-  const [wishlist, setWishlist] = useState([])
+  const [garments, setGarments] = useState<any[]>([])
+  const [filtered, setFiltered] = useState<any[]>([])
+  const [forSale, setForSale] = useState<any[]>([])
+  const [archived, setArchived] = useState<any[]>([])
+  const [wishlist, setWishlist] = useState<any[]>([])
   const [outfitCounts, setOutfitCounts] = useState<Record<string, number>>({})
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('Alla')
   const [activeSeason, setActiveSeason] = useState('Alla')
   const [activeColor, setActiveColor] = useState('Alla')
-  const [openDropdown, setOpenDropdown] = useState(null)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
   const [showFilters, setShowFilters] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
@@ -62,7 +62,7 @@ export default function Wardrobe() {
   // Sale modal
   const [showAddSale, setShowAddSale] = useState(false)
   const [saleSearch, setSaleSearch] = useState('')
-  const [saleGarments, setSaleGarments] = useState([])
+  const [saleGarments, setSaleGarments] = useState<any[]>([])
 
   useFocusEffect(
     useCallback(() => {
@@ -241,6 +241,12 @@ export default function Wardrobe() {
   async function removeFromSale(item: any) {
     await supabase.from('garments').update({ for_sale: false }).eq('id', item.id)
     fetchGarments()
+  }
+
+  async function unarchive(item: any) {
+    await supabase.from('garments').update({ archived: false, sold: false }).eq('id', item.id)
+    fetchGarments()
+    showAlert('Välkommen tillbaka! 🍒', `${item.name} är nu i garderoben igen.`)
   }
 
   async function moveWishItem(index: number, direction: 'up' | 'down') {
@@ -546,7 +552,7 @@ export default function Wardrobe() {
       </View>
 
       {/* NUVARANDE */}
-      {activeTab === 'nuvarande' && (
+      {activeTab === 'nuvarande' && !showArchive && (
         <>
           {showFilters && (
             <>
@@ -624,9 +630,14 @@ export default function Wardrobe() {
                   : <Text style={styles.itemEmoji}>👗</Text>
                 }
                 <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemCategory}>{item.category}</Text>
+                <Text style={styles.itemCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
               </TouchableOpacity>
             )}
+            ListFooterComponent={
+              <TouchableOpacity style={styles.archiveToggleBtn} onPress={() => setShowArchive(true)}>
+                <Text style={styles.archiveToggleBtnText}>📦 Arkiv ({archived.length})</Text>
+              </TouchableOpacity>
+            }
           />
         </>
       )}
@@ -713,66 +724,80 @@ export default function Wardrobe() {
       )}
 
       {/* SÄLJ */}
-      {activeTab === 'sälj' && (
+      {activeTab === 'sälj' && !showArchive && (
         <ScrollView contentContainerStyle={styles.saleScroll}>
-          {!showArchive ? (
-            <>
-              {forSale.length === 0 ? (
-                <View style={styles.emptyTab}>
-                  <Text style={styles.emptyTabIcon}>💰</Text>
-                  <Text style={styles.emptyTabText}>Inga plagg till salu</Text>
-                  <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga ut plagg du inte använder</Text>
-                </View>
-              ) : (
-                forSale.map((item) => (
-                  <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
-                    {item.image_url
-                      ? <SignedImage path={item.image_url} style={styles.saleImage} />
-                      : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
-                    }
-                    <View style={styles.saleInfo}>
-                      <Text style={styles.saleName}>{item.name}</Text>
-                      <Text style={styles.saleCategory}>{item.category}</Text>
-                    </View>
-                    <View style={styles.saleActions}>
-                      <TouchableOpacity style={styles.soldBtn} onPress={() => markAsSold(item)}>
-                        <Text style={styles.soldBtnText}>Såld ✓</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.removeBtn} onPress={() => removeFromSale(item)}>
-                        <Text style={styles.removeBtnText}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
-              <TouchableOpacity style={styles.archiveToggleBtn} onPress={() => setShowArchive(true)}>
-                <Text style={styles.archiveToggleBtnText}>📦 Arkiv ({archived.length})</Text>
-              </TouchableOpacity>
-            </>
+          {forSale.length === 0 ? (
+            <View style={styles.emptyTab}>
+              <Text style={styles.emptyTabIcon}>💰</Text>
+              <Text style={styles.emptyTabText}>Inga plagg till salu</Text>
+              <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga ut plagg du inte använder</Text>
+            </View>
           ) : (
-            <>
-              <TouchableOpacity style={styles.backToSale} onPress={() => setShowArchive(false)}>
-                <Text style={styles.backToSaleText}>← Tillbaka till säljlistan</Text>
-              </TouchableOpacity>
-              <Text style={styles.archiveTitle}>Arkiv</Text>
-              {archived.length === 0 ? (
-                <View style={styles.emptyTab}><Text style={styles.emptyTabText}>📦 Inga arkiverade plagg</Text></View>
-              ) : (
-                archived.map((item) => (
-                  <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
-                    {item.image_url
-                      ? <SignedImage path={item.image_url} style={[styles.saleImage, { opacity: 0.6 }]} />
-                      : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
-                    }
-                    <View style={styles.saleInfo}>
-                      <Text style={styles.saleName}>{item.name}</Text>
-                      <Text style={styles.saleCategory}>{item.category}</Text>
-                      {item.sold && <Text style={styles.soldTag}>Såld 🍒</Text>}
-                    </View>
+            forSale.map((item) => (
+              <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+                {item.image_url
+                  ? <SignedImage path={item.image_url} style={styles.saleImage} />
+                  : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
+                }
+                <View style={styles.saleInfo}>
+                  <Text style={styles.saleName}>{item.name}</Text>
+                  <Text style={styles.saleCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
+                </View>
+                <View style={styles.saleActions}>
+                  <TouchableOpacity style={styles.soldBtn} onPress={() => markAsSold(item)}>
+                    <Text style={styles.soldBtnText}>Såld ✓</Text>
                   </TouchableOpacity>
-                ))
-              )}
-            </>
+                  <TouchableOpacity style={styles.removeBtn} onPress={() => removeFromSale(item)}>
+                    <Text style={styles.removeBtnText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+          <TouchableOpacity style={styles.archiveToggleBtn} onPress={() => setShowArchive(true)}>
+            <Text style={styles.archiveToggleBtnText}>📦 Arkiv ({archived.length})</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
+
+      {/* ARKIV – nås från både Garderob- och Sälj-fliken */}
+      {(activeTab === 'nuvarande' || activeTab === 'sälj') && showArchive && (
+        <ScrollView contentContainerStyle={styles.saleScroll}>
+          <TouchableOpacity style={styles.backToSale} onPress={() => setShowArchive(false)}>
+            <Text style={styles.backToSaleText}>← Tillbaka</Text>
+          </TouchableOpacity>
+          <Text style={styles.archiveTitle}>Arkiv</Text>
+          <Text style={styles.archiveHint}>
+            Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.
+          </Text>
+          {archived.length === 0 ? (
+            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>📦 Inga arkiverade plagg</Text></View>
+          ) : (
+            archived.map((item) => (
+              <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+                {item.image_url
+                  ? <SignedImage path={item.image_url} style={[styles.saleImage, { opacity: 0.6 }]} />
+                  : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
+                }
+                <View style={styles.saleInfo}>
+                  <Text style={styles.saleName}>{item.name}</Text>
+                  <Text style={styles.saleCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
+                  {item.location ? <Text style={styles.locationTag}>📍 {item.location}</Text> : null}
+                  {item.sold && <Text style={styles.soldTag}>Såld 🍒</Text>}
+                </View>
+                {!item.sold && (
+                  <TouchableOpacity
+                    style={styles.unarchiveBtn}
+                    onPress={() => unarchive(item)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityLabel={`Ta tillbaka ${item.name} till garderoben`}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.unarchiveBtnText}>Ta tillbaka</Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            ))
           )}
         </ScrollView>
       )}
@@ -1038,6 +1063,9 @@ const styles = StyleSheet.create({
   saleName: { fontSize: 14, color: '#FBF3EF', fontWeight: '500' },
   saleCategory: { fontSize: 11, color: '#C4737A', marginTop: 2 },
   soldTag: { fontSize: 11, color: '#DDA0A7', marginTop: 4, fontStyle: 'italic' },
+  locationTag: { fontSize: 12, color: '#C9A96E', marginTop: 4, fontWeight: '600' },
+  unarchiveBtn: { backgroundColor: 'rgba(122,24,40,0.5)', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
+  unarchiveBtnText: { color: '#FBF3EF', fontSize: 12, fontWeight: '600' },
   saleActions: { flexDirection: 'row', gap: 6, alignItems: 'center' },
   soldBtn: { backgroundColor: '#9E2035', borderRadius: 10, paddingVertical: 6, paddingHorizontal: 10 },
   soldBtnText: { color: '#FBF3EF', fontSize: 12, fontWeight: '600' },
@@ -1047,7 +1075,8 @@ const styles = StyleSheet.create({
   archiveToggleBtnText: { color: '#C4737A', fontSize: 14 },
   backToSale: { marginBottom: 16 },
   backToSaleText: { color: '#C4737A', fontSize: 15 },
-  archiveTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 16 },
+  archiveTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 8 },
+  archiveHint: { fontSize: 12, color: '#C4737A', fontStyle: 'italic', marginBottom: 16, lineHeight: 18 },
 
   // Sale picker modal
   salePickerItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
