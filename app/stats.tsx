@@ -2,7 +2,6 @@ import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
   Alert,
-  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
   View,
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
+import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 
 const MOOD_META: Record<string, { emoji: string; color: string }> = {
@@ -384,7 +384,7 @@ export default function Stats() {
                     <View key={item.name} style={styles.pieceRow}>
                       <Text style={styles.pieceRank}>#{i + 1}</Text>
                       {item.image_url
-                        ? <Image source={{ uri: item.image_url }} style={styles.pieceImage} />
+                        ? <SignedImage path={item.image_url} style={styles.pieceImage} />
                         : <View style={styles.pieceImageEmpty}><Text style={{ fontSize: 18 }}>👗</Text></View>
                       }
                       <View style={styles.pieceInfo}>
@@ -428,7 +428,7 @@ export default function Stats() {
                       {weakPieces.map(item => (
                         <View key={item.name} style={styles.neverItem}>
                           {item.image_url
-                            ? <Image source={{ uri: item.image_url }} style={styles.neverImage} />
+                            ? <SignedImage path={item.image_url} style={styles.neverImage} />
                             : <View style={styles.neverImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>
                           }
                           <Text style={styles.neverName} numberOfLines={1}>{item.name}</Text>
@@ -501,7 +501,7 @@ export default function Stats() {
                 {mostWorn.map(item => (
                   <View key={item.id} style={styles.barRow}>
                     {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={styles.barImage} />
+                      ? <SignedImage path={item.image_url} style={styles.barImage} />
                       : <View style={styles.barImageEmpty}><Text style={{ fontSize: 18 }}>👗</Text></View>
                     }
                     <View style={styles.barInfo}>
@@ -527,7 +527,7 @@ export default function Stats() {
                     {neverWorn.map(item => (
                       <View key={item.id} style={styles.neverItem}>
                         {item.image_url
-                          ? <Image source={{ uri: item.image_url }} style={styles.neverImage} />
+                          ? <SignedImage path={item.image_url} style={styles.neverImage} />
                           : <View style={styles.neverImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
                         }
                         <Text style={styles.neverName} numberOfLines={1}>{item.name}</Text>
@@ -552,7 +552,7 @@ export default function Stats() {
                   return (
                     <View key={item.id} style={styles.vintedItem}>
                       {item.image_url
-                        ? <Image source={{ uri: item.image_url }} style={styles.vintedImage} />
+                        ? <SignedImage path={item.image_url} style={styles.vintedImage} />
                         : <View style={styles.vintedImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
                       }
                       <View style={styles.vintedInfo}>

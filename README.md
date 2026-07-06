@@ -1,50 +1,45 @@
-# Welcome to your Expo app 👋
+# Klädkollen 🍒
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Din digitala garderob med AI-stylist. Fotografera dina plagg, låt AI:n katalogisera dem och få kompletta outfits anpassade efter kontext (jobb/ledig/fest) och dagens väder.
 
-## Get started
+Byggd med Expo (React Native + webb), Supabase (auth, databas, lagring) och serverless-funktioner på Vercel som proxar AI-anropen (OpenAI + Anthropic).
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Kom igång
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Miljövariabler
 
-## Learn more
+Klienten (`.env` lokalt / Vercel env):
 
-To learn more about developing your project with Expo, look at the following resources:
+| Variabel | Beskrivning |
+| --- | --- |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase-projektets URL |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon-nyckel (publik) |
+| `EXPO_PUBLIC_API_URL` | Bas-URL till API:t för native-byggen (tom på webben) |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Servern (endast Vercel env — får ALDRIG ha `EXPO_PUBLIC_`-prefix):
 
-## Join the community
+| Variabel | Beskrivning |
+| --- | --- |
+| `OPENAI_API_KEY` | Används av outfit-/inspo-/färganalys-endpoints |
+| `ANTHROPIC_API_KEY` | Används av plagg-/färganalys-endpoints |
+| `SUPABASE_SERVICE_ROLE_KEY` | Krävs av `/api/delete-account` |
 
-Join our community of developers creating universal apps.
+## Arkitektur
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `app/` — skärmar (expo-router). Auth-guard ligger i `app/_layout.tsx`.
+- `api/` — Vercel edge functions. Alla kräver inloggad användare (Supabase-JWT i `Authorization`-headern) via `api/_utils.ts`.
+- `components/SignedImage.tsx` — visar bilder ur den privata storage-bucketen via signerade URL:er.
+- `public/landing.html` — statisk landningssida, serveras på `/` via `vercel.json`.
+
+## Bygga för butikerna
+
+```bash
+npx eas build --profile production --platform all
+```
+
+Bundle-id: `se.kladkollen.app`. Profiler finns i `eas.json`.

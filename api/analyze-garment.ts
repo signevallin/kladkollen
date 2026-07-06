@@ -1,3 +1,5 @@
+import { requireUser } from './_utils'
+
 export const config = { runtime: 'edge' }
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
@@ -35,6 +37,8 @@ export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
+  const auth = await requireUser(request)
+  if (auth instanceof Response) return auth
   try {
     const { base64 } = await request.json() as any
     const key = process.env.ANTHROPIC_API_KEY
