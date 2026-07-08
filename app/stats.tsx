@@ -15,7 +15,7 @@ import { supabase } from '../supabase'
 
 const MOOD_META: Record<string, { emoji: string; color: string }> = {
   'Lugn':      { emoji: '😌', color: '#A8B5A0' },
-  'Power':     { emoji: '🔥', color: '#9E2035' },
+  'Power':     { emoji: '🔥', color: '#402D21' },
   'Romantisk': { emoji: '💕', color: '#E8A0B4' },
   'Energisk':  { emoji: '⚡', color: '#F5C842' },
   'Introvert': { emoji: '☁️', color: '#8B9BB4' },
@@ -119,7 +119,7 @@ export default function Stats() {
     })
     const total = withMood.length || 1
     const stats: MoodStat[] = Object.entries(moodMap).map(([label, d]) => ({
-      label, ...(MOOD_META[label] || { emoji: '✨', color: '#9E2035' }),
+      label, ...(MOOD_META[label] || { emoji: '✨', color: '#402D21' }),
       count: d.count, pct: Math.round((d.count / total) * 100),
       avgRating: d.ratingCount > 0 ? Math.round((d.ratingSum / d.ratingCount) * 10) / 10 : null,
     })).sort((a, b) => b.count - a.count)
@@ -180,7 +180,7 @@ export default function Stats() {
       .map(([key, moods]) => {
         const month = parseInt(key.split('-')[1]) - 1
         const dominant = Object.entries(moods).sort((a, b) => b[1] - a[1])[0]
-        return { monthLabel: MONTH_SV[month], mood: dominant[0], emoji: MOOD_META[dominant[0]]?.emoji || '✨', color: MOOD_META[dominant[0]]?.color || '#9E2035', count: Object.values(moods).reduce((s, c) => s + c, 0) }
+        return { monthLabel: MONTH_SV[month], mood: dominant[0], emoji: MOOD_META[dominant[0]]?.emoji || '✨', color: MOOD_META[dominant[0]]?.color || '#402D21', count: Object.values(moods).reduce((s, c) => s + c, 0) }
       })
     setMoodDrift(drift)
 
@@ -410,7 +410,7 @@ export default function Stats() {
                           <Text style={styles.colorRating}>{c.avgRating}★</Text>
                         </View>
                         <View style={styles.barTrack}>
-                          <View style={[styles.barFill, { width: `${(c.avgRating / maxColorRating) * 100}%`, backgroundColor: '#DDA0A7' }]} />
+                          <View style={[styles.barFill, { width: `${(c.avgRating / maxColorRating) * 100}%`, backgroundColor: '#6C4D38' }]} />
                         </View>
                       </View>
                     </View>
@@ -578,118 +578,118 @@ export default function Stats() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
 
   header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12 },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#FBF3EF', letterSpacing: 1, marginBottom: 14 },
-  tabRow: { flexDirection: 'row', backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 4, gap: 4 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#402D21', letterSpacing: 1, marginBottom: 14 },
+  tabRow: { flexDirection: 'row', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 14, padding: 4, gap: 4 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center' },
-  tabActive: { backgroundColor: '#9E2035' },
-  tabText: { fontSize: 13, color: '#C4737A', fontWeight: '600' },
-  tabTextActive: { color: '#FBF3EF' },
+  tabActive: { backgroundColor: '#402D21' },
+  tabText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: '#6C4D38' },
+  tabTextActive: { color: '#FEFAF8' },
 
   scroll: { padding: 24, paddingTop: 16, paddingBottom: 100 },
 
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
-  emptyEmoji: { fontSize: 52 },
-  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#FBF3EF' },
-  emptyText: { fontSize: 14, color: '#C4737A', textAlign: 'center', lineHeight: 22, maxWidth: 280 },
+  emptyEmoji: { fontFamily: 'Lora_400Regular', fontSize: 52 },
+  emptyTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: '#402D21' },
+  emptyText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: '#6C4D38', textAlign: 'center', lineHeight: 22, maxWidth: 280 },
 
   section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#FBF3EF', marginBottom: 4, letterSpacing: 0.5 },
-  sectionSubtitle: { fontSize: 11, color: '#C4737A', fontStyle: 'italic', marginBottom: 12 },
+  sectionTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: '#402D21', marginBottom: 4, letterSpacing: 0.5 },
+  sectionSubtitle: { fontFamily: 'Lora_400Regular', fontSize: 11, color: '#6C4D38', fontStyle: 'italic', marginBottom: 12 },
 
   moodRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
-  moodEmoji: { fontSize: 22, marginTop: 2 },
+  moodEmoji: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
   moodInfo: { flex: 1, gap: 4 },
   moodLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  moodName: { fontSize: 14, color: '#FBF3EF', fontWeight: '600' },
-  moodPct: { fontSize: 14, fontWeight: '700' },
-  moodAvg: { fontSize: 10, color: '#C4737A', marginTop: 2 },
+  moodName: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: '#402D21' },
+  moodPct: { fontFamily: 'Poppins_700Bold', fontSize: 14 },
+  moodAvg: { fontFamily: 'Lora_400Regular', fontSize: 10, color: '#6C4D38', marginTop: 2 },
 
-  barTrack: { height: 6, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 3, overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 3, backgroundColor: '#C4737A' },
+  barTrack: { height: 6, backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 3, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 3, backgroundColor: '#6C4D38' },
 
-  insightCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: 'rgba(158,32,53,0.15)', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  insightEmoji: { fontSize: 22, marginTop: 2 },
-  insightTitle: { fontSize: 13, fontWeight: '700', color: '#FBF3EF', marginBottom: 4 },
-  insightBody: { fontSize: 13, color: '#DDA0A7', lineHeight: 19 },
+  insightCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: 'rgba(64,45,33,0.15)', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  insightEmoji: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
+  insightTitle: { fontFamily: 'Poppins_700Bold', fontSize: 13, color: '#402D21', marginBottom: 4 },
+  insightBody: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', lineHeight: 19 },
 
   // Mood Drift
   driftRow: { flexDirection: 'row', gap: 10 },
   driftMonth: { flex: 1, alignItems: 'center', gap: 6 },
   driftBubble: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
-  driftEmoji: { fontSize: 24 },
-  driftLabel: { fontSize: 12, fontWeight: '600', color: '#FBF3EF' },
-  driftCount: { fontSize: 9, color: '#C4737A', textAlign: 'center' },
+  driftEmoji: { fontFamily: 'Lora_400Regular', fontSize: 24 },
+  driftLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#402D21' },
+  driftCount: { fontFamily: 'Lora_400Regular', fontSize: 9, color: '#6C4D38', textAlign: 'center' },
 
-  pieceRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 14, padding: 10 },
-  pieceRank: { fontSize: 13, fontWeight: '700', color: '#C4737A', width: 24 },
+  pieceRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10, backgroundColor: 'rgba(207,181,158,0.25)', borderRadius: 14, padding: 10 },
+  pieceRank: { fontFamily: 'Poppins_700Bold', fontSize: 13, color: '#6C4D38', width: 24 },
   pieceImage: { width: 48, height: 48, borderRadius: 10 },
-  pieceImageEmpty: { width: 48, height: 48, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center' },
+  pieceImageEmpty: { width: 48, height: 48, borderRadius: 10, backgroundColor: 'rgba(207,181,158,0.5)', alignItems: 'center', justifyContent: 'center' },
   pieceInfo: { flex: 1 },
-  pieceName: { fontSize: 14, color: '#FBF3EF', fontWeight: '500', marginBottom: 3 },
-  pieceRating: { fontSize: 12, color: '#F5C842' },
+  pieceName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: '#402D21', marginBottom: 3 },
+  pieceRating: { fontFamily: 'Lora_400Regular', fontSize: 12, color: '#F5C842' },
 
   // Color Psychology
   colorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  colorEmoji: { fontSize: 20, width: 28 },
+  colorEmoji: { fontFamily: 'Lora_400Regular', fontSize: 20, width: 28 },
   colorInfo: { flex: 1, gap: 4 },
   colorLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  colorName: { fontSize: 13, color: '#FBF3EF', fontWeight: '500' },
-  colorRating: { fontSize: 12, color: '#F5C842', fontWeight: '600' },
+  colorName: { fontFamily: 'Lora_500Medium', fontSize: 13, color: '#402D21' },
+  colorRating: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#F5C842' },
 
   horizontalList: { flexDirection: 'row', gap: 10, paddingBottom: 4 },
   neverItem: { width: 80, alignItems: 'center', gap: 5 },
   neverImage: { width: 72, height: 72, borderRadius: 14 },
-  neverImageEmpty: { width: 72, height: 72, borderRadius: 14, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  neverName: { fontSize: 10, color: '#C4737A', textAlign: 'center' },
-  weakRating: { fontSize: 10, color: '#E8A0B4', fontWeight: '600' },
+  neverImageEmpty: { width: 72, height: 72, borderRadius: 14, backgroundColor: 'rgba(207,181,158,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  neverName: { fontFamily: 'Lora_400Regular', fontSize: 10, color: '#6C4D38', textAlign: 'center' },
+  weakRating: { fontFamily: 'Poppins_600SemiBold', fontSize: 10, color: '#E8A0B4' },
 
   unlockCard: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: 'rgba(181,123,219,0.08)', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: 'rgba(181,123,219,0.2)', marginBottom: 8 },
-  unlockEmoji: { fontSize: 24 },
-  unlockTitle: { fontSize: 13, fontWeight: '700', color: '#FBF3EF', marginBottom: 4 },
-  unlockText: { fontSize: 12, color: '#C4737A', lineHeight: 18, marginBottom: 10 },
+  unlockEmoji: { fontFamily: 'Lora_400Regular', fontSize: 24 },
+  unlockTitle: { fontFamily: 'Poppins_700Bold', fontSize: 13, color: '#402D21', marginBottom: 4 },
+  unlockText: { fontFamily: 'Lora_400Regular', fontSize: 12, color: '#6C4D38', lineHeight: 18, marginBottom: 10 },
   unlockBar: { height: 4, backgroundColor: 'rgba(181,123,219,0.2)', borderRadius: 2, overflow: 'hidden', marginBottom: 4 },
   unlockFill: { height: '100%', backgroundColor: '#B57BDB', borderRadius: 2 },
-  unlockProgress: { fontSize: 10, color: 'rgba(181,123,219,0.7)' },
+  unlockProgress: { fontFamily: 'Lora_400Regular', fontSize: 10, color: 'rgba(181,123,219,0.7)' },
 
-  heroCard: { backgroundColor: '#9E2035', borderRadius: 20, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  heroNumber: { fontSize: 56, fontWeight: 'bold', color: '#FBF3EF', lineHeight: 60 },
-  heroLabel: { fontSize: 13, color: 'rgba(251,243,239,0.7)', marginTop: 4, maxWidth: 160 },
-  heroIcon: { fontSize: 48, opacity: 0.5 },
+  heroCard: { backgroundColor: '#402D21', borderRadius: 20, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  heroNumber: { fontFamily: 'Poppins_700Bold', fontSize: 56, color: '#402D21', lineHeight: 60 },
+  heroLabel: { fontFamily: 'Lora_400Regular', fontSize: 13, color: 'rgba(64,45,33,0.7)', marginTop: 4, maxWidth: 160 },
+  heroIcon: { fontFamily: 'Lora_400Regular', fontSize: 48, opacity: 0.5 },
 
   miniStatsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  miniStat: { flex: 1, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  miniStatNum: { fontSize: 24, fontWeight: 'bold', color: '#DDA0A7' },
-  miniStatLabel: { fontSize: 10, color: '#C4737A', marginTop: 2, fontStyle: 'italic' },
+  miniStat: { flex: 1, backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.15)' },
+  miniStatNum: { fontFamily: 'Poppins_700Bold', fontSize: 24, color: '#6C4D38' },
+  miniStatLabel: { fontFamily: 'Lora_400Regular', fontSize: 10, color: '#6C4D38', marginTop: 2, fontStyle: 'italic' },
 
-  usageCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 16, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  usagePercent: { fontSize: 36, fontWeight: 'bold', color: '#DDA0A7' },
-  usageLabel: { fontSize: 14, color: '#C4737A', flex: 1 },
+  usageCard: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 16, padding: 16, marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  usagePercent: { fontFamily: 'Poppins_700Bold', fontSize: 36, color: '#6C4D38' },
+  usageLabel: { fontFamily: 'Lora_400Regular', fontSize: 14, color: '#6C4D38', flex: 1 },
 
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
   barImage: { width: 44, height: 44, borderRadius: 10 },
-  barImageEmpty: { width: 44, height: 44, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center' },
+  barImageEmpty: { width: 44, height: 44, borderRadius: 10, backgroundColor: 'rgba(207,181,158,0.4)', alignItems: 'center', justifyContent: 'center' },
   barInfo: { flex: 1 },
   barLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  barName: { fontSize: 13, color: '#FBF3EF', fontWeight: '500' },
-  barCount: { fontSize: 13, color: '#DDA0A7', fontWeight: '600' },
-  barCategory: { fontSize: 10, color: 'rgba(196,115,122,0.6)', fontStyle: 'italic', marginTop: 2 },
+  barName: { fontFamily: 'Lora_500Medium', fontSize: 13, color: '#402D21' },
+  barCount: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: '#6C4D38' },
+  barCategory: { fontFamily: 'Lora_400Regular', fontSize: 10, color: 'rgba(108,77,56,0.6)', fontStyle: 'italic', marginTop: 2 },
 
-  vintedSection: { backgroundColor: 'rgba(221,160,167,0.08)', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(221,160,167,0.2)', marginBottom: 20 },
+  vintedSection: { backgroundColor: 'rgba(108,77,56,0.08)', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', marginBottom: 20 },
   vintedHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  vintedTitle: { fontSize: 18, fontWeight: 'bold', color: '#FBF3EF' },
-  vintedBadge: { backgroundColor: '#9E2035', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
-  vintedBadgeText: { fontSize: 11, color: '#FBF3EF', fontWeight: '600' },
-  vintedSubtitle: { fontSize: 12, color: '#C4737A', fontStyle: 'italic', marginBottom: 14 },
-  vintedItem: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 14, padding: 10 },
+  vintedTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: '#402D21' },
+  vintedBadge: { backgroundColor: '#402D21', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
+  vintedBadgeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: '#FEFAF8' },
+  vintedSubtitle: { fontFamily: 'Lora_400Regular', fontSize: 12, color: '#6C4D38', fontStyle: 'italic', marginBottom: 14 },
+  vintedItem: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12, backgroundColor: 'rgba(207,181,158,0.25)', borderRadius: 14, padding: 10 },
   vintedImage: { width: 52, height: 52, borderRadius: 10 },
-  vintedImageEmpty: { width: 52, height: 52, borderRadius: 10, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center' },
+  vintedImageEmpty: { width: 52, height: 52, borderRadius: 10, backgroundColor: 'rgba(207,181,158,0.4)', alignItems: 'center', justifyContent: 'center' },
   vintedInfo: { flex: 1 },
-  vintedItemName: { fontSize: 14, color: '#FBF3EF', fontWeight: '500' },
-  vintedItemCategory: { fontSize: 11, color: '#C4737A', marginTop: 1 },
-  vintedDays: { fontSize: 10, color: 'rgba(196,115,122,0.6)', fontStyle: 'italic', marginTop: 2 },
-  vintedButton: { backgroundColor: '#9E2035', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 },
-  vintedButtonText: { color: '#FBF3EF', fontSize: 13, fontWeight: '600' },
+  vintedItemName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: '#402D21' },
+  vintedItemCategory: { fontFamily: 'Lora_400Regular', fontSize: 11, color: '#6C4D38', marginTop: 1 },
+  vintedDays: { fontFamily: 'Lora_400Regular', fontSize: 10, color: 'rgba(108,77,56,0.6)', fontStyle: 'italic', marginTop: 2 },
+  vintedButton: { backgroundColor: '#402D21', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 },
+  vintedButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 13 },
 })

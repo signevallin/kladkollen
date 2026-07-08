@@ -13,7 +13,7 @@ export default function Index() {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
   }, [])
 
-  if (session === undefined) return <View style={{ flex: 1, backgroundColor: '#150408' }} />
+  if (session === undefined) return <View style={{ flex: 1, backgroundColor: '#FEFAF8' }} />
   if (session) return <Redirect href="/home" />
   return <Redirect href="/login" />
 }

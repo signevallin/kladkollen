@@ -4,8 +4,8 @@
   "description": "Din digitala garderob",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#150408",
-  "theme_color": "#150408",
+  "background_color": "#FEFAF8",
+  "theme_color": "#FEFAF8",
   "orientation": "portrait",
   "icons": [
     {

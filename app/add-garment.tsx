@@ -52,6 +52,7 @@ type GarmentDraft = {
   id: string
   uri: string
   base64: string
+  processedBase64: string | null
   name: string
   category: string
   subcategory: string
@@ -59,6 +60,7 @@ type GarmentDraft = {
   seasons: string[]
   size: string
   analyzing: boolean
+  removingBg: boolean
 }
 
 export default function AddGarment() {
@@ -79,6 +81,7 @@ export default function AddGarment() {
       id: `${Date.now()}-${i}`,
       uri: asset.uri,
       base64: asset.base64 || '',
+      processedBase64: null,
       name: '',
       category: '',
       subcategory: '',
@@ -86,21 +89,44 @@ export default function AddGarment() {
       seasons: [],
       size: '',
       analyzing: true,
+      removingBg: true,
     }))
     setDrafts(newDrafts)
     setStep('review')
 
+    // AI-analys och bakgrundsborttagning körs parallellt per foto
     for (const draft of newDrafts) {
-      try {
-        const data = await apiPost('/api/analyze-garment', { base64: draft.base64 })
-        setDrafts(prev => prev.map(d =>
-          d.id === draft.id
-            ? { ...d, name: data.name || '', category: data.category || '', subcategory: data.subcategory || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
-            : d
-        ))
-      } catch {
-        setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, analyzing: false } : d))
-      }
+      await Promise.all([
+        (async () => {
+          try {
+            const data = await apiPost('/api/analyze-garment', { base64: draft.base64 })
+            setDrafts(prev => prev.map(d =>
+              d.id === draft.id
+                ? { ...d, name: data.name || '', category: data.category || '', subcategory: data.subcategory || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
+                : d
+            ))
+          } catch {
+            setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, analyzing: false } : d))
+          }
+        })(),
+        (async () => {
+          try {
+            const data = await apiPost('/api/remove-background', { base64: draft.base64 })
+            if (data.base64) {
+              setDrafts(prev => prev.map(d =>
+                d.id === draft.id
+                  ? { ...d, processedBase64: data.base64, uri: `data:image/png;base64,${data.base64}`, removingBg: false }
+                  : d
+              ))
+            } else {
+              setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
+            }
+          } catch {
+            // Misslyckad bakgrundsborttagning → behåll originalbilden
+            setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
+          }
+        })(),
+      ])
     }
   }
 
@@ -132,6 +158,20 @@ export default function AddGarment() {
 
   async function uploadImage(draft: GarmentDraft) {
     const filename = `${Date.now()}-${Math.random().toString(36).substring(2)}`
+
+    if (draft.processedBase64) {
+      // Bakgrundsfri PNG från remove.bg
+      const filePath = `public/${filename}.png`
+      const binaryStr = atob(draft.processedBase64)
+      const bytes = new Uint8Array(binaryStr.length)
+      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
+      const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: 'image/png', upsert: true })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+      return urlData.publicUrl
+    }
+
+    // Fallback: originalfotot
     const filePath = `public/${filename}.jpg`
     const response = await fetch(draft.uri)
     const arrayBuffer = await response.arrayBuffer()
@@ -143,7 +183,7 @@ export default function AddGarment() {
   }
 
   async function saveAll() {
-    const ready = drafts.filter(d => !d.analyzing)
+    const ready = drafts.filter(d => !d.analyzing && !d.removingBg)
     if (ready.some(d => !d.name || !d.category)) {
       Alert.alert('Fyll i namn och kategori för alla plagg')
       return
@@ -186,7 +226,7 @@ export default function AddGarment() {
           <TouchableOpacity style={styles.pickBtn} onPress={pickImages}>
             <Text style={styles.pickBtnIcon}>📷</Text>
             <Text style={styles.pickBtnTitle}>Välj foton</Text>
-            <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna automatiskt</Text>
+            <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -194,7 +234,7 @@ export default function AddGarment() {
   }
 
   // ── REVIEW STEP ────────────────────────────────────────────
-  const processingCount = drafts.filter(d => d.analyzing).length
+  const processingCount = drafts.filter(d => d.analyzing || d.removingBg).length
   const totalCount = drafts.length
 
   return (
@@ -207,14 +247,16 @@ export default function AddGarment() {
 
         {processingCount > 0 && (
           <View style={styles.progressRow}>
-            <ActivityIndicator color="#C4737A" size="small" />
+            <ActivityIndicator color="#6C4D38" size="small" />
             <Text style={styles.progressText}>Bearbetar {totalCount - processingCount}/{totalCount}...</Text>
           </View>
         )}
 
         {drafts.map((draft) => {
-          const isProcessing = draft.analyzing
-          const statusText = 'AI analyserar...'
+          const isProcessing = draft.analyzing || draft.removingBg
+          const statusText = draft.analyzing && draft.removingBg
+            ? 'AI analyserar & tar bort bakgrund...'
+            : draft.analyzing ? 'AI analyserar...' : 'Tar bort bakgrund...'
 
           return (
             <View key={draft.id} style={styles.card}>
@@ -226,7 +268,7 @@ export default function AddGarment() {
                 <View style={styles.cardNameWrap}>
                   {isProcessing ? (
                     <View style={styles.analyzingRow}>
-                      <ActivityIndicator color="#C4737A" size="small" />
+                      <ActivityIndicator color="#6C4D38" size="small" />
                       <Text style={styles.analyzingText}>{statusText}</Text>
                     </View>
                   ) : (
@@ -235,7 +277,7 @@ export default function AddGarment() {
                       value={draft.name}
                       onChangeText={v => updateDraft(draft.id, 'name', v)}
                       placeholder="Namn på plagget"
-                      placeholderTextColor="rgba(196,115,122,0.5)"
+                      placeholderTextColor="rgba(108,77,56,0.5)"
                     />
                   )}
                 </View>
@@ -328,7 +370,7 @@ export default function AddGarment() {
                   <TextInput
                     style={styles.sizeInput}
                     placeholder="Egen storlek, t.ex. 38 eller W29/L32"
-                    placeholderTextColor="rgba(196,115,122,0.4)"
+                    placeholderTextColor="rgba(108,77,56,0.4)"
                     value={SIZES.includes(draft.size) ? '' : draft.size}
                     onChangeText={v => updateDraft(draft.id, 'size', v)}
                   />
@@ -346,7 +388,7 @@ export default function AddGarment() {
           accessibilityRole="button"
         >
           {saving
-            ? <ActivityIndicator color="#FBF3EF" size="small" />
+            ? <ActivityIndicator color="#FEFAF8" size="small" />
             : <Text style={styles.saveButtonText}>{`Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'} 🍒`}</Text>
           }
         </TouchableOpacity>
@@ -356,72 +398,72 @@ export default function AddGarment() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
   scroll: { padding: 24, paddingBottom: 48 },
   backButton: { marginBottom: 16 },
-  backButtonText: { color: '#C4737A', fontSize: 15 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 24 },
+  backButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 15 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: '#402D21', marginBottom: 24 },
 
   pickBtn: {
-    backgroundColor: 'rgba(122,24,40,0.4)',
+    backgroundColor: 'rgba(207,181,158,0.4)',
     borderRadius: 20,
     height: 220,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
     borderWidth: 1.5,
-    borderColor: 'rgba(196,115,122,0.3)',
+    borderColor: 'rgba(108,77,56,0.3)',
     borderStyle: 'dashed',
   },
-  pickBtnIcon: { fontSize: 48 },
-  pickBtnTitle: { fontSize: 18, fontWeight: '600', color: '#FBF3EF' },
-  pickBtnHint: { fontSize: 13, color: '#C4737A', textAlign: 'center', paddingHorizontal: 32 },
+  pickBtnIcon: { fontFamily: 'Lora_400Regular', fontSize: 48 },
+  pickBtnTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: '#402D21' },
+  pickBtnHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', textAlign: 'center', paddingHorizontal: 32 },
 
   progressRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: 'rgba(122,24,40,0.2)', borderRadius: 12,
+    backgroundColor: 'rgba(207,181,158,0.2)', borderRadius: 12,
     padding: 12, marginBottom: 16,
   },
-  progressText: { color: '#C4737A', fontSize: 14 },
+  progressText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14 },
 
   card: {
-    backgroundColor: 'rgba(122,24,40,0.2)',
+    backgroundColor: 'rgba(207,181,158,0.2)',
     borderRadius: 16, padding: 14, marginBottom: 16,
-    borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', gap: 10,
+    borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', gap: 10,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   cardThumbWrap: {
     width: 64, height: 80, borderRadius: 10, overflow: 'hidden',
   },
   cardThumbBg: {
-    backgroundColor: 'rgba(251,243,239,0.08)',
+    backgroundColor: 'rgba(64,45,33,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(196,115,122,0.15)',
+    borderColor: 'rgba(108,77,56,0.15)',
   },
   cardThumb: { width: 64, height: 80, backgroundColor: 'transparent' },
   cardNameWrap: { flex: 1 },
   cardNameInput: {
-    backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 10,
-    padding: 10, color: '#FBF3EF', fontSize: 15,
-    borderWidth: 1, borderColor: 'rgba(196,115,122,0.25)',
+    backgroundColor: 'rgba(207,181,158,0.4)', borderRadius: 10,
+    padding: 10, color: '#402D21', fontSize: 15,
+    borderWidth: 1, borderColor: 'rgba(108,77,56,0.25)',
   },
   analyzingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  analyzingText: { color: '#C4737A', fontSize: 14, fontStyle: 'italic' },
+  analyzingText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14, fontStyle: 'italic' },
   removeBtn: { padding: 6 },
-  removeBtnText: { color: 'rgba(196,115,122,0.6)', fontSize: 18 },
+  removeBtnText: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.6)', fontSize: 18 },
 
-  cardLabel: { color: 'rgba(196,115,122,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
-  sizeInput: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 10, padding: 10, color: '#FBF3EF', fontSize: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
+  cardLabel: { fontFamily: 'Poppins_700Bold', color: 'rgba(108,77,56,0.7)', fontSize: 11, letterSpacing: 1.5 },
+  sizeInput: { fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 10, padding: 10, color: '#402D21', fontSize: 14, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
 
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   pill: {
     paddingVertical: 5, paddingHorizontal: 12, borderRadius: 20,
-    backgroundColor: 'rgba(122,24,40,0.3)',
-    borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)',
+    backgroundColor: 'rgba(207,181,158,0.3)',
+    borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)',
   },
-  pillActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  pillText: { color: '#C4737A', fontSize: 12 },
-  pillTextActive: { color: '#FBF3EF' },
+  pillActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
+  pillText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 12 },
+  pillTextActive: { color: '#FEFAF8' },
 
   colorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   colorDot: {
@@ -429,13 +471,13 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: 'transparent',
   },
-  colorDotActive: { borderColor: '#FBF3EF', transform: [{ scale: 1.15 }] },
+  colorDotActive: { borderColor: '#402D21', transform: [{ scale: 1.15 }] },
   colorCheck: {
-    color: '#FBF3EF', fontSize: 13, fontWeight: 'bold',
+    color: '#402D21', fontSize: 13, fontWeight: 'bold',
     textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2,
   },
 
-  saveButton: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
+  saveButton: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
   saveButtonDisabled: { opacity: 0.5 },
-  saveButtonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
+  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
 })

@@ -296,13 +296,13 @@ export default function Collage() {
         <TextInput
           style={styles.nameInput}
           placeholder="Namn på kollaget..."
-          placeholderTextColor="rgba(196,115,122,0.5)"
+          placeholderTextColor="rgba(108,77,56,0.5)"
           value={name}
           onChangeText={setName}
         />
         <TouchableOpacity style={styles.saveBtn} onPress={saveCollage} disabled={saving}>
           {saving
-            ? <ActivityIndicator color="#FBF3EF" size="small" />
+            ? <ActivityIndicator color="#FEFAF8" size="small" />
             : <Text style={styles.saveBtnText}>Spara</Text>
           }
         </TouchableOpacity>
@@ -311,7 +311,7 @@ export default function Collage() {
       {/* Canvas */}
       <View style={styles.canvasWrap}>
         {loading ? (
-          <View style={styles.loadingWrap}><ActivityIndicator color="#C4737A" size="large" /></View>
+          <View style={styles.loadingWrap}><ActivityIndicator color="#6C4D38" size="large" /></View>
         ) : (
           <Pressable style={styles.canvas} onLayout={onCanvasLayout} onPress={() => setSelectedKey(null)}>
             {items.length === 0 && (
@@ -350,43 +350,43 @@ export default function Collage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
 
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
-  backText: { color: '#C4737A', fontSize: 24, paddingHorizontal: 4 },
-  nameInput: { flex: 1, backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14, color: '#FBF3EF', fontSize: 15, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  saveBtn: { backgroundColor: '#9E2035', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 16, minWidth: 68, alignItems: 'center' },
-  saveBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
+  backText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 24, paddingHorizontal: 4 },
+  nameInput: { fontFamily: 'Lora_400Regular', flex: 1, backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14, color: '#402D21', fontSize: 15, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  saveBtn: { backgroundColor: '#402D21', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 16, minWidth: 68, alignItems: 'center' },
+  saveBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 14 },
 
   canvasWrap: { flex: 1, marginHorizontal: 16, marginBottom: 12 },
-  canvas: { flex: 1, backgroundColor: 'rgba(122,24,40,0.12)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', overflow: 'hidden' },
+  canvas: { flex: 1, backgroundColor: 'rgba(207,181,158,0.12)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(108,77,56,0.15)', overflow: 'hidden' },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   emptyHint: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  emptyHintIcon: { fontSize: 40 },
-  emptyHintText: { color: '#DDA0A7', fontSize: 16, fontWeight: '600' },
-  emptyHintSub: { color: 'rgba(196,115,122,0.7)', fontSize: 12, textAlign: 'center', paddingHorizontal: 32 },
+  emptyHintIcon: { fontFamily: 'Lora_400Regular', fontSize: 40 },
+  emptyHintText: { fontFamily: 'Poppins_600SemiBold', color: '#6C4D38', fontSize: 16 },
+  emptyHintSub: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.7)', fontSize: 12, textAlign: 'center', paddingHorizontal: 32 },
 
   canvasItem: { position: 'absolute' },
-  canvasItemSelected: { borderWidth: 1.5, borderColor: '#C4737A', borderRadius: 8, borderStyle: 'dashed' },
-  deleteHandle: { position: 'absolute', top: -12, right: -12, width: 26, height: 26, borderRadius: 13, backgroundColor: '#9E2035', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FBF3EF' },
-  deleteHandleText: { color: '#FBF3EF', fontSize: 13, fontWeight: 'bold' },
-  resizeHandle: { position: 'absolute', bottom: -14, right: -14, width: 32, height: 32, borderRadius: 16, backgroundColor: '#C4737A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FBF3EF' },
-  resizeHandleText: { color: '#150408', fontSize: 16, fontWeight: 'bold' },
+  canvasItemSelected: { borderWidth: 1.5, borderColor: '#6C4D38', borderRadius: 8, borderStyle: 'dashed' },
+  deleteHandle: { position: 'absolute', top: -12, right: -12, width: 26, height: 26, borderRadius: 13, backgroundColor: '#402D21', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FEFAF8' },
+  deleteHandleText: { fontFamily: 'Poppins_700Bold', color: '#FEFAF8', fontSize: 13 },
+  resizeHandle: { position: 'absolute', bottom: -14, right: -14, width: 32, height: 32, borderRadius: 16, backgroundColor: '#6C4D38', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FEFAF8' },
+  resizeHandleText: { fontFamily: 'Poppins_700Bold', color: '#FEFAF8', fontSize: 16 },
 
   toolBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
-  addBtn: { backgroundColor: 'rgba(122,24,40,0.5)', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 18, borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
-  addBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
-  toolHint: { color: 'rgba(196,115,122,0.7)', fontSize: 11, flex: 1, textAlign: 'right' },
+  addBtn: { backgroundColor: 'rgba(207,181,158,0.5)', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 18, borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
+  addBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 14 },
+  toolHint: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.7)', fontSize: 11, flex: 1, textAlign: 'right' },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#1F080E', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '75%' },
+  modalContent: { backgroundColor: '#F8EADE', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '75%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#FBF3EF' },
-  modalClose: { color: '#C4737A', fontSize: 20 },
+  modalTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: '#402D21' },
+  modalClose: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 20 },
   pickerEmpty: { padding: 32, alignItems: 'center' },
-  pickerEmptyText: { color: '#C4737A', fontSize: 14 },
-  pickerItem: { flex: 1 / 3, margin: 4, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 12, padding: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
+  pickerEmptyText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14 },
+  pickerItem: { flex: 1 / 3, margin: 4, alignItems: 'center', backgroundColor: 'rgba(207,181,158,0.25)', borderRadius: 12, padding: 8, borderWidth: 1, borderColor: 'rgba(108,77,56,0.12)' },
   pickerImage: { width: '100%', aspectRatio: 1, borderRadius: 8 },
-  pickerName: { color: '#C4737A', fontSize: 10, marginTop: 4, textAlign: 'center' },
+  pickerName: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 10, marginTop: 4, textAlign: 'center' },
 })

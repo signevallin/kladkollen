@@ -1,3 +1,5 @@
+import { Lora_400Regular, Lora_500Medium } from '@expo-google-fonts/lora'
+import { Poppins_600SemiBold, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins'
 import { Stack, router, usePathname } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { View } from 'react-native'
@@ -11,6 +13,12 @@ export default function Layout() {
   const pathname = usePathname()
   const [ready, setReady] = useState(false)
   const [hasSession, setHasSession] = useState(false)
+  const [fontsLoaded, fontError] = useFonts({
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Lora_400Regular,
+    Lora_500Medium,
+  })
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,7 +38,9 @@ export default function Layout() {
     }
   }, [ready, hasSession, pathname])
 
-  if (!ready) return <View style={{ flex: 1, backgroundColor: '#150408' }} />
+  if (!ready || (!fontsLoaded && !fontError)) {
+    return <View style={{ flex: 1, backgroundColor: '#FEFAF8' }} />
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

@@ -80,7 +80,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="din@email.com"
-            placeholderTextColor="rgba(196,115,122,0.4)"
+            placeholderTextColor="rgba(108,77,56,0.4)"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -91,7 +91,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="••••••••"
-            placeholderTextColor="rgba(196,115,122,0.4)"
+            placeholderTextColor="rgba(108,77,56,0.4)"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -130,18 +130,18 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
   inner: { flex: 1, justifyContent: 'center', padding: 24 },
   header: { alignItems: 'center', marginBottom: 48 },
-  title: { fontSize: 40, fontWeight: 'bold', color: '#FBF3EF', letterSpacing: 3 },
-  subtitle: { fontSize: 16, color: '#C4737A', marginTop: 8 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 40, color: '#402D21', letterSpacing: 3 },
+  subtitle: { fontFamily: 'Lora_400Regular', fontSize: 16, color: '#6C4D38', marginTop: 8 },
   form: { gap: 8 },
-  label: { color: '#FBF3EF', fontSize: 14, fontWeight: '600', marginTop: 8, marginBottom: 4 },
-  input: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 12, padding: 14, color: '#FBF3EF', fontSize: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', marginBottom: 4 },
-  button: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 16 },
-  buttonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
+  label: { fontFamily: 'Poppins_600SemiBold', color: '#402D21', fontSize: 14, marginTop: 8, marginBottom: 4 },
+  input: { fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 14, color: '#402D21', fontSize: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', marginBottom: 4 },
+  button: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 16 },
+  buttonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
   switchButton: { alignItems: 'center', marginTop: 16, padding: 8 },
-  switchText: { color: '#C4737A', fontSize: 14 },
+  switchText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14 },
   forgotButton: { alignItems: 'center', padding: 8 },
-  forgotText: { color: 'rgba(196,115,122,0.7)', fontSize: 13, textDecorationLine: 'underline' },
+  forgotText: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.7)', fontSize: 13, textDecorationLine: 'underline' },
 })

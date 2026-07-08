@@ -1,4 +1,4 @@
-import { DancingScript_400Regular, useFonts } from '@expo-google-fonts/dancing-script'
+import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -51,7 +51,7 @@ interface ColorAnalysis {
 }
 
 export default function Profile() {
-  const [fontsLoaded] = useFonts({ DancingScript_400Regular })
+  const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
@@ -294,7 +294,7 @@ export default function Profile() {
         <TextInput
           style={styles.input}
           placeholder="Ditt namn"
-          placeholderTextColor="rgba(196,115,122,0.5)"
+          placeholderTextColor="rgba(108,77,56,0.5)"
           value={name}
           onChangeText={setName}
         />
@@ -477,7 +477,7 @@ export default function Profile() {
             disabled={analyzingColor || (inputMode === 'image' ? !colorBase64 : (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel))}
           >
             {analyzingColor
-              ? <><ActivityIndicator color="#FBF3EF" size="small" /><Text style={styles.analyzeBtnText}> Analyserar...</Text></>
+              ? <><ActivityIndicator color="#FEFAF8" size="small" /><Text style={styles.analyzeBtnText}> Analyserar...</Text></>
               : <Text style={styles.analyzeBtnText}>✨ {colorAnalysis ? 'Analysera igen' : 'Analysera färgprofil'}</Text>
             }
           </TouchableOpacity>
@@ -633,126 +633,126 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
   scroll: { padding: 24, paddingBottom: 60 },
   backButton: { marginBottom: 16 },
-  backButtonText: { color: '#C4737A', fontSize: 15 },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
-  subtitle: { fontFamily: 'DancingScript_400Regular', fontSize: 18, color: '#C4737A', marginBottom: 24 },
+  backButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 15 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#402D21', marginBottom: 4 },
+  subtitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: '#6C4D38', marginBottom: 24 },
   avatarContainer: { alignSelf: 'center', marginBottom: 28 },
-  avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#9E2035' },
-  avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(196,115,122,0.3)' },
-  avatarEmoji: { fontSize: 40 },
-  avatarBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#9E2035', borderRadius: 12, width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  avatarBadgeText: { fontSize: 14 },
-  label: { color: '#FBF3EF', fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 8 },
-  hint: { color: '#C4737A', fontSize: 11, fontStyle: 'italic', marginBottom: 8, marginTop: -4 },
-  input: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 12, padding: 14, color: '#FBF3EF', fontSize: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', marginBottom: 16 },
+  avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#402D21' },
+  avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(207,181,158,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(108,77,56,0.3)' },
+  avatarEmoji: { fontFamily: 'Lora_400Regular', fontSize: 40 },
+  avatarBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#402D21', borderRadius: 12, width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+  avatarBadgeText: { fontFamily: 'Lora_400Regular', fontSize: 14 },
+  label: { fontFamily: 'Poppins_600SemiBold', color: '#402D21', fontSize: 14, marginBottom: 8, marginTop: 8 },
+  hint: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 11, fontStyle: 'italic', marginBottom: 8, marginTop: -4 },
+  input: { fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 14, color: '#402D21', fontSize: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', marginBottom: 16 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  pillActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  pillText: { color: '#C4737A', fontSize: 13 },
-  pillTextActive: { color: '#FBF3EF' },
-  saveButton: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
-  saveButtonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
+  pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  pillActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
+  pillText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 13 },
+  pillTextActive: { color: '#FEFAF8' },
+  saveButton: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
+  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
 
   profileTabRow: { flexDirection: 'row', gap: 8, marginBottom: 24, marginTop: 4 },
-  profileTab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  profileTabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  profileTabText: { color: '#C4737A', fontSize: 12, fontWeight: '500' },
-  profileTabTextActive: { color: '#FBF3EF', fontWeight: '700' },
+  profileTab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  profileTabActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
+  profileTabText: { fontFamily: 'Lora_500Medium', color: '#6C4D38', fontSize: 12 },
+  profileTabTextActive: { color: '#FEFAF8', fontWeight: '700' },
 
   // ── Stilprofil ──
   stilprofilSection: { marginBottom: 24 },
-  stilprofilCard: { backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 16, padding: 16, marginTop: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', gap: 10 },
-  stilprofilCardLabel: { fontSize: 11, color: '#C4737A', fontWeight: '700', letterSpacing: 1, marginBottom: 4 },
+  stilprofilCard: { backgroundColor: 'rgba(207,181,158,0.4)', borderRadius: 16, padding: 16, marginTop: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)', gap: 10 },
+  stilprofilCardLabel: { fontFamily: 'Poppins_700Bold', fontSize: 11, color: '#6C4D38', letterSpacing: 1, marginBottom: 4 },
   stilprofilRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  stilprofilEmoji: { fontSize: 16, width: 24 },
-  stilprofilValue: { fontSize: 15, color: '#FBF3EF', fontWeight: '600', flex: 1 },
+  stilprofilEmoji: { fontFamily: 'Lora_400Regular', fontSize: 16, width: 24 },
+  stilprofilValue: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: '#402D21', flex: 1 },
 
   // ── Färganalys ──
   colorSection: { marginBottom: 24 },
-  colorTitle: { fontSize: 22, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 4 },
-  colorSubtitle: { fontSize: 13, color: '#C4737A', marginBottom: 16, fontStyle: 'italic' },
+  colorTitle: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: '#402D21', marginBottom: 4 },
+  colorSubtitle: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', marginBottom: 16, fontStyle: 'italic' },
 
   inputModeRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  inputModeBtn: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  inputModeBtnActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  inputModeBtnText: { color: '#C4737A', fontSize: 13, fontWeight: '500' },
-  inputModeBtnTextActive: { color: '#FBF3EF', fontWeight: '700' },
+  inputModeBtn: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  inputModeBtnActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
+  inputModeBtnText: { fontFamily: 'Lora_500Medium', color: '#6C4D38', fontSize: 13 },
+  inputModeBtnTextActive: { color: '#FEFAF8', fontWeight: '700' },
 
-  colorUploadZone: { borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed', height: 180, alignItems: 'center', justifyContent: 'center', marginBottom: 16, overflow: 'hidden', backgroundColor: 'rgba(122,24,40,0.15)' },
+  colorUploadZone: { borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(108,77,56,0.3)', borderStyle: 'dashed', height: 180, alignItems: 'center', justifyContent: 'center', marginBottom: 16, overflow: 'hidden', backgroundColor: 'rgba(207,181,158,0.15)' },
   colorUploadPreview: { width: '100%', height: '100%' },
-  colorUploadIcon: { fontSize: 36, marginBottom: 8 },
-  colorUploadText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
-  colorUploadHint: { color: '#C4737A', fontSize: 11, marginTop: 4 },
+  colorUploadIcon: { fontFamily: 'Lora_400Regular', fontSize: 36, marginBottom: 8 },
+  colorUploadText: { fontFamily: 'Poppins_600SemiBold', color: '#402D21', fontSize: 14 },
+  colorUploadHint: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 11, marginTop: 4 },
 
   colorFormGroup: { marginBottom: 12 },
-  colorFormLabel: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5, marginBottom: 8 },
+  colorFormLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#6C4D38', letterSpacing: 0.5, marginBottom: 8 },
   colorFormPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  colorFormPill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  colorFormPillActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  colorFormPillText: { color: '#C4737A', fontSize: 12 },
-  colorFormPillTextActive: { color: '#FBF3EF', fontWeight: '600' },
+  colorFormPill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  colorFormPillActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
+  colorFormPillText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 12 },
+  colorFormPillTextActive: { color: '#FEFAF8', fontWeight: '600' },
 
-  analyzeBtn: { backgroundColor: '#9E2035', borderRadius: 14, padding: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 16 },
+  analyzeBtn: { backgroundColor: '#402D21', borderRadius: 14, padding: 14, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 16 },
   analyzeBtnDisabled: { opacity: 0.4 },
-  analyzeBtnText: { color: '#FBF3EF', fontSize: 15, fontWeight: '600' },
+  analyzeBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 15 },
 
   colorResults: { gap: 14 },
 
   bioChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  bioChip: { backgroundColor: 'rgba(122,24,40,0.4)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', minWidth: '45%', flex: 1 },
-  bioChipLabel: { fontSize: 11, color: '#C4737A', letterSpacing: 1.5, fontWeight: '600', marginBottom: 2 },
-  bioChipValue: { fontSize: 14, color: '#FBF3EF', fontWeight: '600', textTransform: 'capitalize' },
+  bioChip: { backgroundColor: 'rgba(207,181,158,0.4)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', minWidth: '45%', flex: 1 },
+  bioChipLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: '#6C4D38', letterSpacing: 1.5, marginBottom: 2 },
+  bioChipValue: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: '#402D21', textTransform: 'capitalize' },
 
   colorTabRow: { flexDirection: 'row', gap: 6 },
-  colorTab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  colorTabActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  colorTabText: { fontSize: 12, color: '#C4737A', fontWeight: '500' },
-  colorTabTextActive: { color: '#FBF3EF', fontWeight: '700' },
+  colorTab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.15)' },
+  colorTabActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
+  colorTabText: { fontFamily: 'Lora_500Medium', fontSize: 12, color: '#6C4D38' },
+  colorTabTextActive: { color: '#FEFAF8', fontWeight: '700' },
 
   tabContent: { gap: 12 },
 
-  bioCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  bioCardTitle: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5, marginBottom: 6 },
-  bioCardText: { fontSize: 13, color: '#FBF3EF', lineHeight: 20 },
+  bioCard: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(108,77,56,0.15)' },
+  bioCardTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#6C4D38', letterSpacing: 0.5, marginBottom: 6 },
+  bioCardText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#402D21', lineHeight: 20 },
 
-  summaryCard: { backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  summaryTitle: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5, marginBottom: 2 },
+  summaryCard: { backgroundColor: 'rgba(207,181,158,0.25)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(108,77,56,0.15)' },
+  summaryTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#6C4D38', letterSpacing: 0.5, marginBottom: 2 },
   summaryRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  summaryDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#C4737A', marginTop: 7, flexShrink: 0 },
-  summaryText: { fontSize: 13, color: '#FBF3EF', lineHeight: 20, flex: 1 },
+  summaryDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#6C4D38', marginTop: 7, flexShrink: 0 },
+  summaryText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#402D21', lineHeight: 20, flex: 1 },
 
   paletteGroup: { gap: 8 },
-  paletteGroupLabel: { fontSize: 12, color: '#C4737A', fontWeight: '600', letterSpacing: 0.5 },
+  paletteGroupLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#6C4D38', letterSpacing: 0.5 },
   swatchRow: { flexDirection: 'row', gap: 10, paddingVertical: 4 },
   swatchWrap: { alignItems: 'center', gap: 4, width: 56 },
   swatch: { width: 48, height: 48, borderRadius: 12 },
   swatchAvoid: { opacity: 0.7 },
-  swatchX: { position: 'absolute', color: 'rgba(255,255,255,0.9)', fontSize: 18, fontWeight: 'bold', textAlign: 'center', lineHeight: 48, width: 48 },
-  swatchHex: { fontSize: 9, color: '#C4737A', fontFamily: 'monospace' },
-  swatchName: { fontSize: 9, color: 'rgba(196,115,122,0.7)', textAlign: 'center', width: 56 },
+  swatchX: { fontFamily: 'Poppins_700Bold', position: 'absolute', color: 'rgba(255,255,255,0.9)', fontSize: 18, textAlign: 'center', lineHeight: 48, width: 48 },
+  swatchHex: { fontSize: 9, color: '#6C4D38', fontFamily: 'monospace' },
+  swatchName: { fontFamily: 'Lora_400Regular', fontSize: 9, color: 'rgba(108,77,56,0.7)', textAlign: 'center', width: 56 },
 
-  strategiCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
+  strategiCard: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(108,77,56,0.15)' },
   strategiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  strategiEmoji: { fontSize: 18 },
-  strategiLabel: { fontSize: 14, color: '#FBF3EF', fontWeight: '600', flex: 1 },
+  strategiEmoji: { fontFamily: 'Lora_400Regular', fontSize: 18 },
+  strategiLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: '#402D21', flex: 1 },
   strategiSwatches: { flexDirection: 'row', gap: 4 },
   strategiSwatch: { width: 20, height: 20, borderRadius: 10 },
-  strategiText: { fontSize: 13, color: '#DDA0A7', lineHeight: 20 },
+  strategiText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', lineHeight: 20 },
 
-  sasongsCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 14, padding: 16, gap: 6, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)' },
-  sasongsIcon: { fontSize: 22 },
-  sasongsTitle: { fontSize: 15, color: '#FBF3EF', fontWeight: '600' },
-  sasongsText: { fontSize: 13, color: '#DDA0A7', lineHeight: 20 },
+  sasongsCard: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 14, padding: 16, gap: 6, borderWidth: 1, borderColor: 'rgba(108,77,56,0.15)' },
+  sasongsIcon: { fontFamily: 'Lora_400Regular', fontSize: 22 },
+  sasongsTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: '#402D21' },
+  sasongsText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', lineHeight: 20 },
 
-  algoritmCard: { backgroundColor: 'rgba(122,24,40,0.2)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(196,115,122,0.1)' },
-  algoritmTitle: { fontSize: 13, color: '#C4737A', fontWeight: '600' },
-  algoritmText: { fontSize: 12, color: 'rgba(196,115,122,0.8)', lineHeight: 18, fontStyle: 'italic' },
+  algoritmCard: { backgroundColor: 'rgba(207,181,158,0.2)', borderRadius: 14, padding: 14, gap: 8, borderWidth: 1, borderColor: 'rgba(108,77,56,0.1)' },
+  algoritmTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: '#6C4D38' },
+  algoritmText: { fontFamily: 'Lora_400Regular', fontSize: 12, color: 'rgba(108,77,56,0.8)', lineHeight: 18, fontStyle: 'italic' },
 
-  signOutButton: { borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
-  signOutText: { color: '#C4737A', fontSize: 16 },
+  signOutButton: { borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
+  signOutText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 16 },
   deleteAccountButton: { marginTop: 12, padding: 12, alignItems: 'center' },
-  deleteAccountText: { color: 'rgba(196,115,122,0.6)', fontSize: 13, textDecorationLine: 'underline' },
+  deleteAccountText: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.6)', fontSize: 13, textDecorationLine: 'underline' },
 })

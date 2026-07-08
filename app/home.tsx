@@ -1,4 +1,4 @@
-import { DancingScript_400Regular, useFonts } from '@expo-google-fonts/dancing-script'
+import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as Location from 'expo-location'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -27,7 +27,7 @@ const CONTEXTS = [
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
 
 export default function Home() {
-  const [fontsLoaded] = useFonts({ DancingScript_400Regular })
+  const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [weather, setWeather] = useState<any>(null)
   const [outfit, setOutfit] = useState<any>(null)
   const [garments, setGarments] = useState<any[]>([])
@@ -430,7 +430,7 @@ export default function Home() {
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
-            <Text style={[styles.greeting, fontsLoaded && { fontFamily: 'DancingScript_400Regular' }]}>
+            <Text style={[styles.greeting, fontsLoaded && { fontFamily: 'Poppins_600SemiBold' }]}>
               {getGreeting()}, {userName} 🍒
             </Text>
             {weather && (
@@ -500,7 +500,7 @@ export default function Home() {
           disabled={loading}
         >
           {loading
-            ? <ActivityIndicator color="#FBF3EF" />
+            ? <ActivityIndicator color="#FEFAF8" />
             : <Text style={styles.generateBtnText}>{activeCtx.emoji} Generera outfit</Text>
           }
         </TouchableOpacity>
@@ -565,7 +565,7 @@ export default function Home() {
                 accessibilityRole="button"
               >
                 {saving
-                  ? <ActivityIndicator color="#FBF3EF" size="small" />
+                  ? <ActivityIndicator color="#FEFAF8" size="small" />
                   : <Text style={styles.saveBtnText}>{saved ? '✓ Sparad' : '🍒 Spara outfit'}</Text>
                 }
               </TouchableOpacity>
@@ -581,7 +581,7 @@ export default function Home() {
               accessibilityRole="button"
             >
               {wearingToday
-                ? <ActivityIndicator color="#FBF3EF" size="small" />
+                ? <ActivityIndicator color="#FEFAF8" size="small" />
                 : <Text style={styles.wearTodayBtnText}>{wornToday ? '✓ Vald för idag' : '👗 Vill ha på mig idag'}</Text>
               }
             </TouchableOpacity>
@@ -611,86 +611,86 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
   scroll: { paddingBottom: 100 },
 
   // Header
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 28, paddingTop: 28, paddingBottom: 32 },
   headerLeft: { flex: 1 },
-  greeting: { fontSize: 28, color: '#C4737A', marginBottom: 6 },
-  weatherLine: { fontSize: 13, color: 'rgba(196,115,122,0.6)', marginTop: 2 },
-  profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', overflow: 'hidden', marginLeft: 16 },
-  profileBtnText: { fontSize: 18 },
+  greeting: { fontFamily: 'Lora_400Regular', fontSize: 28, color: '#6C4D38', marginBottom: 6 },
+  weatherLine: { fontFamily: 'Lora_400Regular', fontSize: 13, color: 'rgba(108,77,56,0.6)', marginTop: 2 },
+  profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(207,181,158,0.4)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)', overflow: 'hidden', marginLeft: 16 },
+  profileBtnText: { fontFamily: 'Lora_400Regular', fontSize: 18 },
   profileBtnImage: { width: 40, height: 40, borderRadius: 20 },
 
   // Context quick-select
   contextRow: { flexDirection: 'row', paddingHorizontal: 28, gap: 12, marginBottom: 36 },
-  contextBtn: { flex: 1, borderRadius: 18, paddingVertical: 18, alignItems: 'center', gap: 6, backgroundColor: 'rgba(122,24,40,0.15)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.1)' },
-  contextBtnSelected: { backgroundColor: '#9E2035', borderColor: '#C4737A' },
-  contextEmoji: { fontSize: 22, opacity: 0.5 },
+  contextBtn: { flex: 1, borderRadius: 18, paddingVertical: 18, alignItems: 'center', gap: 6, backgroundColor: 'rgba(207,181,158,0.15)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.1)' },
+  contextBtnSelected: { backgroundColor: '#402D21', borderColor: '#6C4D38' },
+  contextEmoji: { fontFamily: 'Lora_400Regular', fontSize: 22, opacity: 0.5 },
   contextEmojiSelected: { opacity: 1 },
-  contextLabel: { fontSize: 13, color: 'rgba(196,115,122,0.45)', fontWeight: '600', letterSpacing: 0.3 },
-  contextLabelSelected: { color: '#FBF3EF' },
+  contextLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: 'rgba(108,77,56,0.45)', letterSpacing: 0.3 },
+  contextLabelSelected: { color: '#FEFAF8' },
 
   // Section
   section: { paddingHorizontal: 28, marginBottom: 20, gap: 12 },
   sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: 14, fontWeight: '600', color: 'rgba(251,243,239,0.6)', letterSpacing: 0.5 },
-  intensityLabel: { fontSize: 13, color: '#C4737A', fontStyle: 'italic' },
+  sectionTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: 'rgba(64,45,33,0.6)', letterSpacing: 0.5 },
+  intensityLabel: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', fontStyle: 'italic' },
 
   // Slider
   sliderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
   sliderStepWrap: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  sliderDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(196,115,122,0.15)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
-  sliderDotFilled: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
+  sliderDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(108,77,56,0.15)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.12)' },
+  sliderDotFilled: { backgroundColor: '#402D21', borderColor: '#402D21' },
   sliderDotActive: { width: 18, height: 18, borderRadius: 9 },
 
   // Options
-  optionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(122,24,40,0.2)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
+  optionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(207,181,158,0.2)', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.12)' },
   optionLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  optionIcon: { fontSize: 22 },
-  optionText: { fontSize: 14, color: '#FBF3EF', fontWeight: '500' },
-  optionSub: { fontSize: 11, color: '#C4737A', marginTop: 2 },
-  toggle: { width: 44, height: 24, borderRadius: 12, backgroundColor: 'rgba(122,24,40,0.4)', padding: 2, justifyContent: 'center' },
-  toggleOn: { backgroundColor: '#9E2035' },
-  toggleKnob: { width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(196,115,122,0.5)' },
-  toggleKnobOn: { alignSelf: 'flex-end', backgroundColor: '#FBF3EF' },
+  optionIcon: { fontFamily: 'Lora_400Regular', fontSize: 22 },
+  optionText: { fontFamily: 'Lora_500Medium', fontSize: 14, color: '#402D21' },
+  optionSub: { fontFamily: 'Lora_400Regular', fontSize: 11, color: '#6C4D38', marginTop: 2 },
+  toggle: { width: 44, height: 24, borderRadius: 12, backgroundColor: 'rgba(207,181,158,0.4)', padding: 2, justifyContent: 'center' },
+  toggleOn: { backgroundColor: '#402D21' },
+  toggleKnob: { width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(108,77,56,0.5)' },
+  toggleKnobOn: { alignSelf: 'flex-end', backgroundColor: '#FEFAF8' },
 
   // Generate
-  generateBtn: { marginHorizontal: 28, backgroundColor: '#9E2035', borderRadius: 18, padding: 18, alignItems: 'center', marginBottom: 28 },
-  generateBtnText: { color: '#FBF3EF', fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
+  generateBtn: { marginHorizontal: 28, backgroundColor: '#402D21', borderRadius: 18, padding: 18, alignItems: 'center', marginBottom: 28 },
+  generateBtnText: { fontFamily: 'Poppins_700Bold', color: '#FEFAF8', fontSize: 16, letterSpacing: 0.5 },
 
   // Outfit card
-  outfitCard: { marginHorizontal: 28, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 22, padding: 20, marginBottom: 28, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', gap: 16 },
-  messageBox: { borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: 'rgba(158,32,53,0.15)' },
-  messageEmoji: { fontSize: 22 },
-  messageText: { flex: 1, fontSize: 14, color: '#FBF3EF', lineHeight: 20, fontStyle: 'italic' },
-  outfitName: { fontSize: 20, fontWeight: 'bold', color: '#FBF3EF' },
+  outfitCard: { marginHorizontal: 28, backgroundColor: 'rgba(207,181,158,0.25)', borderRadius: 22, padding: 20, marginBottom: 28, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', gap: 16 },
+  messageBox: { borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: 'rgba(64,45,33,0.15)' },
+  messageEmoji: { fontFamily: 'Lora_400Regular', fontSize: 22 },
+  messageText: { fontFamily: 'Lora_400Regular', flex: 1, fontSize: 14, color: '#402D21', lineHeight: 20, fontStyle: 'italic' },
+  outfitName: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: '#402D21' },
   outfitImagesScroll: { marginHorizontal: -4 },
   outfitImages: { flexDirection: 'row', gap: 10, paddingHorizontal: 4 },
   outfitItemWrap: { alignItems: 'center', gap: 4, width: 80 },
   outfitImage: { width: 80, height: 80, borderRadius: 14 },
-  outfitImageEmpty: { width: 80, height: 80, borderRadius: 14, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center' },
-  outfitItemName: { fontSize: 11, color: '#C4737A', textAlign: 'center', width: 80 },
+  outfitImageEmpty: { width: 80, height: 80, borderRadius: 14, backgroundColor: 'rgba(207,181,158,0.5)', alignItems: 'center', justifyContent: 'center' },
+  outfitItemName: { fontFamily: 'Lora_400Regular', fontSize: 11, color: '#6C4D38', textAlign: 'center', width: 80 },
   outfitActions: { flexDirection: 'row', gap: 8 },
-  saveBtn: { flex: 1, backgroundColor: '#9E2035', borderRadius: 12, padding: 12, alignItems: 'center' },
-  saveBtnDone: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
-  saveBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
-  newBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(122,24,40,0.5)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  newBtnText: { color: '#DDA0A7', fontSize: 18 },
+  saveBtn: { flex: 1, backgroundColor: '#402D21', borderRadius: 12, padding: 12, alignItems: 'center' },
+  saveBtnDone: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
+  saveBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 14 },
+  newBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(207,181,158,0.5)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  newBtnText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 18 },
   ratingRow: { alignItems: 'center', gap: 8 },
-  ratingLabel: { fontSize: 12, color: '#C4737A', fontStyle: 'italic' },
+  ratingLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: '#6C4D38', fontStyle: 'italic' },
   stars: { flexDirection: 'row', gap: 6 },
-  star: { fontSize: 28, color: 'rgba(196,115,122,0.3)' },
-  starFilled: { color: '#9E2035' },
+  star: { fontFamily: 'Lora_400Regular', fontSize: 28, color: 'rgba(108,77,56,0.3)' },
+  starFilled: { color: '#402D21' },
 
-  wearTodayBtn: { borderRadius: 12, padding: 13, alignItems: 'center', backgroundColor: 'rgba(122,24,40,0.5)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
-  wearTodayBtnDone: { backgroundColor: 'transparent', borderColor: 'rgba(196,115,122,0.2)' },
-  wearTodayBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
+  wearTodayBtn: { borderRadius: 12, padding: 13, alignItems: 'center', backgroundColor: 'rgba(207,181,158,0.5)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
+  wearTodayBtnDone: { backgroundColor: 'transparent', borderColor: 'rgba(108,77,56,0.2)' },
+  wearTodayBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 14 },
 
   // Stats
   statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 28 },
-  statCard: { flex: 1, backgroundColor: 'rgba(122,24,40,0.25)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.12)' },
-  statNum: { fontSize: 26, fontWeight: 'bold', color: '#DDA0A7' },
-  statLabel: { fontSize: 11, color: '#C4737A', letterSpacing: 1.5, marginTop: 2, fontWeight: '600' },
+  statCard: { flex: 1, backgroundColor: 'rgba(207,181,158,0.25)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.12)' },
+  statNum: { fontFamily: 'Poppins_700Bold', fontSize: 26, color: '#6C4D38' },
+  statLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: '#6C4D38', letterSpacing: 1.5, marginTop: 2 },
 })

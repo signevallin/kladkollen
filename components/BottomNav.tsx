@@ -21,7 +21,7 @@ export default function BottomNav() {
           <TouchableOpacity
             key={tab.name}
             style={styles.tab}
-            onPress={() => router.push(tab.path)}
+            onPress={() => router.push(tab.path as any)}
             accessibilityLabel={tab.label}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
@@ -30,7 +30,7 @@ export default function BottomNav() {
             <Ionicons
               name={(active ? tab.icon : tab.iconOutline) as any}
               size={22}
-              color={active ? '#FBF3EF' : 'rgba(221,160,167,0.45)'}
+              color={active ? '#402D21' : 'rgba(108,77,56,0.45)'}
             />
             <Text style={[styles.label, active && styles.labelActive]}>
               {tab.label}
@@ -45,9 +45,9 @@ export default function BottomNav() {
 const styles = StyleSheet.create({
   nav: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(6,0,3,0.95)',
+    backgroundColor: 'rgba(254,250,248,0.97)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(196,115,122,0.08)',
+    borderTopColor: 'rgba(108,77,56,0.08)',
     paddingBottom: 24,
     paddingTop: 10,
   },
@@ -63,15 +63,15 @@ const styles = StyleSheet.create({
     width: 24,
     height: 2,
     borderRadius: 1,
-    backgroundColor: '#9E2035',
+    backgroundColor: '#402D21',
   },
   label: {
     fontSize: 11,
-    color: 'rgba(221,160,167,0.45)',
+    color: 'rgba(108,77,56,0.45)',
     fontWeight: '500',
   },
   labelActive: {
-    color: '#FBF3EF',
+    color: '#402D21',
     fontWeight: '700',
   },
 })

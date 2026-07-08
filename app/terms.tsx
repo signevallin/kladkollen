@@ -58,11 +58,11 @@ export default function Terms() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
   scroll: { padding: 24, paddingBottom: 60, maxWidth: 720, alignSelf: 'center', width: '100%' },
   backButton: { marginBottom: 16 },
-  backButtonText: { color: '#C4737A', fontSize: 15 },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#FBF3EF', marginBottom: 8 },
-  heading: { fontSize: 17, fontWeight: '700', color: '#FBF3EF', lineHeight: 28 },
-  body: { fontSize: 14, color: '#DDA0A7', lineHeight: 22 },
+  backButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 15 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#402D21', marginBottom: 8 },
+  heading: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: '#402D21', lineHeight: 28 },
+  body: { fontFamily: 'Lora_400Regular', fontSize: 14, color: '#6C4D38', lineHeight: 22 },
 })

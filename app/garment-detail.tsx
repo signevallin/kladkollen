@@ -257,7 +257,7 @@ export default function GarmentDetail() {
         </TouchableOpacity>
 
         <Text style={styles.label}>Namn</Text>
-        <TextInput style={styles.input} placeholderTextColor="rgba(196,115,122,0.5)" value={name} onChangeText={setName} />
+        <TextInput style={styles.input} placeholderTextColor="rgba(108,77,56,0.5)" value={name} onChangeText={setName} />
 
         <Text style={styles.label}>Kategori</Text>
         <View style={styles.pills}>
@@ -328,7 +328,7 @@ export default function GarmentDetail() {
             <TextInput
               style={styles.input}
               placeholder="Egen storlek, t.ex. 38 eller W29/L32"
-              placeholderTextColor="rgba(196,115,122,0.5)"
+              placeholderTextColor="rgba(108,77,56,0.5)"
               value={SIZES.includes(size) ? '' : size}
               onChangeText={setSize}
             />
@@ -344,7 +344,7 @@ export default function GarmentDetail() {
             <TextInput
               style={styles.input}
               placeholder="Egen plats, t.ex. Flyttlåda 3 hos mamma"
-              placeholderTextColor="rgba(196,115,122,0.5)"
+              placeholderTextColor="rgba(108,77,56,0.5)"
               value={LOCATIONS.includes(location) ? '' : location}
               onChangeText={setLocation}
             />
@@ -372,7 +372,7 @@ export default function GarmentDetail() {
           accessibilityRole="button"
         >
           {loading
-            ? <ActivityIndicator color="#FBF3EF" size="small" />
+            ? <ActivityIndicator color="#FEFAF8" size="small" />
             : <Text style={styles.saveButtonText}>Spara 🍒</Text>
           }
         </TouchableOpacity>
@@ -394,43 +394,43 @@ export default function GarmentDetail() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150408' },
+  container: { flex: 1, backgroundColor: '#FEFAF8' },
   scroll: { padding: 24, paddingBottom: 60 },
   backButton: { marginBottom: 16 },
-  backButtonText: { color: '#C4737A', fontSize: 15 },
-  wishlistBadge: { backgroundColor: 'rgba(201,169,110,0.15)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(201,169,110,0.3)' },
-  wishlistBadgeText: { color: '#C9A96E', fontSize: 13, fontWeight: '600' },
-  archivedBadge: { backgroundColor: 'rgba(122,24,40,0.35)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(196,115,122,0.35)' },
-  archivedBadgeText: { color: '#DDA0A7', fontSize: 13, fontWeight: '600' },
-  imagePicker: { borderRadius: 20, height: 240, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(196,115,122,0.3)', borderStyle: 'dashed', marginBottom: 24, overflow: 'hidden', backgroundColor: 'rgba(122,24,40,0.3)' },
+  backButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 15 },
+  wishlistBadge: { backgroundColor: 'rgba(207,181,158,0.15)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(207,181,158,0.3)' },
+  wishlistBadgeText: { fontFamily: 'Poppins_600SemiBold', color: '#6C4D38', fontSize: 13 },
+  archivedBadge: { backgroundColor: 'rgba(207,181,158,0.35)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(108,77,56,0.35)' },
+  archivedBadgeText: { fontFamily: 'Poppins_600SemiBold', color: '#6C4D38', fontSize: 13 },
+  imagePicker: { borderRadius: 20, height: 240, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(108,77,56,0.3)', borderStyle: 'dashed', marginBottom: 24, overflow: 'hidden', backgroundColor: 'rgba(207,181,158,0.3)' },
   imagePickerInner: { alignItems: 'center', gap: 8 },
-  imagePickerEmoji: { fontSize: 40 },
-  imagePickerText: { color: '#C4737A', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
+  imagePickerEmoji: { fontFamily: 'Lora_400Regular', fontSize: 40 },
+  imagePickerText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
   previewImage: { width: '100%', height: '100%', resizeMode: 'contain', backgroundColor: 'transparent' },
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
-  imageOverlayText: { color: '#FBF3EF', fontSize: 12, fontWeight: '500' },
-  label: { color: '#FBF3EF', fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 4 },
-  input: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 12, padding: 14, color: '#FBF3EF', fontSize: 16, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)', marginBottom: 16 },
+  imageOverlayText: { fontFamily: 'Lora_500Medium', color: '#FEFAF8', fontSize: 12 },
+  label: { fontFamily: 'Poppins_600SemiBold', color: '#402D21', fontSize: 14, marginBottom: 8, marginTop: 4 },
+  input: { fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 14, color: '#402D21', fontSize: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', marginBottom: 16 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: 'rgba(122,24,40,0.3)', borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
-  pillActive: { backgroundColor: '#9E2035', borderColor: '#9E2035' },
-  pillText: { color: '#C4737A', fontSize: 13 },
-  pillTextActive: { color: '#FBF3EF' },
+  pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  pillActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
+  pillText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 13 },
+  pillTextActive: { color: '#FEFAF8' },
   colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
   colorDot: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  colorDotActive: { borderColor: '#FBF3EF', transform: [{ scale: 1.15 }] },
-  colorCheck: { color: '#FBF3EF', fontSize: 16, fontWeight: 'bold', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
-  colorSelected: { color: '#C4737A', fontSize: 12, fontStyle: 'italic', marginBottom: 16 },
-  wornSection: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(196,115,122,0.2)' },
+  colorDotActive: { borderColor: '#402D21', transform: [{ scale: 1.15 }] },
+  colorCheck: { fontFamily: 'Poppins_700Bold', color: '#FEFAF8', fontSize: 16, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
+  colorSelected: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 12, fontStyle: 'italic', marginBottom: 16 },
+  wornSection: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
   wornInfo: { gap: 2 },
-  wornCount: { fontSize: 20, fontWeight: 'bold', color: '#DDA0A7' },
-  wornLabel: { fontSize: 12, color: '#C4737A', fontStyle: 'italic' },
-  wornButton: { backgroundColor: '#9E2035', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
-  wornButtonText: { color: '#FBF3EF', fontSize: 13, fontWeight: '600' },
-  saveButton: { backgroundColor: '#9E2035', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
-  saveButtonText: { color: '#FBF3EF', fontSize: 16, fontWeight: '600' },
-  archiveButton: { backgroundColor: 'rgba(122,24,40,0.35)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)', marginBottom: 12 },
-  archiveButtonText: { color: '#DDA0A7', fontSize: 15, fontWeight: '600' },
-  deleteButton: { backgroundColor: 'transparent', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(196,115,122,0.3)' },
-  deleteButtonText: { color: '#C4737A', fontSize: 16 },
+  wornCount: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: '#6C4D38' },
+  wornLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: '#6C4D38', fontStyle: 'italic' },
+  wornButton: { backgroundColor: '#402D21', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
+  wornButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 13 },
+  saveButton: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
+  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
+  archiveButton: { backgroundColor: 'rgba(207,181,158,0.35)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)', marginBottom: 12 },
+  archiveButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#6C4D38', fontSize: 15 },
+  deleteButton: { backgroundColor: 'transparent', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
+  deleteButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 16 },
 })
