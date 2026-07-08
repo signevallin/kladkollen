@@ -5,6 +5,7 @@ import {
   FlatList,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -69,9 +70,14 @@ function DraggableItem({
     },
   })).current
 
+  // Capture-fasen + vägra släppa gesten – annars stjäl förälderns drag-responder
+  // handtagets rörelse och plagget flyttas i stället för att skalas.
   const resize = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponderCapture: () => true,
     onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponderCapture: () => true,
+    onPanResponderTerminationRequest: () => false,
     onPanResponderGrant: () => {
       const it = itemRef.current
       start.current = { x: it.x, y: it.y, size: it.size }
@@ -84,6 +90,9 @@ function DraggableItem({
     },
   })).current
 
+  // touchAction 'none' hindrar webbläsaren från att scrolla sidan under gesten
+  const noTouchAction = Platform.OS === 'web' ? ({ touchAction: 'none' } as any) : null
+
   return (
     <View
       {...drag.panHandlers}
@@ -91,6 +100,7 @@ function DraggableItem({
         styles.canvasItem,
         { left: item.x, top: item.y, width: item.size, height: item.size },
         selected && styles.canvasItemSelected,
+        noTouchAction,
       ]}
     >
       <View pointerEvents="none" style={{ flex: 1 }}>
@@ -107,7 +117,7 @@ function DraggableItem({
           >
             <Text style={styles.deleteHandleText}>✕</Text>
           </TouchableOpacity>
-          <View {...resize.panHandlers} style={styles.resizeHandle}>
+          <View {...resize.panHandlers} style={[styles.resizeHandle, noTouchAction]}>
             <Text style={styles.resizeHandleText}>⤡</Text>
           </View>
         </>
@@ -210,6 +220,13 @@ export default function Collage() {
   function deleteItem(key: string) {
     setItems(prev => prev.filter(it => it.key !== key))
     setSelectedKey(null)
+  }
+
+  function nudgeSize(delta: number) {
+    if (!selectedKey) return
+    setItems(prev => prev.map(it =>
+      it.key === selectedKey ? { ...it, size: clamp(it.size + delta, MIN_SIZE, MAX_SIZE) } : it
+    ))
   }
 
   async function saveCollage() {
@@ -341,8 +358,29 @@ export default function Collage() {
         <TouchableOpacity style={styles.addBtn} onPress={() => setShowPicker(true)}>
           <Text style={styles.addBtnText}>＋ Lägg till plagg</Text>
         </TouchableOpacity>
-        {selectedKey && (
-          <Text style={styles.toolHint}>Dra i ⤡ för storlek · ✕ tar bort</Text>
+        {selectedKey ? (
+          <View style={styles.sizeControls}>
+            <TouchableOpacity
+              style={styles.sizeBtn}
+              onPress={() => nudgeSize(-24)}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              accessibilityLabel="Gör plagget mindre"
+              accessibilityRole="button"
+            >
+              <Text style={styles.sizeBtnText}>−</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.sizeBtn}
+              onPress={() => nudgeSize(24)}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              accessibilityLabel="Gör plagget större"
+              accessibilityRole="button"
+            >
+              <Text style={styles.sizeBtnText}>＋</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={styles.toolHint}>Tryck på ett plagg för att flytta & skala</Text>
         )}
       </View>
     </SafeAreaView>
@@ -371,13 +409,16 @@ const styles = StyleSheet.create({
   canvasItemSelected: { borderWidth: 1.5, borderColor: '#6C4D38', borderRadius: 8, borderStyle: 'dashed' },
   deleteHandle: { position: 'absolute', top: -12, right: -12, width: 26, height: 26, borderRadius: 13, backgroundColor: '#402D21', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FEFAF8' },
   deleteHandleText: { fontFamily: 'Poppins_700Bold', color: '#FEFAF8', fontSize: 13 },
-  resizeHandle: { position: 'absolute', bottom: -14, right: -14, width: 32, height: 32, borderRadius: 16, backgroundColor: '#6C4D38', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FEFAF8' },
+  resizeHandle: { position: 'absolute', bottom: -16, right: -16, width: 38, height: 38, borderRadius: 19, backgroundColor: '#6C4D38', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#FEFAF8' },
   resizeHandleText: { fontFamily: 'Poppins_700Bold', color: '#FEFAF8', fontSize: 16 },
 
   toolBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
   addBtn: { backgroundColor: 'rgba(207,181,158,0.5)', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 18, borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
   addBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 14 },
   toolHint: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.7)', fontSize: 11, flex: 1, textAlign: 'right' },
+  sizeControls: { flexDirection: 'row', gap: 8 },
+  sizeBtn: { width: 46, height: 46, borderRadius: 14, backgroundColor: '#402D21', alignItems: 'center', justifyContent: 'center' },
+  sizeBtnText: { color: '#FEFAF8', fontSize: 22, fontFamily: 'Poppins_700Bold', lineHeight: 26 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#F8EADE', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '75%' },
