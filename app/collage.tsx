@@ -265,6 +265,8 @@ export default function Collage() {
         setCollageId(data.id)
       }
       showAlert('Kollage sparat! 🍒')
+      // Tillbaka till kollage-listan under Mina outfits
+      router.replace({ pathname: '/my-outfit', params: { tab: 'kollage' } })
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {

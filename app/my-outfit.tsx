@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
   Dimensions,
@@ -24,7 +24,10 @@ const WEEKDAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön']
 const MONTHS = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December']
 
 export default function MyOutfits() {
-  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'kollage'>('kalender')
+  const { tab } = useLocalSearchParams()
+  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'kollage'>(
+    tab === 'kollage' ? 'kollage' : tab === 'outfits' ? 'outfits' : 'kalender'
+  )
   const [collages, setCollages] = useState<any[]>([])
 
   // Outfit state
