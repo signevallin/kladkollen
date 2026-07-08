@@ -1,6 +1,7 @@
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
+  Dimensions,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -23,7 +24,8 @@ const WEEKDAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön']
 const MONTHS = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December']
 
 export default function MyOutfits() {
-  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits'>('kalender')
+  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'kollage'>('kalender')
+  const [collages, setCollages] = useState<any[]>([])
 
   // Outfit state
   const [outfits, setOutfits] = useState<any[]>([])
@@ -54,8 +56,21 @@ export default function MyOutfits() {
       fetchGarments()
       fetchWishlist()
       fetchCalendarEntries()
+      fetchCollages()
     }, [])
   )
+
+  async function fetchCollages() {
+    const { data } = await supabase.from('collages').select('*').order('updated_at', { ascending: false })
+    if (data) setCollages(data)
+  }
+
+  async function deleteCollage(id: string) {
+    showConfirm('Ta bort kollage', 'Vill du ta bort kollaget?', async () => {
+      await supabase.from('collages').delete().eq('id', id)
+      fetchCollages()
+    }, 'Ta bort', true)
+  }
 
   async function fetchOutfits() {
     const { data } = await supabase.from('outfits').select('*').order('created_at', { ascending: false })
@@ -437,13 +452,18 @@ function isPast(date: Date) {
               <Text style={styles.iconBtnText}>＋</Text>
             </TouchableOpacity>
           )}
+          {activeTab === 'kollage' && (
+            <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/collage')} accessibilityLabel="Nytt kollage" accessibilityRole="button">
+              <Text style={styles.iconBtnText}>＋</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.tabRow}>
-          {(['kalender', 'outfits'] as const).map(tab => (
+          {(['kalender', 'outfits', 'kollage'] as const).map(tab => (
             <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'kalender' ? '📅 Kalender' : '👗 Outfits'}
+                {tab === 'kalender' ? '📅 Kalender' : tab === 'outfits' ? '👗 Outfits' : '🎨 Kollage'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -531,7 +551,7 @@ function isPast(date: Date) {
             {outfits.length === 0 ? (
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>Inga outfits sparade än!{'\n'}Skapa din första eller generera via AI 🍒</Text>
-                <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/outfit')}>
+                <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/home')}>
                   <Text style={styles.goBtnText}>✨ Generera med AI</Text>
                 </TouchableOpacity>
               </View>
@@ -556,6 +576,56 @@ function isPast(date: Date) {
                   <Text style={styles.holdToDelete}>Håll inne för att ta bort · Tryck för att registrera som använd</Text>
                 </TouchableOpacity>
               ))
+            )}
+          </>
+        )}
+
+        {/* KOLLAGE */}
+        {activeTab === 'kollage' && (
+          <>
+            {collages.length === 0 ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyText}>Inga kollage än!{'\n'}Skapa moodboards med dina egna plagg 🎨</Text>
+                <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/collage')}>
+                  <Text style={styles.goBtnText}>🎨 Skapa kollage</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              collages.map((c: any) => {
+                const previewW = Dimensions.get('window').width - 48
+                const factor = c.canvas_width ? previewW / c.canvas_width : 0.25
+                const previewH = Math.min((c.canvas_height || 400) * factor, 240)
+                return (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={styles.collageCard}
+                    onPress={() => router.push(`/collage?id=${c.id}`)}
+                    onLongPress={() => deleteCollage(c.id)}
+                  >
+                    <View style={styles.outfitCardHeader}>
+                      <Text style={styles.outfitName}>{c.name}</Text>
+                      <Text style={styles.outfitDate}>{new Date(c.updated_at || c.created_at).toLocaleDateString('sv-SE')}</Text>
+                    </View>
+                    <View style={[styles.collagePreview, { height: previewH }]} pointerEvents="none">
+                      {(c.items || []).map((it: any, i: number) => (
+                        <View
+                          key={it.key || i}
+                          style={{
+                            position: 'absolute',
+                            left: (it.x || 0) * factor,
+                            top: (it.y || 0) * factor,
+                            width: (it.size || 140) * factor,
+                            height: (it.size || 140) * factor,
+                          }}
+                        >
+                          <SignedImage path={it.image_url} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                        </View>
+                      ))}
+                    </View>
+                    <Text style={styles.holdToDelete}>Tryck för att redigera · Håll inne för att ta bort</Text>
+                  </TouchableOpacity>
+                )
+              })
             )}
           </>
         )}
@@ -688,6 +758,8 @@ const styles = StyleSheet.create({
   goBtn: { backgroundColor: '#9E2035', borderRadius: 14, padding: 14, paddingHorizontal: 24 },
   goBtnText: { color: '#FBF3EF', fontSize: 14, fontWeight: '600' },
   outfitCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', gap: 10 },
+  collageCard: { backgroundColor: 'rgba(122,24,40,0.3)', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(196,115,122,0.15)', gap: 10 },
+  collagePreview: { backgroundColor: 'rgba(21,4,8,0.6)', borderRadius: 14, overflow: 'hidden', position: 'relative' },
   outfitCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   outfitName: { fontSize: 16, fontWeight: '600', color: '#FBF3EF' },
   outfitDate: { fontSize: 11, color: '#C4737A', fontStyle: 'italic' },

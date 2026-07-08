@@ -38,6 +38,7 @@ export default function Layout() {
       <Stack.Screen name="profile" />
       <Stack.Screen name="wardrobe" />
       <Stack.Screen name="my-outfit" />
+      <Stack.Screen name="collage" />
       <Stack.Screen name="inspiration" />
       <Stack.Screen name="stats" />
       <Stack.Screen name="add-garment" />
