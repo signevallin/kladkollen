@@ -204,15 +204,31 @@ export default function Collage() {
     setItems(prev => prev.map(it => it.key === key ? { ...it, ...patch } : it))
   }
 
+  // Obs: ändrar inte lagerordningen – den styrs med Längst fram/Längst bak
   function selectItem(key: string) {
     setSelectedKey(key)
-    // Lägg det valda plagget överst
+  }
+
+  function sendToFront() {
+    if (!selectedKey) return
     setItems(prev => {
-      const idx = prev.findIndex(it => it.key === key)
+      const idx = prev.findIndex(it => it.key === selectedKey)
       if (idx === -1 || idx === prev.length - 1) return prev
       const next = [...prev]
       const [it] = next.splice(idx, 1)
       next.push(it)
+      return next
+    })
+  }
+
+  function sendToBack() {
+    if (!selectedKey) return
+    setItems(prev => {
+      const idx = prev.findIndex(it => it.key === selectedKey)
+      if (idx <= 0) return prev
+      const next = [...prev]
+      const [it] = next.splice(idx, 1)
+      next.unshift(it)
       return next
     })
   }
@@ -222,12 +238,6 @@ export default function Collage() {
     setSelectedKey(null)
   }
 
-  function nudgeSize(delta: number) {
-    if (!selectedKey) return
-    setItems(prev => prev.map(it =>
-      it.key === selectedKey ? { ...it, size: clamp(it.size + delta, MIN_SIZE, MAX_SIZE) } : it
-    ))
-  }
 
   async function saveCollage() {
     if (items.length === 0) {
@@ -359,24 +369,24 @@ export default function Collage() {
           <Text style={styles.addBtnText}>＋ Lägg till plagg</Text>
         </TouchableOpacity>
         {selectedKey ? (
-          <View style={styles.sizeControls}>
+          <View style={styles.layerControls}>
             <TouchableOpacity
-              style={styles.sizeBtn}
-              onPress={() => nudgeSize(-24)}
+              style={styles.layerBtn}
+              onPress={sendToFront}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              accessibilityLabel="Gör plagget mindre"
+              accessibilityLabel="Lägg plagget längst fram"
               accessibilityRole="button"
             >
-              <Text style={styles.sizeBtnText}>−</Text>
+              <Text style={styles.layerBtnText}>⬆ Längst fram</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.sizeBtn}
-              onPress={() => nudgeSize(24)}
+              style={styles.layerBtn}
+              onPress={sendToBack}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              accessibilityLabel="Gör plagget större"
+              accessibilityLabel="Lägg plagget längst bak"
               accessibilityRole="button"
             >
-              <Text style={styles.sizeBtnText}>＋</Text>
+              <Text style={styles.layerBtnText}>⬇ Längst bak</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -416,9 +426,9 @@ const styles = StyleSheet.create({
   addBtn: { backgroundColor: 'rgba(207,181,158,0.5)', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 18, borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
   addBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 14 },
   toolHint: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.7)', fontSize: 11, flex: 1, textAlign: 'right' },
-  sizeControls: { flexDirection: 'row', gap: 8 },
-  sizeBtn: { width: 46, height: 46, borderRadius: 14, backgroundColor: '#402D21', alignItems: 'center', justifyContent: 'center' },
-  sizeBtnText: { color: '#FEFAF8', fontSize: 22, fontFamily: 'Poppins_700Bold', lineHeight: 26 },
+  layerControls: { flexDirection: 'row', gap: 8 },
+  layerBtn: { backgroundColor: '#402D21', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 12 },
+  layerBtnText: { color: '#FEFAF8', fontSize: 12, fontFamily: 'Poppins_600SemiBold' },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#F8EADE', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '75%' },
