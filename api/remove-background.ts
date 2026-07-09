@@ -2,6 +2,9 @@ import { json, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
+// Öppen bakgrundsborttagningsmodell på Replicate. Kan bytas via env utan koddeploy.
+const DEFAULT_MODEL = '851-labs/background-remover'
+
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
   let binary = ''
@@ -13,6 +16,13 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary)
 }
 
+// Replicate kan svara med output som URL-sträng, array av URL:er eller data-URI.
+function firstOutputUrl(output: unknown): string | null {
+  if (typeof output === 'string') return output
+  if (Array.isArray(output) && typeof output[0] === 'string') return output[0]
+  return null
+}
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
@@ -21,30 +31,48 @@ export default async function handler(request: Request): Promise<Response> {
   if (auth instanceof Response) return auth
 
   try {
-    const { base64 } = await request.json() as any
+    const { base64 } = (await request.json()) as any
     if (!base64) return json({ error: 'Bild saknas' }, 400)
-    const key = process.env.REMOVE_BG_API_KEY
-    if (!key) {
-      return json({ error: 'REMOVE_BG_API_KEY saknas på servern' }, 500)
-    }
 
-    const formData = new FormData()
-    formData.append('image_file_b64', base64)
-    formData.append('size', 'auto')
-    formData.append('type', 'product')
+    const token = process.env.REPLICATE_API_TOKEN
+    if (!token) return json({ error: 'REPLICATE_API_TOKEN saknas på servern' }, 500)
+    const model = process.env.REPLICATE_MODEL || DEFAULT_MODEL
 
-    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+    // Kör modellens senaste version synkront (Prefer: wait, upp till 60 s).
+    let res = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
       method: 'POST',
-      headers: { 'X-Api-Key': key },
-      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'wait',
+      },
+      body: JSON.stringify({ input: { image: `data:image/jpeg;base64,${base64}` } }),
     })
 
+    let prediction = (await res.json()) as any
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}))
-      return json({ error: (errData as any).errors?.[0]?.title || 'Bakgrundsborttagning misslyckades' }, res.status)
+      return json({ error: prediction?.detail || 'Bakgrundsborttagning misslyckades' }, res.status)
     }
 
-    const arrayBuffer = await res.arrayBuffer()
+    // Om wait tog slut innan modellen blev klar: polla statusen en stund.
+    const pollUrl = prediction?.urls?.get
+    for (let i = 0; i < 30 && (prediction.status === 'starting' || prediction.status === 'processing') && pollUrl; i++) {
+      await new Promise(r => setTimeout(r, 1500))
+      res = await fetch(pollUrl, { headers: { Authorization: `Bearer ${token}` } })
+      prediction = await res.json()
+    }
+
+    if (prediction.status !== 'succeeded') {
+      return json({ error: prediction?.error || 'Bakgrundsborttagning misslyckades' }, 502)
+    }
+
+    const url = firstOutputUrl(prediction.output)
+    if (!url) return json({ error: 'Inget resultat från modellen' }, 502)
+
+    // Hämta den bakgrundsfria PNG:n och returnera som base64 (samma kontrakt som förr).
+    const imgRes = await fetch(url)
+    if (!imgRes.ok) return json({ error: 'Kunde inte hämta resultatbilden' }, 502)
+    const arrayBuffer = await imgRes.arrayBuffer()
     return json({ base64: arrayBufferToBase64(arrayBuffer) })
   } catch (e: any) {
     return json({ error: e.message }, 500)

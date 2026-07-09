@@ -28,6 +28,8 @@ Servern (endast Vercel env — får ALDRIG ha `EXPO_PUBLIC_`-prefix):
 | `OPENAI_API_KEY` | Används av outfit-/inspo-/färganalys-endpoints |
 | `ANTHROPIC_API_KEY` | Används av plagg-/färganalys-endpoints |
 | `SUPABASE_SERVICE_ROLE_KEY` | Krävs av `/api/delete-account` |
+| `REPLICATE_API_TOKEN` | Bakgrundsborttagning av plaggfoton (`/api/remove-background`) |
+| `REPLICATE_MODEL` | Valfritt – överstyr modellen (default `851-labs/background-remover`) |
 
 ## Arkitektur
 
