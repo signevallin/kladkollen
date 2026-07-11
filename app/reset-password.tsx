@@ -1,3 +1,5 @@
+import { useTheme } from '../theme/ThemeProvider'
+import type { Theme } from '../theme/theme'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
@@ -17,6 +19,8 @@ import { showAlert } from '../utils/alert'
 // Supabase-klienten (detectSessionInUrl) loggar in användaren med recovery-token,
 // därefter kan lösenordet bytas här.
 export default function ResetPassword() {
+  const t = useTheme()
+  const styles = makeStyles(t)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -65,7 +69,7 @@ export default function ResetPassword() {
           <TextInput
             style={styles.input}
             placeholder="••••••••"
-            placeholderTextColor="rgba(108,77,56,0.4)"
+            placeholderTextColor={t.placeholder}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -75,7 +79,7 @@ export default function ResetPassword() {
           <TextInput
             style={styles.input}
             placeholder="••••••••"
-            placeholderTextColor="rgba(108,77,56,0.4)"
+            placeholderTextColor={t.placeholder}
             value={confirm}
             onChangeText={setConfirm}
             secureTextEntry
@@ -90,15 +94,15 @@ export default function ResetPassword() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FEFAF8' },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   inner: { flex: 1, justifyContent: 'center', padding: 24 },
   header: { alignItems: 'center', marginBottom: 48 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 40, color: '#402D21', letterSpacing: 3 },
-  subtitle: { fontFamily: 'Lora_400Regular', fontSize: 16, color: '#6C4D38', marginTop: 8 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 40, color: t.textPrimary, letterSpacing: 3 },
+  subtitle: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.textSecondary, marginTop: 8 },
   form: { gap: 8 },
-  label: { fontFamily: 'Poppins_600SemiBold', color: '#402D21', fontSize: 14, marginTop: 8, marginBottom: 4 },
-  input: { fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 14, color: '#402D21', fontSize: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', marginBottom: 4 },
-  button: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 16 },
-  buttonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
+  label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginTop: 8, marginBottom: 4 },
+  input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginBottom: 4 },
+  button: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 16 },
+  buttonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
 })

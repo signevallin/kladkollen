@@ -1,3 +1,5 @@
+import { useTheme } from '../theme/ThemeProvider'
+import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -43,6 +45,8 @@ const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 const LOCATIONS = ['Garderoben', 'Källaren', 'Vinden', 'Förrådet', 'Utlånad']
 
 export default function GarmentDetail() {
+  const t = useTheme()
+  const styles = makeStyles(t)
   const { id, wishlistId } = useLocalSearchParams()
   const isWishlistItem = !!wishlistId && !id
 
@@ -257,7 +261,7 @@ export default function GarmentDetail() {
         </TouchableOpacity>
 
         <Text style={styles.label}>Namn</Text>
-        <TextInput style={styles.input} placeholderTextColor="rgba(108,77,56,0.5)" value={name} onChangeText={setName} />
+        <TextInput style={styles.input} placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
 
         <Text style={styles.label}>Kategori</Text>
         <View style={styles.pills}>
@@ -328,7 +332,7 @@ export default function GarmentDetail() {
             <TextInput
               style={styles.input}
               placeholder="Egen storlek, t.ex. 38 eller W29/L32"
-              placeholderTextColor="rgba(108,77,56,0.5)"
+              placeholderTextColor={t.placeholder}
               value={SIZES.includes(size) ? '' : size}
               onChangeText={setSize}
             />
@@ -344,7 +348,7 @@ export default function GarmentDetail() {
             <TextInput
               style={styles.input}
               placeholder="Egen plats, t.ex. Flyttlåda 3 hos mamma"
-              placeholderTextColor="rgba(108,77,56,0.5)"
+              placeholderTextColor={t.placeholder}
               value={LOCATIONS.includes(location) ? '' : location}
               onChangeText={setLocation}
             />
@@ -372,7 +376,7 @@ export default function GarmentDetail() {
           accessibilityRole="button"
         >
           {loading
-            ? <ActivityIndicator color="#FEFAF8" size="small" />
+            ? <ActivityIndicator color={t.onPrimary} size="small" />
             : <Text style={styles.saveButtonText}>Spara 🍒</Text>
           }
         </TouchableOpacity>
@@ -393,44 +397,44 @@ export default function GarmentDetail() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FEFAF8' },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   scroll: { padding: 24, paddingBottom: 60 },
   backButton: { marginBottom: 16 },
-  backButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 15 },
-  wishlistBadge: { backgroundColor: 'rgba(207,181,158,0.15)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(207,181,158,0.3)' },
-  wishlistBadgeText: { fontFamily: 'Poppins_600SemiBold', color: '#6C4D38', fontSize: 13 },
-  archivedBadge: { backgroundColor: 'rgba(207,181,158,0.35)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(108,77,56,0.35)' },
-  archivedBadgeText: { fontFamily: 'Poppins_600SemiBold', color: '#6C4D38', fontSize: 13 },
-  imagePicker: { borderRadius: 20, height: 240, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(108,77,56,0.3)', borderStyle: 'dashed', marginBottom: 24, overflow: 'hidden', backgroundColor: 'rgba(207,181,158,0.3)' },
+  backButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
+  wishlistBadge: { backgroundColor: t.surfaceMuted, borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: t.surfaceMuted },
+  wishlistBadgeText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
+  archivedBadge: { backgroundColor: t.surfaceMuted, borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: t.border },
+  archivedBadgeText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
+  imagePicker: { borderRadius: 20, height: 240, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.border, borderStyle: 'dashed', marginBottom: 24, overflow: 'hidden', backgroundColor: t.surfaceMuted },
   imagePickerInner: { alignItems: 'center', gap: 8 },
   imagePickerEmoji: { fontFamily: 'Lora_400Regular', fontSize: 40 },
-  imagePickerText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
+  imagePickerText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
   previewImage: { width: '100%', height: '100%', resizeMode: 'contain', backgroundColor: 'transparent' },
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
-  imageOverlayText: { fontFamily: 'Lora_500Medium', color: '#FEFAF8', fontSize: 12 },
-  label: { fontFamily: 'Poppins_600SemiBold', color: '#402D21', fontSize: 14, marginBottom: 8, marginTop: 4 },
-  input: { fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 14, color: '#402D21', fontSize: 16, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', marginBottom: 16 },
+  imageOverlayText: { fontFamily: 'Lora_500Medium', color: t.onPrimary, fontSize: 12 },
+  label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
+  input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginBottom: 16 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
-  pillActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
-  pillText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 13 },
-  pillTextActive: { color: '#FEFAF8' },
+  pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  pillActive: { backgroundColor: t.primary, borderColor: t.primary },
+  pillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
+  pillTextActive: { color: t.onPrimary },
   colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
   colorDot: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  colorDotActive: { borderColor: '#402D21', transform: [{ scale: 1.15 }] },
-  colorCheck: { fontFamily: 'Poppins_700Bold', color: '#FEFAF8', fontSize: 16, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
-  colorSelected: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 12, fontStyle: 'italic', marginBottom: 16 },
-  wornSection: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  colorDotActive: { borderColor: t.primary, transform: [{ scale: 1.15 }] },
+  colorCheck: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
+  colorSelected: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12, fontStyle: 'italic', marginBottom: 16 },
+  wornSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: t.border },
   wornInfo: { gap: 2 },
-  wornCount: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: '#6C4D38' },
-  wornLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: '#6C4D38', fontStyle: 'italic' },
-  wornButton: { backgroundColor: '#402D21', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
-  wornButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 13 },
-  saveButton: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
-  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
-  archiveButton: { backgroundColor: 'rgba(207,181,158,0.35)', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)', marginBottom: 12 },
-  archiveButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#6C4D38', fontSize: 15 },
-  deleteButton: { backgroundColor: 'transparent', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
-  deleteButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 16 },
+  wornCount: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textSecondary },
+  wornLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
+  wornButton: { backgroundColor: t.primary, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
+  wornButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 13 },
+  saveButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
+  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
+  archiveButton: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border, marginBottom: 12 },
+  archiveButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 15 },
+  deleteButton: { backgroundColor: 'transparent', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border },
+  deleteButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 16 },
 })

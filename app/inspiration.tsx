@@ -1,3 +1,5 @@
+import { useTheme } from '../theme/ThemeProvider'
+import type { Theme } from '../theme/theme'
 import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect } from 'expo-router'
@@ -24,6 +26,8 @@ const SCREEN_WIDTH = Dimensions.get('window').width
 const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
 
 export default function Inspiration() {
+  const t = useTheme()
+  const styles = makeStyles(t)
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [activeTab, setActiveTab] = useState<'analys' | 'moodboard'>('analys')
 
@@ -283,7 +287,7 @@ export default function Inspiration() {
 
             {loading && (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator color="#6C4D38" />
+                <ActivityIndicator color={t.textSecondary} />
                 <Text style={styles.loadingText}>AI:n analyserar din bild...</Text>
               </View>
             )}
@@ -360,7 +364,7 @@ export default function Inspiration() {
           <>
             <TouchableOpacity style={styles.moodboardUploadBtn} onPress={pickMoodboardImage} disabled={uploadingMoodboard}>
               {uploadingMoodboard
-                ? <ActivityIndicator color="#FEFAF8" />
+                ? <ActivityIndicator color={t.onPrimary} />
                 : <Text style={styles.moodboardUploadBtnText}>＋ Lägg till bild</Text>
               }
             </TouchableOpacity>
@@ -393,76 +397,76 @@ export default function Inspiration() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FEFAF8' },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   scroll: { padding: 24, paddingBottom: 100 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#402D21', letterSpacing: 1 },
-  subtitle: { fontFamily: 'Lora_400Regular', fontSize: 16, color: '#6C4D38', marginBottom: 20, marginTop: 2 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: t.textPrimary, letterSpacing: 1 },
+  subtitle: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.textSecondary, marginBottom: 20, marginTop: 2 },
 
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
-  tab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: 'rgba(207,181,158,0.3)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
-  tabActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
-  tabText: { fontFamily: 'Lora_500Medium', color: '#6C4D38', fontSize: 13 },
-  tabTextActive: { color: '#FEFAF8', fontWeight: '600' },
+  tab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  tabActive: { backgroundColor: t.primary, borderColor: t.primary },
+  tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 13 },
+  tabTextActive: { color: t.onPrimary, fontWeight: '600' },
 
-  uploadZone: { height: 280, borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 1.5, borderColor: 'rgba(108,77,56,0.3)', borderStyle: 'dashed', backgroundColor: 'rgba(207,181,158,0.2)' },
+  uploadZone: { height: 280, borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 1.5, borderColor: t.border, borderStyle: 'dashed', backgroundColor: t.surfaceMuted },
   uploadPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   uploadIcon: { fontFamily: 'Lora_400Regular', fontSize: 40 },
-  uploadText: { fontFamily: 'Lora_500Medium', fontSize: 16, color: '#402D21' },
-  uploadSub: { fontFamily: 'Lora_400Regular', fontSize: 12, color: 'rgba(108,77,56,0.6)' },
+  uploadText: { fontFamily: 'Lora_500Medium', fontSize: 16, color: t.textPrimary },
+  uploadSub: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint },
   inspoImage: { width: '100%', height: '100%' },
   changeImageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, alignItems: 'center' },
-  changeImageText: { fontFamily: 'Lora_500Medium', color: '#FEFAF8', fontSize: 13 },
-  analyzeButton: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 20 },
+  changeImageText: { fontFamily: 'Lora_500Medium', color: t.onPrimary, fontSize: 13 },
+  analyzeButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 20 },
   analyzeButtonDisabled: { opacity: 0.4 },
-  analyzeButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
+  analyzeButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
   loadingContainer: { alignItems: 'center', gap: 10, marginBottom: 20 },
-  loadingText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14, fontStyle: 'italic' },
-  resultCard: { backgroundColor: 'rgba(207,181,158,0.25)', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', gap: 16 },
-  styleSection: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 12 },
-  sectionLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 9, color: '#6C4D38', letterSpacing: 2, marginBottom: 4 },
-  styleDescription: { fontFamily: 'Lora_400Regular', fontSize: 14, color: '#402D21', lineHeight: 20 },
-  outfitName: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: '#402D21' },
+  loadingText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, fontStyle: 'italic' },
+  resultCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: t.border, gap: 16 },
+  styleSection: { backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 12 },
+  sectionLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 9, color: t.textSecondary, letterSpacing: 2, marginBottom: 4 },
+  styleDescription: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary, lineHeight: 20 },
+  outfitName: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: t.textPrimary },
   outfitItems: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   outfitItem: { width: '22%', alignItems: 'center', gap: 4 },
   outfitItemImage: { width: 64, height: 64, borderRadius: 12 },
-  outfitItemEmptyBox: { width: 64, height: 64, borderRadius: 12, backgroundColor: 'rgba(207,181,158,0.4)', alignItems: 'center', justifyContent: 'center' },
+  outfitItemEmptyBox: { width: 64, height: 64, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   outfitItemEmoji: { fontFamily: 'Lora_400Regular', fontSize: 28 },
-  outfitItemName: { fontFamily: 'Lora_400Regular', fontSize: 9, color: '#6C4D38', textAlign: 'center' },
-  missingSection: { backgroundColor: 'rgba(207,181,158,0.08)', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: 'rgba(207,181,158,0.2)', gap: 10 },
+  outfitItemName: { fontFamily: 'Lora_400Regular', fontSize: 9, color: t.textSecondary, textAlign: 'center' },
+  missingSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.surfaceMuted, gap: 10 },
   missingSectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   missingIcon: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
-  missingTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: '#402D21' },
-  missingSubtitle: { fontFamily: 'Lora_400Regular', fontSize: 11, color: 'rgba(207,181,158,0.6)', fontStyle: 'italic', marginTop: 2 },
-  missingItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 10 },
+  missingTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
+  missingSubtitle: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.surfaceMuted, fontStyle: 'italic', marginTop: 2 },
+  missingItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 10 },
   missingItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
-  missingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#6C4D38' },
-  missingItemName: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#402D21', flex: 1 },
-  addBtn: { backgroundColor: '#402D21', borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 },
-  addBtnDone: { backgroundColor: 'rgba(207,181,158,0.4)', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
-  addBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 12 },
-  addBtnTextDone: { color: '#6C4D38' },
-  tipCard: { backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  missingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: t.textSecondary },
+  missingItemName: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textPrimary, flex: 1 },
+  addBtn: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 },
+  addBtnDone: { backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  addBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
+  addBtnTextDone: { color: t.textSecondary },
+  tipCard: { backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   tipIcon: { fontFamily: 'Lora_400Regular', fontSize: 18 },
-  tipText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', lineHeight: 20, flex: 1, fontStyle: 'italic' },
-  saveInspoBtn: { backgroundColor: '#402D21', borderRadius: 14, padding: 14, alignItems: 'center' },
-  saveInspoBtnDone: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(108,77,56,0.3)' },
-  saveInspoBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 15 },
+  tipText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 20, flex: 1, fontStyle: 'italic' },
+  saveInspoBtn: { backgroundColor: t.primary, borderRadius: 14, padding: 14, alignItems: 'center' },
+  saveInspoBtnDone: { backgroundColor: 'transparent', borderWidth: 1, borderColor: t.border },
+  saveInspoBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
 
-  moodboardUploadBtn: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 12 },
-  moodboardUploadBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
+  moodboardUploadBtn: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 12 },
+  moodboardUploadBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
   moodboardEmpty: { alignItems: 'center', paddingTop: 60, gap: 8 },
   moodboardEmptyIcon: { fontFamily: 'Lora_400Regular', fontSize: 48 },
-  moodboardEmptyText: { fontFamily: 'Lora_500Medium', color: '#6C4D38', fontSize: 16 },
-  moodboardEmptyHint: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.5)', fontSize: 13, fontStyle: 'italic' },
+  moodboardEmptyText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 16 },
+  moodboardEmptyHint: { fontFamily: 'Lora_400Regular', color: t.textFaint, fontSize: 13, fontStyle: 'italic' },
   moodboardGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   moodboardItem: { width: IMAGE_SIZE, height: IMAGE_SIZE, borderRadius: 8, overflow: 'hidden' },
   moodboardImage: { width: '100%', height: '100%' },
 
   imageModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center', alignItems: 'center' },
-  imageModalClose: { position: 'absolute', top: 56, right: 24, zIndex: 10, backgroundColor: 'rgba(207,181,158,0.6)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  imageModalCloseText: { fontFamily: 'Lora_400Regular', color: '#FEFAF8', fontSize: 16 },
+  imageModalClose: { position: 'absolute', top: 56, right: 24, zIndex: 10, backgroundColor: t.surfaceMuted, borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  imageModalCloseText: { fontFamily: 'Lora_400Regular', color: t.onPrimary, fontSize: 16 },
   imageModalImage: { width: SCREEN_WIDTH, height: SCREEN_WIDTH * 1.5, maxHeight: '80%' },
   imageModalDelete: { position: 'absolute', bottom: 60, backgroundColor: 'rgba(64,45,33,0.8)', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 24 },
-  imageModalDeleteText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 15 },
+  imageModalDeleteText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
 })

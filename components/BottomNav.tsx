@@ -1,3 +1,5 @@
+import { useTheme } from '../theme/ThemeProvider'
+import type { Theme } from '../theme/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { router, usePathname } from 'expo-router'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -11,6 +13,8 @@ const tabs = [
 ]
 
 export default function BottomNav() {
+  const t = useTheme()
+  const styles = makeStyles(t)
   const pathname = usePathname()
 
   return (
@@ -30,7 +34,7 @@ export default function BottomNav() {
             <Ionicons
               name={(active ? tab.icon : tab.iconOutline) as any}
               size={22}
-              color={active ? '#402D21' : 'rgba(108,77,56,0.45)'}
+              color={active ? t.primary : t.textFaint}
             />
             <Text style={[styles.label, active && styles.labelActive]}>
               {tab.label}
@@ -42,12 +46,12 @@ export default function BottomNav() {
   )
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   nav: {
     flexDirection: 'row',
     backgroundColor: 'rgba(254,250,248,0.97)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(108,77,56,0.08)',
+    borderTopColor: t.border,
     paddingBottom: 24,
     paddingTop: 10,
   },
@@ -63,15 +67,15 @@ const styles = StyleSheet.create({
     width: 24,
     height: 2,
     borderRadius: 1,
-    backgroundColor: '#402D21',
+    backgroundColor: t.primary,
   },
   label: {
     fontSize: 11,
-    color: 'rgba(108,77,56,0.45)',
+    color: t.textFaint,
     fontWeight: '500',
   },
   labelActive: {
-    color: '#402D21',
+    color: t.textPrimary,
     fontWeight: '700',
   },
 })

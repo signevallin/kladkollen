@@ -1,3 +1,5 @@
+import { useTheme } from '../theme/ThemeProvider'
+import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { useState } from 'react'
@@ -64,6 +66,8 @@ type GarmentDraft = {
 }
 
 export default function AddGarment() {
+  const t = useTheme()
+  const styles = makeStyles(t)
   const [step, setStep] = useState<'pick' | 'review'>('pick')
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])
   const [saving, setSaving] = useState(false)
@@ -247,7 +251,7 @@ export default function AddGarment() {
 
         {processingCount > 0 && (
           <View style={styles.progressRow}>
-            <ActivityIndicator color="#6C4D38" size="small" />
+            <ActivityIndicator color={t.textSecondary} size="small" />
             <Text style={styles.progressText}>Bearbetar {totalCount - processingCount}/{totalCount}...</Text>
           </View>
         )}
@@ -268,7 +272,7 @@ export default function AddGarment() {
                 <View style={styles.cardNameWrap}>
                   {isProcessing ? (
                     <View style={styles.analyzingRow}>
-                      <ActivityIndicator color="#6C4D38" size="small" />
+                      <ActivityIndicator color={t.textSecondary} size="small" />
                       <Text style={styles.analyzingText}>{statusText}</Text>
                     </View>
                   ) : (
@@ -277,7 +281,7 @@ export default function AddGarment() {
                       value={draft.name}
                       onChangeText={v => updateDraft(draft.id, 'name', v)}
                       placeholder="Namn på plagget"
-                      placeholderTextColor="rgba(108,77,56,0.5)"
+                      placeholderTextColor={t.placeholder}
                     />
                   )}
                 </View>
@@ -370,7 +374,7 @@ export default function AddGarment() {
                   <TextInput
                     style={styles.sizeInput}
                     placeholder="Egen storlek, t.ex. 38 eller W29/L32"
-                    placeholderTextColor="rgba(108,77,56,0.4)"
+                    placeholderTextColor={t.placeholder}
                     value={SIZES.includes(draft.size) ? '' : draft.size}
                     onChangeText={v => updateDraft(draft.id, 'size', v)}
                   />
@@ -388,7 +392,7 @@ export default function AddGarment() {
           accessibilityRole="button"
         >
           {saving
-            ? <ActivityIndicator color="#FEFAF8" size="small" />
+            ? <ActivityIndicator color={t.onPrimary} size="small" />
             : <Text style={styles.saveButtonText}>{`Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'} 🍒`}</Text>
           }
         </TouchableOpacity>
@@ -397,39 +401,39 @@ export default function AddGarment() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FEFAF8' },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   scroll: { padding: 24, paddingBottom: 48 },
   backButton: { marginBottom: 16 },
-  backButtonText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 15 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: '#402D21', marginBottom: 24 },
+  backButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 24 },
 
   pickBtn: {
-    backgroundColor: 'rgba(207,181,158,0.4)',
+    backgroundColor: t.surfaceMuted,
     borderRadius: 20,
     height: 220,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
     borderWidth: 1.5,
-    borderColor: 'rgba(108,77,56,0.3)',
+    borderColor: t.border,
     borderStyle: 'dashed',
   },
   pickBtnIcon: { fontFamily: 'Lora_400Regular', fontSize: 48 },
-  pickBtnTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: '#402D21' },
-  pickBtnHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: '#6C4D38', textAlign: 'center', paddingHorizontal: 32 },
+  pickBtnTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textPrimary },
+  pickBtnHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, textAlign: 'center', paddingHorizontal: 32 },
 
   progressRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: 'rgba(207,181,158,0.2)', borderRadius: 12,
+    backgroundColor: t.surfaceMuted, borderRadius: 12,
     padding: 12, marginBottom: 16,
   },
-  progressText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14 },
+  progressText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
 
   card: {
-    backgroundColor: 'rgba(207,181,158,0.2)',
+    backgroundColor: t.surfaceMuted,
     borderRadius: 16, padding: 14, marginBottom: 16,
-    borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)', gap: 10,
+    borderWidth: 1, borderColor: t.border, gap: 10,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   cardThumbWrap: {
@@ -438,32 +442,32 @@ const styles = StyleSheet.create({
   cardThumbBg: {
     backgroundColor: 'rgba(64,45,33,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(108,77,56,0.15)',
+    borderColor: t.border,
   },
   cardThumb: { width: 64, height: 80, backgroundColor: 'transparent' },
   cardNameWrap: { flex: 1 },
   cardNameInput: {
-    backgroundColor: 'rgba(207,181,158,0.4)', borderRadius: 10,
-    padding: 10, color: '#402D21', fontSize: 15,
-    borderWidth: 1, borderColor: 'rgba(108,77,56,0.25)',
+    backgroundColor: t.surfaceMuted, borderRadius: 10,
+    padding: 10, color: t.textPrimary, fontSize: 15,
+    borderWidth: 1, borderColor: t.border,
   },
   analyzingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  analyzingText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 14, fontStyle: 'italic' },
+  analyzingText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, fontStyle: 'italic' },
   removeBtn: { padding: 6 },
-  removeBtnText: { fontFamily: 'Lora_400Regular', color: 'rgba(108,77,56,0.6)', fontSize: 18 },
+  removeBtnText: { fontFamily: 'Lora_400Regular', color: t.textFaint, fontSize: 18 },
 
-  cardLabel: { fontFamily: 'Poppins_700Bold', color: 'rgba(108,77,56,0.7)', fontSize: 11, letterSpacing: 1.5 },
-  sizeInput: { fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(207,181,158,0.3)', borderRadius: 10, padding: 10, color: '#402D21', fontSize: 14, borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)' },
+  cardLabel: { fontFamily: 'Poppins_700Bold', color: t.textFaint, fontSize: 11, letterSpacing: 1.5 },
+  sizeInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 10, padding: 10, color: t.textPrimary, fontSize: 14, borderWidth: 1, borderColor: t.border },
 
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   pill: {
     paddingVertical: 5, paddingHorizontal: 12, borderRadius: 20,
-    backgroundColor: 'rgba(207,181,158,0.3)',
-    borderWidth: 1, borderColor: 'rgba(108,77,56,0.2)',
+    backgroundColor: t.surfaceMuted,
+    borderWidth: 1, borderColor: t.border,
   },
-  pillActive: { backgroundColor: '#402D21', borderColor: '#402D21' },
-  pillText: { fontFamily: 'Lora_400Regular', color: '#6C4D38', fontSize: 12 },
-  pillTextActive: { color: '#FEFAF8' },
+  pillActive: { backgroundColor: t.primary, borderColor: t.primary },
+  pillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12 },
+  pillTextActive: { color: t.onPrimary },
 
   colorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   colorDot: {
@@ -471,13 +475,13 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: 'transparent',
   },
-  colorDotActive: { borderColor: '#402D21', transform: [{ scale: 1.15 }] },
+  colorDotActive: { borderColor: t.primary, transform: [{ scale: 1.15 }] },
   colorCheck: {
-    color: '#402D21', fontSize: 13, fontWeight: 'bold',
+    color: t.textPrimary, fontSize: 13, fontWeight: 'bold',
     textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2,
   },
 
-  saveButton: { backgroundColor: '#402D21', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
+  saveButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
   saveButtonDisabled: { opacity: 0.5 },
-  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: '#FEFAF8', fontSize: 16 },
+  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
 })
