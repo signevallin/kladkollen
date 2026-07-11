@@ -16,6 +16,7 @@ import {
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
+import SongCard from '../components/SongCard'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 import { apiPost } from '../utils/api'
@@ -310,6 +311,14 @@ export default function Home() {
       outfitAnim.setValue(0)
       Animated.spring(outfitAnim, { toValue: 1, friction: 7, useNativeDriver: true }).start()
 
+      // Hämta matchande låt + Apple Music-preview (blockerar inte outfiten om det failar)
+      if (parsed.song?.title) {
+        try {
+          const { song } = await apiPost('/api/song-preview', { title: parsed.song.title, artist: parsed.song.artist })
+          if (song) setOutfit((prev: any) => prev ? { ...prev, song: { ...song, reason: parsed.song.reason } } : prev)
+        } catch { /* låten är bonus – ignorera fel */ }
+      }
+
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
@@ -537,6 +546,8 @@ export default function Home() {
                 ))}
               </View>
             </ScrollView>
+
+            {outfit.song && <SongCard song={outfit.song} />}
 
             <View style={styles.ratingRow}>
               <Text style={styles.ratingLabel}>Vad tyckte du om looken?</Text>

@@ -46,8 +46,12 @@ OBLIGATORISKA REGLER – följ dessa EXAKT:
 4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
 ${weatherRules ? '5. VÄDER: ' + weatherRules : ''}
 
+Föreslå också EN låt som matchar outfitens känsla och kontexten (t.ex. en powerlåt
+inför ett viktigt möte, något lugnt till en ledig dag). Välj en riktig, känd låt som
+går att hitta på Apple Music.
+
 Svara ENDAST med JSON, inga backticks:
-{"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar)."}`
+{"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`
 
     const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o-mini', 350)
     const parsed = parseAiJson(text)
