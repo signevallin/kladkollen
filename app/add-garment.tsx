@@ -71,8 +71,10 @@ export default function AddGarment() {
   const [step, setStep] = useState<'pick' | 'review'>('pick')
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])
   const [saving, setSaving] = useState(false)
+  const [bgError, setBgError] = useState<string | null>(null)
 
   async function pickImages() {
+    setBgError(null)
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'] as any,
       allowsMultipleSelection: true,
@@ -125,8 +127,9 @@ export default function AddGarment() {
             } else {
               setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
             }
-          } catch {
-            // Misslyckad bakgrundsborttagning → behåll originalbilden
+          } catch (e: any) {
+            // Misslyckad bakgrundsborttagning → behåll originalbilden, men visa orsaken
+            setBgError(e?.message || 'okänt fel')
             setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, removingBg: false } : d))
           }
         })(),
@@ -253,6 +256,13 @@ export default function AddGarment() {
           <View style={styles.progressRow}>
             <ActivityIndicator color={t.textSecondary} size="small" />
             <Text style={styles.progressText}>Bearbetar {totalCount - processingCount}/{totalCount}...</Text>
+          </View>
+        )}
+
+        {bgError && (
+          <View style={styles.bgErrorBox}>
+            <Text style={styles.bgErrorText}>⚠️ Bakgrunden kunde inte tas bort – plagget sparas med originalfotot.</Text>
+            <Text style={styles.bgErrorDetail}>Orsak: {bgError}</Text>
           </View>
         )}
 
@@ -429,6 +439,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     padding: 12, marginBottom: 16,
   },
   progressText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
+  bgErrorBox: { backgroundColor: t.surfaceMuted, borderRadius: t.radius.md, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: t.border, gap: 4 },
+  bgErrorText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 13 },
+  bgErrorDetail: { fontFamily: 'Lora_400Regular', color: t.textFaint, fontSize: 11 },
 
   card: {
     backgroundColor: t.surfaceMuted,
