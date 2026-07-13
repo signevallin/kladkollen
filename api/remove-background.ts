@@ -2,8 +2,8 @@ import { json, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
-// Öppen bakgrundsborttagningsmodell på Replicate. Kan bytas via env utan koddeploy.
-const DEFAULT_MODEL = '851-labs/background-remover'
+// Väletablerad öppen bakgrundsborttagningsmodell (rembg). Kan bytas via env.
+const DEFAULT_MODEL = 'cjwbw/rembg'
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
@@ -37,43 +37,52 @@ export default async function handler(request: Request): Promise<Response> {
     const token = process.env.REPLICATE_API_TOKEN
     if (!token) return json({ error: 'REPLICATE_API_TOKEN saknas på servern' }, 500)
     const model = process.env.REPLICATE_MODEL || DEFAULT_MODEL
+    const authHeaders = { Authorization: `Bearer ${token}` }
 
-    // Kör modellens senaste version synkront (Prefer: wait, upp till 60 s).
-    let res = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
+    // 1) Hämta modellens senaste version (fungerar oavsett om modellen har en
+    //    default-version satt – till skillnad mot models-by-name-endpointen).
+    const modelRes = await fetch(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders })
+    if (modelRes.status === 404) {
+      return json({ error: `Modellen '${model}' hittades inte på Replicate. Sätt REPLICATE_MODEL till en giltig modell.` }, 502)
+    }
+    if (!modelRes.ok) {
+      const d = await modelRes.json().catch(() => ({}))
+      return json({ error: (d as any).detail || `Kunde inte läsa modellen (${modelRes.status})` }, 502)
+    }
+    const modelData = (await modelRes.json()) as any
+    const version = modelData?.latest_version?.id
+    if (!version) return json({ error: 'Modellen saknar en körbar version' }, 502)
+
+    // 2) Skapa prediction mot versionen, kör synkront (Prefer: wait).
+    let res = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Prefer: 'wait',
-      },
-      body: JSON.stringify({ input: { image: `data:image/jpeg;base64,${base64}` } }),
+      headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'wait' },
+      body: JSON.stringify({ version, input: { image: `data:image/jpeg;base64,${base64}` } }),
     })
-
     let prediction = (await res.json()) as any
     if (!res.ok) {
       return json({ error: prediction?.detail || 'Bakgrundsborttagning misslyckades' }, res.status)
     }
 
-    // Om wait tog slut innan modellen blev klar: polla statusen en stund.
+    // 3) Polla om körningen inte hann bli klar inom wait-fönstret.
     const pollUrl = prediction?.urls?.get
     for (let i = 0; i < 30 && (prediction.status === 'starting' || prediction.status === 'processing') && pollUrl; i++) {
       await new Promise(r => setTimeout(r, 1500))
-      res = await fetch(pollUrl, { headers: { Authorization: `Bearer ${token}` } })
+      res = await fetch(pollUrl, { headers: authHeaders })
       prediction = await res.json()
     }
 
     if (prediction.status !== 'succeeded') {
-      return json({ error: prediction?.error || 'Bakgrundsborttagning misslyckades' }, 502)
+      return json({ error: prediction?.error || `Modellen svarade: ${prediction.status}` }, 502)
     }
 
     const url = firstOutputUrl(prediction.output)
     if (!url) return json({ error: 'Inget resultat från modellen' }, 502)
 
-    // Hämta den bakgrundsfria PNG:n och returnera som base64 (samma kontrakt som förr).
+    // 4) Hämta den bakgrundsfria PNG:n och returnera som base64 (samma kontrakt).
     const imgRes = await fetch(url)
     if (!imgRes.ok) return json({ error: 'Kunde inte hämta resultatbilden' }, 502)
-    const arrayBuffer = await imgRes.arrayBuffer()
-    return json({ base64: arrayBufferToBase64(arrayBuffer) })
+    return json({ base64: arrayBufferToBase64(await imgRes.arrayBuffer()) })
   } catch (e: any) {
     return json({ error: e.message }, 500)
   }
