@@ -457,7 +457,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: t.border,
   },
-  cardThumb: { width: 64, height: 80, backgroundColor: 'transparent' },
+  cardThumb: { width: 64, height: 80, borderRadius: 8, backgroundColor: t.imageBg },
   cardNameWrap: { flex: 1 },
   cardNameInput: {
     backgroundColor: t.surfaceMuted, borderRadius: 10,

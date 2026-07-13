@@ -24,6 +24,8 @@ export type ThemeColors = {
   danger: string
   // Placeholder i textfält
   placeholder: string
+  // Ljus platta bakom urklippta plaggbilder (så de syns i mörkt läge)
+  imageBg: string
 }
 
 export type Theme = ThemeColors & {
@@ -49,6 +51,7 @@ export const lightColors: ThemeColors = {
   borderSoft: 'rgba(108,77,56,0.14)',
   danger: '#9E2035',
   placeholder: 'rgba(108,77,56,0.45)',
+  imageBg: 'transparent',
 }
 
 export const darkColors: ThemeColors = {
@@ -68,6 +71,7 @@ export const darkColors: ThemeColors = {
   borderSoft: 'rgba(245,233,223,0.10)',
   danger: '#E0817C',
   placeholder: 'rgba(201,174,148,0.45)',
+  imageBg: '#ECE3D9',
 }
 
 export const lightTheme: Theme = { ...lightColors, radius }
