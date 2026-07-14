@@ -53,8 +53,12 @@ B. Använd HÖGST en stark/mättad statementfärg. Resten ska vara neutraler
 C. Kombinera ALDRIG flera konkurrerande starka färger som skär sig
    (t.ex. burgundy + grönt + rött, eller rosa + orange + lila). Hellre neutralt.
 D. Skor och accessoarer ska tona in i paletten – inte sticka ut i en tredje stark färg.
-E. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stolt över.
-   Om två plagg inte passar färgmässigt, välj hellre ett neutralt alternativ.
+E. LÄDER & ACCESSOARER ska samspela: matcha bälte till den dominerande neutralen
+   eller till skorna. Blanda ALDRIG svart och brunt läder (t.ex. brunt bälte till
+   svarta plagg – välj svart bälte istället). Är looken svartdominerad → svart bälte.
+F. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stolt över.
+   Om två plagg inte passar färgmässigt, välj hellre ett neutralt alternativ – eller
+   hoppa över en valfri accessoar helt om den inte lyfter looken.
 
 Föreslå också EN låt som matchar outfitens känsla och kontexten (t.ex. en powerlåt
 inför ett viktigt möte, något lugnt till en ledig dag). Välj en riktig, känd låt som
