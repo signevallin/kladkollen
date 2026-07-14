@@ -1,6 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
@@ -49,6 +50,20 @@ const COLORS = [
   { name: 'Orange', hex: '#FB8C00' },
   { name: 'Guld', hex: '#C9A96E' },
 ]
+
+// Max bredd på lagrade/skickade bilder. En mobilbild är ofta 3000–4000 px;
+// 1400 px räcker gott för en telefonskärm och kapar filstorleken ~85–90 %.
+// Mindre bild = mindre lagring/bandbredd i Supabase + billigare AI-/Replicate-anrop.
+const MAX_IMAGE_WIDTH = 1400
+
+// Skalar ner (aldrig upp) och komprimerar till JPEG. Returnerar uri + base64.
+async function compressImage(uri: string, srcWidth?: number): Promise<{ uri: string; base64: string }> {
+  const context = ImageManipulator.manipulate(uri)
+  if (!srcWidth || srcWidth > MAX_IMAGE_WIDTH) context.resize({ width: MAX_IMAGE_WIDTH })
+  const rendered = await context.renderAsync()
+  const result = await rendered.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true })
+  return { uri: result.uri, base64: result.base64 || '' }
+}
 
 type GarmentDraft = {
   id: string
@@ -101,11 +116,25 @@ export default function AddGarment() {
     setStep('review')
 
     // AI-analys och bakgrundsborttagning körs parallellt per foto
-    for (const draft of newDrafts) {
+    for (let idx = 0; idx < newDrafts.length; idx++) {
+      const draft = newDrafts[idx]
+      const asset = result.assets[idx]
+
+      // Komprimera först: mindre bild sparar lagring/bandbredd och gör
+      // AI-analysen + bakgrundsborttagningen billigare och snabbare.
+      let base64 = draft.base64
+      try {
+        const c = await compressImage(asset.uri, asset.width)
+        base64 = c.base64
+        setDrafts(prev => prev.map(d => d.id === draft.id ? { ...d, uri: c.uri, base64: c.base64 } : d))
+      } catch {
+        // Faller tillbaka på originalet om komprimeringen misslyckas
+      }
+
       await Promise.all([
         (async () => {
           try {
-            const data = await apiPost('/api/analyze-garment', { base64: draft.base64 })
+            const data = await apiPost('/api/analyze-garment', { base64 })
             setDrafts(prev => prev.map(d =>
               d.id === draft.id
                 ? { ...d, name: data.name || '', category: data.category || '', subcategory: data.subcategory || '', color: data.color || '', seasons: data.seasons || [], analyzing: false }
@@ -117,7 +146,7 @@ export default function AddGarment() {
         })(),
         (async () => {
           try {
-            const data = await apiPost('/api/remove-background', { base64: draft.base64 })
+            const data = await apiPost('/api/remove-background', { base64 })
             if (data.base64) {
               setDrafts(prev => prev.map(d =>
                 d.id === draft.id
