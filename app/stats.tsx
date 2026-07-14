@@ -15,17 +15,12 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 
-const MOOD_META: Record<string, { emoji: string; color: string }> = {
-  'Lugn':      { emoji: '😌', color: '#A8B5A0' },
-  'Power':     { emoji: '🔥', color: '#B5896E' },
-  'Romantisk': { emoji: '💕', color: '#E8A0B4' },
-  'Energisk':  { emoji: '⚡', color: '#F5C842' },
-  'Introvert': { emoji: '☁️', color: '#8B9BB4' },
-  'Fest':      { emoji: '🪩', color: '#B57BDB' },
-}
-
-const CTX_LABEL: Record<string, string> = {
-  jobb: '💼 Jobb', fritid: '🌿 Fritid', båda: '✨ Båda',
+// Speglar kontexterna i home.tsx (Jobb / Ledig / Fest). Det är dessa som
+// sparas på outfits numera – det gamla "humör"-fältet finns inte längre.
+const CTX_META: Record<string, { emoji: string; color: string }> = {
+  'Jobb':  { emoji: '💼', color: '#B5896E' },
+  'Ledig': { emoji: '🌿', color: '#A8B5A0' },
+  'Fest':  { emoji: '🪩', color: '#B57BDB' },
 }
 
 const COLOR_GROUPS: Record<string, string[]> = {
@@ -40,8 +35,6 @@ const COLOR_EMOJIS: Record<string, string> = {
   'Varmt & kraftfullt': '🔥', 'Svalt & lugnt': '🌊', 'Romantiskt': '🌸',
 }
 
-const MONTH_SV = ['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec']
-
 interface MoodStat {
   label: string; emoji: string; color: string
   count: number; pct: number; avgRating: number | null
@@ -53,9 +46,6 @@ interface MoodROI {
   bestLabel: string; bestEmoji: string; bestAvg: number
   worstLabel: string; worstEmoji: string
   pctDiff: number
-}
-interface DriftMonth {
-  monthLabel: string; mood: string; emoji: string; color: string; count: number
 }
 interface ColorInsight {
   group: string; emoji: string; avgRating: number; count: number
@@ -73,12 +63,9 @@ export default function Stats() {
   // Stil
   const [moodStats, setMoodStats] = useState<MoodStat[]>([])
   const [moodROI, setMoodROI] = useState<MoodROI | null>(null)
-  const [performanceInsights, setPerformanceInsights] = useState<string[]>([])
-  const [moodDrift, setMoodDrift] = useState<DriftMonth[]>([])
   const [colorInsights, setColorInsights] = useState<ColorInsight[]>([])
   const [powerPieces, setPowerPieces] = useState<PowerPiece[]>([])
   const [weakPieces, setWeakPieces] = useState<PowerPiece[]>([])
-  const [bestCombo, setBestCombo] = useState<{ mood: string; context: string; avgRating: number } | null>(null)
   const [ratedCount, setRatedCount] = useState(0)
   const [hasStyleData, setHasStyleData] = useState(false)
 
@@ -123,7 +110,7 @@ export default function Stats() {
     })
     const total = withMood.length || 1
     const stats: MoodStat[] = Object.entries(moodMap).map(([label, d]) => ({
-      label, ...(MOOD_META[label] || { emoji: '✨', color: t.textPrimary }),
+      label, ...(CTX_META[label] || { emoji: '✨', color: t.textPrimary }),
       count: d.count, pct: Math.round((d.count / total) * 100),
       avgRating: d.ratingCount > 0 ? Math.round((d.ratingSum / d.ratingCount) * 10) / 10 : null,
     })).sort((a, b) => b.count - a.count)
@@ -139,54 +126,6 @@ export default function Stats() {
         if (pct >= 5) setMoodROI({ bestLabel: best.label, bestEmoji: best.emoji, bestAvg: best.avgRating, worstLabel: worst.label, worstEmoji: worst.emoji, pctDiff: pct })
       }
     }
-
-    // ── Performance Insights ──
-    const insights: string[] = []
-    const overallAvg = rated.length > 0 ? rated.reduce((s, o) => s + o.rating, 0) / rated.length : 0
-
-    if (ratedMoods.length > 0 && overallAvg > 0) {
-      const top = [...ratedMoods].sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0))[0]
-      if (top.avgRating) {
-        const pct = Math.round(((top.avgRating - overallAvg) / overallAvg) * 100)
-        if (pct >= 5) insights.push(`${top.emoji} Du betygsätter ${top.label}-outfits ${pct}% högre än ditt genomsnitt.`)
-      }
-    }
-
-    const buildContextInsight = (ctx: string, label: string) => {
-      const ctxRated = outfits.filter(o => o.rating !== null && o.context === ctx && o.mood)
-      const map: Record<string, { sum: number; count: number }> = {}
-      ctxRated.forEach(o => {
-        if (!map[o.mood]) map[o.mood] = { sum: 0, count: 0 }
-        map[o.mood].sum += o.rating; map[o.mood].count++
-      })
-      const best = Object.entries(map).filter(([, v]) => v.count >= 2).sort((a, b) => (b[1].sum / b[1].count) - (a[1].sum / a[1].count))[0]
-      if (best) {
-        const avg = Math.round((best[1].sum / best[1].count) * 10) / 10
-        const emoji = MOOD_META[best[0]]?.emoji || '✨'
-        insights.push(`${emoji} ${best[0]} på ${label} ger dig ${avg}/5 i snitt – ditt starkaste ${label}shumör.`)
-      }
-    }
-    buildContextInsight('jobb', 'jobb')
-    buildContextInsight('fritid', 'fritid')
-    setPerformanceInsights(insights)
-
-    // ── Mood Drift (last 4 months) ──
-    const monthMap: Record<string, Record<string, number>> = {}
-    withMood.filter(o => o.created_at).forEach(o => {
-      const d = new Date(o.created_at)
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      if (!monthMap[key]) monthMap[key] = {}
-      monthMap[key][o.mood] = (monthMap[key][o.mood] || 0) + 1
-    })
-    const drift: DriftMonth[] = Object.entries(monthMap)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(-4)
-      .map(([key, moods]) => {
-        const month = parseInt(key.split('-')[1]) - 1
-        const dominant = Object.entries(moods).sort((a, b) => b[1] - a[1])[0]
-        return { monthLabel: MONTH_SV[month], mood: dominant[0], emoji: MOOD_META[dominant[0]]?.emoji || '✨', color: MOOD_META[dominant[0]]?.color || t.primary, count: Object.values(moods).reduce((s, c) => s + c, 0) }
-      })
-    setMoodDrift(drift)
 
     // ── Garment rating map ──
     const garmentRatingMap: Record<string, { sum: number; count: number }> = {}
@@ -213,19 +152,6 @@ export default function Stats() {
       .filter((p): p is PowerPiece => p !== null)
       .sort((a, b) => a.avgRating - b.avgRating).slice(0, 5)
     setWeakPieces(weak)
-
-    // ── Best combo ──
-    const comboMap: Record<string, { sum: number; count: number }> = {}
-    outfits.filter(o => o.rating !== null && o.mood && o.context).forEach(o => {
-      const key = `${o.mood}|${o.context}`
-      if (!comboMap[key]) comboMap[key] = { sum: 0, count: 0 }
-      comboMap[key].sum += o.rating; comboMap[key].count++
-    })
-    const bestComboEntry = Object.entries(comboMap).filter(([, v]) => v.count >= 2).sort((a, b) => (b[1].sum / b[1].count) - (a[1].sum / a[1].count))[0]
-    if (bestComboEntry) {
-      const [mood, ctx] = bestComboEntry[0].split('|')
-      setBestCombo({ mood, context: ctx, avgRating: Math.round((bestComboEntry[1].sum / bestComboEntry[1].count) * 10) / 10 })
-    }
 
     // ── Color Psychology ──
     const colorGroupRatings: Record<string, { sum: number; count: number }> = {}
@@ -298,10 +224,11 @@ export default function Stats() {
             </View>
           ) : (
             <>
-              {/* Humörprofil */}
+              {/* Stilprofil */}
               {moodStats.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Din humörprofil</Text>
+                  <Text style={styles.sectionTitle}>Din stilprofil</Text>
+                  <Text style={styles.sectionSubtitle}>Hur ofta du klär dig för jobb, ledigt och fest</Text>
                   {moodStats.map(m => (
                     <View key={m.label} style={styles.moodRow}>
                       <Text style={styles.moodEmoji}>{m.emoji}</Text>
@@ -322,59 +249,15 @@ export default function Stats() {
                 </View>
               )}
 
-              {/* Mood ROI */}
+              {/* Stil-ROI */}
               {moodROI && (
-                <View style={[styles.insightCard, { marginBottom: 12 }]}>
+                <View style={[styles.insightCard, { marginBottom: 24 }]}>
                   <Text style={styles.insightEmoji}>📈</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.insightTitle}>Mood ROI</Text>
+                    <Text style={styles.insightTitle}>Din bästa stil</Text>
                     <Text style={styles.insightBody}>
                       {moodROI.bestEmoji} {moodROI.bestLabel}-outfits ger {moodROI.pctDiff}% högre betyg än {moodROI.worstEmoji} {moodROI.worstLabel}-outfits.
                     </Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Performance Insights */}
-              {performanceInsights.length > 0 && (
-                <View style={styles.section}>
-                  {performanceInsights.map((insight, i) => (
-                    <View key={i} style={[styles.insightCard, { marginBottom: 10 }]}>
-                      <Text style={styles.insightEmoji}>💡</Text>
-                      <Text style={[styles.insightBody, { flex: 1 }]}>{insight}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {/* Bästa kombination */}
-              {bestCombo && (
-                <View style={[styles.insightCard, { marginBottom: 24 }]}>
-                  <Text style={styles.insightEmoji}>🏆</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.insightTitle}>Bästa kombination</Text>
-                    <Text style={styles.insightBody}>
-                      {MOOD_META[bestCombo.mood]?.emoji} {bestCombo.mood} + {CTX_LABEL[bestCombo.context] || bestCombo.context} ger dig {bestCombo.avgRating}/5 i snittbetyg.
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Mood Drift */}
-              {moodDrift.length >= 2 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Humörutveckling</Text>
-                  <Text style={styles.sectionSubtitle}>Ditt dominerande humör per månad</Text>
-                  <View style={styles.driftRow}>
-                    {moodDrift.map((m, i) => (
-                      <View key={i} style={styles.driftMonth}>
-                        <View style={[styles.driftBubble, { backgroundColor: m.color + '33', borderColor: m.color }]}>
-                          <Text style={styles.driftEmoji}>{m.emoji}</Text>
-                        </View>
-                        <Text style={styles.driftLabel}>{m.monthLabel}</Text>
-                        <Text style={styles.driftCount}>{m.count} outfits</Text>
-                      </View>
-                    ))}
                   </View>
                 </View>
               )}
@@ -618,14 +501,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   insightEmoji: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
   insightTitle: { fontFamily: 'Poppins_700Bold', fontSize: 13, color: t.textPrimary, marginBottom: 4 },
   insightBody: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 19 },
-
-  // Mood Drift
-  driftRow: { flexDirection: 'row', gap: 10 },
-  driftMonth: { flex: 1, alignItems: 'center', gap: 6 },
-  driftBubble: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
-  driftEmoji: { fontFamily: 'Lora_400Regular', fontSize: 24 },
-  driftLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textPrimary },
-  driftCount: { fontFamily: 'Lora_400Regular', fontSize: 9, color: t.textSecondary, textAlign: 'center' },
 
   pieceRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 10 },
   pieceRank: { fontFamily: 'Poppins_700Bold', fontSize: 13, color: t.textSecondary, width: 24 },
