@@ -21,8 +21,23 @@ Garderob:
 ${garmentList}
 
 1. Beskriv stilen i inspirationsbilden kort.
-2. Välj 3-4 plagg från garderoben som matchar stilen bäst.
-3. Lista upp till 3 specifika plagg som SAKNAS i garderoben för att uppnå denna look.
+2. Välj 3-4 plagg från garderoben (exakt som de heter i listan) som tillsammans
+   bäst återskapar looken. Bygg en komplett, bärbar outfit.
+3. Lista bara plagg som SAKNAS för att fullborda looken – enligt reglerna nedan.
+
+REGLER FÖR "missing" (viktigt – följ exakt):
+A. Föreslå ALDRIG ett plagg i en kategori du redan täckt i "items".
+   Har du valt en kavaj → föreslå INTE en annan kavaj. Har du valt byxor →
+   föreslå INTE fler byxor. Det ska komplettera looken, inte dubblera den.
+B. Varje saknat plagg måste gå att BÄRA IHOP med de valda plaggen. Föreslå
+   aldrig lager som krockar (t.ex. kofta OVANPÅ en redan vald kavaj/blazer,
+   eller två ytterplagg samtidigt).
+C. Saknade plagg ska tona in färg- och materialmässigt i looken. Blanda inte
+   in en tredje stark färg eller svart+brunt läder.
+D. Föreslå bara det som verkligen behövs för att nå looken (t.ex. rätt sorts
+   skor eller en accessoar som lyfter helheten). Räcker garderoben redan?
+   Sätt "missing" till [].
+E. Max 3 saknade plagg, gärna färre. Kvalitet före kvantitet.
 
 Svara ENDAST med ett JSON-objekt:
 {
@@ -31,9 +46,7 @@ Svara ENDAST med ett JSON-objekt:
   "items": ["plagg1", "plagg2", "plagg3"],
   "missing": ["Saknat plagg 1", "Saknat plagg 2"],
   "tip": "styling-tips"
-}
-
-Om inget saknas, sätt "missing" till [].`
+}`
 
     const messages = [{
       role: 'user',
