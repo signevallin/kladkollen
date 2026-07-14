@@ -46,6 +46,16 @@ OBLIGATORISKA REGLER – följ dessa EXAKT:
 4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
 ${weatherRules ? '5. VÄDER: ' + weatherRules : ''}
 
+STILREGLER – lika viktiga, det här avgör om looken är snygg:
+A. FÄRGHARMONI ÄR AVGÖRANDE. Bygg looken kring EN sammanhållen färgpalett.
+B. Använd HÖGST en stark/mättad statementfärg. Resten ska vara neutraler
+   (svart, vitt, beige, grå, brun, marinblå, denim) eller nyanser i samma färgfamilj.
+C. Kombinera ALDRIG flera konkurrerande starka färger som skär sig
+   (t.ex. burgundy + grönt + rött, eller rosa + orange + lila). Hellre neutralt.
+D. Skor och accessoarer ska tona in i paletten – inte sticka ut i en tredje stark färg.
+E. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stolt över.
+   Om två plagg inte passar färgmässigt, välj hellre ett neutralt alternativ.
+
 Föreslå också EN låt som matchar outfitens känsla och kontexten (t.ex. en powerlåt
 inför ett viktigt möte, något lugnt till en ledig dag). Välj en riktig, känd låt som
 går att hitta på Apple Music.
@@ -53,7 +63,7 @@ går att hitta på Apple Music.
 Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o-mini', 350)
+    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 350)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.items)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
     return json(parsed)
