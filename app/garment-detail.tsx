@@ -50,6 +50,13 @@ export default function GarmentDetail() {
   const { id, wishlistId } = useLocalSearchParams()
   const isWishlistItem = !!wishlistId && !id
 
+  // router.back() gör ingenting om det saknas historik (t.ex. efter en
+  // omladdning på webben eller djuplänk). Fall då tillbaka till garderoben.
+  function goBack() {
+    if (router.canGoBack()) router.back()
+    else router.replace('/wardrobe')
+  }
+
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
   const [subcategory, setSubcategory] = useState('')
@@ -136,7 +143,7 @@ export default function GarmentDetail() {
       }).eq('id', wishlistId)
       if (error) throw error
       showAlert('Sparat! 🍒')
-      router.back()
+      goBack()
     } catch (error: any) {
       showAlert('Något gick fel', error.message)
     } finally {
@@ -154,7 +161,7 @@ export default function GarmentDetail() {
       const { error } = await supabase.from('garments').update({ name, category, subcategory: subcategory || null, season: seasons.join(', '), color, image_url: updatedImageUrl, size: size.trim() || null, location: location.trim() || null }).eq('id', id)
       if (error) throw error
       showAlert('Sparat! 🍒')
-      router.back()
+      goBack()
     } catch (error: any) {
       showAlert('Något gick fel', error.message)
     } finally {
@@ -166,14 +173,14 @@ export default function GarmentDetail() {
     showConfirm('Ta bort plagg', `Är du säker på att du vill ta bort ${name}?`, async () => {
       const { error } = await supabase.from('garments').delete().eq('id', id)
       if (error) showAlert('Något gick fel', error.message)
-      else router.back()
+      else goBack()
     }, 'Ta bort', true)
   }
 
   async function deleteWishlistItem() {
     showConfirm('Ta bort', `Ta bort "${name}" från köplistan?`, async () => {
       await supabase.from('wishlist').delete().eq('id', wishlistId)
-      router.back()
+      goBack()
     }, 'Ta bort', true)
   }
 
@@ -222,7 +229,7 @@ export default function GarmentDetail() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={goBack}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityLabel="Gå tillbaka"
           accessibilityRole="button"
