@@ -21,23 +21,28 @@ Garderob:
 ${garmentList}
 
 1. Beskriv stilen i inspirationsbilden kort.
-2. Välj 3-4 plagg från garderoben (exakt som de heter i listan) som tillsammans
-   bäst återskapar looken. Bygg en komplett, bärbar outfit.
-3. Lista bara plagg som SAKNAS för att fullborda looken – enligt reglerna nedan.
+2. Välj plagg från garderoben (exakt som de heter i listan) som ÄKTA matchar
+   looken. Välj bara plagg som verkligen liknar det i bilden i typ OCH färg.
+   Byt ALDRIG ut ett definierande plagg mot något som skiljer sig tydligt bara
+   för att fylla en plats – har bilden vita byxor och garderoben bara har svarta,
+   räknas de svarta INTE som en matchning. Hoppa då över plaggplatsen i "items"
+   och lägg det i "missing" istället. Hellre en ärligt ofullständig look än en
+   påhittad matchning.
+3. Lista plagg som SAKNAS för att fullborda looken – enligt reglerna nedan.
 
 REGLER FÖR "missing" (viktigt – följ exakt):
-A. Föreslå ALDRIG ett plagg i en kategori du redan täckt i "items".
-   Har du valt en kavaj → föreslå INTE en annan kavaj. Har du valt byxor →
-   föreslå INTE fler byxor. Det ska komplettera looken, inte dubblera den.
-B. Varje saknat plagg måste gå att BÄRA IHOP med de valda plaggen. Föreslå
+A. Föreslå ALDRIG ett plagg i en kategori du redan täckt med en ÄKTA matchning
+   i "items". Har du matchat en kavaj → föreslå INTE en annan kavaj. Det ska
+   komplettera looken, inte dubblera den.
+B. Lägg till det definierande plagg som saknas i garderoben (t.ex. de vita
+   byxorna) med rätt färg/typ – beskriv det så som det ser ut i bilden.
+C. Varje saknat plagg måste gå att BÄRA IHOP med de valda plaggen. Föreslå
    aldrig lager som krockar (t.ex. kofta OVANPÅ en redan vald kavaj/blazer,
    eller två ytterplagg samtidigt).
-C. Saknade plagg ska tona in färg- och materialmässigt i looken. Blanda inte
+D. Saknade plagg ska tona in färg- och materialmässigt i looken. Blanda inte
    in en tredje stark färg eller svart+brunt läder.
-D. Föreslå bara det som verkligen behövs för att nå looken (t.ex. rätt sorts
-   skor eller en accessoar som lyfter helheten). Räcker garderoben redan?
-   Sätt "missing" till [].
-E. Max 3 saknade plagg, gärna färre. Kvalitet före kvantitet.
+E. Räcker garderoben redan för hela looken? Sätt "missing" till [].
+F. Max 3 saknade plagg, gärna färre. Kvalitet före kvantitet.
 
 Svara ENDAST med ett JSON-objekt:
 {
