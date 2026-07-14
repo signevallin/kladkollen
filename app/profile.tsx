@@ -3,6 +3,7 @@ import type { Theme } from '../theme/theme'
 import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
+import { goBack } from '../utils/nav'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -220,7 +221,7 @@ export default function Profile() {
       })
       if (error) throw error
       showAlert('Sparat! 🍒')
-      router.back()
+      goBack('/home')
     } catch (error: any) {
       showAlert('Något gick fel', error.message)
     } finally {
@@ -266,7 +267,7 @@ export default function Profile() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => goBack('/home')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityLabel="Gå tillbaka"
           accessibilityRole="button"

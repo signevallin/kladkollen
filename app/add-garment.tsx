@@ -2,7 +2,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
-import { router } from 'expo-router'
+import { goBack } from '../utils/nav'
 import { useState } from 'react'
 import {
   ActivityIndicator,
@@ -246,7 +246,7 @@ export default function AddGarment() {
         }])
       }
       Alert.alert(`${ready.length} ${ready.length === 1 ? 'plagg sparat' : 'plagg sparade'}! 🍒`)
-      router.back()
+      goBack('/wardrobe')
     } catch (e: any) {
       Alert.alert('Något gick fel', e.message)
     } finally {
@@ -259,7 +259,7 @@ export default function AddGarment() {
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.backButton} onPress={() => goBack('/wardrobe')}>
             <Text style={styles.backButtonText}>← Tillbaka</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Lägg till plagg</Text>

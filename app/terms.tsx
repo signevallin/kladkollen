@@ -1,6 +1,6 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { router } from 'expo-router'
+import { goBack } from '../utils/nav'
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native'
 
 // OBS: Detta är en mall. Låt en jurist granska texten och fyll i
@@ -46,7 +46,7 @@ export default function Terms() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => goBack('/')}>
           <Text style={styles.backButtonText}>← Tillbaka</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Användarvillkor</Text>

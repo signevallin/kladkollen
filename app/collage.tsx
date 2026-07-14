@@ -1,6 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { router, useLocalSearchParams } from 'expo-router'
+import { goBack } from '../utils/nav'
 import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -368,7 +369,7 @@ export default function Collage() {
       {/* Toppbar */}
       <View style={styles.topBar}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => goBack('/my-outfit')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityLabel="Gå tillbaka"
           accessibilityRole="button"
