@@ -140,6 +140,7 @@ export default function Collage() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [garments, setGarments] = useState<any[]>([])
   const [showPicker, setShowPicker] = useState(false)
+  const [pickSelection, setPickSelection] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(!!collageId)
 
@@ -191,18 +192,39 @@ export default function Collage() {
     applyPendingLoad(c)
   }
 
-  function addGarment(g: any) {
-    const offset = (items.length % 5) * 24
-    const item: CollageItemData = {
-      key: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      garment_id: g.id,
-      image_url: g.image_url,
-      x: Math.max(0, canvas.w / 2 - 70 + offset - 48),
-      y: 40 + offset,
-      size: 140,
-    }
-    setItems(prev => [...prev, item])
-    setSelectedKey(item.key)
+  function openPicker() {
+    setPickSelection(new Set())
+    setShowPicker(true)
+  }
+
+  function togglePick(id: string) {
+    setPickSelection(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  // Lägg till alla valda plagg på canvasen (lätt förskjutna så de inte staplas exakt).
+  function addSelectedGarments() {
+    const chosen = garments.filter(g => pickSelection.has(g.id))
+    if (chosen.length === 0) return
+    const base = items.length
+    const newItems: CollageItemData[] = chosen.map((g, i) => {
+      const offset = ((base + i) % 6) * 26
+      return {
+        key: `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
+        garment_id: g.id,
+        image_url: g.image_url,
+        x: Math.max(0, canvas.w / 2 - 70 + offset - 48),
+        y: 40 + offset,
+        size: 140,
+      }
+    })
+    setItems(prev => [...prev, ...newItems])
+    setSelectedKey(newItems[newItems.length - 1].key)
+    setPickSelection(new Set())
     setShowPicker(false)
   }
 
@@ -302,17 +324,42 @@ export default function Collage() {
                 <Text style={styles.pickerEmptyText}>Inga plagg med bild i garderoben än</Text>
               </View>
             ) : (
-              <FlatList
-                data={garments}
-                numColumns={3}
-                keyExtractor={g => g.id}
-                renderItem={({ item: g }) => (
-                  <TouchableOpacity style={styles.pickerItem} onPress={() => addGarment(g)}>
-                    <SignedImage path={g.image_url} style={styles.pickerImage} resizeMode="contain" />
-                    <Text style={styles.pickerName} numberOfLines={1}>{g.name}</Text>
-                  </TouchableOpacity>
-                )}
-              />
+              <>
+                <FlatList
+                  data={garments}
+                  numColumns={3}
+                  keyExtractor={g => g.id}
+                  renderItem={({ item: g }) => {
+                    const picked = pickSelection.has(g.id)
+                    return (
+                      <TouchableOpacity
+                        style={[styles.pickerItem, picked && styles.pickerItemPicked]}
+                        onPress={() => togglePick(g.id)}
+                        accessibilityLabel={g.name}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: picked }}
+                      >
+                        <SignedImage path={g.image_url} style={styles.pickerImage} resizeMode="contain" />
+                        <Text style={styles.pickerName} numberOfLines={1}>{g.name}</Text>
+                        {picked && (
+                          <View style={styles.pickerCheck}>
+                            <Text style={styles.pickerCheckText}>✓</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    )
+                  }}
+                />
+                <TouchableOpacity
+                  style={[styles.pickerAddBtn, pickSelection.size === 0 && styles.pickerAddBtnDisabled]}
+                  onPress={addSelectedGarments}
+                  disabled={pickSelection.size === 0}
+                >
+                  <Text style={styles.pickerAddBtnText}>
+                    {pickSelection.size > 0 ? `Lägg till ${pickSelection.size} plagg` : 'Välj plagg att lägga till'}
+                  </Text>
+                </TouchableOpacity>
+              </>
             )}
           </View>
         </View>
@@ -373,7 +420,7 @@ export default function Collage() {
 
       {/* Verktygsrad */}
       <View style={styles.toolBar}>
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowPicker(true)}>
+        <TouchableOpacity style={styles.addBtn} onPress={openPicker}>
           <Text style={styles.addBtnText}>＋ Lägg till plagg</Text>
         </TouchableOpacity>
         {selectedKey ? (
@@ -446,6 +493,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   pickerEmpty: { padding: 32, alignItems: 'center' },
   pickerEmptyText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
   pickerItem: { flex: 1 / 3, margin: 4, alignItems: 'center', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 8, borderWidth: 1, borderColor: t.border },
+  pickerItemPicked: { borderColor: t.primary, borderWidth: 2 },
   pickerImage: { width: '100%', aspectRatio: 1, borderRadius: 8 },
+  pickerCheck: { position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  pickerCheckText: { color: t.onPrimary, fontSize: 14, fontFamily: 'Poppins_700Bold' },
+  pickerAddBtn: { backgroundColor: t.primary, borderRadius: t.radius.lg, padding: 16, alignItems: 'center', marginTop: 12 },
+  pickerAddBtnDisabled: { opacity: 0.5 },
+  pickerAddBtnText: { color: t.onPrimary, fontSize: 15, fontFamily: 'Poppins_600SemiBold' },
   pickerName: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 10, marginTop: 4, textAlign: 'center' },
 })
