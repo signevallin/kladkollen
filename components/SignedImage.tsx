@@ -3,7 +3,8 @@ import { Image, ImageProps, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import { resolveImageUrl } from '../utils/storage'
 
-type Props = Omit<ImageProps, 'source'> & { path?: string | null }
+// flat = ingen ljus platta bakom bilden (t.ex. i kollaget där plaggen ska flyta fritt)
+type Props = Omit<ImageProps, 'source'> & { path?: string | null; flat?: boolean }
 
 /**
  * Drop-in-ersättare för <Image> för bilder i vår privata storage-bucket.
@@ -13,7 +14,7 @@ type Props = Omit<ImageProps, 'source'> & { path?: string | null }
  * Lägger en ljus platta bakom bilden (imageBg) så urklippta plagg med
  * genomskinlig bakgrund syns även i mörkt läge. Passerad style kan överstyra.
  */
-export default function SignedImage({ path, style, ...rest }: Props) {
+export default function SignedImage({ path, style, flat, ...rest }: Props) {
   const t = useTheme()
   const [uri, setUri] = useState<string | null>(null)
 
@@ -27,5 +28,6 @@ export default function SignedImage({ path, style, ...rest }: Props) {
   if (!uri) return <View style={style} />
   // imageBg läggs SIST så den vinner över enskilda stilars backgroundColor
   // (flera plaggstilar sätter 'transparent', vilket annars skulle överköra oss).
-  return <Image {...rest} style={[style, { backgroundColor: t.imageBg }]} source={{ uri }} />
+  // Med flat hoppas plattan över – plagget renderas mot underlaget som det är.
+  return <Image {...rest} style={flat ? style : [style, { backgroundColor: t.imageBg }]} source={{ uri }} />
 }

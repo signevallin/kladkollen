@@ -625,7 +625,7 @@ function isPast(date: Date) {
                             height: (it.size || 140) * factor,
                           }}
                         >
-                          <SignedImage path={it.image_url} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                          <SignedImage path={it.image_url} flat style={{ width: '100%', height: '100%' }} resizeMode="contain" />
                         </View>
                       ))}
                     </View>

@@ -108,7 +108,7 @@ function DraggableItem({
       ]}
     >
       <View pointerEvents="none" style={{ flex: 1 }}>
-        <SignedImage path={item.image_url} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+        <SignedImage path={item.image_url} flat style={{ width: '100%', height: '100%' }} resizeMode="contain" />
       </View>
       {selected && (
         <>
