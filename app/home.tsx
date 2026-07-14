@@ -7,6 +7,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Animated,
+  FlatList,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -45,6 +47,7 @@ export default function Home() {
   const [wearingToday, setWearingToday] = useState(false)
   const [rating, setRating] = useState<number | null>(null)
   const [ratingLoading, setRatingLoading] = useState(false)
+  const [swapIndex, setSwapIndex] = useState<number | null>(null)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
@@ -434,6 +437,42 @@ export default function Home() {
     }
   }
 
+  // Efter manuell ändring av outfiten är ev. sparad version inaktuell → nollställ.
+  function resetSavedState() {
+    setSaved(false)
+    setSavedOutfitId(null)
+    setWornToday(false)
+    setRating(null)
+  }
+
+  function replaceItem(index: number, garment: any) {
+    setOutfit((prev: any) => {
+      if (!prev) return prev
+      const items = [...prev.itemsWithImages]
+      items[index] = { name: garment.name, image_url: garment.image_url || null, id: garment.id }
+      return { ...prev, itemsWithImages: items }
+    })
+    resetSavedState()
+    setSwapIndex(null)
+  }
+
+  function removeItem(index: number) {
+    setOutfit((prev: any) => {
+      if (!prev) return prev
+      const items = prev.itemsWithImages.filter((_: any, i: number) => i !== index)
+      return { ...prev, itemsWithImages: items }
+    })
+    resetSavedState()
+    setSwapIndex(null)
+  }
+
+  // Alternativ till plagget som byts: samma kategori, aktiva, ej samma plagg.
+  const swapItem = swapIndex !== null ? outfit?.itemsWithImages?.[swapIndex] : null
+  const swapCategory = swapItem ? garments.find(g => g.id === swapItem.id)?.category : null
+  const swapAlternatives = garments.filter(g =>
+    !g.archived && g.id !== swapItem?.id && (swapCategory ? g.category === swapCategory : true)
+  )
+
   const activeCtx = CONTEXTS[selectedContext]
 
   return (
@@ -536,13 +575,21 @@ export default function Home() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.outfitImagesScroll}>
               <View style={styles.outfitImages}>
                 {outfit.itemsWithImages.map((item: any, i: number) => (
-                  <View key={i} style={styles.outfitItemWrap}>
+                  <TouchableOpacity
+                    key={i}
+                    style={styles.outfitItemWrap}
+                    onPress={() => setSwapIndex(i)}
+                    activeOpacity={0.7}
+                    accessibilityLabel={`Byt ut ${item.name}`}
+                    accessibilityRole="button"
+                  >
                     {item.image_url
                       ? <SignedImage path={item.image_url} style={styles.outfitImage} />
                       : <View style={styles.outfitImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
                     }
+                    <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
                     <Text style={styles.outfitItemName} numberOfLines={1}>{item.name}</Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
@@ -620,6 +667,56 @@ export default function Home() {
         </View>
 
       </ScrollView>
+      {/* Byt ut plagg i outfiten */}
+      <Modal visible={swapIndex !== null} animationType="slide" transparent onRequestClose={() => setSwapIndex(null)}>
+        <View style={styles.swapOverlay}>
+          <View style={styles.swapSheet}>
+            <View style={styles.swapHeader}>
+              <Text style={styles.swapTitle}>Byt ut{swapItem ? ` ${swapItem.name}` : ''}</Text>
+              <TouchableOpacity
+                onPress={() => setSwapIndex(null)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Stäng"
+                accessibilityRole="button"
+              >
+                <Text style={styles.swapClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.swapRemoveBtn}
+              onPress={() => swapIndex !== null && removeItem(swapIndex)}
+            >
+              <Text style={styles.swapRemoveText}>🗑 Ta bort ur outfiten</Text>
+            </TouchableOpacity>
+
+            {swapAlternatives.length === 0 ? (
+              <View style={styles.swapEmpty}>
+                <Text style={styles.swapEmptyText}>Inga andra plagg i samma kategori</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={swapAlternatives}
+                numColumns={3}
+                keyExtractor={g => g.id}
+                renderItem={({ item: g }) => (
+                  <TouchableOpacity
+                    style={styles.swapAlt}
+                    onPress={() => swapIndex !== null && replaceItem(swapIndex, g)}
+                  >
+                    {g.image_url
+                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
+                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]}><Text style={{ fontSize: 22 }}>👗</Text></View>
+                    }
+                    <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+
       <BottomNav />
     </SafeAreaView>
   )
@@ -685,6 +782,23 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitImages: { flexDirection: 'row', gap: 10, paddingHorizontal: 4 },
   outfitItemWrap: { alignItems: 'center', gap: 4, width: 80 },
   outfitImage: { width: 80, height: 80, borderRadius: 14 },
+  swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  swapBadgeText: { color: t.onPrimary, fontSize: 12, fontFamily: 'Poppins_700Bold' },
+
+  // Byt-ut-modal
+  swapOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  swapSheet: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '75%' },
+  swapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  swapTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary, flex: 1 },
+  swapClose: { color: t.textSecondary, fontSize: 20 },
+  swapRemoveBtn: { backgroundColor: t.surfaceMuted, borderRadius: t.radius.md, padding: 12, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: t.border },
+  swapRemoveText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 14 },
+  swapEmpty: { padding: 28, alignItems: 'center' },
+  swapEmptyText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
+  swapAlt: { flex: 1 / 3, margin: 4, alignItems: 'center', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 8, borderWidth: 1, borderColor: t.border },
+  swapAltImage: { width: '100%', aspectRatio: 1, borderRadius: 8 },
+  swapAltEmpty: { alignItems: 'center', justifyContent: 'center' },
+  swapAltName: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 10, marginTop: 4, textAlign: 'center' },
   outfitImageEmpty: { width: 80, height: 80, borderRadius: 14, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   outfitItemName: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, textAlign: 'center', width: 80 },
   outfitActions: { flexDirection: 'row', gap: 8 },
