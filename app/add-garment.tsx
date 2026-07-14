@@ -29,7 +29,7 @@ const SUBCATEGORIES: Record<string, string[]> = {
   'Ytterkläder': ['Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka'],
   'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor'],
   'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
-  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Mössa', 'Smycken', 'Solglasögon'],
+  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Mössa', 'Smycken', 'Solglasögon', 'Håraccessoarer'],
 }
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -195,6 +195,10 @@ export default function AddGarment() {
       Alert.alert('Fyll i namn och kategori för alla plagg')
       return
     }
+    if (ready.some(d => d.seasons.length === 0)) {
+      Alert.alert('Välj årstid', 'Ange minst en årstid för varje plagg – det används för att ge säsongsrätta outfit-förslag. Välj "Alla årstider" om plagget passar året runt.')
+      return
+    }
     setSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -353,7 +357,7 @@ export default function AddGarment() {
                   </View>
 
                   {/* Season */}
-                  <Text style={styles.cardLabel}>SÄSONG</Text>
+                  <Text style={styles.cardLabel}>SÄSONG *</Text>
                   <View style={styles.pillRow}>
                     {SEASONS.map(s => (
                       <TouchableOpacity
