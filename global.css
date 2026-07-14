@@ -1,11 +1,16 @@
 html, body, #root {
-  background-color: #FEFAF8;
   margin: 0;
   padding: 0;
+  background-color: #FEFAF8;
 }
 
-/* React Native Web wraps Image in a div that can default to white.
-   Force transparent so PNG cut-outs show the card background correctly. */
-img {
-  background-color: transparent !important;
+/* Följ systemets mörka läge för sidbakgrunden (webben) så det inte blinkar
+   ljust bakom appen. Själva appens färger styrs av temat i JS. */
+@media (prefers-color-scheme: dark) {
+  html, body, #root {
+    background-color: #181009;
+  }
 }
+
+/* Bakgrunden bakom plaggbilder styrs per tema via SignedImage (imageBg-token)
+   – ingen global img-regel behövs längre. */
