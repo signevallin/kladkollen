@@ -19,6 +19,7 @@ export default async function handler(request: Request): Promise<Response> {
     const avoid = clip(body.avoid, 400)
     const feedback = clip(body.feedback, 800)
     const groupedList = clip(body.groupedList, 8000)
+    const season = clip(body.season, 20)
     const retry = body.retry === true
 
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -31,6 +32,7 @@ export default async function handler(request: Request): Promise<Response> {
 
 Kontext: ${contextLabel} – ${contextLogic}
 Intensitet: ${intensity}
+${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
 ${avoid}${feedback ? `\nSmakprofil:\n${feedback}` : ''}
 ${retryInstruction}
@@ -45,6 +47,7 @@ OBLIGATORISKA REGLER – följ dessa EXAKT:
 3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning.
 4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
 ${weatherRules ? '5. VÄDER: ' + weatherRules : ''}
+${season ? `6. ÅRSTID: Det är ${season}. Välj plagg som passar årstiden – inga tunga vinterplagg på sommaren eller tunna sommarplagg på vintern.` : ''}
 
 STILREGLER – lika viktiga, det här avgör om looken är snygg:
 A. FÄRGHARMONI ÄR AVGÖRANDE. Bygg looken kring EN sammanhållen färgpalett.

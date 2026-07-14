@@ -172,6 +172,23 @@ export default function Home() {
     return { summary, rules: rules.join('\n'), requiresOuterwear }
   }
 
+  function getCurrentSeason(): string {
+    const m = new Date().getMonth() // 0 = jan
+    if (m === 11 || m <= 1) return 'Vinter'
+    if (m <= 4) return 'Vår'
+    if (m <= 7) return 'Sommar'
+    return 'Höst'
+  }
+
+  // Ett plagg passar säsongen om: ingen säsong angiven, "Alla årstider",
+  // eller om den aktuella säsongen finns med i plaggets säsonger.
+  function seasonAppropriate(g: any, season: string): boolean {
+    const s = (g.season || '').trim()
+    if (!s) return true
+    if (s.includes('Alla årstider')) return true
+    return s.includes(season)
+  }
+
   function buildGroupedGarmentList(garmentList: any[], requiresOuterwear: boolean) {
     const outerwearLabel = requiresOuterwear
       ? 'YTTERPLAGG / KAVAJ – OBLIGATORISK pga vädret (välj 1 om tillgängligt)'
@@ -272,7 +289,22 @@ export default function Home() {
 
       const activeGarments = garments.filter(g => !g.archived)
       const weatherCtx = useWeather ? buildWeatherContext(currentWeather) : { summary: '', rules: '', requiresOuterwear: false }
-      const groupedList = buildGroupedGarmentList(activeGarments, weatherCtx.requiresOuterwear)
+
+      // Filtrera bort renodlade off-season-plagg (t.ex. vinterjacka på sommaren).
+      // Faller tillbaka till hela garderoben om säsongsurvalet inte räcker för
+      // en komplett outfit (skor + över-/nederdel eller klänning).
+      const season = getCurrentSeason()
+      const seasonalPool = activeGarments.filter(g => seasonAppropriate(g, season))
+      const SHOE_CATS = ['Skor']
+      const BOTTOM_OR_DRESS = ['Byxor', 'Kjolar', 'Klänningar']
+      const TOP_OR_DRESS = ['Toppar', 'Tröjor', 'Klänningar']
+      const poolCanFormOutfit =
+        seasonalPool.some(g => SHOE_CATS.includes(g.category)) &&
+        seasonalPool.some(g => BOTTOM_OR_DRESS.includes(g.category)) &&
+        seasonalPool.some(g => TOP_OR_DRESS.includes(g.category))
+      const pool = poolCanFormOutfit ? seasonalPool : activeGarments
+
+      const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
 
       const intensityStr = INTENSITY_LABELS[intensity - 1]
       const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
@@ -292,17 +324,18 @@ export default function Home() {
           avoid: avoidStr,
           feedback: feedbackStr,
           groupedList,
+          season,
           retry: attempts > 1,
         })
 
-        const { valid } = validateOutfit(parsed.items, activeGarments, weatherCtx.requiresOuterwear)
+        const { valid } = validateOutfit(parsed.items, pool, weatherCtx.requiresOuterwear)
         if (valid) break
       }
 
       if (!parsed?.items?.length) throw new Error('AI:n gav inget giltigt förslag – försök igen.')
 
       const itemsWithImages = parsed.items.map((name: string) => {
-        const match = activeGarments.find(g =>
+        const match = pool.find(g =>
           g.name.toLowerCase().includes(name.toLowerCase()) ||
           name.toLowerCase().includes(g.name.toLowerCase())
         )
