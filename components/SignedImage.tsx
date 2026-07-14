@@ -25,5 +25,7 @@ export default function SignedImage({ path, style, ...rest }: Props) {
   }, [path])
 
   if (!uri) return <View style={style} />
-  return <Image {...rest} style={[{ backgroundColor: t.imageBg }, style]} source={{ uri }} />
+  // imageBg läggs SIST så den vinner över enskilda stilars backgroundColor
+  // (flera plaggstilar sätter 'transparent', vilket annars skulle överköra oss).
+  return <Image {...rest} style={[style, { backgroundColor: t.imageBg }]} source={{ uri }} />
 }
