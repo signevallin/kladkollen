@@ -28,7 +28,7 @@ const SUBCATEGORIES: Record<string, string[]> = {
   'Klänningar': ['Miniklänning', 'Midiklänning', 'Maxiklänning', 'Festklänning', 'Vardagsklänning'],
   'Kavajer': ['Kavaj', 'Blazer', 'Kostymjacka'],
   'Ytterkläder': ['Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka'],
-  'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor'],
+  'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor', 'Tofflor'],
   'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
   'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Mössa', 'Smycken', 'Solglasögon', 'Håraccessoarer'],
 }
@@ -46,8 +46,10 @@ const COLORS = [
   { name: 'Blå', hex: '#1E88E5' },
   { name: 'Ljusblå', hex: '#81D4FA' },
   { name: 'Grön', hex: '#43A047' },
+  { name: 'Olivgrön', hex: '#708238' },
   { name: 'Gul', hex: '#FDD835' },
   { name: 'Orange', hex: '#FB8C00' },
+  { name: 'Vinröd', hex: '#7B2D3A' },
   { name: 'Guld', hex: '#C9A96E' },
 ]
 
