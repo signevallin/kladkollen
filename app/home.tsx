@@ -518,11 +518,6 @@ export default function Home() {
             <Text style={[styles.greeting, fontsLoaded && { fontFamily: 'Poppins_600SemiBold' }]}>
               {getGreeting()}, {userName} 🍒
             </Text>
-            {weather && (
-              <Text style={styles.weatherLine}>
-                {weather.emoji} {weather.temp}° · {weather.description}
-              </Text>
-            )}
           </View>
           <TouchableOpacity
             onPress={() => router.push('/profile')}
@@ -763,7 +758,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 28, paddingTop: 28, paddingBottom: 32 },
   headerLeft: { flex: 1 },
   greeting: { fontFamily: 'Lora_400Regular', fontSize: 28, color: t.textSecondary, marginBottom: 6 },
-  weatherLine: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, marginTop: 2 },
   profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, overflow: 'hidden', marginLeft: 16 },
   profileBtnText: { fontFamily: 'Lora_400Regular', fontSize: 18 },
   profileBtnImage: { width: 40, height: 40, borderRadius: 20 },
