@@ -2,6 +2,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
+import { router } from 'expo-router'
 import { goBack } from '../utils/nav'
 import { useState } from 'react'
 import {
@@ -269,6 +270,11 @@ export default function AddGarment() {
             <Text style={styles.pickBtnIcon}>📷</Text>
             <Text style={styles.pickBtnTitle}>Välj foton</Text>
             <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.pickBtn} onPress={() => router.push('/import-purchases')}>
+            <Text style={styles.pickBtnIcon}>🛍️</Text>
+            <Text style={styles.pickBtnTitle}>Importera köp</Text>
+            <Text style={styles.pickBtnHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando, Zara m.fl.</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
