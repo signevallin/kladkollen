@@ -1,6 +1,5 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
@@ -28,7 +27,6 @@ const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
 export default function Inspiration() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [activeTab, setActiveTab] = useState<'analys' | 'moodboard'>('analys')
 
   // AI-analys state
@@ -236,9 +234,6 @@ export default function Inspiration() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Inspiration</Text>
-        <Text style={[styles.subtitle, fontsLoaded && { fontFamily: 'Poppins_600SemiBold', fontSize: 22 }]}>
-          Utforska din stil
-        </Text>
 
         {/* Tabs */}
         <View style={styles.tabRow}>
@@ -400,8 +395,7 @@ export default function Inspiration() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   scroll: { padding: 24, paddingBottom: 100 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: t.textPrimary, letterSpacing: 1 },
-  subtitle: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.textSecondary, marginBottom: 20, marginTop: 2 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 16 },
 
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },

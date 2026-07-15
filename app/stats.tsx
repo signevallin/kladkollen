@@ -525,7 +525,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
 
   header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: t.textPrimary, letterSpacing: 1, marginBottom: 14 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 14 },
   tabRow: { flexDirection: 'row', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 4, gap: 4 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center' },
   tabActive: { backgroundColor: t.primary },

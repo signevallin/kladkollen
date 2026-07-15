@@ -1,6 +1,5 @@
 import { useTheme, useThemeControl } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { goBack } from '../utils/nav'
@@ -63,7 +62,6 @@ export default function Profile() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
-  const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
@@ -276,7 +274,6 @@ export default function Profile() {
         </TouchableOpacity>
 
         <Text style={styles.title}>Min profil</Text>
-        {fontsLoaded && <Text style={styles.subtitle}>{email}</Text>}
 
         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel="Byt profilbild" accessibilityRole="button">
           {avatar
@@ -667,8 +664,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   scroll: { padding: 24, paddingBottom: 60 },
   backButton: { marginBottom: 16 },
   backButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: t.textPrimary, marginBottom: 4 },
-  subtitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textSecondary, marginBottom: 24 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 24 },
   avatarContainer: { alignSelf: 'center', marginBottom: 28 },
   avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: t.primary },
   avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.border },

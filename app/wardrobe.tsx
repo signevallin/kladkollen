@@ -1,7 +1,6 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 
-import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
@@ -31,7 +30,6 @@ const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'L
 export default function Wardrobe() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [garments, setGarments] = useState<any[]>([])
   const [filtered, setFiltered] = useState<any[]>([])
   const [forSale, setForSale] = useState<any[]>([])
@@ -488,12 +486,7 @@ export default function Wardrobe() {
       </Modal>
 
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Min garderob</Text>
-          <Text style={[styles.subtitle, fontsLoaded && { fontFamily: 'Poppins_600SemiBold', fontSize: 22 }]}>
-            {garments.length} plagg
-          </Text>
-        </View>
+        <Text style={styles.title}>Min garderob</Text>
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
@@ -540,7 +533,7 @@ export default function Wardrobe() {
 
       <View style={styles.tabRow}>
         {[
-          { id: 'nuvarande', label: 'Garderob' },
+          { id: 'nuvarande', label: `Garderob${garments.length > 0 ? ` (${garments.length})` : ''}` },
           { id: 'köp', label: `Köp${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` },
           { id: 'sälj', label: `Sälj${forSale.length > 0 ? ` (${forSale.length})` : ''}` },
           { id: 'capsule', label: '✨ Capsule' },
@@ -955,8 +948,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tabActive: { backgroundColor: t.primary, borderColor: t.primary },
   tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
   tabTextActive: { color: t.onPrimary, fontWeight: '600' },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: t.textPrimary },
-  subtitle: { color: t.textSecondary, marginBottom: 4 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
   searchContainer: { marginHorizontal: 16, marginBottom: 8 },
   searchInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, color: t.textPrimary, fontSize: 14, borderWidth: 1, borderColor: t.border },
   filterBar: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
