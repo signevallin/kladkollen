@@ -23,6 +23,18 @@ function firstOutputUrl(output: unknown): string | null {
   return null
 }
 
+// Modellversionen ändras sällan – cachea den mellan anrop (så länge instansen
+// är varm) så vi slipper ett extra Replicate-anrop per bild.
+let cachedVersion: { model: string; version: string } | null = null
+
+// Replicate stryper till ~1 anrop/10 s vid låg kredit. Vänta och försök igen
+// i stället för att ge upp – meddelandet anger ofta när fönstret öppnas igen.
+function throttleWaitMs(detail: string, attempt: number): number {
+  const m = /resets in ~?(\d+(?:\.\d+)?)s/.exec(detail)
+  if (m) return Math.min(Number(m[1]) * 1000 + 500, 12000)
+  return [2000, 5000, 10000][attempt] ?? 10000
+}
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
@@ -41,25 +53,41 @@ export default async function handler(request: Request): Promise<Response> {
 
     // 1) Hämta modellens senaste version (fungerar oavsett om modellen har en
     //    default-version satt – till skillnad mot models-by-name-endpointen).
-    const modelRes = await fetch(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders })
-    if (modelRes.status === 404) {
-      return json({ error: `Modellen '${model}' hittades inte på Replicate. Sätt REPLICATE_MODEL till en giltig modell.` }, 502)
+    //    Cacheas mellan anrop så flerbildsuppladdningar gör färre API-anrop.
+    let version = cachedVersion?.model === model ? cachedVersion.version : null
+    if (!version) {
+      const modelRes = await fetch(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders })
+      if (modelRes.status === 404) {
+        return json({ error: `Modellen '${model}' hittades inte på Replicate. Sätt REPLICATE_MODEL till en giltig modell.` }, 502)
+      }
+      if (!modelRes.ok) {
+        const d = await modelRes.json().catch(() => ({}))
+        return json({ error: (d as any).detail || `Kunde inte läsa modellen (${modelRes.status})` }, 502)
+      }
+      const modelData = (await modelRes.json()) as any
+      version = modelData?.latest_version?.id
+      if (!version) return json({ error: 'Modellen saknar en körbar version' }, 502)
+      cachedVersion = { model, version }
     }
-    if (!modelRes.ok) {
-      const d = await modelRes.json().catch(() => ({}))
-      return json({ error: (d as any).detail || `Kunde inte läsa modellen (${modelRes.status})` }, 502)
-    }
-    const modelData = (await modelRes.json()) as any
-    const version = modelData?.latest_version?.id
-    if (!version) return json({ error: 'Modellen saknar en körbar version' }, 502)
 
     // 2) Skapa prediction mot versionen, kör synkront (Prefer: wait).
-    let res = await fetch('https://api.replicate.com/v1/predictions', {
-      method: 'POST',
-      headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'wait' },
-      body: JSON.stringify({ version, input: { image: `data:image/jpeg;base64,${base64}` } }),
-    })
-    let prediction = (await res.json()) as any
+    //    Vid strypning (429): vänta tills fönstret öppnas och försök igen,
+    //    så flerbildsuppladdningar inte tappar alla bilder utom den första.
+    let res: Response
+    let prediction: any
+    for (let attempt = 0; ; attempt++) {
+      res = await fetch('https://api.replicate.com/v1/predictions', {
+        method: 'POST',
+        headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'wait' },
+        body: JSON.stringify({ version, input: { image: `data:image/jpeg;base64,${base64}` } }),
+      })
+      prediction = (await res.json()) as any
+      if (res.status === 429 && attempt < 3) {
+        await new Promise(r => setTimeout(r, throttleWaitMs(String(prediction?.detail || ''), attempt)))
+        continue
+      }
+      break
+    }
     if (!res.ok) {
       return json({ error: prediction?.detail || 'Bakgrundsborttagning misslyckades' }, res.status)
     }
