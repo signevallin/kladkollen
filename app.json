@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "kladkollen",
+    "name": "Klädkollen",
     "slug": "kladkollen",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "se.kladkollen.app"
     },
     "android": {
@@ -42,11 +42,23 @@
           "resizeMode": "contain",
           "backgroundColor": "#FEFAF8",
           "dark": {
-            "backgroundColor": "#FEFAF8"
+            "backgroundColor": "#181009"
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Klädkollen behöver åtkomst till dina foton för att du ska kunna lägga till bilder på dina plagg."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Klädkollen använder din plats för att hämta det lokala vädret och föreslå outfits som passar dagens väder."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
