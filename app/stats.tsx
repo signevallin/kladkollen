@@ -109,8 +109,18 @@ export default function Stats() {
     setRatedCount(rated.length)
 
     const { data: gData } = await supabase.from('garments').select('id, name, image_url, color')
-    const imgByName = new Map(gData?.map(g => [g.name.toLowerCase(), g.image_url]) || [])
     const colorById = new Map(gData?.map(g => [g.id, g.color]) || [])
+
+    // Outfits lagrar AI:ns plaggnamn, som sällan är exakt samma som namnet i
+    // garderoben. Matcha därför luddigt (som i resten av appen): exakt träff
+    // först, annars den vars namn innehåller / ingår i det sparade namnet.
+    const findImage = (name: string): string | null => {
+      const n = name.toLowerCase()
+      const exact = gData?.find(g => g.name.toLowerCase() === n)
+      if (exact) return exact.image_url
+      const fuzzy = gData?.find(g => g.name.toLowerCase().includes(n) || n.includes(g.name.toLowerCase()))
+      return fuzzy?.image_url || null
+    }
 
     // ── Mood distribution ──
     const moodMap: Record<string, { count: number; ratingSum: number; ratingCount: number }> = {}
@@ -150,7 +160,7 @@ export default function Stats() {
     // ── Power Pieces ──
     const highNames = new Set(rated.filter(o => o.rating >= 4).flatMap(o => o.garment_names || []))
     const power: PowerPiece[] = [...highNames]
-      .map(name => { const r = garmentRatingMap[name]; return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: imgByName.get(name.toLowerCase()) || null } : null })
+      .map(name => { const r = garmentRatingMap[name]; return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: findImage(name) } : null })
       .filter((p): p is PowerPiece => p !== null && p.avgRating >= 3.5)
       .sort((a, b) => b.avgRating - a.avgRating).slice(0, 5)
     setPowerPieces(power)
@@ -159,7 +169,7 @@ export default function Stats() {
     const lowNames = new Set(rated.filter(o => o.rating <= 2).flatMap(o => o.garment_names || []))
     const weak: PowerPiece[] = [...lowNames]
       .filter(name => !highNames.has(name))
-      .map(name => { const r = garmentRatingMap[name]; return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: imgByName.get(name.toLowerCase()) || null } : null })
+      .map(name => { const r = garmentRatingMap[name]; return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: findImage(name) } : null })
       .filter((p): p is PowerPiece => p !== null)
       .sort((a, b) => a.avgRating - b.avgRating).slice(0, 5)
     setWeakPieces(weak)
