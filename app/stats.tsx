@@ -50,6 +50,11 @@ interface MoodROI {
 interface ColorInsight {
   group: string; emoji: string; avgRating: number; count: number
 }
+interface WinningCombo {
+  group: string; groupEmoji: string
+  context: string; ctxEmoji: string
+  avgRating: number
+}
 
 export default function Stats() {
   const t = useTheme()
@@ -64,6 +69,7 @@ export default function Stats() {
   const [moodStats, setMoodStats] = useState<MoodStat[]>([])
   const [moodROI, setMoodROI] = useState<MoodROI | null>(null)
   const [colorInsights, setColorInsights] = useState<ColorInsight[]>([])
+  const [winningCombo, setWinningCombo] = useState<WinningCombo | null>(null)
   const [powerPieces, setPowerPieces] = useState<PowerPiece[]>([])
   const [weakPieces, setWeakPieces] = useState<PowerPiece[]>([])
   const [ratedCount, setRatedCount] = useState(0)
@@ -153,8 +159,9 @@ export default function Stats() {
       .sort((a, b) => a.avgRating - b.avgRating).slice(0, 5)
     setWeakPieces(weak)
 
-    // ── Color Psychology ──
+    // ── Color Psychology + Vinnande kombination (färggrupp × kontext) ──
     const colorGroupRatings: Record<string, { sum: number; count: number }> = {}
+    const comboRatings: Record<string, { sum: number; count: number }> = {}
     rated.filter(o => o.garment_ids?.length > 0).forEach(o => {
       const usedGroups = new Set<string>()
       ;(o.garment_ids || []).forEach((id: string) => {
@@ -168,6 +175,11 @@ export default function Stats() {
       usedGroups.forEach(group => {
         if (!colorGroupRatings[group]) colorGroupRatings[group] = { sum: 0, count: 0 }
         colorGroupRatings[group].sum += o.rating; colorGroupRatings[group].count++
+        if (o.mood) {
+          const key = `${group}|${o.mood}`
+          if (!comboRatings[key]) comboRatings[key] = { sum: 0, count: 0 }
+          comboRatings[key].sum += o.rating; comboRatings[key].count++
+        }
       })
     })
     const colorIns: ColorInsight[] = Object.entries(colorGroupRatings)
@@ -175,6 +187,18 @@ export default function Stats() {
       .map(([group, d]) => ({ group, emoji: COLOR_EMOJIS[group] || '✨', avgRating: Math.round((d.sum / d.count) * 10) / 10, count: d.count }))
       .sort((a, b) => b.avgRating - a.avgRating)
     setColorInsights(colorIns)
+
+    const bestCombo = Object.entries(comboRatings)
+      .filter(([, v]) => v.count >= 2)
+      .sort((a, b) => (b[1].sum / b[1].count) - (a[1].sum / a[1].count))[0]
+    if (bestCombo) {
+      const [group, context] = bestCombo[0].split('|')
+      setWinningCombo({
+        group, groupEmoji: COLOR_EMOJIS[group] || '✨',
+        context, ctxEmoji: CTX_META[context]?.emoji || '✨',
+        avgRating: Math.round((bestCombo[1].sum / bestCombo[1].count) * 10) / 10,
+      })
+    }
   }
 
   async function markForSale(item: any) {
@@ -257,6 +281,19 @@ export default function Stats() {
                     <Text style={styles.insightTitle}>Din bästa stil</Text>
                     <Text style={styles.insightBody}>
                       {moodROI.bestEmoji} {moodROI.bestLabel}-outfits ger {moodROI.pctDiff}% högre betyg än {moodROI.worstEmoji} {moodROI.worstLabel}-outfits.
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Vinnande kombination (färg × kontext) */}
+              {winningCombo && (
+                <View style={[styles.insightCard, { marginBottom: 24 }]}>
+                  <Text style={styles.insightEmoji}>🏆</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.insightTitle}>Vinnande kombination</Text>
+                    <Text style={styles.insightBody}>
+                      {winningCombo.groupEmoji} {winningCombo.group} till {winningCombo.ctxEmoji} {winningCombo.context} ger dig {winningCombo.avgRating}/5 i snitt – din mest lyckade färg × tillfälle.
                     </Text>
                   </View>
                 </View>
