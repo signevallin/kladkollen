@@ -526,7 +526,7 @@ export default function Home() {
             accessibilityRole="button"
           >
             {userAvatar
-              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} />
+              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" />
               : <Text style={styles.profileBtnText}>👤</Text>
             }
           </TouchableOpacity>

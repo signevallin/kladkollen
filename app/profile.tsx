@@ -280,7 +280,7 @@ export default function Profile() {
 
         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel="Byt profilbild" accessibilityRole="button">
           {avatar
-            ? <SignedImage path={avatar} style={styles.avatar} />
+            ? <SignedImage path={avatar} style={styles.avatar} resizeMode="cover" />
             : <View style={styles.avatarPlaceholder}><Text style={styles.avatarEmoji}>👤</Text></View>
           }
           <View style={styles.avatarBadge}><Text style={styles.avatarBadgeText}>📷</Text></View>

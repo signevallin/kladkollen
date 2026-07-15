@@ -29,5 +29,7 @@ export default function SignedImage({ path, style, flat, ...rest }: Props) {
   // imageBg läggs SIST så den vinner över enskilda stilars backgroundColor
   // (flera plaggstilar sätter 'transparent', vilket annars skulle överköra oss).
   // Med flat hoppas plattan över – plagget renderas mot underlaget som det är.
-  return <Image {...rest} style={flat ? style : [style, { backgroundColor: t.imageBg }]} source={{ uri }} />
+  // contain som standard: hela plagget ska alltid synas, aldrig beskäras.
+  // Skicka resizeMode="cover" uttryckligen där beskärning önskas (t.ex. avatarer).
+  return <Image resizeMode="contain" {...rest} style={flat ? style : [style, { backgroundColor: t.imageBg }]} source={{ uri }} />
 }

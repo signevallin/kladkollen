@@ -260,7 +260,7 @@ export default function Inspiration() {
           <>
             <TouchableOpacity style={styles.uploadZone} onPress={pickInspoImage}>
               {inspoImage ? (
-                <Image source={{ uri: inspoImage }} style={styles.inspoImage} />
+                <Image source={{ uri: inspoImage }} style={styles.inspoImage} resizeMode="contain" />
               ) : (
                 <View style={styles.uploadPlaceholder}>
                   <Text style={styles.uploadIcon}>📸</Text>
@@ -384,7 +384,7 @@ export default function Inspiration() {
                     onPress={() => setSelectedImage(item.image_url)}
                     activeOpacity={0.85}
                   >
-                    <SignedImage path={item.image_url} style={styles.moodboardImage} resizeMode="cover" />
+                    <SignedImage path={item.image_url} style={styles.moodboardImage} resizeMode="contain" />
                   </TouchableOpacity>
                 ))}
               </View>
