@@ -213,11 +213,20 @@ export default function Stats() {
   const mostWorn = garments.filter(g => g.times_worn > 0).slice(0, 5)
   const neverWorn = garments.filter(g => !g.times_worn || g.times_worn === 0)
   const maxWorn = mostWorn[0]?.times_worn || 1
+  const daysSince = (date: string | null) =>
+    date ? Math.floor((Date.now() - new Date(date).getTime()) / 86400000) : null
+
+  // Säljtips: aldrig använda plagg föreslås först efter 90 dagar i garderoben
+  // (ett plagg som lades in i förrgår har man förstås inte hunnit använda).
+  // Använda plagg föreslås när de inte burits på ett halvår.
   const vintedTips = garments.filter(g => {
     if (g.for_sale) return false
-    if (!g.times_worn || g.times_worn === 0) return true
-    if (!g.last_worn) return false
-    return Math.floor((Date.now() - new Date(g.last_worn).getTime()) / 86400000) >= 180
+    if (!g.times_worn || g.times_worn === 0) {
+      const owned = daysSince(g.created_at)
+      return owned !== null && owned >= 90
+    }
+    const idle = daysSince(g.last_worn)
+    return idle !== null && idle >= 180
   }).slice(0, 5)
 
   const stars = (n: number) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n))
@@ -475,7 +484,13 @@ export default function Stats() {
                 </View>
                 <Text style={styles.vintedSubtitle}>Dessa plagg har inte använts på länge – dags att sälja?</Text>
                 {vintedTips.map(item => {
-                  const daysSince = item.last_worn ? Math.floor((Date.now() - new Date(item.last_worn).getTime()) / 86400000) : null
+                  const idleDays = daysSince(item.last_worn)
+                  const ownedDays = daysSince(item.created_at)
+                  const label = idleDays !== null
+                    ? `Inte använd på ${idleDays} dagar`
+                    : ownedDays !== null
+                      ? `Aldrig använd – i garderoben i ${Math.round(ownedDays / 30)} månader`
+                      : 'Aldrig använd'
                   return (
                     <View key={item.id} style={styles.vintedItem}>
                       {item.image_url
@@ -485,7 +500,7 @@ export default function Stats() {
                       <View style={styles.vintedInfo}>
                         <Text style={styles.vintedItemName}>{item.name}</Text>
                         <Text style={styles.vintedItemCategory}>{item.category}</Text>
-                        <Text style={styles.vintedDays}>{daysSince ? `Inte använd på ${daysSince} dagar` : 'Aldrig använd'}</Text>
+                        <Text style={styles.vintedDays}>{label}</Text>
                       </View>
                       <TouchableOpacity style={styles.vintedButton} onPress={() => markForSale(item)}>
                         <Text style={styles.vintedButtonText}>Sälj</Text>
