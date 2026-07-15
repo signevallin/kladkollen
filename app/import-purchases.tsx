@@ -150,20 +150,33 @@ export default function ImportPurchases() {
         done++
         setAddProgress(`Lägger till ${done}/${chosen.length}…`)
 
-        // Hämta produktbilden och låt AI:n sätta kategori/färg/säsong.
+        // Hämta produktbilden, låt AI:n sätta kategori/färg/säsong och ta
+        // bort bakgrunden – analysen och bakgrundsborttagningen körs parallellt.
         let imageUrl: string | null = null
         let analysis: any = {}
         if (item.imageUrl) {
           const img = await fetchImageBase64(item.imageUrl)
           if (img) {
-            try { analysis = await apiPost('/api/analyze-garment', { base64: img.base64 }) } catch { /* analysen är bonus */ }
+            let uploadBase64 = img.base64
+            let uploadType = img.contentType
+            await Promise.all([
+              (async () => {
+                try { analysis = await apiPost('/api/analyze-garment', { base64: img.base64 }) } catch { /* analysen är bonus */ }
+              })(),
+              (async () => {
+                try {
+                  const data = await apiPost('/api/remove-background', { base64: img.base64 })
+                  if (data.base64) { uploadBase64 = data.base64; uploadType = 'image/png' }
+                } catch { /* misslyckad bakgrundsborttagning → originalbilden används */ }
+              })(),
+            ])
             try {
-              const ext = img.contentType.includes('png') ? 'png' : 'jpg'
+              const ext = uploadType.includes('png') ? 'png' : 'jpg'
               const filePath = `public/${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`
-              const binaryStr = atob(img.base64)
+              const binaryStr = atob(uploadBase64)
               const bytes = new Uint8Array(binaryStr.length)
               for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-              const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: img.contentType, upsert: true })
+              const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: uploadType, upsert: true })
               if (!error) {
                 const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
                 imageUrl = urlData.publicUrl
