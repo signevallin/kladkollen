@@ -2,9 +2,8 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { useLocalSearchParams } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -63,11 +62,15 @@ export default function GarmentDetail() {
   const [lastWorn, setLastWorn] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [newImage, setNewImage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
   const [size, setSize] = useState('')
   const [location, setLocation] = useState('')
   const [archived, setArchived] = useState(false)
   const [sold, setSold] = useState(false)
+
+  // Autospar: alla ändringar sparas automatiskt med kort fördröjning.
+  const [loaded, setLoaded] = useState(false)
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (isWishlistItem) fetchWishlistItem()
@@ -82,6 +85,7 @@ export default function GarmentDetail() {
       setColor(data.color || '')
       setSeasons(data.season ? [data.season] : [])
       setImageUrl(data.image_url)
+      setLoaded(true)
     }
   }
 
@@ -93,8 +97,48 @@ export default function GarmentDetail() {
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
       setSize(data.size || ''); setLocation(data.location || '')
       setArchived(!!data.archived); setSold(!!data.sold)
+      setLoaded(true)
     }
   }
+
+  async function saveFields() {
+    try {
+      if (isWishlistItem) {
+        const { error } = await supabase.from('wishlist').update({
+          name,
+          category: category || null,
+          color: color || null,
+          season: seasons[0] || null,
+        }).eq('id', wishlistId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('garments').update({
+          name, category,
+          subcategory: subcategory || null,
+          season: seasons.join(', '),
+          color,
+          size: size.trim() || null,
+          location: location.trim() || null,
+        }).eq('id', id)
+        if (error) throw error
+      }
+      setSaveState('saved')
+    } catch {
+      setSaveState('error')
+    }
+  }
+
+  // Debounce: spara 700 ms efter senaste ändringen, så vi inte skriver till
+  // databasen mitt i en pågående textinmatning.
+  useEffect(() => {
+    if (!loaded) return
+    // Spara inte bort obligatoriska fält – vänta tills de är ifyllda igen.
+    if (!name.trim() || (!isWishlistItem && !category)) return
+    setSaveState('saving')
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(saveFields, 700)
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
+  }, [name, category, subcategory, color, seasons, size, location])
 
   function toggleSeason(s: string) {
     if (isWishlistItem) {
@@ -110,7 +154,22 @@ export default function GarmentDetail() {
       allowsEditing: true,
       quality: 0.8,
     })
-    if (!result.canceled) setNewImage(result.assets[0].uri)
+    if (result.canceled) return
+    const uri = result.assets[0].uri
+    setNewImage(uri) // visa direkt medan uppladdningen pågår
+    setSaveState('saving')
+    try {
+      const url = await uploadImage(uri)
+      const table = isWishlistItem ? 'wishlist' : 'garments'
+      const rowId = isWishlistItem ? wishlistId : id
+      const { error } = await supabase.from(table).update({ image_url: url }).eq('id', rowId)
+      if (error) throw error
+      setImageUrl(url)
+      setSaveState('saved')
+    } catch (e: any) {
+      setSaveState('error')
+      showAlert('Bilden kunde inte sparas', e.message)
+    }
   }
 
   async function uploadImage(uri: string) {
@@ -123,47 +182,6 @@ export default function GarmentDetail() {
     if (error) throw error
     const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
     return urlData.publicUrl
-  }
-
-  async function saveWishlistChanges() {
-    if (!name) { showAlert('Fyll i ett namn!'); return }
-    setLoading(true)
-    try {
-      let updatedImageUrl = imageUrl
-      if (newImage) updatedImageUrl = await uploadImage(newImage)
-      const { error } = await supabase.from('wishlist').update({
-        name,
-        category: category || null,
-        color: color || null,
-        season: seasons[0] || null,
-        image_url: updatedImageUrl,
-      }).eq('id', wishlistId)
-      if (error) throw error
-      showAlert('Sparat! 🍒')
-      back()
-    } catch (error: any) {
-      showAlert('Något gick fel', error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function saveChanges() {
-    if (isWishlistItem) return saveWishlistChanges()
-    if (!name || !category) { showAlert('Fyll i namn och kategori!'); return }
-    setLoading(true)
-    try {
-      let updatedImageUrl = imageUrl
-      if (newImage) updatedImageUrl = await uploadImage(newImage)
-      const { error } = await supabase.from('garments').update({ name, category, subcategory: subcategory || null, season: seasons.join(', '), color, image_url: updatedImageUrl, size: size.trim() || null, location: location.trim() || null }).eq('id', id)
-      if (error) throw error
-      showAlert('Sparat! 🍒')
-      back()
-    } catch (error: any) {
-      showAlert('Något gick fel', error.message)
-    } finally {
-      setLoading(false)
-    }
   }
 
   async function deleteGarment() {
@@ -224,15 +242,20 @@ export default function GarmentDetail() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={back}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityLabel="Gå tillbaka"
-          accessibilityRole="button"
-        >
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={back}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Gå tillbaka"
+            accessibilityRole="button"
+          >
+            <Text style={styles.backButtonText}>← Tillbaka</Text>
+          </TouchableOpacity>
+          {saveState === 'saving' && <Text style={styles.saveStatus}>Sparar…</Text>}
+          {saveState === 'saved' && <Text style={styles.saveStatus}>Sparat ✓</Text>}
+          {saveState === 'error' && <Text style={[styles.saveStatus, styles.saveStatusError]}>Kunde inte spara – kontrollera nätet</Text>}
+        </View>
 
         {isWishlistItem && (
           <View style={styles.wishlistBadge}>
@@ -372,18 +395,7 @@ export default function GarmentDetail() {
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={saveChanges}
-          disabled={loading}
-          accessibilityLabel="Spara ändringar"
-          accessibilityRole="button"
-        >
-          {loading
-            ? <ActivityIndicator color={t.onPrimary} size="small" />
-            : <Text style={styles.saveButtonText}>Spara 🍒</Text>
-          }
-        </TouchableOpacity>
+        <Text style={styles.autosaveHint}>Ändringar sparas automatiskt 🍒</Text>
 
         {!isWishlistItem && (
           <TouchableOpacity style={styles.archiveButton} onPress={toggleArchive}>
@@ -404,7 +416,7 @@ export default function GarmentDetail() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   scroll: { padding: 24, paddingBottom: 60 },
-  backButton: { marginBottom: 16 },
+  backButton: {},
   backButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
   wishlistBadge: { backgroundColor: t.surfaceMuted, borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: t.surfaceMuted },
   wishlistBadgeText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
@@ -435,8 +447,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wornLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
   wornButton: { backgroundColor: t.primary, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
   wornButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 13 },
-  saveButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
-  saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  saveStatus: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, fontStyle: 'italic' },
+  saveStatusError: { color: t.danger },
+  autosaveHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', textAlign: 'center', marginTop: 8, marginBottom: 12 },
   archiveButton: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border, marginBottom: 12 },
   archiveButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 15 },
   deleteButton: { backgroundColor: 'transparent', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border },
