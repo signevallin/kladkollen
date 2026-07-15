@@ -98,7 +98,10 @@ export default function Stats() {
       .order('created_at', { ascending: true })
     if (!outfits || outfits.length === 0) return
 
-    const withMood = outfits.filter(o => o.mood)
+    // Räkna bara nuvarande kontexter (Jobb/Ledig/Fest). Äldre outfits kan ha
+    // värden från det gamla humör-systemet (Lugn, Power osv) – de hoppas över
+    // här men räknas fortfarande i betygsbaserad statistik (Power Pieces m.m.).
+    const withMood = outfits.filter(o => o.mood && CTX_META[o.mood])
     setHasStyleData(withMood.length > 0 || outfits.some(o => o.rating !== null))
     const rated = outfits.filter(o => o.rating !== null)
     setRatedCount(rated.length)
@@ -175,7 +178,7 @@ export default function Stats() {
       usedGroups.forEach(group => {
         if (!colorGroupRatings[group]) colorGroupRatings[group] = { sum: 0, count: 0 }
         colorGroupRatings[group].sum += o.rating; colorGroupRatings[group].count++
-        if (o.mood) {
+        if (o.mood && CTX_META[o.mood]) {
           const key = `${group}|${o.mood}`
           if (!comboRatings[key]) comboRatings[key] = { sum: 0, count: 0 }
           comboRatings[key].sum += o.rating; comboRatings[key].count++
