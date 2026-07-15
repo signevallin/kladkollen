@@ -25,7 +25,9 @@ import { apiPost } from '../utils/api'
 
 const CONTEXTS = [
   { label: 'Jobb', emoji: '💼', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
+  { label: 'Skola', emoji: '🎒', logic: 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual' },
   { label: 'Ledig', emoji: '🌿', logic: 'casual, bekvämt, avslappnat men snyggt, vardaglig känsla' },
+  { label: 'Date', emoji: '🌹', logic: 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch' },
   { label: 'Fest', emoji: '🪩', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
 ]
 
@@ -51,7 +53,7 @@ export default function Home() {
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
-  const [selectedContext, setSelectedContext] = useState(1) // 0=Jobb, 1=Ledig, 2=Fest
+  const [selectedContext, setSelectedContext] = useState(2) // 0=Jobb, 1=Skola, 2=Ledig, 3=Date, 4=Fest
   const intensity = 3 // Fast: Balanserad
   const [useWeather, setUseWeather] = useState(true)
 
@@ -763,8 +765,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   profileBtnImage: { width: 40, height: 40, borderRadius: 20 },
 
   // Context quick-select
-  contextRow: { flexDirection: 'row', paddingHorizontal: 28, gap: 12, marginBottom: 36 },
-  contextBtn: { flex: 1, borderRadius: 18, paddingVertical: 18, alignItems: 'center', gap: 6, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  contextRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 28, gap: 12, marginBottom: 36 },
+  contextBtn: { flexBasis: '28%', flexGrow: 1, borderRadius: 18, paddingVertical: 18, alignItems: 'center', gap: 6, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   contextBtnSelected: { backgroundColor: t.primary, borderColor: t.border },
   contextEmoji: { fontFamily: 'Lora_400Regular', fontSize: 22, opacity: 0.5 },
   contextEmojiSelected: { opacity: 1 },

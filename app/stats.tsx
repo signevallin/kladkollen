@@ -19,7 +19,9 @@ import { supabase } from '../supabase'
 // sparas på outfits numera – det gamla "humör"-fältet finns inte längre.
 const CTX_META: Record<string, { emoji: string; color: string }> = {
   'Jobb':  { emoji: '💼', color: '#B5896E' },
+  'Skola': { emoji: '🎒', color: '#8B9BB4' },
   'Ledig': { emoji: '🌿', color: '#A8B5A0' },
+  'Date':  { emoji: '🌹', color: '#E8A0B4' },
   'Fest':  { emoji: '🪩', color: '#B57BDB' },
 }
 
@@ -264,7 +266,7 @@ export default function Stats() {
               {moodStats.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Din stilprofil</Text>
-                  <Text style={styles.sectionSubtitle}>Hur ofta du klär dig för jobb, ledigt och fest</Text>
+                  <Text style={styles.sectionSubtitle}>Hur ofta du klär dig för olika tillfällen</Text>
                   {moodStats.map(m => (
                     <View key={m.label} style={styles.moodRow}>
                       <Text style={styles.moodEmoji}>{m.emoji}</Text>
