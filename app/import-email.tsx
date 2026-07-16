@@ -94,19 +94,12 @@ export default function ImportEmail() {
     })
   }
 
+  // Hämtar bilden via server-proxyn (butikers CDN blockerar direkt fetch på webb).
   async function fetchImageBase64(url: string): Promise<{ base64: string; contentType: string } | null> {
     try {
-      const res = await fetch(url)
-      const blob = await res.blob()
-      const dataUrl: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result as string)
-        reader.onerror = reject
-        reader.readAsDataURL(blob)
-      })
-      const base64 = dataUrl.split(',')[1]
-      if (!base64) return null
-      return { base64, contentType: blob.type || 'image/jpeg' }
+      const data = await apiPost('/api/fetch-image', { url })
+      if (!data?.base64) return null
+      return { base64: data.base64, contentType: data.contentType || 'image/jpeg' }
     } catch {
       return null
     }
