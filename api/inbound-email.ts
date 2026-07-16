@@ -51,10 +51,11 @@ export default async function handler(request: Request): Promise<Response> {
     const token = tokenMatch[1].toLowerCase()
 
     const { data: profile } = await admin.from('profiles').select('id').eq('import_token', token).single()
-    if (!profile) return json({ error: 'Okänd import-adress' }, 200)
+    if (!profile) { console.log('[inbound] okänd token', token); return json({ error: 'Okänd import-adress' }, 200) }
     const userId = profile.id
 
     const plain = htmlToTextWithImages(html) || text
+    console.log('[inbound] from=', from.slice(0, 60), 'subject=', subject.slice(0, 60), 'htmlLen=', html.length, 'textLen=', text.length, 'plainLen=', plain.length)
 
     // Specialfall: Gmails bekräftelse när man ställer in vidarebefordran.
     // Måste komma från Googles bekräftelseadress – annars skulle ett
@@ -100,6 +101,7 @@ ${content}`
     const aiText = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 1800)
     const parsed = parseAiJson(aiText)
     const items = Array.isArray(parsed.items) ? parsed.items.slice(0, 40) : []
+    console.log('[inbound] aiItems=', items.length)
     if (items.length === 0) return json({ ok: true, items: 0 })
 
     const rows = items
@@ -117,9 +119,14 @@ ${content}`
       }))
       .filter((r: any) => r.name)
 
-    if (rows.length > 0) await admin.from('pending_imports').insert(rows)
+    if (rows.length > 0) {
+      const { error: insErr } = await admin.from('pending_imports').insert(rows)
+      if (insErr) { console.log('[inbound] insert-fel', insErr.message); return json({ error: insErr.message }, 500) }
+    }
+    console.log('[inbound] sparade', rows.length, 'plagg')
     return json({ ok: true, items: rows.length })
   } catch (e: any) {
+    console.log('[inbound] fel', e.message)
     return json({ error: e.message }, 500)
   }
 }
