@@ -75,6 +75,7 @@ export default function GarmentDetail() {
   // Autospar: alla ändringar sparas automatiskt med kort fördröjning.
   const [loaded, setLoaded] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [saveError, setSaveError] = useState('')
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -134,7 +135,8 @@ export default function GarmentDetail() {
         if (error) throw error
       }
       setSaveState('saved')
-    } catch {
+    } catch (e: any) {
+      setSaveError(e?.message || 'okänt fel')
       setSaveState('error')
     }
   }
@@ -265,7 +267,7 @@ export default function GarmentDetail() {
           </TouchableOpacity>
           {saveState === 'saving' && <Text style={styles.saveStatus}>Sparar…</Text>}
           {saveState === 'saved' && <Text style={styles.saveStatus}>Sparat ✓</Text>}
-          {saveState === 'error' && <Text style={[styles.saveStatus, styles.saveStatusError]}>Kunde inte spara – kontrollera nätet</Text>}
+          {saveState === 'error' && <Text style={[styles.saveStatus, styles.saveStatusError]} numberOfLines={2}>Kunde inte spara: {saveError}</Text>}
         </View>
 
         {isWishlistItem && (
