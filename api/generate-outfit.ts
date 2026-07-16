@@ -20,6 +20,7 @@ export default async function handler(request: Request): Promise<Response> {
     const feedback = clip(body.feedback, 800)
     const groupedList = clip(body.groupedList, 8000)
     const season = clip(body.season, 20)
+    const avoidSongs = clip(body.avoidSongs, 600)
     const retry = body.retry === true
 
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -34,6 +35,9 @@ Kontext: ${contextLabel} – ${contextLogic}
 Intensitet: ${intensity}
 ${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
+VIKTIGT: Anpassa valet TYDLIGT efter kontexten "${contextLabel}". En festoutfit
+ska skilja sig markant från en vardags-/jobboutfit – annan känsla, andra plagg.
+Välj inte samma look oavsett tillfälle.
 ${avoid}${feedback ? `\nSmakprofil:\n${feedback}` : ''}
 ${retryInstruction}
 
@@ -63,14 +67,18 @@ F. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stol
    Om två plagg inte passar färgmässigt, välj hellre ett neutralt alternativ – eller
    hoppa över en valfri accessoar helt om den inte lyfter looken.
 
-Föreslå också EN låt som matchar outfitens känsla och kontexten (t.ex. en powerlåt
-inför ett viktigt möte, något lugnt till en ledig dag). Välj en riktig, känd låt som
-går att hitta på Apple Music.
+Föreslå också EN låt som matchar outfitens känsla och kontexten. Välj en riktig,
+känd låt som går att hitta på Apple Music.
+LÅTREGLER:
+- VARIERA! Fastna inte i självklara klichéer (t.ex. Uptown Funk, Happy, Good as Hell).
+  Överraska gärna – olika artister, genrer och årtionden från gång till gång.
+- Välj en låt som verkligen passar just "${contextLabel}" och looken.
+${avoidSongs ? `- Föreslå INTE någon av dessa nyligen använda låtar: ${avoidSongs}` : ''}
 
 Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 350)
+    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 350, 0.9)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.items)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
     return json(parsed)

@@ -61,13 +61,13 @@ export function parseAiJson(text: string): any {
 }
 
 /** Anropar OpenAI chat completions och returnerar svarstexten. */
-export async function openaiChat(messages: any[], model: string, maxTokens: number): Promise<string> {
+export async function openaiChat(messages: any[], model: string, maxTokens: number, temperature?: number): Promise<string> {
   const key = process.env.OPENAI_API_KEY
   if (!key) throw new Error('OPENAI_API_KEY saknas på servern')
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model, messages, max_tokens: maxTokens }),
+    body: JSON.stringify({ model, messages, max_tokens: maxTokens, ...(temperature != null ? { temperature } : {}) }),
   })
   const data = await res.json()
   if (data.error) throw new Error(data.error.message || 'OpenAI API-fel')

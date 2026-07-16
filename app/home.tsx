@@ -1,5 +1,6 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as Location from 'expo-location'
 import { router, useFocusEffect } from 'expo-router'
@@ -32,6 +33,7 @@ const CONTEXTS = [
 ]
 
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
+const RECENT_SONGS_KEY = 'kladkollen_recent_songs'
 
 export default function Home() {
   const t = useTheme()
@@ -311,6 +313,10 @@ export default function Home() {
       const intensityStr = INTENSITY_LABELS[intensity - 1]
       const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
 
+      // Nyligen föreslagna låtar (sparas lokalt) så AI:n slipper upprepa sig.
+      const recentSongs: string[] = JSON.parse((await AsyncStorage.getItem(RECENT_SONGS_KEY)) || '[]')
+      const avoidSongsStr = recentSongs.slice(0, 20).join(', ')
+
       let parsed: any = null
       let attempts = 0
       const maxAttempts = 3
@@ -327,6 +333,7 @@ export default function Home() {
           feedback: feedbackStr,
           groupedList,
           season,
+          avoidSongs: avoidSongsStr,
           retry: attempts > 1,
         })
 
@@ -351,6 +358,11 @@ export default function Home() {
 
       // Hämta matchande låt + Apple Music-preview (blockerar inte outfiten om det failar)
       if (parsed.song?.title) {
+        // Minns låten så vi undviker upprepning nästa gång (senaste 20).
+        try {
+          const next = [parsed.song.title, ...recentSongs.filter(s => s !== parsed.song.title)].slice(0, 20)
+          await AsyncStorage.setItem(RECENT_SONGS_KEY, JSON.stringify(next))
+        } catch { /* ignorera */ }
         try {
           const { song } = await apiPost('/api/song-preview', { title: parsed.song.title, artist: parsed.song.artist })
           if (song) setOutfit((prev: any) => prev ? { ...prev, song: { ...song, reason: parsed.song.reason } } : prev)

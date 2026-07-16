@@ -40,7 +40,7 @@ export default function SongCard({ song }: { song: SongData }) {
           : <View style={[styles.artwork, styles.artworkEmpty]} />
         }
         <View style={styles.info}>
-          <Text style={styles.title} numberOfLines={1}>{song.title}</Text>
+          <Text style={styles.title} numberOfLines={2}>{song.title}</Text>
           <Text style={styles.artist} numberOfLines={1}>{song.artist}</Text>
         </View>
         {song.previewUrl ? (
