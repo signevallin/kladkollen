@@ -58,15 +58,24 @@ export default function SongCard({ song }: { song: SongData }) {
       {/* Motiveringen på egen rad i full bredd så hela texten syns */}
       {song.reason ? <Text style={styles.reason}>{song.reason}</Text> : null}
 
-      {song.appleMusicUrl ? (
+      <View style={styles.links}>
         <TouchableOpacity
-          onPress={() => Linking.openURL(song.appleMusicUrl!)}
-          accessibilityLabel="Öppna i Apple Music"
+          onPress={() => Linking.openURL(`https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`)}
+          accessibilityLabel="Öppna i Spotify"
           accessibilityRole="link"
         >
-          <Text style={styles.appleLink}>Öppna i Apple Music ↗</Text>
+          <Text style={styles.link}>Öppna i Spotify ↗</Text>
         </TouchableOpacity>
-      ) : null}
+        {song.appleMusicUrl ? (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(song.appleMusicUrl!)}
+            accessibilityLabel="Öppna i Apple Music"
+            accessibilityRole="link"
+          >
+            <Text style={styles.link}>Öppna i Apple Music ↗</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   )
 }
@@ -82,5 +91,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   artist: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
   reason: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, fontStyle: 'italic', lineHeight: 19 },
   playBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  appleLink: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary, textDecorationLine: 'underline' },
+  links: { flexDirection: 'row', flexWrap: 'wrap', gap: 18 },
+  link: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary, textDecorationLine: 'underline' },
 })
