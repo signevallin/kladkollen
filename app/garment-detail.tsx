@@ -12,9 +12,11 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import BrandInput from '../components/BrandInput'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
+import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
@@ -64,6 +66,9 @@ export default function GarmentDetail() {
   const [newImage, setNewImage] = useState<string | null>(null)
   const [size, setSize] = useState('')
   const [location, setLocation] = useState('')
+  const [brand, setBrand] = useState('')
+  const [price, setPrice] = useState('')
+  const [ownBrands, setOwnBrands] = useState<string[]>([])
   const [archived, setArchived] = useState(false)
   const [sold, setSold] = useState(false)
 
@@ -96,9 +101,13 @@ export default function GarmentDetail() {
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
       setSize(data.size || ''); setLocation(data.location || '')
+      setBrand(data.brand || ''); setPrice(data.price != null ? String(data.price) : '')
       setArchived(!!data.archived); setSold(!!data.sold)
       setLoaded(true)
     }
+    // Egna märken för autocomplete
+    const { data: all } = await supabase.from('garments').select('brand')
+    if (all) setOwnBrands([...new Set(all.map((g: any) => g.brand).filter(Boolean))] as string[])
   }
 
   async function saveFields() {
@@ -119,6 +128,8 @@ export default function GarmentDetail() {
           color,
           size: size.trim() || null,
           location: location.trim() || null,
+          brand: brand.trim() || null,
+          price: parsePrice(price),
         }).eq('id', id)
         if (error) throw error
       }
@@ -138,7 +149,7 @@ export default function GarmentDetail() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [name, category, subcategory, color, seasons, size, location])
+  }, [name, category, subcategory, color, seasons, size, location, brand, price])
 
   function toggleSeason(s: string) {
     if (isWishlistItem) {
@@ -378,6 +389,19 @@ export default function GarmentDetail() {
               placeholderTextColor={t.placeholder}
               value={LOCATIONS.includes(location) ? '' : location}
               onChangeText={setLocation}
+            />
+
+            <Text style={styles.label}>Märke</Text>
+            <BrandInput value={brand} onChange={setBrand} ownBrands={ownBrands} />
+
+            <Text style={styles.label}>Pris (kr)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="t.ex. 299"
+              placeholderTextColor={t.placeholder}
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
             />
           </>
         )}

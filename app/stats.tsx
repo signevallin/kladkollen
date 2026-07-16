@@ -15,6 +15,7 @@ import Svg, { Circle, G } from 'react-native-svg'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
+import { normalizeBrand } from '../utils/brands'
 
 // Donut-diagram över garderobens färger. Ritar varje färg som ett segment
 // med strokeDasharray – börjar högst upp (roterad -90°).
@@ -292,6 +293,29 @@ export default function Stats() {
   })()
   const colorTotal = colorBreakdown.reduce((s, c) => s + c.count, 0) || 1
 
+  // Märkesfördelning – slår ihop stavningsvarianter, visar vanligaste stavningen.
+  const brandBreakdown = (() => {
+    const groups: Record<string, { count: number; spellings: Record<string, number> }> = {}
+    garments.forEach(g => {
+      if (!g.brand) return
+      const key = normalizeBrand(g.brand)
+      if (!groups[key]) groups[key] = { count: 0, spellings: {} }
+      groups[key].count++
+      groups[key].spellings[g.brand] = (groups[key].spellings[g.brand] || 0) + 1
+    })
+    return Object.values(groups)
+      .map(gr => ({ name: Object.entries(gr.spellings).sort((a, b) => b[1] - a[1])[0][0], count: gr.count }))
+      .sort((a, b) => b.count - a.count).slice(0, 8)
+  })()
+  const maxBrandCount = brandBreakdown[0]?.count || 1
+
+  // Kostnad per användning – dyrast per burning först (bär mer eller sälj).
+  const priced = garments.filter(g => g.price != null && g.price > 0)
+  const totalValue = priced.reduce((s, g) => s + Number(g.price), 0)
+  const costPerWear = priced
+    .map(g => ({ name: g.name, image_url: g.image_url, cpw: Math.round(Number(g.price) / Math.max(1, g.times_worn || 0)) }))
+    .sort((a, b) => b.cpw - a.cpw).slice(0, 5)
+
   return (
     <SafeAreaView style={styles.container}>
 
@@ -500,6 +524,53 @@ export default function Stats() {
                     ))}
                   </View>
                 </View>
+              </View>
+            )}
+
+            {brandBreakdown.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Dina märken</Text>
+                <Text style={styles.sectionSubtitle}>Antal plagg per märke</Text>
+                {brandBreakdown.map(b => (
+                  <View key={b.name} style={styles.barRow}>
+                    <View style={styles.barInfo}>
+                      <View style={styles.barLabelRow}>
+                        <Text style={styles.barName}>{b.name}</Text>
+                        <Text style={styles.barCount}>{b.count}</Text>
+                      </View>
+                      <View style={styles.barTrack}>
+                        <View style={[styles.barFill, { width: `${(b.count / maxBrandCount) * 100}%` }]} />
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {totalValue > 0 && (
+              <View style={styles.section}>
+                <View style={styles.usageCard}>
+                  <Text style={styles.usagePercent}>{totalValue.toLocaleString('sv-SE')} kr</Text>
+                  <Text style={styles.usageLabel}>uppskattat värde på din garderob (av plagg med pris)</Text>
+                </View>
+                {costPerWear.length > 0 && (
+                  <>
+                    <Text style={[styles.sectionTitle, { marginTop: 4 }]}>Kostnad per användning</Text>
+                    <Text style={styles.sectionSubtitle}>Högst först – bär mer eller överväg att sälja</Text>
+                    {costPerWear.map((item, i) => (
+                      <View key={item.name + i} style={styles.pieceRow}>
+                        {item.image_url
+                          ? <SignedImage path={item.image_url} style={styles.pieceImage} />
+                          : <View style={styles.pieceImageEmpty} />
+                        }
+                        <View style={styles.pieceInfo}>
+                          <Text style={styles.pieceName} numberOfLines={1}>{item.name}</Text>
+                          <Text style={styles.pieceRating}>{item.cpw} kr / användning</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </>
+                )}
               </View>
             )}
 

@@ -16,6 +16,7 @@ import {
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
+import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 
 // Domänen där import-adresserna tas emot. Ligger på Elairis (företaget) så den
@@ -150,6 +151,8 @@ export default function ImportEmail() {
           category: p.category || '',
           color: p.color || '',
           season: p.season || 'Alla årstider',
+          brand: p.brand || null,
+          price: parsePrice(p.price),
           image_url: imageUrl,
         }])
       }

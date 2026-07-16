@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { router } from 'expo-router'
 import { goBack } from '../utils/nav'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -17,8 +17,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import BrandInput from '../components/BrandInput'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
+import { parsePrice } from '../utils/brands'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SUBCATEGORIES: Record<string, string[]> = {
@@ -79,6 +81,8 @@ type GarmentDraft = {
   color: string
   seasons: string[]
   size: string
+  brand: string
+  price: string
   analyzing: boolean
   removingBg: boolean
 }
@@ -90,6 +94,13 @@ export default function AddGarment() {
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])
   const [saving, setSaving] = useState(false)
   const [bgError, setBgError] = useState<string | null>(null)
+  const [ownBrands, setOwnBrands] = useState<string[]>([])
+
+  useEffect(() => {
+    supabase.from('garments').select('brand').then(({ data }) => {
+      if (data) setOwnBrands([...new Set(data.map((g: any) => g.brand).filter(Boolean))] as string[])
+    })
+  }, [])
 
   async function pickImages() {
     setBgError(null)
@@ -112,6 +123,8 @@ export default function AddGarment() {
       color: '',
       seasons: [],
       size: '',
+      brand: '',
+      price: '',
       analyzing: true,
       removingBg: true,
     }))
@@ -245,6 +258,8 @@ export default function AddGarment() {
           color: draft.color,
           season: draft.seasons.join(', '),
           size: draft.size.trim() || null,
+          brand: draft.brand.trim() || null,
+          price: parsePrice(draft.price),
           image_url: imageUrl,
         }])
       }
@@ -430,6 +445,21 @@ export default function AddGarment() {
                     placeholderTextColor={t.placeholder}
                     value={SIZES.includes(draft.size) ? '' : draft.size}
                     onChangeText={v => updateDraft(draft.id, 'size', v)}
+                  />
+
+                  {/* Brand */}
+                  <Text style={styles.cardLabel}>MÄRKE (VALFRITT)</Text>
+                  <BrandInput value={draft.brand} onChange={v => updateDraft(draft.id, 'brand', v)} ownBrands={ownBrands} />
+
+                  {/* Price */}
+                  <Text style={styles.cardLabel}>PRIS I KR (VALFRITT)</Text>
+                  <TextInput
+                    style={styles.sizeInput}
+                    placeholder="t.ex. 299"
+                    placeholderTextColor={t.placeholder}
+                    value={draft.price}
+                    onChangeText={v => updateDraft(draft.id, 'price', v)}
+                    keyboardType="numeric"
                   />
                 </>
               )}
