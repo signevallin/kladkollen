@@ -57,8 +57,10 @@ export default async function handler(request: Request): Promise<Response> {
     const plain = htmlToTextWithImages(html) || text
 
     // Specialfall: Gmails bekräftelse när man ställer in vidarebefordran.
-    // Spara koden så användaren kan läsa den i appen och slutföra kopplingen.
-    if (/forwarding-noreply@google\.com/i.test(from) || /vidarebefordr|forwarding/i.test(subject)) {
+    // Måste komma från Googles bekräftelseadress – annars skulle ett
+    // vidarebefordrat kvitto (som har "Vidarebefordrat" i ämnet) feltolkas
+    // som en bekräftelse och aldrig parsas.
+    if (/forwarding-noreply@google\.com/i.test(from)) {
       const code = (plain.match(/\b(\d{6,9})\b/) || [])[1] || null
       // Googles bekräftelselänk (innehåller "vf-") – klicka den = verifierat.
       const rawLink = (`${html} ${text}`.match(/https?:\/\/[^\s"'<>()]*vf-[^\s"'<>()]+/i) || [])[0] || null
