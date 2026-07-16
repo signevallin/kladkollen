@@ -1,8 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as Clipboard from 'expo-clipboard'
-import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Image,
@@ -47,13 +46,17 @@ export default function ImportEmail() {
   const [adding, setAdding] = useState(false)
   const [addProgress, setAddProgress] = useState('')
 
-  // Auto-uppdatera var 6:e sekund medan skärmen är öppen, så bekräftelsekoden
-  // och nya importer dyker upp utan att man behöver gå ut och in.
-  useFocusEffect(useCallback(() => {
+  // Kända id:n så vi kan förbocka nya rader utan att röra befintliga val.
+  const knownIds = useRef<Set<string>>(new Set())
+
+  // Ladda direkt vid mount och sedan var 6:e sekund, så bekräftelsekoden och
+  // nya importer dyker upp automatiskt. (useEffect kör tillförlitligt på webben,
+  // till skillnad från useFocusEffect.)
+  useEffect(() => {
     load()
     const timer = setInterval(load, 6000)
     return () => clearInterval(timer)
-  }, []))
+  }, [])
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -64,16 +67,10 @@ export default function ImportEmail() {
     setForwardLink(profile?.forward_link || null)
     const { data } = await supabase.from('pending_imports').select('*').order('created_at', { ascending: false })
     if (data) {
-      setPending(prev => {
-        // Behåll bockningarna men markera nya rader.
-        const known = new Set(prev.map(p => p.id))
-        setSelected(sel => {
-          const next = new Set(sel)
-          data.forEach((d: any) => { if (!known.has(d.id)) next.add(d.id) })
-          return next
-        })
-        return data
-      })
+      setPending(data)
+      const newIds = data.filter((d: any) => !knownIds.current.has(d.id)).map((d: any) => d.id)
+      if (newIds.length > 0) setSelected(sel => { const next = new Set(sel); newIds.forEach(id => next.add(id)); return next })
+      knownIds.current = new Set(data.map((d: any) => d.id))
     }
     setLoading(false)
   }
