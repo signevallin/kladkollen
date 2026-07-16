@@ -419,10 +419,10 @@ function isPast(date: Date) {
                     {dayDetailEntry.outfits?.garment_names && (
                       <Text style={styles.dayDetailGarments}>{dayDetailEntry.outfits.garment_names.join(' · ')}</Text>
                     )}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }}>
-                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <ScrollView showsVerticalScrollIndicator={false} style={{ marginVertical: 12, maxHeight: 360 }}>
+                      <View style={styles.dayDetailGrid}>
                         {(dayDetailEntry.outfits?.image_urls || []).map((url: string, i: number) => (
-                          <SignedImage key={i} path={url} style={styles.dayDetailImage} />
+                          <SignedImage key={i} path={url} style={styles.dayDetailImage} resizeMode="contain" />
                         ))}
                       </View>
                     </ScrollView>
@@ -699,7 +699,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   // Day detail modal
   dayDetailOutfitName: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary, marginBottom: 4 },
   dayDetailGarments: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
-  dayDetailImage: { width: 90, height: 90, borderRadius: 14 },
+  dayDetailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
+  dayDetailImage: { width: '31%', aspectRatio: 1, borderRadius: 14 },
   dayDetailActions: { flexDirection: 'row', gap: 10, marginTop: 8 },
   dayDetailChangeBtn: { flex: 1, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: t.border },
   dayDetailChangeBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 14 },
