@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons'
 import { useTheme, useThemeControl } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
@@ -278,9 +279,9 @@ export default function Profile() {
         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel="Byt profilbild" accessibilityRole="button">
           {avatar
             ? <SignedImage path={avatar} style={styles.avatar} resizeMode="cover" />
-            : <View style={styles.avatarPlaceholder} />
+            : <View style={styles.avatarPlaceholder}><MaterialIcons name="person" size={44} color={t.textSecondary} /></View>
           }
-          <View style={styles.avatarBadge} />
+          <View style={styles.avatarBadge}><MaterialIcons name="photo-camera" size={16} color={t.onPrimary} /></View>
         </TouchableOpacity>
 
         {/* Flikar */}
@@ -641,6 +642,12 @@ export default function Profile() {
           ))}
         </View>
 
+        <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/locations')}>
+          <MaterialIcons name="place" size={20} color={t.textSecondary} />
+          <Text style={styles.linkRowText}>Egna platser</Text>
+          <MaterialIcons name="chevron-right" size={22} color={t.textSecondary} />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
           <Text style={styles.signOutText}>Logga ut</Text>
         </TouchableOpacity>
@@ -777,6 +784,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   themeOptionActive: { backgroundColor: t.primary, borderColor: t.primary },
   themeOptionText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
   themeOptionTextActive: { color: t.onPrimary },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+  linkRowText: { flex: 1, fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   signOutButton: { borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border },
   signOutText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 16 },
   deleteAccountButton: { marginTop: 12, padding: 12, alignItems: 'center' },

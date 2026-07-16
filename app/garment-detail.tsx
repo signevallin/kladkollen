@@ -14,10 +14,12 @@ import {
 } from 'react-native'
 import BrandInput from '../components/BrandInput'
 import SignedImage from '../components/SignedImage'
+import { router } from 'expo-router'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
+import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
@@ -46,7 +48,6 @@ const COLORS = [
 ]
 const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
-const LOCATIONS = ['Garderoben', 'Källaren', 'Vinden', 'Förrådet', 'Utlånad']
 
 export default function GarmentDetail() {
   const t = useTheme()
@@ -70,6 +71,7 @@ export default function GarmentDetail() {
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
   const [ownBrands, setOwnBrands] = useState<string[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
   const [archived, setArchived] = useState(false)
   const [sold, setSold] = useState(false)
 
@@ -110,6 +112,8 @@ export default function GarmentDetail() {
     // Egna märken för autocomplete
     const { data: all } = await supabase.from('garments').select('brand')
     if (all) setOwnBrands([...new Set(all.map((g: any) => g.brand).filter(Boolean))] as string[])
+    // Egna platser (för att välja plats + avgöra arkiv)
+    setLocations(await fetchLocations())
   }
 
   async function saveFields() {
@@ -123,6 +127,10 @@ export default function GarmentDetail() {
         }).eq('id', wishlistId)
         if (error) throw error
       } else {
+        // Platsen avgör arkivstatus: ligger plagget på en arkiv-plats (t.ex.
+        // källaren) räknas det som arkiverat. Okänd/tom plats behåller nuvarande.
+        const matchedLoc = locations.find(l => l.name === location)
+        const archivedVal = matchedLoc ? matchedLoc.is_archive : archived
         const { error } = await supabase.from('garments').update({
           name, category,
           subcategory: subcategory || null,
@@ -132,6 +140,8 @@ export default function GarmentDetail() {
           location: location.trim() || null,
           brand: brand.trim() || null,
           price: parsePrice(price),
+          archived: archivedVal,
+          ...(archivedVal ? {} : { sold: false }),
         }).eq('id', id)
         if (error) throw error
       }
@@ -153,6 +163,12 @@ export default function GarmentDetail() {
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
   }, [name, category, subcategory, color, seasons, size, location, brand, price])
+
+  // Håll arkiv-badgen i synk med vald plats.
+  useEffect(() => {
+    const matched = locations.find(l => l.name === location)
+    if (matched) setArchived(matched.is_archive)
+  }, [location, locations])
 
   function toggleSeason(s: string) {
     if (isWishlistItem) {
@@ -236,27 +252,24 @@ export default function GarmentDetail() {
     }, 'Ta bort', true)
   }
 
+  // Arkiv styrs av platsen: att arkivera = flytta plagget till en arkiv-plats,
+  // att ta tillbaka = flytta till en vanlig plats. Autospar sätter archived.
   async function toggleArchive() {
     if (!archived) {
+      const archiveLoc = locations.find(l => l.is_archive)
+      if (!archiveLoc) {
+        showAlert('Ingen arkiv-plats', 'Skapa först en plats markerad som Arkiv (t.ex. Källaren) under Min profil → Egna platser.')
+        return
+      }
       showConfirm(
         'Arkivera plagg',
-        `"${name}" flyttas till arkivet och föreslås inte i outfits. Perfekt för plagg som inte passar just nu eller är undanpackade. Ange gärna plats så du vet var det finns!`,
-        async () => {
-          const { error } = await supabase.from('garments').update({
-            archived: true,
-            for_sale: false,
-            size: size.trim() || null,
-            location: location.trim() || null,
-          }).eq('id', id)
-          if (error) showAlert('Något gick fel', error.message)
-          else { setArchived(true); showAlert('Arkiverat!', location ? `Plagget finns: ${location}` : 'Tips: ange plats så du hittar det sen.') }
-        },
+        `"${name}" flyttas till ${archiveLoc.name} (arkiv) och föreslås inte i outfits.`,
+        () => setLocation(archiveLoc.name),
         'Arkivera'
       )
     } else {
-      const { error } = await supabase.from('garments').update({ archived: false, sold: false }).eq('id', id)
-      if (error) showAlert('Något gick fel', error.message)
-      else { setArchived(false); setSold(false); showAlert('Välkommen tillbaka!', `${name} är nu i garderoben igen.`) }
+      const homeLoc = locations.find(l => !l.is_archive)
+      setLocation(homeLoc ? homeLoc.name : 'Garderoben')
     }
   }
 
@@ -401,21 +414,19 @@ export default function GarmentDetail() {
               onChangeText={setSize}
             />
 
-            <Text style={styles.label}>Var finns plagget?</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Var finns plagget?</Text>
+              <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.manageLink}>Hantera platser</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.pills}>
-              {LOCATIONS.map((l) => (
-                <TouchableOpacity key={l} style={[styles.pill, location === l && styles.pillActive]} onPress={() => setLocation(location === l ? '' : l)}>
-                  <Text style={[styles.pillText, location === l && styles.pillTextActive]}>{l}</Text>
+              {locations.map((l) => (
+                <TouchableOpacity key={l.id} style={[styles.pill, location === l.name && styles.pillActive]} onPress={() => setLocation(location === l.name ? '' : l.name)}>
+                  <Text style={[styles.pillText, location === l.name && styles.pillTextActive]}>{l.name}{l.is_archive ? ' (arkiv)' : ''}</Text>
                 </TouchableOpacity>
               ))}
             </View>
-            <TextInput
-              style={styles.input}
-              placeholder="Egen plats, t.ex. Flyttlåda 3 hos mamma"
-              placeholderTextColor={t.placeholder}
-              value={LOCATIONS.includes(location) ? '' : location}
-              onChangeText={setLocation}
-            />
 
             <Text style={styles.label}>Märke</Text>
             <BrandInput value={brand} onChange={setBrand} ownBrands={ownBrands} />
@@ -480,6 +491,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
   imageOverlayText: { fontFamily: 'Lora_500Medium', color: t.onPrimary, fontSize: 12 },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  manageLink: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 12, textDecorationLine: 'underline' },
   input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginBottom: 16 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
