@@ -1,7 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 
-import { Ionicons } from '@expo/vector-icons'
+import { MaterialIcons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useState } from 'react'
@@ -54,6 +54,7 @@ export default function Wardrobe() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
   const [showSearch, setShowSearch] = useState(false)
+  const [showFilterPanel, setShowFilterPanel] = useState(false)
   const [sortBy, setSortBy] = useState('recent')
   const [showArchive, setShowArchive] = useState(false)
 
@@ -521,7 +522,17 @@ export default function Wardrobe() {
               accessibilityLabel="Sök"
               accessibilityRole="button"
             >
-              <Ionicons name="search" size={18} color={showSearch ? t.onPrimary : t.textPrimary} />
+              <MaterialIcons name="search" size={22} color={showSearch ? t.onPrimary : t.textPrimary} />
+            </TouchableOpacity>
+          )}
+          {activeTab === 'nuvarande' && (
+            <TouchableOpacity
+              style={[styles.iconBtn, (showFilterPanel || hasActiveFilters || sortBy !== 'recent') && styles.iconBtnActive]}
+              onPress={() => { setShowFilterPanel(s => !s); setOpenDropdown(null) }}
+              accessibilityLabel="Filter och sortering"
+              accessibilityRole="button"
+            >
+              <MaterialIcons name="tune" size={20} color={(showFilterPanel || hasActiveFilters || sortBy !== 'recent') ? t.onPrimary : t.textPrimary} />
             </TouchableOpacity>
           )}
           {activeTab === 'nuvarande' && (
@@ -579,7 +590,7 @@ export default function Wardrobe() {
         <>
           {showSearch && (
             <View style={styles.searchContainer}>
-              <Ionicons name="search" size={16} color={t.textSecondary} style={{ marginRight: 8 }} />
+              <MaterialIcons name="search" size={18} color={t.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Sök plagg eller färg..."
@@ -596,6 +607,8 @@ export default function Wardrobe() {
             </View>
           )}
 
+          {showFilterPanel && (
+          <>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRow}>
             {[
               { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
@@ -649,6 +662,8 @@ export default function Wardrobe() {
                 </View>
               </ScrollView>
             </View>
+          )}
+          </>
           )}
           <FlatList
             key="garments-grid"
