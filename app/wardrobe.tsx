@@ -522,7 +522,7 @@ export default function Wardrobe() {
               accessibilityLabel="Sök"
               accessibilityRole="button"
             >
-              <MaterialIcons name="search" size={22} color={showSearch ? t.onPrimary : t.textPrimary} />
+              <MaterialIcons name="search" size={22} color={t.onPrimary} />
             </TouchableOpacity>
           )}
           {activeTab === 'nuvarande' && (
@@ -532,7 +532,7 @@ export default function Wardrobe() {
               accessibilityLabel="Filter och sortering"
               accessibilityRole="button"
             >
-              <MaterialIcons name="tune" size={20} color={(showFilterPanel || hasActiveFilters || sortBy !== 'recent') ? t.onPrimary : t.textPrimary} />
+              <MaterialIcons name="tune" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
           {activeTab === 'nuvarande' && (
@@ -998,7 +998,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnActive: { backgroundColor: '#7A1828', borderColor: t.primary },
-  iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16 },
+  iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.onPrimary },
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   tabActive: { backgroundColor: t.primary, borderColor: t.primary },
