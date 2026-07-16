@@ -28,6 +28,7 @@ const CONTEXTS = [
   { label: 'Jobb', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
   { label: 'Skola', logic: 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual' },
   { label: 'Ledig', logic: 'casual, bekvämt, avslappnat men snyggt, vardaglig känsla' },
+  { label: 'Aktiv', logic: 'sportigt och funktionellt, athleisure, rörelsevänligt, bekväma tekniska material och sneakers – passar promenad och träning' },
   { label: 'Date', logic: 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch' },
   { label: 'Fest', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
 ]
@@ -55,7 +56,7 @@ export default function Home() {
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
-  const [selectedContext, setSelectedContext] = useState(2) // 0=Jobb, 1=Skola, 2=Ledig, 3=Date, 4=Fest
+  const [selectedContext, setSelectedContext] = useState(2) // 0=Jobb, 1=Skola, 2=Ledig, 3=Aktiv, 4=Date, 5=Fest
   const intensity = 3 // Fast: Balanserad
   const [useWeather, setUseWeather] = useState(true)
 

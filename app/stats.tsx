@@ -52,6 +52,7 @@ const CTX_META: Record<string, { emoji: string; color: string }> = {
   'Jobb':  { emoji: '', color: '#B5896E' },
   'Skola': { emoji: '', color: '#8B9BB4' },
   'Ledig': { emoji: '', color: '#A8B5A0' },
+  'Aktiv': { emoji: '', color: '#6FA8A0' },
   'Date':  { emoji: '', color: '#E8A0B4' },
   'Fest':  { emoji: '', color: '#B57BDB' },
 }
