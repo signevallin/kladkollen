@@ -37,6 +37,14 @@ const COLOR_EMOJIS: Record<string, string> = {
   'Varmt & kraftfullt': '', 'Svalt & lugnt': '', 'Romantiskt': '',
 }
 
+// Färgprickarnas hex – speglar färgvalen i Lägg till plagg.
+const COLOR_HEX: Record<string, string> = {
+  'Svart': '#1A1A1A', 'Vit': '#F5F5F5', 'Grå': '#9E9E9E', 'Beige': '#D4B896',
+  'Brun': '#795548', 'Röd': '#E53935', 'Rosa': '#EC407A', 'Lila': '#8E24AA',
+  'Blå': '#1E88E5', 'Ljusblå': '#81D4FA', 'Grön': '#43A047', 'Olivgrön': '#708238',
+  'Gul': '#FDD835', 'Orange': '#FB8C00', 'Vinröd': '#7B2D3A', 'Guld': '#C9A96E',
+}
+
 interface MoodStat {
   label: string; emoji: string; color: string
   count: number; pct: number; avgRating: number | null
@@ -244,6 +252,16 @@ export default function Stats() {
   const stars = (n: number) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n))
   const maxColorRating = colorInsights[0]?.avgRating || 5
 
+  // Färgfördelning i garderoben – antal plagg per färg, mest först.
+  const colorBreakdown = (() => {
+    const counts: Record<string, number> = {}
+    garments.forEach(g => { if (g.color) counts[g.color] = (counts[g.color] || 0) + 1 })
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count, hex: COLOR_HEX[name] || '#B5896E' }))
+      .sort((a, b) => b.count - a.count)
+  })()
+  const maxColorCount = colorBreakdown[0]?.count || 1
+
   return (
     <SafeAreaView style={styles.container}>
 
@@ -436,6 +454,27 @@ export default function Stats() {
               <Text style={styles.usageLabel}>av din garderob används aktivt</Text>
             </View>
 
+            {colorBreakdown.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Din garderobs färger</Text>
+                <Text style={styles.sectionSubtitle}>Så här fördelar sig färgerna i din garderob</Text>
+                {colorBreakdown.map(c => (
+                  <View key={c.name} style={styles.colorRow}>
+                    <View style={[styles.colorSwatch, { backgroundColor: c.hex }]} />
+                    <View style={styles.colorInfo}>
+                      <View style={styles.colorLabelRow}>
+                        <Text style={styles.colorName}>{c.name}</Text>
+                        <Text style={styles.colorCount}>{c.count} plagg</Text>
+                      </View>
+                      <View style={styles.barTrack}>
+                        <View style={[styles.barFill, { width: `${(c.count / maxColorCount) * 100}%`, backgroundColor: c.hex }]} />
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
             {mostWorn.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Mest använda plagg</Text>
@@ -577,6 +616,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   colorLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
   colorName: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textPrimary },
   colorRating: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#F5C842' },
+  colorSwatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: t.border },
+  colorCount: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
 
   horizontalList: { flexDirection: 'row', gap: 10, paddingBottom: 4 },
   neverItem: { width: 80, alignItems: 'center', gap: 5 },
