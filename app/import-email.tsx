@@ -6,6 +6,7 @@ import { useCallback, useState } from 'react'
 import {
   ActivityIndicator,
   Image,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -39,6 +40,7 @@ export default function ImportEmail() {
   const styles = makeStyles(t)
   const [token, setToken] = useState<string | null>(null)
   const [forwardCode, setForwardCode] = useState<string | null>(null)
+  const [forwardLink, setForwardLink] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
@@ -56,9 +58,10 @@ export default function ImportEmail() {
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data: profile } = await supabase.from('profiles').select('import_token, forward_code').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('import_token, forward_code, forward_link').eq('id', user.id).single()
     setToken(profile?.import_token || null)
     setForwardCode(profile?.forward_code || null)
+    setForwardLink(profile?.forward_link || null)
     const { data } = await supabase.from('pending_imports').select('*').order('created_at', { ascending: false })
     if (data) {
       setPending(prev => {
@@ -196,11 +199,20 @@ export default function ImportEmail() {
               </TouchableOpacity>
             </View>
 
-            {forwardCode && (
+            {(forwardCode || forwardLink) && (
               <View style={styles.codeCard}>
-                <Text style={styles.codeLabel}>Bekräftelsekod från Gmail</Text>
-                <Text style={styles.code}>{forwardCode}</Text>
-                <Text style={styles.codeHint}>Klistra in denna i Gmail för att bekräfta vidarebefordran.</Text>
+                <Text style={styles.codeLabel}>Bekräfta vidarebefordran från Gmail</Text>
+                {forwardLink ? (
+                  <>
+                    <TouchableOpacity style={styles.confirmBtn} onPress={() => Linking.openURL(forwardLink)}>
+                      <Text style={styles.confirmBtnText}>Bekräfta i Gmail</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.codeHint}>Öppnar Googles bekräftelselänk. Var inloggad på rätt Google-konto.</Text>
+                  </>
+                ) : null}
+                {forwardCode ? (
+                  <Text style={styles.codeHintSmall}>Eller ange koden i Gmail: <Text style={styles.code}>{forwardCode}</Text></Text>
+                ) : null}
               </View>
             )}
 
@@ -285,8 +297,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   codeCard: { backgroundColor: t.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: t.primary, marginBottom: 12, alignItems: 'center' },
   codeLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary },
-  code: { fontFamily: 'Poppins_700Bold', fontSize: 30, color: t.textPrimary, letterSpacing: 3, marginVertical: 4 },
-  codeHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, textAlign: 'center' },
+  code: { fontFamily: 'Poppins_700Bold', fontSize: 16, color: t.textPrimary, letterSpacing: 1 },
+  codeHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, textAlign: 'center', marginTop: 6 },
+  codeHintSmall: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, textAlign: 'center', marginTop: 10 },
+  confirmBtn: { backgroundColor: t.primary, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 20, marginTop: 8, alignSelf: 'stretch', alignItems: 'center' },
+  confirmBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
 
   stepsCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: t.border, marginBottom: 24, gap: 8 },
   stepsTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, marginBottom: 4 },

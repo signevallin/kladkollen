@@ -59,9 +59,12 @@ export default async function handler(request: Request): Promise<Response> {
     // Specialfall: Gmails bekräftelse när man ställer in vidarebefordran.
     // Spara koden så användaren kan läsa den i appen och slutföra kopplingen.
     if (/forwarding-noreply@google\.com/i.test(from) || /vidarebefordr|forwarding/i.test(subject)) {
-      const code = (plain.match(/\b(\d{6,9})\b/) || [])[1]
-      if (code) {
-        await admin.from('profiles').update({ forward_code: code }).eq('id', userId)
+      const code = (plain.match(/\b(\d{6,9})\b/) || [])[1] || null
+      // Googles bekräftelselänk (innehåller "vf-") – klicka den = verifierat.
+      const rawLink = (`${html} ${text}`.match(/https?:\/\/[^\s"'<>()]*vf-[^\s"'<>()]+/i) || [])[0] || null
+      const link = rawLink ? rawLink.replace(/&amp;/gi, '&') : null
+      if (code || link) {
+        await admin.from('profiles').update({ forward_code: code, forward_link: link }).eq('id', userId)
         return json({ ok: true, confirmation: true })
       }
     }

@@ -9,8 +9,9 @@ update profiles
 alter table profiles alter column import_token set default substr(replace(gen_random_uuid()::text, '-', ''), 1, 16);
 create unique index if not exists profiles_import_token_key on profiles (import_token);
 
--- 2) Senaste Gmail-vidarebefordringskod (visas i appen vid verifiering av adressen)
+-- 2) Senaste Gmail-vidarebefordringskod + bekräftelselänk (visas i appen)
 alter table profiles add column if not exists forward_code text;
+alter table profiles add column if not exists forward_link text;
 
 -- 3) Väntande importer – plagg som AI:n plockat ur inkommande mejl, väntar på granskning
 create table if not exists pending_imports (
