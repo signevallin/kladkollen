@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
   ActivityIndicator,
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
   View,
 } from 'react-native'
 import { supabase } from '../supabase'
+import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 
@@ -28,6 +30,7 @@ type Pending = {
   category: string | null
   color: string | null
   season: string | null
+  image_url: string | null
 }
 
 export default function ImportEmail() {
@@ -39,6 +42,7 @@ export default function ImportEmail() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
+  const [addProgress, setAddProgress] = useState('')
 
   useFocusEffect(useCallback(() => { load() }, []))
 
@@ -73,6 +77,24 @@ export default function ImportEmail() {
     })
   }
 
+  async function fetchImageBase64(url: string): Promise<{ base64: string; contentType: string } | null> {
+    try {
+      const res = await fetch(url)
+      const blob = await res.blob()
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
+      const base64 = dataUrl.split(',')[1]
+      if (!base64) return null
+      return { base64, contentType: blob.type || 'image/jpeg' }
+    } catch {
+      return null
+    }
+  }
+
   async function addSelected() {
     const chosen = pending.filter(p => selected.has(p.id))
     if (chosen.length === 0) return
@@ -80,23 +102,56 @@ export default function ImportEmail() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Inte inloggad')
-      const rows = chosen.map(p => ({
-        user_id: user.id,
-        name: p.name,
-        category: p.category || '',
-        color: p.color || '',
-        season: p.season || 'Alla årstider',
-        image_url: null,
-      }))
-      const { error } = await supabase.from('garments').insert(rows)
-      if (error) throw error
+
+      let done = 0
+      for (const p of chosen) {
+        done++
+        setAddProgress(`Lägger till ${done}/${chosen.length}…`)
+
+        // Hämta produktbilden ur kvittot, ta bort bakgrunden och ladda upp den.
+        let imageUrl: string | null = null
+        if (p.image_url) {
+          const img = await fetchImageBase64(p.image_url)
+          if (img) {
+            let uploadBase64 = img.base64
+            let uploadType = img.contentType
+            try {
+              const data = await apiPost('/api/remove-background', { base64: img.base64 })
+              if (data.base64) { uploadBase64 = data.base64; uploadType = 'image/png' }
+            } catch { /* misslyckad borttagning → originalbilden */ }
+            try {
+              const ext = uploadType.includes('png') ? 'png' : 'jpg'
+              const filePath = `public/${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`
+              const binaryStr = atob(uploadBase64)
+              const bytes = new Uint8Array(binaryStr.length)
+              for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
+              const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: uploadType, upsert: true })
+              if (!error) {
+                const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+                imageUrl = urlData.publicUrl
+              }
+            } catch { /* bild är bonus */ }
+          }
+        }
+
+        await supabase.from('garments').insert([{
+          user_id: user.id,
+          name: p.name,
+          category: p.category || '',
+          color: p.color || '',
+          season: p.season || 'Alla årstider',
+          image_url: imageUrl,
+        }])
+      }
+
       await supabase.from('pending_imports').delete().in('id', chosen.map(p => p.id))
-      showAlert(`${chosen.length} plagg tillagda!`, 'Öppna dem i garderoben för att lägga till foton och finjustera.')
+      showAlert(`${chosen.length} plagg tillagda!`, 'De ligger nu i garderoben – med bild och bakgrunden borttagen.')
       goBack('/wardrobe')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
       setAdding(false)
+      setAddProgress('')
     }
   }
 
@@ -161,6 +216,10 @@ export default function ImportEmail() {
                     onPress={() => toggle(p.id)}
                     disabled={adding}
                   >
+                    {p.image_url
+                      ? <Image source={{ uri: p.image_url }} style={styles.itemImage} resizeMode="contain" />
+                      : <View style={styles.itemImageEmpty} />
+                    }
                     <View style={styles.itemInfo}>
                       <Text style={styles.itemName} numberOfLines={2}>{p.name}</Text>
                       <Text style={styles.itemMeta}>
@@ -178,7 +237,7 @@ export default function ImportEmail() {
                   disabled={selected.size === 0 || adding}
                 >
                   {adding
-                    ? <ActivityIndicator color={t.onPrimary} />
+                    ? <View style={styles.btnRow}><ActivityIndicator color={t.onPrimary} /><Text style={styles.primaryBtnText}>  {addProgress}</Text></View>
                     : <Text style={styles.primaryBtnText}>Lägg till {selected.size} plagg i garderoben</Text>
                   }
                 </TouchableOpacity>
@@ -219,6 +278,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1.5, borderColor: t.border, opacity: 0.6 },
   itemRowSelected: { opacity: 1, borderColor: t.primary },
+  itemImage: { width: 48, height: 60, borderRadius: 8, backgroundColor: t.imageBg },
+  itemImageEmpty: { width: 48, height: 60, borderRadius: 8, backgroundColor: t.surfaceMuted },
   itemInfo: { flex: 1 },
   itemName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary },
   itemMeta: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, marginTop: 3 },
@@ -229,4 +290,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   primaryBtn: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
   primaryBtnDisabled: { opacity: 0.5 },
   primaryBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
+  btnRow: { flexDirection: 'row', alignItems: 'center' },
 })

@@ -54,7 +54,7 @@ export default async function handler(request: Request): Promise<Response> {
     if (!profile) return json({ error: 'Okänd import-adress' }, 200)
     const userId = profile.id
 
-    const plain = htmlToText(html) || text
+    const plain = htmlToTextWithImages(html) || text
 
     // Specialfall: Gmails bekräftelse när man ställer in vidarebefordran.
     // Spara koden så användaren kan läsa den i appen och slutföra kopplingen.
@@ -75,13 +75,17 @@ Extrahera alla KÖPTA PRODUKTER som är kläder, skor, väskor eller accessoarer
 Ignorera frakt, rabattkoder, "du kanske också gillar", nyhetsbrev och personuppgifter
 (namn, adress, betalning). Ta ALDRIG med personuppgifter i svaret.
 
+Rader som börjar med [BILD] är bild-URL:er som förekom på samma plats i mejlet.
+Para ihop varje produkt med den [BILD]-URL som ligger närmast produktnamnet
+(produktbilder är oftast från butikens CDN – ignorera logotyper, spårpixlar och ikoner).
+
 Gissa även kategori, färg och säsong utifrån produktnamnet:
 - category: EXAKT ett av: Toppar, Tröjor, Byxor, Kjolar, Klänningar, Kavajer, Ytterkläder, Skor, Väskor, Accessoarer (eller null om osäker)
 - color: EXAKT ett av: Svart, Vit, Grå, Beige, Brun, Röd, Rosa, Lila, Blå, Ljusblå, Grön, Olivgrön, Gul, Orange, Vinröd, Guld (eller null)
 - seasons: en lista med noll eller flera av: Vår, Sommar, Höst, Vinter, Alla årstider
 
 Svara ENDAST med JSON, inga backticks:
-{"items": [{"name": "produktnamn", "brand": "märke eller null", "price": "pris eller null", "orderDate": "datum eller null", "category": "kategori eller null", "color": "färg eller null", "seasons": ["..."]}]}
+{"items": [{"name": "produktnamn", "brand": "märke eller null", "price": "pris eller null", "orderDate": "datum eller null", "category": "kategori eller null", "color": "färg eller null", "seasons": ["..."], "imageUrl": "bild-URL eller null"}]}
 
 Hittar du inga plagg, svara {"items": []}.
 
@@ -103,6 +107,7 @@ ${content}`
         category: typeof it.category === 'string' ? it.category.slice(0, 40) : null,
         color: typeof it.color === 'string' ? it.color.slice(0, 30) : null,
         season: Array.isArray(it.seasons) ? it.seasons.join(', ').slice(0, 60) : null,
+        image_url: typeof it.imageUrl === 'string' && /^https?:\/\//.test(it.imageUrl) ? it.imageUrl.slice(0, 800) : null,
         source: 'mejl',
       }))
       .filter((r: any) => r.name)
@@ -114,15 +119,18 @@ ${content}`
   }
 }
 
-// Grovt HTML→text: ta bort script/style, ersätt taggar med mellanslag.
-function htmlToText(html: string): string {
+// Grovt HTML→text som behåller bild-URL:er som [BILD]-rader i dokumentordning,
+// så AI:n kan para ihop produkter med rätt bild.
+function htmlToTextWithImages(html: string): string {
   if (!html) return ''
   return html
     .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<img\b[^>]*?\bsrc=["']([^"']+)["'][^>]*>/gi, ' \n[BILD] $1\n ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
     .replace(/&[a-z]+;/gi, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\s*\n\s*/g, '\n')
     .trim()
 }
