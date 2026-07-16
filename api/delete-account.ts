@@ -32,7 +32,7 @@ export default async function handler(request: Request): Promise<Response> {
       }
     }
 
-    for (const table of ['outfit_calendar', 'outfits', 'collages', 'wishlist', 'moodboard', 'garments', 'profiles'] as const) {
+    for (const table of ['outfit_calendar', 'outfits', 'collages', 'wishlist', 'moodboard', 'pending_imports', 'garments', 'profiles'] as const) {
       const column = table === 'profiles' ? 'id' : 'user_id'
       const { error } = await admin.from(table).delete().eq(column, userId)
       if (error && error.code !== '42P01') throw new Error(`Kunde inte radera ${table}: ${error.message}`)

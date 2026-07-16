@@ -274,6 +274,10 @@ export default function AddGarment() {
             <Text style={styles.pickBtnTitle}>Importera köp</Text>
             <Text style={styles.pickBtnHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando, Zara m.fl.</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.pickBtn} onPress={() => router.push('/import-email')}>
+            <Text style={styles.pickBtnTitle}>Importera från mejl</Text>
+            <Text style={styles.pickBtnHint}>Vidarebefordra orderbekräftelser från din mejl så läggs plaggen till automatiskt</Text>
+          </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     )

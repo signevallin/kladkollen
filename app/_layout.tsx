@@ -59,6 +59,7 @@ function RootLayout() {
         <Stack.Screen name="stats" />
         <Stack.Screen name="add-garment" />
         <Stack.Screen name="import-purchases" />
+        <Stack.Screen name="import-email" />
         <Stack.Screen name="garment-detail" />
         <Stack.Screen name="login" />
         <Stack.Screen name="reset-password" />
