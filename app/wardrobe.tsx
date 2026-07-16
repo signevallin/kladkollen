@@ -1,6 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 
+import { Ionicons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useMemo, useState } from 'react'
@@ -24,8 +25,19 @@ const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar
 const WISH_CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SEASONS = ['Alla', 'Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const WISH_SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
-const COLORS = ['Alla', 'Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Gul', 'Orange', 'Guld']
-const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Gul', 'Orange', 'Guld']
+const COLORS = ['Alla', 'Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
+const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
+
+const SORT_OPTIONS: { key: string; label: string }[] = [
+  { key: 'recent', label: 'Senast tillagd' },
+  { key: 'name', label: 'A–Ö' },
+  { key: 'most', label: 'Mest använd' },
+  { key: 'least', label: 'Minst använd' },
+  { key: 'color', label: 'Färg' },
+]
+const SORT_LABEL: Record<string, string> = Object.fromEntries(SORT_OPTIONS.map(s => [s.key, s.label]))
+// Färgordning för sortering på färg (mörkt → ljust → kulörer)
+const COLOR_ORDER = ['Svart', 'Grå', 'Vit', 'Beige', 'Brun', 'Guld', 'Röd', 'Vinröd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange']
 
 export default function Wardrobe() {
   const t = useTheme()
@@ -41,7 +53,8 @@ export default function Wardrobe() {
   const [activeColor, setActiveColor] = useState('Alla')
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
-  const [showFilters, setShowFilters] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+  const [sortBy, setSortBy] = useState('recent')
   const [showArchive, setShowArchive] = useState(false)
 
   // Capsule
@@ -220,16 +233,30 @@ export default function Wardrobe() {
         g.name.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)
       )
     }
-    return result
-  }, [garments, activeCategory, activeSeason, activeColor, search])
+    // Sortering (kopiera först så vi inte muterar garments)
+    const sorted = [...result]
+    switch (sortBy) {
+      case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name, 'sv')); break
+      case 'most': sorted.sort((a, b) => (b.times_worn || 0) - (a.times_worn || 0)); break
+      case 'least': sorted.sort((a, b) => (a.times_worn || 0) - (b.times_worn || 0)); break
+      case 'color': sorted.sort((a, b) => {
+        const ai = COLOR_ORDER.indexOf(a.color), bi = COLOR_ORDER.indexOf(b.color)
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+      }); break
+      default: sorted.sort((a, b) => // recent
+        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    }
+    return sorted
+  }, [garments, activeCategory, activeSeason, activeColor, search, sortBy])
 
   function handleSearch(text: string) { setSearch(text) }
   function handleCategory(cat: string) { setActiveCategory(cat); setOpenDropdown(null) }
   function handleSeason(s: string) { setActiveSeason(s); setOpenDropdown(null) }
   function handleColor(c: string) { setActiveColor(c); setOpenDropdown(null) }
+  function handleSort(key: string) { setSortBy(key); setOpenDropdown(null) }
   function clearFilters() {
     setActiveCategory('Alla'); setActiveSeason('Alla'); setActiveColor('Alla')
-    setSearch(''); setOpenDropdown(null)
+    setSearch(''); setSortBy('recent'); setShowSearch(false); setOpenDropdown(null)
   }
 
   async function markAsSold(item: any) {
@@ -489,11 +516,12 @@ export default function Wardrobe() {
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
-              style={[styles.iconBtn, showFilters && styles.iconBtnActive]}
-              onPress={() => setShowFilters(!showFilters)}
-              accessibilityLabel="Sök och filtrera"
+              style={[styles.iconBtn, showSearch && styles.iconBtnActive]}
+              onPress={() => { setShowSearch(s => !s); if (showSearch) setSearch('') }}
+              accessibilityLabel="Sök"
               accessibilityRole="button"
             >
+              <Ionicons name="search" size={18} color={showSearch ? t.onPrimary : t.textPrimary} />
             </TouchableOpacity>
           )}
           {activeTab === 'nuvarande' && (
@@ -549,44 +577,64 @@ export default function Wardrobe() {
       {/* NUVARANDE */}
       {activeTab === 'nuvarande' && !showArchive && (
         <>
-          {showFilters && (
-            <>
-              <View style={styles.searchContainer}>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Sök plagg eller färg..."
-                  placeholderTextColor={t.placeholder}
-                  value={search}
-                  onChangeText={handleSearch}
-                />
-              </View>
-              <View style={styles.filterBar}>
-                {[
-                  { key: 'category', label: 'Kategori', active: activeCategory },
-                  { key: 'color', label: 'Färg', active: activeColor },
-                  { key: 'season', label: 'Säsong', active: activeSeason },
-                ].map(f => (
-                  <TouchableOpacity
-                    key={f.key}
-                    style={[styles.filterBtn, f.active !== 'Alla' && styles.filterBtnActive]}
-                    onPress={() => setOpenDropdown(openDropdown === f.key ? null : f.key)}
-                  >
-                    <Text style={[styles.filterBtnText, f.active !== 'Alla' && styles.filterBtnTextActive]}>
-                      {f.active !== 'Alla' ? f.active : f.label} ▾
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-                {hasActiveFilters && (
-                  <TouchableOpacity style={styles.clearBtn} onPress={clearFilters}>
-                    <Text style={styles.clearBtnText}>✕</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-              {openDropdown && (
-                <View style={styles.dropdown}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={styles.dropdownRow}>
-                      {(openDropdown === 'category' ? CATEGORIES : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
+          {showSearch && (
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={16} color={t.textSecondary} style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Sök plagg eller färg..."
+                placeholderTextColor={t.placeholder}
+                value={search}
+                onChangeText={handleSearch}
+                autoFocus
+              />
+              {search.length > 0 && (
+                <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Text style={styles.searchClear}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRow}>
+            {[
+              { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
+              { key: 'category', label: 'Kategori', value: activeCategory, on: activeCategory !== 'Alla' },
+              { key: 'color', label: 'Färg', value: activeColor, on: activeColor !== 'Alla' },
+              { key: 'season', label: 'Säsong', value: activeSeason, on: activeSeason !== 'Alla' },
+            ].map(f => (
+              <TouchableOpacity
+                key={f.key}
+                style={[styles.chip, (f.on || openDropdown === f.key) && styles.chipActive]}
+                onPress={() => setOpenDropdown(openDropdown === f.key ? null : f.key)}
+              >
+                <Text style={[styles.chipText, (f.on || openDropdown === f.key) && styles.chipTextActive]}>
+                  {f.key === 'sort' ? `${f.label}: ${f.value}` : (f.on ? f.value : f.label)} ▾
+                </Text>
+              </TouchableOpacity>
+            ))}
+            {(hasActiveFilters || sortBy !== 'recent') && (
+              <TouchableOpacity style={styles.chipClear} onPress={clearFilters}>
+                <Text style={styles.chipClearText}>Rensa</Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+
+          {openDropdown && (
+            <View style={styles.dropdown}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.dropdownRow}>
+                  {openDropdown === 'sort'
+                    ? SORT_OPTIONS.map(opt => (
+                        <TouchableOpacity
+                          key={opt.key}
+                          style={[styles.dropdownPill, sortBy === opt.key && styles.dropdownPillActive]}
+                          onPress={() => handleSort(opt.key)}
+                        >
+                          <Text style={[styles.dropdownPillText, sortBy === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
+                        </TouchableOpacity>
+                      ))
+                    : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
                         const isActive = openDropdown === 'category' ? activeCategory === item : openDropdown === 'season' ? activeSeason === item : activeColor === item
                         return (
                           <TouchableOpacity
@@ -598,11 +646,9 @@ export default function Wardrobe() {
                           </TouchableOpacity>
                         )
                       })}
-                    </View>
-                  </ScrollView>
                 </View>
-              )}
-            </>
+              </ScrollView>
+            </View>
           )}
           <FlatList
             key="garments-grid"
@@ -944,15 +990,17 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
   tabTextActive: { color: t.onPrimary, fontWeight: '600' },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
-  searchContainer: { marginHorizontal: 16, marginBottom: 8 },
-  searchInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, color: t.textPrimary, fontSize: 14, borderWidth: 1, borderColor: t.border },
-  filterBar: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
-  filterBtn: { flex: 1, paddingVertical: 8, paddingHorizontal: 6, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, alignItems: 'center' },
-  filterBtnActive: { backgroundColor: t.primary, borderColor: t.primary },
-  filterBtnText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 11 },
-  filterBtnTextActive: { color: t.onPrimary },
-  clearBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-  clearBtnText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: t.border },
+  searchInput: { flex: 1, fontFamily: 'Lora_400Regular', paddingVertical: 12, color: t.textPrimary, fontSize: 14 },
+  searchClear: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, paddingLeft: 8 },
+  chipScroll: { marginBottom: 8 },
+  chipRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, alignItems: 'center' },
+  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  chipActive: { backgroundColor: t.primary, borderColor: t.primary },
+  chipText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
+  chipTextActive: { color: t.onPrimary },
+  chipClear: { paddingVertical: 8, paddingHorizontal: 12 },
+  chipClearText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 12, textDecorationLine: 'underline' },
   dropdown: { marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 10, borderWidth: 1, borderColor: t.border },
   dropdownRow: { flexDirection: 'row', gap: 8 },
   dropdownPill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
