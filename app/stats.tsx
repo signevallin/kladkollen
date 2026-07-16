@@ -11,9 +11,39 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import Svg, { Circle, G } from 'react-native-svg'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
+
+// Donut-diagram över garderobens färger. Ritar varje färg som ett segment
+// med strokeDasharray – börjar högst upp (roterad -90°).
+function ColorPie({ data, total }: { data: { name: string; count: number; hex: string }[]; total: number }) {
+  const size = 168, stroke = 38
+  const r = (size - stroke) / 2
+  const circ = 2 * Math.PI * r
+  let offset = 0
+  return (
+    <Svg width={size} height={size}>
+      <G rotation={-90} origin={`${size / 2}, ${size / 2}`}>
+        {data.map(seg => {
+          const dash = (seg.count / total) * circ
+          const el = (
+            <Circle
+              key={seg.name}
+              cx={size / 2} cy={size / 2} r={r}
+              stroke={seg.hex} strokeWidth={stroke} fill="none"
+              strokeDasharray={`${dash} ${circ - dash}`}
+              strokeDashoffset={-offset}
+            />
+          )
+          offset += dash
+          return el
+        })}
+      </G>
+    </Svg>
+  )
+}
 
 // Speglar kontexterna i home.tsx (Jobb / Ledig / Fest). Det är dessa som
 // sparas på outfits numera – det gamla "humör"-fältet finns inte längre.
@@ -260,7 +290,7 @@ export default function Stats() {
       .map(([name, count]) => ({ name, count, hex: COLOR_HEX[name] || '#B5896E' }))
       .sort((a, b) => b.count - a.count)
   })()
-  const maxColorCount = colorBreakdown[0]?.count || 1
+  const colorTotal = colorBreakdown.reduce((s, c) => s + c.count, 0) || 1
 
   return (
     <SafeAreaView style={styles.container}>
@@ -458,20 +488,18 @@ export default function Stats() {
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Din garderobs färger</Text>
                 <Text style={styles.sectionSubtitle}>Så här fördelar sig färgerna i din garderob</Text>
-                {colorBreakdown.map(c => (
-                  <View key={c.name} style={styles.colorRow}>
-                    <View style={[styles.colorSwatch, { backgroundColor: c.hex }]} />
-                    <View style={styles.colorInfo}>
-                      <View style={styles.colorLabelRow}>
-                        <Text style={styles.colorName}>{c.name}</Text>
-                        <Text style={styles.colorCount}>{c.count} plagg</Text>
+                <View style={styles.pieWrap}>
+                  <ColorPie data={colorBreakdown} total={colorTotal} />
+                  <View style={styles.legend}>
+                    {colorBreakdown.map(c => (
+                      <View key={c.name} style={styles.legendRow}>
+                        <View style={[styles.legendDot, { backgroundColor: c.hex }]} />
+                        <Text style={styles.legendName} numberOfLines={1}>{c.name}</Text>
+                        <Text style={styles.legendCount}>{Math.round((c.count / colorTotal) * 100)}%</Text>
                       </View>
-                      <View style={styles.barTrack}>
-                        <View style={[styles.barFill, { width: `${(c.count / maxColorCount) * 100}%`, backgroundColor: c.hex }]} />
-                      </View>
-                    </View>
+                    ))}
                   </View>
-                ))}
+                </View>
               </View>
             )}
 
@@ -616,8 +644,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   colorLabelRow: { flexDirection: 'row', justifyContent: 'space-between' },
   colorName: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textPrimary },
   colorRating: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: '#F5C842' },
-  colorSwatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: t.border },
-  colorCount: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
+  pieWrap: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 4 },
+  legend: { flex: 1, gap: 8 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legendDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 1, borderColor: t.border },
+  legendName: { flex: 1, fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textPrimary },
+  legendCount: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
 
   horizontalList: { flexDirection: 'row', gap: 10, paddingBottom: 4 },
   neverItem: { width: 80, alignItems: 'center', gap: 5 },
