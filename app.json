@@ -3,6 +3,7 @@
     "name": "Klädkollen",
     "slug": "kladkollen",
     "version": "1.0.0",
+    "extra": { "eas": { "projectId": "2f95b5b1-c506-4d79-9aba-94d15424e860" } }
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kladkollen",
