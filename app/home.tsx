@@ -265,6 +265,9 @@ export default function Home() {
       return
     }
 
+    // Föregående förslag (om man trycker "generera ny") så AI:n varierar sig.
+    const previousItems: string = (outfit?.items || []).join(', ')
+
     setLoading(true)
     setSaved(false)
     setSavedOutfitId(null)
@@ -334,6 +337,7 @@ export default function Home() {
           groupedList,
           season,
           avoidSongs: avoidSongsStr,
+          previousItems: attempts === 1 ? previousItems : '',
           retry: attempts > 1,
         })
 

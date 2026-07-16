@@ -21,6 +21,7 @@ export default async function handler(request: Request): Promise<Response> {
     const groupedList = clip(body.groupedList, 8000)
     const season = clip(body.season, 20)
     const avoidSongs = clip(body.avoidSongs, 600)
+    const previousItems = clip(body.previousItems, 400)
     const retry = body.retry === true
 
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -38,6 +39,7 @@ ${weatherSummary}
 VIKTIGT: Anpassa valet TYDLIGT efter kontexten "${contextLabel}". En festoutfit
 ska skilja sig markant från en vardags-/jobboutfit – annan känsla, andra plagg.
 Välj inte samma look oavsett tillfälle.
+${previousItems ? `Föregående förslag var: ${previousItems}. Ge ett TYDLIGT ANNORLUNDA förslag denna gång – byt ut minst hälften av plaggen (samma plagg får återkomma bara om garderoben är för liten för alternativ).` : ''}
 ${avoid}${feedback ? `\nSmakprofil:\n${feedback}` : ''}
 ${retryInstruction}
 
