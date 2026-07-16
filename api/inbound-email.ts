@@ -54,6 +54,11 @@ export default async function handler(request: Request): Promise<Response> {
     if (!profile) { console.log('[inbound] okänd token', token); return json({ error: 'Okänd import-adress' }, 200) }
     const userId = profile.id
 
+    // Skriver en läsbar status till profilen så användaren ser i appen vad som
+    // hände med senaste mejlet (felsökning utan Vercel-loggar).
+    const setStatus = (msg: string) =>
+      admin.from('profiles').update({ last_import_status: `${new Date().toLocaleString('sv-SE')} · ${msg}` }).eq('id', userId)
+
     const plain = htmlToTextWithImages(html) || text
     console.log('[inbound] from=', from.slice(0, 60), 'subject=', subject.slice(0, 60), 'htmlLen=', html.length, 'textLen=', text.length, 'plainLen=', plain.length)
 
@@ -67,14 +72,14 @@ export default async function handler(request: Request): Promise<Response> {
       const rawLink = (`${html} ${text}`.match(/https?:\/\/[^\s"'<>()]*vf-[^\s"'<>()]+/i) || [])[0] || null
       const link = rawLink ? rawLink.replace(/&amp;/gi, '&') : null
       if (code || link) {
-        await admin.from('profiles').update({ forward_code: code, forward_link: link }).eq('id', userId)
+        await admin.from('profiles').update({ forward_code: code, forward_link: link, last_import_status: `${new Date().toLocaleString('sv-SE')} · Bekräftelse från Gmail mottagen` }).eq('id', userId)
         return json({ ok: true, confirmation: true })
       }
     }
 
     // Tolka orderbekräftelsen med AI.
     const content = clip(`${subject}\n\n${plain}`, 40000)
-    if (!content.trim()) return json({ ok: true, items: 0 })
+    if (!content.trim()) { await setStatus(`Mejlet saknade läsbar text (html ${html.length}, text ${text.length} tecken)`); return json({ ok: true, items: 0 }) }
 
     const prompt = `Nedan är en vidarebefordrad orderbekräftelse/kvitto från en nätbutik.
 Extrahera alla KÖPTA PRODUKTER som är kläder, skor, väskor eller accessoarer.
@@ -102,7 +107,7 @@ ${content}`
     const parsed = parseAiJson(aiText)
     const items = Array.isArray(parsed.items) ? parsed.items.slice(0, 40) : []
     console.log('[inbound] aiItems=', items.length)
-    if (items.length === 0) return json({ ok: true, items: 0 })
+    if (items.length === 0) { await setStatus('AI:n hittade inga plagg i mejlet'); return json({ ok: true, items: 0 }) }
 
     const rows = items
       .map((it: any) => ({
@@ -121,9 +126,10 @@ ${content}`
 
     if (rows.length > 0) {
       const { error: insErr } = await admin.from('pending_imports').insert(rows)
-      if (insErr) { console.log('[inbound] insert-fel', insErr.message); return json({ error: insErr.message }, 500) }
+      if (insErr) { console.log('[inbound] insert-fel', insErr.message); await setStatus(`Databasfel: ${insErr.message}`); return json({ error: insErr.message }, 500) }
     }
     console.log('[inbound] sparade', rows.length, 'plagg')
+    await setStatus(`Importerade ${rows.length} plagg`)
     return json({ ok: true, items: rows.length })
   } catch (e: any) {
     console.log('[inbound] fel', e.message)

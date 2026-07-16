@@ -40,6 +40,7 @@ export default function ImportEmail() {
   const [token, setToken] = useState<string | null>(null)
   const [forwardCode, setForwardCode] = useState<string | null>(null)
   const [forwardLink, setForwardLink] = useState<string | null>(null)
+  const [lastStatus, setLastStatus] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
@@ -61,10 +62,11 @@ export default function ImportEmail() {
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data: profile } = await supabase.from('profiles').select('import_token, forward_code, forward_link').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('import_token, forward_code, forward_link, last_import_status').eq('id', user.id).single()
     setToken(profile?.import_token || null)
     setForwardCode(profile?.forward_code || null)
     setForwardLink(profile?.forward_link || null)
+    setLastStatus(profile?.last_import_status || null)
     const { data } = await supabase.from('pending_imports').select('*').order('created_at', { ascending: false })
     if (data) {
       setPending(data)
@@ -232,6 +234,9 @@ export default function ImportEmail() {
                 <Text style={styles.refreshText}>Uppdatera</Text>
               </TouchableOpacity>
             </View>
+            {lastStatus && (
+              <Text style={styles.statusLine}>Senaste mejl: {lastStatus}</Text>
+            )}
             {pending.length === 0 ? (
               <Text style={styles.emptyText}>
                 När ett kvitto vidarebefordrats dyker plaggen upp här. Vidarebefordra gärna ett gammalt kvitto för att testa.
@@ -308,6 +313,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   sectionTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary },
   refreshText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary, textDecorationLine: 'underline' },
+  statusLine: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint, fontStyle: 'italic', marginBottom: 10 },
   emptyText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 20 },
 
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1.5, borderColor: t.border, opacity: 0.6 },

@@ -12,6 +12,8 @@ create unique index if not exists profiles_import_token_key on profiles (import_
 -- 2) Senaste Gmail-vidarebefordringskod + bekräftelselänk (visas i appen)
 alter table profiles add column if not exists forward_code text;
 alter table profiles add column if not exists forward_link text;
+-- Status för senast mottagna mejl (felsökning – visas i appen)
+alter table profiles add column if not exists last_import_status text;
 
 -- 3) Väntande importer – plagg som AI:n plockat ur inkommande mejl, väntar på granskning
 create table if not exists pending_imports (
