@@ -96,6 +96,15 @@ export default function Inspiration() {
     }
   }
 
+  // Bläddra till föregående/nästa moodboardbild i helskärmsläget (loopar runt).
+  function stepImage(dir: 1 | -1) {
+    if (!selectedImage || moodboardImages.length < 2) return
+    const idx = moodboardImages.findIndex(i => i.image_url === selectedImage)
+    if (idx === -1) return
+    const next = (idx + dir + moodboardImages.length) % moodboardImages.length
+    setSelectedImage(moodboardImages[next].image_url)
+  }
+
   async function deleteMoodboardImage(id: string) {
     Alert.alert('Ta bort bild', 'Vill du ta bort bilden från moodboarden?', [
       { text: 'Avbryt', style: 'cancel' },
@@ -213,11 +222,31 @@ export default function Inspiration() {
           </TouchableOpacity>
           {selectedImage && (
             <>
+              {moodboardImages.length > 1 && (
+                <TouchableOpacity
+                  style={[styles.imageModalArrow, styles.imageModalArrowLeft]}
+                  onPress={() => stepImage(-1)}
+                  accessibilityLabel="Föregående bild"
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.imageModalArrowText}>‹</Text>
+                </TouchableOpacity>
+              )}
               <SignedImage
                 path={selectedImage}
                 style={styles.imageModalImage}
                 resizeMode="contain"
               />
+              {moodboardImages.length > 1 && (
+                <TouchableOpacity
+                  style={[styles.imageModalArrow, styles.imageModalArrowRight]}
+                  onPress={() => stepImage(1)}
+                  accessibilityLabel="Nästa bild"
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.imageModalArrowText}>›</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={styles.imageModalDelete}
                 onPress={() => {
@@ -457,6 +486,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   imageModalClose: { position: 'absolute', top: 56, right: 24, zIndex: 10, backgroundColor: t.surfaceMuted, borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   imageModalCloseText: { fontFamily: 'Lora_400Regular', color: t.onPrimary, fontSize: 16 },
   imageModalImage: { width: SCREEN_WIDTH, height: SCREEN_WIDTH * 1.5, maxHeight: '80%' },
+  imageModalArrow: { position: 'absolute', top: '45%', zIndex: 10, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 26, width: 52, height: 52, alignItems: 'center', justifyContent: 'center' },
+  imageModalArrowLeft: { left: 16 },
+  imageModalArrowRight: { right: 16 },
+  imageModalArrowText: { fontFamily: 'Lora_400Regular', color: '#fff', fontSize: 34, lineHeight: 38, marginTop: -4 },
   imageModalDelete: { position: 'absolute', bottom: 60, backgroundColor: 'rgba(64,45,33,0.8)', borderRadius: 14, paddingVertical: 12, paddingHorizontal: 24 },
   imageModalDeleteText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
 })
