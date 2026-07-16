@@ -16,6 +16,7 @@ import BrandInput from '../components/BrandInput'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
+import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 
@@ -166,23 +167,46 @@ export default function GarmentDetail() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.8,
+      base64: true,
     })
     if (result.canceled) return
-    const uri = result.assets[0].uri
-    setNewImage(uri) // visa direkt medan uppladdningen pågår
+    const asset = result.assets[0]
+    setNewImage(asset.uri) // visa direkt medan uppladdningen pågår
     setSaveState('saving')
     try {
-      const url = await uploadImage(uri)
+      // Ta bort bakgrunden om möjligt, annars ladda upp originalet.
+      let url: string
+      let processed: string | null = null
+      if (asset.base64) {
+        try {
+          const data = await apiPost('/api/remove-background', { base64: asset.base64 })
+          if (data.base64) processed = data.base64
+        } catch { /* misslyckad borttagning → originalbilden */ }
+      }
+      url = processed ? await uploadPng(processed) : await uploadImage(asset.uri)
+
       const table = isWishlistItem ? 'wishlist' : 'garments'
       const rowId = isWishlistItem ? wishlistId : id
       const { error } = await supabase.from(table).update({ image_url: url }).eq('id', rowId)
       if (error) throw error
       setImageUrl(url)
+      if (processed) setNewImage(`data:image/png;base64,${processed}`)
       setSaveState('saved')
     } catch (e: any) {
       setSaveState('error')
       showAlert('Bilden kunde inte sparas', e.message)
     }
+  }
+
+  async function uploadPng(base64: string) {
+    const filePath = `public/${Date.now()}-${Math.random().toString(36).substring(2)}.png`
+    const binary = atob(base64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: 'image/png', upsert: true })
+    if (error) throw error
+    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+    return urlData.publicUrl
   }
 
   async function uploadImage(uri: string) {
