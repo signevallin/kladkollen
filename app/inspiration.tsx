@@ -2,13 +2,14 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
   Image,
   Modal,
+  PanResponder,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -104,6 +105,18 @@ export default function Inspiration() {
     const next = (idx + dir + moodboardImages.length) % moodboardImages.length
     setSelectedImage(moodboardImages[next].image_url)
   }
+
+  // Svepgest i helskärmsläget: dra åt vänster = nästa, höger = föregående.
+  // Ref så att den (skapad en gång) alltid ser senaste stepImage.
+  const stepRef = useRef(stepImage)
+  stepRef.current = stepImage
+  const swipe = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 20 && Math.abs(g.dx) > Math.abs(g.dy),
+    onPanResponderRelease: (_, g) => {
+      if (g.dx <= -40) stepRef.current(1)
+      else if (g.dx >= 40) stepRef.current(-1)
+    },
+  })).current
 
   async function deleteMoodboardImage(id: string) {
     Alert.alert('Ta bort bild', 'Vill du ta bort bilden från moodboarden?', [
@@ -232,11 +245,13 @@ export default function Inspiration() {
                   <Text style={styles.imageModalArrowText}>‹</Text>
                 </TouchableOpacity>
               )}
-              <SignedImage
-                path={selectedImage}
-                style={styles.imageModalImage}
-                resizeMode="contain"
-              />
+              <View {...swipe.panHandlers}>
+                <SignedImage
+                  path={selectedImage}
+                  style={styles.imageModalImage}
+                  resizeMode="contain"
+                />
+              </View>
               {moodboardImages.length > 1 && (
                 <TouchableOpacity
                   style={[styles.imageModalArrow, styles.imageModalArrowRight]}
