@@ -15,6 +15,7 @@ import {
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
+import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 
 // WebView finns bara i native-apparna – på webben visar vi en hänvisning.
@@ -193,6 +194,8 @@ export default function ImportPurchases() {
           color: analysis.color || '',
           season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : 'Alla årstider',
           image_url: imageUrl,
+          brand: item.brand || null,
+          price: parsePrice(item.price),
         }])
       }
 
