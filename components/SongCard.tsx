@@ -42,7 +42,6 @@ export default function SongCard({ song }: { song: SongData }) {
         <View style={styles.info}>
           <Text style={styles.title} numberOfLines={1}>{song.title}</Text>
           <Text style={styles.artist} numberOfLines={1}>{song.artist}</Text>
-          {song.reason ? <Text style={styles.reason} numberOfLines={2}>{song.reason}</Text> : null}
         </View>
         {song.previewUrl ? (
           <TouchableOpacity
@@ -55,6 +54,9 @@ export default function SongCard({ song }: { song: SongData }) {
           </TouchableOpacity>
         ) : null}
       </View>
+
+      {/* Motiveringen på egen rad i full bredd så hela texten syns */}
+      {song.reason ? <Text style={styles.reason}>{song.reason}</Text> : null}
 
       {song.appleMusicUrl ? (
         <TouchableOpacity
@@ -78,7 +80,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   info: { flex: 1, gap: 2 },
   title: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   artist: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
-  reason: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, fontStyle: 'italic', marginTop: 2 },
+  reason: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, fontStyle: 'italic', lineHeight: 19 },
   playBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   appleLink: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary, textDecorationLine: 'underline' },
 })
