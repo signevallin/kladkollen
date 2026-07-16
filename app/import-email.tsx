@@ -45,7 +45,13 @@ export default function ImportEmail() {
   const [adding, setAdding] = useState(false)
   const [addProgress, setAddProgress] = useState('')
 
-  useFocusEffect(useCallback(() => { load() }, []))
+  // Auto-uppdatera var 6:e sekund medan skärmen är öppen, så bekräftelsekoden
+  // och nya importer dyker upp utan att man behöver gå ut och in.
+  useFocusEffect(useCallback(() => {
+    load()
+    const timer = setInterval(load, 6000)
+    return () => clearInterval(timer)
+  }, []))
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -55,8 +61,16 @@ export default function ImportEmail() {
     setForwardCode(profile?.forward_code || null)
     const { data } = await supabase.from('pending_imports').select('*').order('created_at', { ascending: false })
     if (data) {
-      setPending(data)
-      setSelected(new Set(data.map((d: any) => d.id)))
+      setPending(prev => {
+        // Behåll bockningarna men markera nya rader.
+        const known = new Set(prev.map(p => p.id))
+        setSelected(sel => {
+          const next = new Set(sel)
+          data.forEach((d: any) => { if (!known.has(d.id)) next.add(d.id) })
+          return next
+        })
+        return data
+      })
     }
     setLoading(false)
   }
@@ -201,9 +215,14 @@ export default function ImportEmail() {
             </View>
 
             {/* Väntande importer */}
-            <Text style={styles.sectionTitle}>
-              {pending.length > 0 ? `${pending.length} plagg att granska` : 'Inga nya importer än'}
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {pending.length > 0 ? `${pending.length} plagg att granska` : 'Inga nya importer än'}
+              </Text>
+              <TouchableOpacity onPress={load} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.refreshText}>Uppdatera</Text>
+              </TouchableOpacity>
+            </View>
             {pending.length === 0 ? (
               <Text style={styles.emptyText}>
                 När ett kvitto vidarebefordrats dyker plaggen upp här. Vidarebefordra gärna ett gammalt kvitto för att testa.
@@ -274,7 +293,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   step: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 20 },
   stepNote: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textPrimary, fontStyle: 'italic', marginTop: 4 },
 
-  sectionTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, marginBottom: 8 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  sectionTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary },
+  refreshText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary, textDecorationLine: 'underline' },
   emptyText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 20 },
 
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1.5, borderColor: t.border, opacity: 0.6 },
