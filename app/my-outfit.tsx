@@ -516,9 +516,18 @@ function isPast(date: Date) {
                       {day.getDate()}
                     </Text>
                     {entry ? (
-                      entry.outfits?.image_urls?.[0]
-                        ? <SignedImage path={entry.outfits.image_urls[0]} style={styles.dayCellImage} />
-                        : <Text style={styles.dayCellOutfitDot}>●</Text>
+                      entry.outfits?.image_urls?.length ? (
+                        <View style={styles.dayCellGrid}>
+                          {entry.outfits.image_urls.slice(0, 4).map((url: string, i: number) => (
+                            <SignedImage
+                              key={i}
+                              path={url}
+                              style={entry.outfits.image_urls.length === 1 ? styles.dayCellImage : styles.dayCellImageSmall}
+                              resizeMode="contain"
+                            />
+                          ))}
+                        </View>
+                      ) : <Text style={styles.dayCellOutfitDot}>●</Text>
                     ) : (
                       <Text style={styles.dayCellPlus}>＋</Text>
                     )}
@@ -671,7 +680,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dayNumber: { fontFamily: 'Lora_500Medium', fontSize: 11, color: t.textPrimary, marginBottom: 2 },
   dayNumberToday: { color: t.textSecondary, fontWeight: '700' },
   dayNumberPast: { color: t.textFaint },
-  dayCellImage: { width: 26, height: 26, borderRadius: 6 },
+  dayCellGrid: { width: 30, height: 30, flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'center' },
+  dayCellImage: { width: 28, height: 28, borderRadius: 6 },
+  dayCellImageSmall: { width: 14, height: 14, borderRadius: 3 },
   dayCellOutfitDot: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textPrimary },
   dayCellPlus: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint },
   calendarLegend: { flexDirection: 'row', gap: 16, justifyContent: 'center', marginTop: 12 },
