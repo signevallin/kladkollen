@@ -18,8 +18,9 @@ import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 
-// Domänen där import-adresserna tas emot. Byt om du använder en annan subdomän.
-const IMPORT_DOMAIN = 'import.kladkollen.se'
+// Domänen där import-adresserna tas emot. Ligger på Elairis (företaget) så den
+// överlever en framtida namnändring av appen. Byt om du använder en annan subdomän.
+const IMPORT_DOMAIN = 'import.elairis.se'
 
 type Pending = {
   id: string
