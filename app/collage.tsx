@@ -293,7 +293,7 @@ export default function Collage() {
         if (error) throw error
         setCollageId(data.id)
       }
-      showAlert('Kollage sparat! 🍒')
+      showAlert('Kollage sparat!')
       // Tillbaka till kollage-listan under Mina outfits
       router.replace({ pathname: '/my-outfit', params: { tab: 'kollage' } })
     } catch (e: any) {
@@ -399,7 +399,6 @@ export default function Collage() {
           <Pressable style={styles.canvas} onLayout={onCanvasLayout} onPress={() => setSelectedKey(null)}>
             {items.length === 0 && (
               <View style={styles.emptyHint} pointerEvents="none">
-                <Text style={styles.emptyHintIcon}>🎨</Text>
                 <Text style={styles.emptyHintText}>Lägg till plagg och skapa din look!</Text>
                 <Text style={styles.emptyHintSub}>Dra för att flytta · dra i hörnet ⤡ för att ändra storlek</Text>
               </View>

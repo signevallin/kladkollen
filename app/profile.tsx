@@ -28,10 +28,10 @@ const COLOR_PROFILES = ['Varm', 'Kall', 'Neutral']
 const LIFESTYLE = ['Kontor', 'Hybridjobb', 'Fritid', 'Träning']
 
 const STRATEGY_LABELS: Record<string, { label: string; emoji: string }> = {
-  auktoritet:      { label: 'Auktoritet',      emoji: '👑' },
-  tillganglighet:  { label: 'Tillgänglighet',  emoji: '🤝' },
-  kreativitet:     { label: 'Kreativitet',      emoji: '🎨' },
-  professionalism: { label: 'Professionalism',  emoji: '💼' },
+  auktoritet:      { label: 'Auktoritet',      emoji: '' },
+  tillganglighet:  { label: 'Tillgänglighet',  emoji: '' },
+  kreativitet:     { label: 'Kreativitet',      emoji: '' },
+  professionalism: { label: 'Professionalism',  emoji: '' },
 }
 
 interface ColorItem { hex: string; namn: string; motivering?: string }
@@ -54,8 +54,8 @@ interface ColorAnalysis {
 
 const THEME_OPTIONS: { key: 'system' | 'light' | 'dark'; label: string }[] = [
   { key: 'system', label: 'System' },
-  { key: 'light', label: '☀️ Ljust' },
-  { key: 'dark', label: '🌙 Mörkt' },
+  { key: 'light', label: 'Ljust' },
+  { key: 'dark', label: 'Mörkt' },
 ]
 
 export default function Profile() {
@@ -218,7 +218,7 @@ export default function Profile() {
         livsstil: livsstil.join(', '),
       })
       if (error) throw error
-      showAlert('Sparat! 🍒')
+      showAlert('Sparat!')
       goBack('/home')
     } catch (error: any) {
       showAlert('Något gick fel', error.message)
@@ -278,9 +278,9 @@ export default function Profile() {
         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel="Byt profilbild" accessibilityRole="button">
           {avatar
             ? <SignedImage path={avatar} style={styles.avatar} resizeMode="cover" />
-            : <View style={styles.avatarPlaceholder}><Text style={styles.avatarEmoji}>👤</Text></View>
+            : <View style={styles.avatarPlaceholder} />
           }
-          <View style={styles.avatarBadge}><Text style={styles.avatarBadgeText}>📷</Text></View>
+          <View style={styles.avatarBadge} />
         </TouchableOpacity>
 
         {/* Flikar */}
@@ -292,7 +292,7 @@ export default function Profile() {
               onPress={() => setProfileTab(tab)}
             >
               <Text style={[styles.profileTabText, profileTab === tab && styles.profileTabTextActive]}>
-                {tab === 'profil' ? '👤 Profil' : tab === 'stilprofil' ? '✨ Stilprofil' : '🎨 Färg'}
+                {tab === 'profil' ? 'Profil' : tab === 'stilprofil' ? 'Stilprofil' : 'Färg'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -337,7 +337,7 @@ export default function Profile() {
         </View>
 
         <TouchableOpacity style={styles.saveButton} onPress={saveProfile} disabled={loading}>
-          <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara profil 🍒'}</Text>
+          <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara profil'}</Text>
         </TouchableOpacity>
         </>}
 
@@ -392,19 +392,16 @@ export default function Profile() {
                 <Text style={styles.stilprofilCardLabel}>Din stilprofil</Text>
                 {stilProfil.length > 0 && (
                   <View style={styles.stilprofilRow}>
-                    <Text style={styles.stilprofilEmoji}>✨</Text>
                     <Text style={styles.stilprofilValue}>{stilProfil.join(' · ')}</Text>
                   </View>
                 )}
                 {fargsatt !== '' && (
                   <View style={styles.stilprofilRow}>
-                    <Text style={styles.stilprofilEmoji}>🎨</Text>
                     <Text style={styles.stilprofilValue}>{fargsatt} färgpalett</Text>
                   </View>
                 )}
                 {livsstil.length > 0 && (
                   <View style={styles.stilprofilRow}>
-                    <Text style={styles.stilprofilEmoji}>💼</Text>
                     <Text style={styles.stilprofilValue}>{livsstil.join(' · ')}</Text>
                   </View>
                 )}
@@ -412,13 +409,13 @@ export default function Profile() {
             )}
 
             <TouchableOpacity style={styles.saveButton} onPress={saveProfile} disabled={loading}>
-              <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara stilprofil 🍒'}</Text>
+              <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara stilprofil'}</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {profileTab === 'farg' && <View style={styles.colorSection}>
-          <Text style={styles.colorTitle}>🎨 Färganalys</Text>
+          <Text style={styles.colorTitle}>Färganalys</Text>
           <Text style={styles.colorSubtitle}>
             {colorAnalysis ? 'Din personliga färgprofil' : 'Ladda upp en bild eller fyll i formuläret'}
           </Text>
@@ -432,7 +429,7 @@ export default function Profile() {
                 onPress={() => setInputMode(mode)}
               >
                 <Text style={[styles.inputModeBtnText, inputMode === mode && styles.inputModeBtnTextActive]}>
-                  {mode === 'image' ? '📷 Ladda upp bild' : '✏️ Fyll i formulär'}
+                  {mode === 'image' ? 'Ladda upp bild' : 'Fyll i formulär'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -444,7 +441,6 @@ export default function Profile() {
               {colorImage
                 ? <Image source={{ uri: colorImage }} style={styles.colorUploadPreview} resizeMode="cover" />
                 : <>
-                    <Text style={styles.colorUploadIcon}>📸</Text>
                     <Text style={styles.colorUploadText}>Tryck för att välja bild</Text>
                     <Text style={styles.colorUploadHint}>Helst ett foto i naturligt ljus</Text>
                   </>
@@ -487,7 +483,7 @@ export default function Profile() {
           >
             {analyzingColor
               ? <><ActivityIndicator color={t.onPrimary} size="small" /><Text style={styles.analyzeBtnText}> Analyserar...</Text></>
-              : <Text style={styles.analyzeBtnText}>✨ {colorAnalysis ? 'Analysera igen' : 'Analysera färgprofil'}</Text>
+              : <Text style={styles.analyzeBtnText}>{colorAnalysis ? 'Analysera igen' : 'Analysera färgprofil'}</Text>
             }
           </TouchableOpacity>
 
@@ -561,7 +557,7 @@ export default function Profile() {
                   ] as { key: string; label: string; items: ColorItem[] }[]).map(group => (
                     <View key={group.key} style={styles.paletteGroup}>
                       <Text style={styles.paletteGroupLabel}>
-                        {group.key === 'undvik' ? '🚫 ' : '✓ '}{group.label}
+                        {group.key === 'undvik' ? '' : '✓ '}{group.label}
                       </Text>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.swatchRow}>
@@ -585,7 +581,7 @@ export default function Profile() {
               {colorSection === 'strategi' && (
                 <View style={styles.tabContent}>
                   {Object.entries(colorAnalysis.strategi).map(([key, val]) => {
-                    const meta = STRATEGY_LABELS[key] || { label: key, emoji: '🎯' }
+                    const meta = STRATEGY_LABELS[key] || { label: key, emoji: '' }
                     return (
                       <View key={key} style={styles.strategiCard}>
                         <View style={styles.strategiHeader}>
@@ -608,18 +604,16 @@ export default function Profile() {
               {colorSection === 'sasong' && (
                 <View style={styles.tabContent}>
                   <View style={styles.sasongsCard}>
-                    <Text style={styles.sasongsIcon}>🌞</Text>
                     <Text style={styles.sasongsTitle}>Sommar</Text>
                     <Text style={styles.sasongsText}>{colorAnalysis.sasong.sommar}</Text>
                   </View>
                   <View style={styles.sasongsCard}>
-                    <Text style={styles.sasongsIcon}>❄️</Text>
                     <Text style={styles.sasongsTitle}>Vinter</Text>
                     <Text style={styles.sasongsText}>{colorAnalysis.sasong.vinter}</Text>
                   </View>
                   {colorAnalysis.garderobsAlgoritm && (
                     <View style={styles.algoritmCard}>
-                      <Text style={styles.algoritmTitle}>🤖 Garderobsalgoritm</Text>
+                      <Text style={styles.algoritmTitle}>Garderobsalgoritm</Text>
                       <Text style={styles.algoritmText}>{colorAnalysis.garderobsAlgoritm}</Text>
                     </View>
                   )}

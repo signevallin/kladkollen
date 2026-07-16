@@ -44,7 +44,7 @@ export default function ResetPassword() {
       }
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
-      showAlert('Lösenord uppdaterat! 🍒')
+      showAlert('Lösenord uppdaterat!')
       router.replace('/home')
     } catch (error: any) {
       showAlert('Något gick fel', error.message)

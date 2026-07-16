@@ -248,7 +248,7 @@ export default function AddGarment() {
           image_url: imageUrl,
         }])
       }
-      Alert.alert(`${ready.length} ${ready.length === 1 ? 'plagg sparat' : 'plagg sparade'}! 🍒`)
+      Alert.alert(`${ready.length} ${ready.length === 1 ? 'plagg sparat' : 'plagg sparade'}!`)
       goBack('/wardrobe')
     } catch (e: any) {
       Alert.alert('Något gick fel', e.message)
@@ -267,12 +267,10 @@ export default function AddGarment() {
           </TouchableOpacity>
           <Text style={styles.title}>Lägg till plagg</Text>
           <TouchableOpacity style={styles.pickBtn} onPress={pickImages}>
-            <Text style={styles.pickBtnIcon}>📷</Text>
             <Text style={styles.pickBtnTitle}>Välj foton</Text>
             <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pickBtn} onPress={() => router.push('/import-purchases')}>
-            <Text style={styles.pickBtnIcon}>🛍️</Text>
             <Text style={styles.pickBtnTitle}>Importera köp</Text>
             <Text style={styles.pickBtnHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando, Zara m.fl.</Text>
           </TouchableOpacity>
@@ -302,7 +300,7 @@ export default function AddGarment() {
 
         {bgError && (
           <View style={styles.bgErrorBox}>
-            <Text style={styles.bgErrorText}>⚠️ Bakgrunden kunde inte tas bort – plagget sparas med originalfotot.</Text>
+            <Text style={styles.bgErrorText}>Bakgrunden kunde inte tas bort – plagget sparas med originalfotot.</Text>
             <Text style={styles.bgErrorDetail}>Orsak: {bgError}</Text>
           </View>
         )}
@@ -444,7 +442,7 @@ export default function AddGarment() {
         >
           {saving
             ? <ActivityIndicator color={t.onPrimary} size="small" />
-            : <Text style={styles.saveButtonText}>{`Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'} 🍒`}</Text>
+            : <Text style={styles.saveButtonText}>{`Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'}`}</Text>
           }
         </TouchableOpacity>
       </ScrollView>

@@ -18,11 +18,11 @@ import { supabase } from '../supabase'
 // Speglar kontexterna i home.tsx (Jobb / Ledig / Fest). Det är dessa som
 // sparas på outfits numera – det gamla "humör"-fältet finns inte längre.
 const CTX_META: Record<string, { emoji: string; color: string }> = {
-  'Jobb':  { emoji: '💼', color: '#B5896E' },
-  'Skola': { emoji: '🎒', color: '#8B9BB4' },
-  'Ledig': { emoji: '🌿', color: '#A8B5A0' },
-  'Date':  { emoji: '🌹', color: '#E8A0B4' },
-  'Fest':  { emoji: '🪩', color: '#B57BDB' },
+  'Jobb':  { emoji: '', color: '#B5896E' },
+  'Skola': { emoji: '', color: '#8B9BB4' },
+  'Ledig': { emoji: '', color: '#A8B5A0' },
+  'Date':  { emoji: '', color: '#E8A0B4' },
+  'Fest':  { emoji: '', color: '#B57BDB' },
 }
 
 const COLOR_GROUPS: Record<string, string[]> = {
@@ -33,8 +33,8 @@ const COLOR_GROUPS: Record<string, string[]> = {
   'Romantiskt':      ['Rosa', 'Lila'],
 }
 const COLOR_EMOJIS: Record<string, string> = {
-  'Mörka neutraler': '🖤', 'Neutraler': '🤍',
-  'Varmt & kraftfullt': '🔥', 'Svalt & lugnt': '🌊', 'Romantiskt': '🌸',
+  'Mörka neutraler': '', 'Neutraler': '',
+  'Varmt & kraftfullt': '', 'Svalt & lugnt': '', 'Romantiskt': '',
 }
 
 interface MoodStat {
@@ -131,7 +131,7 @@ export default function Stats() {
     })
     const total = withMood.length || 1
     const stats: MoodStat[] = Object.entries(moodMap).map(([label, d]) => ({
-      label, ...(CTX_META[label] || { emoji: '✨', color: t.textPrimary }),
+      label, ...(CTX_META[label] || { emoji: '', color: t.textPrimary }),
       count: d.count, pct: Math.round((d.count / total) * 100),
       avgRating: d.ratingCount > 0 ? Math.round((d.ratingSum / d.ratingCount) * 10) / 10 : null,
     })).sort((a, b) => b.count - a.count)
@@ -199,7 +199,7 @@ export default function Stats() {
     })
     const colorIns: ColorInsight[] = Object.entries(colorGroupRatings)
       .filter(([, v]) => v.count >= 2)
-      .map(([group, d]) => ({ group, emoji: COLOR_EMOJIS[group] || '✨', avgRating: Math.round((d.sum / d.count) * 10) / 10, count: d.count }))
+      .map(([group, d]) => ({ group, emoji: COLOR_EMOJIS[group] || '', avgRating: Math.round((d.sum / d.count) * 10) / 10, count: d.count }))
       .sort((a, b) => b.avgRating - a.avgRating)
     setColorInsights(colorIns)
 
@@ -209,8 +209,8 @@ export default function Stats() {
     if (bestCombo) {
       const [group, context] = bestCombo[0].split('|')
       setWinningCombo({
-        group, groupEmoji: COLOR_EMOJIS[group] || '✨',
-        context, ctxEmoji: CTX_META[context]?.emoji || '✨',
+        group, groupEmoji: COLOR_EMOJIS[group] || '',
+        context, ctxEmoji: CTX_META[context]?.emoji || '',
         avgRating: Math.round((bestCombo[1].sum / bestCombo[1].count) * 10) / 10,
       })
     }
@@ -219,7 +219,7 @@ export default function Stats() {
   async function markForSale(item: any) {
     const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
     if (error) Alert.alert('Något gick fel', error.message)
-    else { Alert.alert('🍒 Lagt till i säljlistan!', `${item.name} finns nu under Sälj-fliken i din garderob.`); fetchAll() }
+    else { Alert.alert('Lagt till i säljlistan!', `${item.name} finns nu under Sälj-fliken i din garderob.`); fetchAll() }
   }
 
   const mostWorn = garments.filter(g => g.times_worn > 0).slice(0, 5)
@@ -266,7 +266,6 @@ export default function Stats() {
         {activeTab === 'stil' && (
           !hasStyleData ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>🪄</Text>
               <Text style={styles.emptyTitle}>Ingen data än</Text>
               <Text style={styles.emptyText}>Generera outfits och betygsätt dem för att se din stilprofil växa fram.</Text>
             </View>
@@ -279,7 +278,6 @@ export default function Stats() {
                   <Text style={styles.sectionSubtitle}>Hur ofta du klär dig för olika tillfällen</Text>
                   {moodStats.map(m => (
                     <View key={m.label} style={styles.moodRow}>
-                      <Text style={styles.moodEmoji}>{m.emoji}</Text>
                       <View style={styles.moodInfo}>
                         <View style={styles.moodLabelRow}>
                           <Text style={styles.moodName}>{m.label}</Text>
@@ -300,11 +298,10 @@ export default function Stats() {
               {/* Stil-ROI */}
               {moodROI && (
                 <View style={[styles.insightCard, { marginBottom: 24 }]}>
-                  <Text style={styles.insightEmoji}>📈</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.insightTitle}>Din bästa stil</Text>
                     <Text style={styles.insightBody}>
-                      {moodROI.bestEmoji} {moodROI.bestLabel}-outfits ger {moodROI.pctDiff}% högre betyg än {moodROI.worstEmoji} {moodROI.worstLabel}-outfits.
+                      {moodROI.bestLabel}-outfits ger {moodROI.pctDiff}% högre betyg än {moodROI.worstLabel}-outfits.
                     </Text>
                   </View>
                 </View>
@@ -313,11 +310,10 @@ export default function Stats() {
               {/* Vinnande kombination (färg × kontext) */}
               {winningCombo && (
                 <View style={[styles.insightCard, { marginBottom: 24 }]}>
-                  <Text style={styles.insightEmoji}>🏆</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.insightTitle}>Vinnande kombination</Text>
                     <Text style={styles.insightBody}>
-                      {winningCombo.groupEmoji} {winningCombo.group} till {winningCombo.ctxEmoji} {winningCombo.context} ger dig {winningCombo.avgRating}/5 i snitt – din mest lyckade färg × tillfälle.
+                      {winningCombo.group} till {winningCombo.context} ger dig {winningCombo.avgRating}/5 i snitt – din mest lyckade färg × tillfälle.
                     </Text>
                   </View>
                 </View>
@@ -326,14 +322,14 @@ export default function Stats() {
               {/* Power Pieces */}
               {powerPieces.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>⭐ Power Pieces</Text>
+                  <Text style={styles.sectionTitle}>Power Pieces</Text>
                   <Text style={styles.sectionSubtitle}>Plagg kopplade till dina bästa outfits</Text>
                   {powerPieces.map((item, i) => (
                     <View key={item.name} style={styles.pieceRow}>
                       <Text style={styles.pieceRank}>#{i + 1}</Text>
                       {item.image_url
                         ? <SignedImage path={item.image_url} style={styles.pieceImage} />
-                        : <View style={styles.pieceImageEmpty}><Text style={{ fontSize: 18 }}>👗</Text></View>
+                        : <View style={styles.pieceImageEmpty} />
                       }
                       <View style={styles.pieceInfo}>
                         <Text style={styles.pieceName}>{item.name}</Text>
@@ -347,11 +343,10 @@ export default function Stats() {
               {/* Färgpsykologi */}
               {colorInsights.length >= 2 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>🎨 Färgpsykologi</Text>
+                  <Text style={styles.sectionTitle}>Färgpsykologi</Text>
                   <Text style={styles.sectionSubtitle}>Vilka färggrupper ger dig höga betyg</Text>
                   {colorInsights.map(c => (
                     <View key={c.group} style={styles.colorRow}>
-                      <Text style={styles.colorEmoji}>{c.emoji}</Text>
                       <View style={styles.colorInfo}>
                         <View style={styles.colorLabelRow}>
                           <Text style={styles.colorName}>{c.group}</Text>
@@ -369,7 +364,7 @@ export default function Stats() {
               {/* Svaga plagg */}
               {weakPieces.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>👎 Sänker betyget</Text>
+                  <Text style={styles.sectionTitle}>Sänker betyget</Text>
                   <Text style={styles.sectionSubtitle}>Dessa plagg är kopplade till lägre betyg</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.horizontalList}>
@@ -377,7 +372,7 @@ export default function Stats() {
                         <View key={item.name} style={styles.neverItem}>
                           {item.image_url
                             ? <SignedImage path={item.image_url} style={styles.neverImage} />
-                            : <View style={styles.neverImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>
+                            : <View style={styles.neverImageEmpty} />
                           }
                           <Text style={styles.neverName} numberOfLines={1}>{item.name}</Text>
                           <Text style={styles.weakRating}>{item.avgRating}★</Text>
@@ -391,7 +386,6 @@ export default function Stats() {
               {/* Unlock */}
               {ratedCount < 10 && (
                 <View style={styles.unlockCard}>
-                  <Text style={styles.unlockEmoji}>🔮</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.unlockTitle}>Mer insikter väntar</Text>
                     <Text style={styles.unlockText}>
@@ -418,7 +412,6 @@ export default function Stats() {
                 <Text style={styles.heroNumber}>{totalWorn}</Text>
                 <Text style={styles.heroLabel}>gånger har du använt dina kläder</Text>
               </View>
-              <Text style={styles.heroIcon}>👗</Text>
             </View>
 
             <View style={styles.miniStatsRow}>
@@ -450,7 +443,7 @@ export default function Stats() {
                   <View key={item.id} style={styles.barRow}>
                     {item.image_url
                       ? <SignedImage path={item.image_url} style={styles.barImage} />
-                      : <View style={styles.barImageEmpty}><Text style={{ fontSize: 18 }}>👗</Text></View>
+                      : <View style={styles.barImageEmpty} />
                     }
                     <View style={styles.barInfo}>
                       <View style={styles.barLabelRow}>
@@ -476,7 +469,7 @@ export default function Stats() {
                       <View key={item.id} style={styles.neverItem}>
                         {item.image_url
                           ? <SignedImage path={item.image_url} style={styles.neverImage} />
-                          : <View style={styles.neverImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
+                          : <View style={styles.neverImageEmpty} />
                         }
                         <Text style={styles.neverName} numberOfLines={1}>{item.name}</Text>
                       </View>
@@ -507,7 +500,7 @@ export default function Stats() {
                     <View key={item.id} style={styles.vintedItem}>
                       {item.image_url
                         ? <SignedImage path={item.image_url} style={styles.vintedImage} />
-                        : <View style={styles.vintedImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
+                        : <View style={styles.vintedImageEmpty} />
                       }
                       <View style={styles.vintedInfo}>
                         <Text style={styles.vintedItemName}>{item.name}</Text>

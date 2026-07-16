@@ -212,21 +212,21 @@ export default function GarmentDetail() {
             location: location.trim() || null,
           }).eq('id', id)
           if (error) showAlert('Något gick fel', error.message)
-          else { setArchived(true); showAlert('Arkiverat! 📦', location ? `Plagget finns: ${location}` : 'Tips: ange plats så du hittar det sen.') }
+          else { setArchived(true); showAlert('Arkiverat!', location ? `Plagget finns: ${location}` : 'Tips: ange plats så du hittar det sen.') }
         },
         'Arkivera'
       )
     } else {
       const { error } = await supabase.from('garments').update({ archived: false, sold: false }).eq('id', id)
       if (error) showAlert('Något gick fel', error.message)
-      else { setArchived(false); setSold(false); showAlert('Välkommen tillbaka! 🍒', `${name} är nu i garderoben igen.`) }
+      else { setArchived(false); setSold(false); showAlert('Välkommen tillbaka!', `${name} är nu i garderoben igen.`) }
     }
   }
 
   async function markAsWorn() {
     const today = new Date().toISOString().split('T')[0]
     if (lastWorn === today) {
-      showAlert('Du har redan markerat detta plagg som använt idag! 🍒')
+      showAlert('Du har redan markerat detta plagg som använt idag!')
       return
     }
     const newCount = timesWorn + 1
@@ -235,7 +235,7 @@ export default function GarmentDetail() {
       showAlert('Något gick fel', error.message)
     } else {
       setTimesWorn(newCount); setLastWorn(today)
-      showAlert(`Markerat som använt! 🍒`, `Använt ${newCount} gånger totalt.`)
+      showAlert(`Markerat som använt!`, `Använt ${newCount} gånger totalt.`)
     }
   }
 
@@ -259,14 +259,14 @@ export default function GarmentDetail() {
 
         {isWishlistItem && (
           <View style={styles.wishlistBadge}>
-            <Text style={styles.wishlistBadgeText}>🛍️ Köplista – äger ej ännu</Text>
+            <Text style={styles.wishlistBadgeText}>Köplista – äger ej ännu</Text>
           </View>
         )}
 
         {archived && (
           <View style={styles.archivedBadge}>
             <Text style={styles.archivedBadgeText}>
-              📦 Arkiverad{sold ? ' · Såld' : ''}{location ? ` · Finns: ${location}` : ''}
+              Arkiverad{sold ? ' · Såld' : ''}{location ? ` · Finns: ${location}` : ''}
             </Text>
           </View>
         )}
@@ -276,7 +276,7 @@ export default function GarmentDetail() {
             <SignedImage path={newImage || imageUrl} style={styles.previewImage} />
           ) : (
             <View style={styles.imagePickerInner}>
-              <Text style={styles.imagePickerEmoji}>{isWishlistItem ? '🛍️' : '📷'}</Text>
+              <Text style={styles.imagePickerEmoji}>{isWishlistItem ? '' : ''}</Text>
               <Text style={styles.imagePickerText}>{isWishlistItem ? 'Lägg till bild när du köpt plagget' : 'Välj foto'}</Text>
             </View>
           )}
@@ -390,17 +390,17 @@ export default function GarmentDetail() {
               <Text style={styles.wornLabel}>{lastWorn ? `Senast använd: ${new Date(lastWorn).toLocaleDateString('sv-SE')}` : 'Aldrig använd'}</Text>
             </View>
             <TouchableOpacity style={styles.wornButton} onPress={markAsWorn}>
-              <Text style={styles.wornButtonText}>👗 Använd idag</Text>
+              <Text style={styles.wornButtonText}>Använd idag</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        <Text style={styles.autosaveHint}>Ändringar sparas automatiskt 🍒</Text>
+        <Text style={styles.autosaveHint}>Ändringar sparas automatiskt</Text>
 
         {!isWishlistItem && (
           <TouchableOpacity style={styles.archiveButton} onPress={toggleArchive}>
             <Text style={styles.archiveButtonText}>
-              {archived ? '👗 Ta tillbaka till garderoben' : '📦 Arkivera (passar inte / används ej)'}
+              {archived ? 'Ta tillbaka till garderoben' : 'Arkivera (passar inte / används ej)'}
             </Text>
           </TouchableOpacity>
         )}

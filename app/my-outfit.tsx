@@ -196,7 +196,7 @@ function isPast(date: Date) {
     if (error) {
       showAlert('Något gick fel', error.message)
     } else {
-      showAlert('Outfit sparad! 🍒')
+      showAlert('Outfit sparad!')
       setCreating(false); setSelectedGarments([]); setOutfitName(''); fetchOutfits()
     }
   }
@@ -227,7 +227,7 @@ function isPast(date: Date) {
       const { data } = await supabase.from('garments').select('times_worn').eq('id', gid).single()
       await supabase.from('garments').update({ times_worn: (data?.times_worn || 0) + 1, last_worn: today }).eq('id', gid)
     }
-    showAlert('Outfit registrerad! 🍒', `${ids.length} plagg markerade som använda idag.`)
+    showAlert('Outfit registrerad!', `${ids.length} plagg markerade som använda idag.`)
   }
 
   const wishlistAsGarments = wishlist.map(w => ({ ...w, isWishlist: true, times_worn: 0, season: null, color: null }))
@@ -258,7 +258,7 @@ function isPast(date: Date) {
                     <View key={g.id} style={styles.selectedItem}>
                       {g.image_url
                         ? <SignedImage path={g.image_url} style={[styles.selectedImage, g.isWishlist && styles.wishlistImageBorder]} />
-                        : <View style={[styles.selectedImageEmpty, g.isWishlist && styles.wishlistImageEmptyBorder]}><Text style={{ fontSize: 20 }}>{g.isWishlist ? '🛍️' : '👗'}</Text></View>
+                        : <View style={[styles.selectedImageEmpty, g.isWishlist && styles.wishlistImageEmptyBorder]}><Text style={{ fontSize: 20 }}>{g.isWishlist ? '' : ''}</Text></View>
                       }
                       {g.isWishlist && <View style={styles.notOwnedBadgeTiny}><Text style={styles.notOwnedBadgeTinyText}>Äger ej</Text></View>}
                       <Text style={styles.selectedName} numberOfLines={1}>{g.name}</Text>
@@ -270,7 +270,7 @@ function isPast(date: Date) {
           )}
 
           <Text style={styles.label}>Namnge din outfit</Text>
-          <TextInput style={styles.nameInput} placeholder="t.ex. Fredagslook 🍒" placeholderTextColor={t.placeholder} value={outfitName} onChangeText={setOutfitName} />
+          <TextInput style={styles.nameInput} placeholder="t.ex. Fredagslook" placeholderTextColor={t.placeholder} value={outfitName} onChangeText={setOutfitName} />
 
           <Text style={styles.label}>Stil</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
@@ -313,7 +313,7 @@ function isPast(date: Date) {
               const selected = selectedGarments.find(s => s.id === g.id)
               return (
                 <TouchableOpacity key={g.id} style={[styles.garmentItem, selected && styles.garmentItemSelected]} onPress={() => toggleGarment(g)}>
-                  {g.image_url ? <SignedImage path={g.image_url} style={styles.garmentImage} /> : <View style={styles.garmentImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>}
+                  {g.image_url ? <SignedImage path={g.image_url} style={styles.garmentImage} /> : <View style={styles.garmentImageEmpty} />}
                   {selected && <View style={styles.checkmark}><Text style={styles.checkmarkText}>✓</Text></View>}
                   <Text style={styles.garmentName} numberOfLines={1}>{g.name}</Text>
                 </TouchableOpacity>
@@ -325,7 +325,6 @@ function isPast(date: Date) {
             <>
               <TouchableOpacity style={styles.wishlistToggle} onPress={() => setShowWishlistItems(!showWishlistItems)}>
                 <View style={styles.wishlistToggleLeft}>
-                  <Text style={styles.wishlistToggleIcon}>🛍️</Text>
                   <View>
                     <Text style={styles.wishlistToggleTitle}>Köplista ({wishlist.length})</Text>
                     <Text style={styles.wishlistToggleSub}>Plagg du planerar att köpa</Text>
@@ -339,7 +338,7 @@ function isPast(date: Date) {
                     const selected = selectedGarments.find(s => s.id === g.id)
                     return (
                       <TouchableOpacity key={g.id} style={[styles.garmentItem, styles.wishlistGarmentItem, selected && styles.garmentItemSelected]} onPress={() => toggleGarment(g)}>
-                        {g.image_url ? <SignedImage path={g.image_url} style={[styles.garmentImage, { opacity: 0.85 }]} /> : <View style={[styles.garmentImageEmpty, styles.wishlistImageEmptyStyle]}><Text style={{ fontSize: 22 }}>🛍️</Text></View>}
+                        {g.image_url ? <SignedImage path={g.image_url} style={[styles.garmentImage, { opacity: 0.85 }]} /> : <View style={[styles.garmentImageEmpty, styles.wishlistImageEmptyStyle]} />}
                         {selected && <View style={styles.checkmark}><Text style={styles.checkmarkText}>✓</Text></View>}
                         <View style={styles.notOwnedBadge}><Text style={styles.notOwnedBadgeText}>Äger ej</Text></View>
                         <Text style={styles.garmentName} numberOfLines={1}>{g.name}</Text>
@@ -385,7 +384,7 @@ function isPast(date: Date) {
                         <SignedImage key={i} path={url} style={styles.outfitPickerImage} />
                       ))}
                       {(outfit.image_urls || []).length === 0 && (
-                        <View style={styles.outfitPickerImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
+                        <View style={styles.outfitPickerImageEmpty} />
                       )}
                     </View>
                     <View style={styles.outfitPickerInfo}>
@@ -470,7 +469,7 @@ function isPast(date: Date) {
           {(['kalender', 'outfits', 'kollage'] as const).map(tab => (
             <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'kalender' ? '📅 Kalender' : tab === 'outfits' ? '👗 Outfits' : '🎨 Kollage'}
+                {tab === 'kalender' ? 'Kalender' : tab === 'outfits' ? 'Outfits' : 'Kollage'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -557,9 +556,9 @@ function isPast(date: Date) {
 
             {outfits.length === 0 ? (
               <View style={styles.empty}>
-                <Text style={styles.emptyText}>Inga outfits sparade än!{'\n'}Skapa din första eller generera via AI 🍒</Text>
+                <Text style={styles.emptyText}>Inga outfits sparade än!{'\n'}Skapa din första eller generera via AI</Text>
                 <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/home')}>
-                  <Text style={styles.goBtnText}>✨ Generera med AI</Text>
+                  <Text style={styles.goBtnText}>Generera med AI</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -575,7 +574,7 @@ function isPast(date: Date) {
                         <SignedImage key={i} path={url} style={styles.outfitImage} />
                       ))}
                       {(outfit.garment_names || []).filter((_: any, i: number) => !outfit.image_urls?.[i]).map((_: string, i: number) => (
-                        <View key={`emoji-${i}`} style={styles.outfitImageEmpty}><Text style={{ fontSize: 24 }}>👗</Text></View>
+                        <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
                       ))}
                     </View>
                   </ScrollView>
@@ -592,9 +591,9 @@ function isPast(date: Date) {
           <>
             {collages.length === 0 ? (
               <View style={styles.empty}>
-                <Text style={styles.emptyText}>Inga kollage än!{'\n'}Skapa moodboards med dina egna plagg 🎨</Text>
+                <Text style={styles.emptyText}>Inga kollage än!{'\n'}Skapa moodboards med dina egna plagg</Text>
                 <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/collage')}>
-                  <Text style={styles.goBtnText}>🎨 Skapa kollage</Text>
+                  <Text style={styles.goBtnText}>Skapa kollage</Text>
                 </TouchableOpacity>
               </View>
             ) : (

@@ -197,7 +197,7 @@ export default function Wardrobe() {
   // --- Sale ---
   async function addToSale(item: any) {
     await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
-    showAlert(`${item.name} är nu till salu! 🍒`)
+    showAlert(`${item.name} är nu till salu!`)
     setShowAddSale(false)
     setSaleSearch('')
     fetchGarments()
@@ -236,7 +236,7 @@ export default function Wardrobe() {
     showConfirm('Markera som såld', `Är "${item.name}" såld?`, async () => {
       await supabase.from('garments').update({ sold: true, archived: true, for_sale: false }).eq('id', item.id)
       fetchGarments()
-      showAlert('🍒 Sålt!', `${item.name} har arkiverats.`)
+      showAlert('Sålt!', `${item.name} har arkiverats.`)
     }, 'Ja, arkivera', true)
   }
 
@@ -248,7 +248,7 @@ export default function Wardrobe() {
   async function unarchive(item: any) {
     await supabase.from('garments').update({ archived: false, sold: false }).eq('id', item.id)
     fetchGarments()
-    showAlert('Välkommen tillbaka! 🍒', `${item.name} är nu i garderoben igen.`)
+    showAlert('Välkommen tillbaka!', `${item.name} är nu i garderoben igen.`)
   }
 
   async function moveWishItem(index: number, direction: 'up' | 'down') {
@@ -376,7 +376,6 @@ export default function Wardrobe() {
                   <SignedImage path={wishImage} style={styles.imagePickerPreview} />
                 ) : (
                   <View style={styles.imagePickerInner}>
-                    <Text style={styles.imagePickerEmoji}>📷</Text>
                     <Text style={styles.imagePickerText}>Lägg till bild (valfritt)</Text>
                   </View>
                 )}
@@ -424,7 +423,7 @@ export default function Wardrobe() {
               </View>
 
               <TouchableOpacity style={styles.modalSaveBtn} onPress={addWishItem} disabled={savingWish}>
-                <Text style={styles.modalSaveBtnText}>{savingWish ? 'Sparar...' : 'Lägg till 🍒'}</Text>
+                <Text style={styles.modalSaveBtnText}>{savingWish ? 'Sparar...' : 'Lägg till'}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -464,12 +463,12 @@ export default function Wardrobe() {
                   <TouchableOpacity key={item.id} style={styles.salePickerItem} onPress={() => addToSale(item)}>
                     {item.image_url
                       ? <SignedImage path={item.image_url} style={styles.salePickerImage} />
-                      : <View style={styles.salePickerImageEmpty}><Text style={{ fontSize: 22 }}>👗</Text></View>
+                      : <View style={styles.salePickerImageEmpty} />
                     }
                     <View style={styles.salePickerInfo}>
                       <Text style={styles.salePickerName}>{item.name}</Text>
                       <Text style={styles.salePickerCategory}>{item.category}{item.color ? ` · ${item.color}` : ''}</Text>
-                      <Text style={styles.salePickerStat}>👗 Använd {item.times_worn || 0} gånger</Text>
+                      <Text style={styles.salePickerStat}>Använd {item.times_worn || 0} gånger</Text>
                       <Text style={styles.salePickerStat}>
                         {item.last_worn ? `Senast använd: ${new Date(item.last_worn).toLocaleDateString('sv-SE')}` : 'Aldrig använd'}
                       </Text>
@@ -495,7 +494,6 @@ export default function Wardrobe() {
               accessibilityLabel="Sök och filtrera"
               accessibilityRole="button"
             >
-              <Text style={styles.iconBtnText}>🔍</Text>
             </TouchableOpacity>
           )}
           {activeTab === 'nuvarande' && (
@@ -536,7 +534,7 @@ export default function Wardrobe() {
           { id: 'nuvarande', label: `Garderob${garments.length > 0 ? ` (${garments.length})` : ''}` },
           { id: 'köp', label: `Köp${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` },
           { id: 'sälj', label: `Sälj${forSale.length > 0 ? ` (${forSale.length})` : ''}` },
-          { id: 'capsule', label: '✨ Capsule' },
+          { id: 'capsule', label: 'Capsule' },
         ].map(({ id, label }) => (
           <TouchableOpacity
             key={id}
@@ -616,7 +614,7 @@ export default function Wardrobe() {
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>
-                  {hasActiveFilters ? 'Inga plagg hittades 🔍' : 'Din garderob är tom!\nLägg till ditt första plagg 🍒'}
+                  {hasActiveFilters ? 'Inga plagg hittades' : 'Din garderob är tom!\nLägg till ditt första plagg'}
                 </Text>
               </View>
             }
@@ -624,7 +622,7 @@ export default function Wardrobe() {
               <TouchableOpacity style={styles.item} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 {item.image_url
                   ? <SignedImage path={item.image_url} style={styles.itemImage} />
-                  : <Text style={styles.itemEmoji}>👗</Text>
+                  : null
                 }
                 <Text style={styles.itemName}>{item.name}</Text>
                 <Text style={styles.itemCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
@@ -632,7 +630,7 @@ export default function Wardrobe() {
             )}
             ListFooterComponent={
               <TouchableOpacity style={styles.archiveToggleBtn} onPress={() => setShowArchive(true)}>
-                <Text style={styles.archiveToggleBtnText}>📦 Arkiv ({archived.length})</Text>
+                <Text style={styles.archiveToggleBtnText}>Arkiv ({archived.length})</Text>
               </TouchableOpacity>
             }
           />
@@ -644,7 +642,6 @@ export default function Wardrobe() {
         <ScrollView contentContainerStyle={styles.wishScroll}>
           {wishlist.length === 0 ? (
             <View style={styles.emptyTab}>
-              <Text style={styles.emptyTabIcon}>🛍️</Text>
               <Text style={styles.emptyTabText}>Köplistan är tom</Text>
               <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga till plagg du drömmer om</Text>
             </View>
@@ -688,7 +685,7 @@ export default function Wardrobe() {
                     </View>
                     {item.image_url
                       ? <SignedImage path={item.image_url} style={styles.wishImage} />
-                      : <View style={styles.wishImageEmpty}><Text style={{ fontSize: 22 }}>🛍️</Text></View>
+                      : <View style={styles.wishImageEmpty} />
                     }
                     <View style={styles.wishInfo}>
                       <Text style={styles.wishName}>{item.name}</Text>
@@ -699,7 +696,7 @@ export default function Wardrobe() {
                       </View>
                       {count > 0 && (
                         <View style={styles.outfitBadge}>
-                          <Text style={styles.outfitBadgeText}>👗 {count} outfit{count !== 1 ? 's' : ''}</Text>
+                          <Text style={styles.outfitBadgeText}>{count} outfit{count !== 1 ? 's' : ''}</Text>
                         </View>
                       )}
                     </View>
@@ -725,7 +722,6 @@ export default function Wardrobe() {
         <ScrollView contentContainerStyle={styles.saleScroll}>
           {forSale.length === 0 ? (
             <View style={styles.emptyTab}>
-              <Text style={styles.emptyTabIcon}>💰</Text>
               <Text style={styles.emptyTabText}>Inga plagg till salu</Text>
               <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga ut plagg du inte använder</Text>
             </View>
@@ -734,7 +730,7 @@ export default function Wardrobe() {
               <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 {item.image_url
                   ? <SignedImage path={item.image_url} style={styles.saleImage} />
-                  : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
+                  : <View style={styles.saleImageEmpty} />
                 }
                 <View style={styles.saleInfo}>
                   <Text style={styles.saleName}>{item.name}</Text>
@@ -752,7 +748,7 @@ export default function Wardrobe() {
             ))
           )}
           <TouchableOpacity style={styles.archiveToggleBtn} onPress={() => setShowArchive(true)}>
-            <Text style={styles.archiveToggleBtnText}>📦 Arkiv ({archived.length})</Text>
+            <Text style={styles.archiveToggleBtnText}>Arkiv ({archived.length})</Text>
           </TouchableOpacity>
         </ScrollView>
       )}
@@ -768,19 +764,19 @@ export default function Wardrobe() {
             Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.
           </Text>
           {archived.length === 0 ? (
-            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>📦 Inga arkiverade plagg</Text></View>
+            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>Inga arkiverade plagg</Text></View>
           ) : (
             archived.map((item) => (
               <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 {item.image_url
                   ? <SignedImage path={item.image_url} style={[styles.saleImage, { opacity: 0.6 }]} />
-                  : <View style={styles.saleImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
+                  : <View style={styles.saleImageEmpty} />
                 }
                 <View style={styles.saleInfo}>
                   <Text style={styles.saleName}>{item.name}</Text>
                   <Text style={styles.saleCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
-                  {item.location ? <Text style={styles.locationTag}>📍 {item.location}</Text> : null}
-                  {item.sold && <Text style={styles.soldTag}>Såld 🍒</Text>}
+                  {item.location ? <Text style={styles.locationTag}>{item.location}</Text> : null}
+                  {item.sold && <Text style={styles.soldTag}>Såld</Text>}
                 </View>
                 {!item.sold && (
                   <TouchableOpacity
@@ -816,7 +812,6 @@ export default function Wardrobe() {
                 <Text style={styles.capsuleAutoSaved}>✓ Autosparad</Text>
               )}
             </View>
-            <Text style={styles.capsuleHeroEmoji}>✨</Text>
           </View>
 
           {!capsuleGenerated ? (
@@ -827,7 +822,7 @@ export default function Wardrobe() {
               disabled={generatingCapsule}
             >
               <Text style={styles.capsuleGenerateBtnText}>
-                {generatingCapsule ? '✨ Analyserar...' : '✨ Skapa capsule'}
+                {generatingCapsule ? 'Analyserar...' : 'Skapa capsule'}
               </Text>
               <Text style={styles.capsuleGenerateBtnSub}>
                 {generatingCapsule ? 'Väljer ut dina bästa plagg' : 'AI föreslår – du bestämmer'}
@@ -847,7 +842,7 @@ export default function Wardrobe() {
                 onPress={() => setShowOutfitList(v => !v)}
               >
                 <Text style={styles.capsuleOutfitToggleText}>
-                  {showOutfitList ? '▲ Dölj outfits' : `👗 Se alla outfits (${calcOutfits(capsuleSelected)})`}
+                  {showOutfitList ? '▲ Dölj outfits' : `Se alla outfits (${calcOutfits(capsuleSelected)})`}
                 </Text>
               </TouchableOpacity>
 
@@ -866,7 +861,7 @@ export default function Wardrobe() {
                             <View key={j} style={styles.outfitPiece}>
                               {piece.image_url
                                 ? <SignedImage path={piece.image_url} style={styles.outfitPieceImage} />
-                                : <View style={styles.outfitPieceEmpty}><Text style={{ fontSize: 18 }}>👗</Text></View>
+                                : <View style={styles.outfitPieceEmpty} />
                               }
                               <Text style={styles.outfitPieceName} numberOfLines={1}>{piece.name}</Text>
                               <Text style={styles.outfitPieceCat}>{piece.category}</Text>
@@ -900,7 +895,7 @@ export default function Wardrobe() {
                     >
                       {item.image_url
                         ? <SignedImage path={item.image_url} style={[styles.capsuleGridImage, !isSelected && styles.capsuleGridImageDim]} />
-                        : <View style={[styles.capsuleGridImageEmpty, !isSelected && { opacity: 0.35 }]}><Text style={{ fontSize: 24 }}>👗</Text></View>
+                        : <View style={[styles.capsuleGridImageEmpty, !isSelected && { opacity: 0.35 }]} />
                       }
                       {isSelected && (
                         <View style={styles.capsuleCheckBadge}>
@@ -923,7 +918,7 @@ export default function Wardrobe() {
                   saveCapsule(new Set())
                 }}
               >
-                <Text style={styles.capsuleRegenBtnText}>🔄 Börja om</Text>
+                <Text style={styles.capsuleRegenBtnText}>Börja om</Text>
               </TouchableOpacity>
             </>
           )}

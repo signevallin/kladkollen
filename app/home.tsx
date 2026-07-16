@@ -24,11 +24,11 @@ import { showAlert } from '../utils/alert'
 import { apiPost } from '../utils/api'
 
 const CONTEXTS = [
-  { label: 'Jobb', emoji: '💼', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
-  { label: 'Skola', emoji: '🎒', logic: 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual' },
-  { label: 'Ledig', emoji: '🌿', logic: 'casual, bekvämt, avslappnat men snyggt, vardaglig känsla' },
-  { label: 'Date', emoji: '🌹', logic: 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch' },
-  { label: 'Fest', emoji: '🪩', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
+  { label: 'Jobb', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
+  { label: 'Skola', logic: 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual' },
+  { label: 'Ledig', logic: 'casual, bekvämt, avslappnat men snyggt, vardaglig känsla' },
+  { label: 'Date', logic: 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch' },
+  { label: 'Fest', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
 ]
 
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
@@ -93,28 +93,19 @@ export default function Home() {
   async function fetchWeather() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') { setWeather({ temp: 10, emoji: '🌧️', description: 'Regn', rain: true }); return }
+      if (status !== 'granted') { setWeather({ temp: 10, description: 'Regn', rain: true }); return }
       const location = await Location.getCurrentPositionAsync({})
       const { latitude, longitude } = location.coords
       const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`)
       const data = await response.json()
       const temp = Math.round(data.current.temperature_2m)
       const code = data.current.weathercode
-      setWeather({ temp, emoji: getWeatherEmoji(code), description: getWeatherDescription(code), rain: code >= 51 && code <= 82 })
+      setWeather({ temp, description: getWeatherDescription(code), rain: code >= 51 && code <= 82 })
     } catch {
-      setWeather({ temp: 10, emoji: '🌡️', description: 'Okänt', rain: false })
+      setWeather({ temp: 10, description: 'Okänt', rain: false })
     }
   }
 
-  function getWeatherEmoji(code: number) {
-    if (code === 0) return '☀️'
-    if (code <= 3) return '⛅️'
-    if (code <= 48) return '🌫️'
-    if (code <= 67) return '🌧️'
-    if (code <= 77) return '❄️'
-    if (code <= 82) return '🌦️'
-    return '⛈️'
-  }
 
   function getWeatherDescription(code: number) {
     if (code === 0) return 'Klart'
@@ -381,7 +372,7 @@ export default function Home() {
       if (error) throw error
       setSaved(true)
       setSavedOutfitId(outfitData.id)
-      showAlert('Outfit sparad! 🍒', 'Du hittar den under Outfits.')
+      showAlert('Outfit sparad!', 'Du hittar den under Outfits.')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
@@ -432,7 +423,7 @@ export default function Home() {
       }
 
       setWornToday(true)
-      showAlert('Outfit vald för idag! 🍒', 'Den syns nu i din kalender och plaggen räknas som använda.')
+      showAlert('Outfit vald för idag!', 'Den syns nu i din kalender och plaggen räknas som använda.')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
@@ -518,7 +509,7 @@ export default function Home() {
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <Text style={[styles.greeting, fontsLoaded && { fontFamily: 'Poppins_600SemiBold' }]}>
-              {getGreeting()}, {userName} 🍒
+              {getGreeting()}, {userName}
             </Text>
           </View>
           <TouchableOpacity
@@ -529,7 +520,7 @@ export default function Home() {
           >
             {userAvatar
               ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" />
-              : <Text style={styles.profileBtnText}>👤</Text>
+              : null
             }
           </TouchableOpacity>
         </View>
@@ -548,7 +539,6 @@ export default function Home() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
               >
-                <Text style={[styles.contextEmoji, isSelected && styles.contextEmojiSelected]}>{ctx.emoji}</Text>
                 <Text style={[styles.contextLabel, isSelected && styles.contextLabelSelected]}>{ctx.label}</Text>
               </TouchableOpacity>
             )
@@ -563,7 +553,6 @@ export default function Home() {
             activeOpacity={0.8}
           >
             <View style={styles.optionLeft}>
-              <Text style={styles.optionIcon}>{weather?.emoji || '🌤'}</Text>
               <View>
                 <Text style={styles.optionText}>Anpassa efter väder</Text>
                 {weather && <Text style={styles.optionSub}>{weather.temp}° · {weather.description}</Text>}
@@ -583,7 +572,7 @@ export default function Home() {
         >
           {loading
             ? <ActivityIndicator color={t.onPrimary} />
-            : <Text style={styles.generateBtnText}>{activeCtx.emoji} Generera outfit</Text>
+            : <Text style={styles.generateBtnText}>Generera outfit</Text>
           }
         </TouchableOpacity>
 
@@ -595,7 +584,6 @@ export default function Home() {
           }]}>
             {outfit.message && (
               <View style={styles.messageBox}>
-                <Text style={styles.messageEmoji}>{activeCtx.emoji}</Text>
                 <Text style={styles.messageText}>{outfit.message}</Text>
               </View>
             )}
@@ -615,7 +603,7 @@ export default function Home() {
                   >
                     {item.image_url
                       ? <SignedImage path={item.image_url} style={styles.outfitImage} />
-                      : <View style={styles.outfitImageEmpty}><Text style={{ fontSize: 28 }}>👗</Text></View>
+                      : <View style={styles.outfitImageEmpty} />
                     }
                     <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
                     <Text style={styles.outfitItemName} numberOfLines={1}>{item.name}</Text>
@@ -658,7 +646,7 @@ export default function Home() {
               >
                 {saving
                   ? <ActivityIndicator color={t.onPrimary} size="small" />
-                  : <Text style={styles.saveBtnText}>{saved ? '✓ Sparad' : '🍒 Spara outfit'}</Text>
+                  : <Text style={styles.saveBtnText}>{saved ? '✓ Sparad' : 'Spara outfit'}</Text>
                 }
               </TouchableOpacity>
               <TouchableOpacity style={styles.newBtn} onPress={generateOutfit}>
@@ -674,7 +662,7 @@ export default function Home() {
             >
               {wearingToday
                 ? <ActivityIndicator color={t.onPrimary} size="small" />
-                : <Text style={styles.wearTodayBtnText}>{wornToday ? '✓ Vald för idag' : '👗 Vill ha på mig idag'}</Text>
+                : <Text style={styles.wearTodayBtnText}>{wornToday ? '✓ Vald för idag' : 'Vill ha på mig idag'}</Text>
               }
             </TouchableOpacity>
           </Animated.View>
@@ -691,7 +679,6 @@ export default function Home() {
             <Text style={styles.statLabel}>SÄLJ TIPS</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.statCard} onPress={() => router.push('/inspiration')}>
-            <Text style={styles.statNum}>📸</Text>
             <Text style={styles.statLabel}>INSPO</Text>
           </TouchableOpacity>
         </View>
@@ -717,7 +704,7 @@ export default function Home() {
               style={styles.swapRemoveBtn}
               onPress={() => swapIndex !== null && removeItem(swapIndex)}
             >
-              <Text style={styles.swapRemoveText}>🗑 Ta bort ur outfiten</Text>
+              <Text style={styles.swapRemoveText}>Ta bort ur outfiten</Text>
             </TouchableOpacity>
 
             {swapAlternatives.length === 0 ? (
@@ -736,7 +723,7 @@ export default function Home() {
                   >
                     {g.image_url
                       ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
-                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]}><Text style={{ fontSize: 22 }}>👗</Text></View>
+                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
                     }
                     <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
                   </TouchableOpacity>

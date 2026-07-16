@@ -33,11 +33,11 @@ export default function SongCard({ song }: { song: SongData }) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.header}>🎧 Dagens låt</Text>
+      <Text style={styles.header}>Dagens låt</Text>
       <View style={styles.row}>
         {song.artwork
           ? <Image source={{ uri: song.artwork }} style={styles.artwork} />
-          : <View style={[styles.artwork, styles.artworkEmpty]}><Text style={{ fontSize: 22 }}>🎵</Text></View>
+          : <View style={[styles.artwork, styles.artworkEmpty]} />
         }
         <View style={styles.info}>
           <Text style={styles.title} numberOfLines={1}>{song.title}</Text>

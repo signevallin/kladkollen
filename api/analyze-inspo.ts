@@ -47,7 +47,7 @@ ${garmentList}
      "items" – även om färgen skiljer sig något. Nämn färgskillnaden i "tip".
    • Har garderoben INGET plagg av den typen alls? Lägg då rollen i "missing".
 
-⚠️ VIKTIGASTE REGELN – bryt den ALDRIG:
+VIKTIGASTE REGELN – bryt den ALDRIG:
 Samma roll/kategori får bara stå på ETT ställe. Ett plagg som finns i "items"
 får ALDRIG också dyka upp i "missing", och tvärtom. Har du redan valt en kavaj
 till "items" får du ALDRIG föreslå en kavaj i "missing" – inte ens i en annan

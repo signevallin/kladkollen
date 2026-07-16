@@ -32,7 +32,7 @@ export default function Login() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        showAlert('Konto skapat! 🍒', 'Kolla din email för att verifiera ditt konto.')
+        showAlert('Konto skapat!', 'Kolla din email för att verifiera ditt konto.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -60,7 +60,7 @@ export default function Login() {
         : 'kladkollen://reset-password'
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
       if (error) throw error
-      showAlert('Mail skickat! 🍒', 'Kolla din inkorg för en länk att återställa lösenordet.')
+      showAlert('Mail skickat!', 'Kolla din inkorg för en länk att återställa lösenordet.')
     } catch (error: any) {
       showAlert('Något gick fel', error.message)
     }

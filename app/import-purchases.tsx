@@ -28,15 +28,15 @@ if (Platform.OS !== 'web') {
 // fritt i webbläsaren, så exakta URL:er är bara en genväg – importen läser
 // den sida som visas när man trycker på Importera.
 const STORES: { name: string; emoji: string; url: string }[] = [
-  { name: 'H&M', emoji: '🔴', url: 'https://www2.hm.com/sv_se/account/purchases.html' },
-  { name: 'Zalando', emoji: '🧡', url: 'https://www.zalando.se/myaccount/orders/' },
-  { name: 'Boozt', emoji: '🟢', url: 'https://www.boozt.com/se/sv/account/orders' },
-  { name: 'Arket', emoji: '🤎', url: 'https://www.arket.com/en-se/account/orders' },
-  { name: 'Zara', emoji: '⚫', url: 'https://www.zara.com/se/sv/user/orders' },
-  { name: 'ASOS', emoji: '⚪', url: 'https://my.asos.com/my-account/orders' },
-  { name: 'NA-KD', emoji: '🩷', url: 'https://www.na-kd.com/sv/account/orders' },
-  { name: 'Vinted', emoji: '💚', url: 'https://www.vinted.se/member/settings/orders' },
-  { name: 'Sellpy', emoji: '💛', url: 'https://www.sellpy.se/anvandare/kop' },
+  { name: 'H&M', emoji: '', url: 'https://www2.hm.com/sv_se/account/purchases.html' },
+  { name: 'Zalando', emoji: '', url: 'https://www.zalando.se/myaccount/orders/' },
+  { name: 'Boozt', emoji: '', url: 'https://www.boozt.com/se/sv/account/orders' },
+  { name: 'Arket', emoji: '', url: 'https://www.arket.com/en-se/account/orders' },
+  { name: 'Zara', emoji: '', url: 'https://www.zara.com/se/sv/user/orders' },
+  { name: 'ASOS', emoji: '', url: 'https://my.asos.com/my-account/orders' },
+  { name: 'NA-KD', emoji: '', url: 'https://www.na-kd.com/sv/account/orders' },
+  { name: 'Vinted', emoji: '', url: 'https://www.vinted.se/member/settings/orders' },
+  { name: 'Sellpy', emoji: '', url: 'https://www.sellpy.se/anvandare/kop' },
 ]
 
 // Körs i WebView:n när användaren trycker Importera. Plockar sidans synliga
@@ -196,7 +196,7 @@ export default function ImportPurchases() {
         }])
       }
 
-      showAlert(`${chosen.length} plagg importerade! 🍒`, 'Du hittar dem i garderoben. Öppna gärna varje plagg och kontrollera kategori och säsong.')
+      showAlert(`${chosen.length} plagg importerade!`, 'Du hittar dem i garderoben. Öppna gärna varje plagg och kontrollera kategori och säsong.')
       goBack('/wardrobe')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
@@ -216,7 +216,6 @@ export default function ImportPurchases() {
           </TouchableOpacity>
           <Text style={styles.title}>Importera köp</Text>
           <View style={styles.webNotice}>
-            <Text style={styles.webNoticeEmoji}>📱</Text>
             <Text style={styles.webNoticeText}>
               Import från nätbutiker fungerar bara i appen på din telefon, där du kan
               logga in säkert i butikens egen webbläsare.
@@ -248,7 +247,7 @@ export default function ImportPurchases() {
             </TouchableOpacity>
           ))}
           <View style={styles.privacyBox}>
-            <Text style={styles.privacyTitle}>🔒 Integritet</Text>
+            <Text style={styles.privacyTitle}>Integritet</Text>
             <Text style={styles.privacyText}>
               Du loggar in direkt hos butiken – Klädkollen ser aldrig ditt lösenord.
               Endast produktinformation hämtas (namn, märke, pris, datum, bild).
@@ -274,7 +273,7 @@ export default function ImportPurchases() {
             <TouchableOpacity key={i} style={[styles.itemRow, selected.has(i) && styles.itemRowSelected]} onPress={() => toggle(i)} disabled={adding}>
               {item.imageUrl
                 ? <Image source={{ uri: item.imageUrl }} style={styles.itemImage} resizeMode="contain" />
-                : <View style={styles.itemImageEmpty}><Text style={{ fontSize: 20 }}>👗</Text></View>
+                : <View style={styles.itemImageEmpty} />
               }
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
@@ -326,7 +325,7 @@ export default function ImportPurchases() {
         <TouchableOpacity style={[styles.primaryBtn, parsing && styles.primaryBtnDisabled]} onPress={startImport} disabled={parsing}>
           {parsing
             ? <View style={styles.btnRow}><ActivityIndicator color={t.onPrimary} /><Text style={styles.primaryBtnText}>  Läser sidan…</Text></View>
-            : <Text style={styles.primaryBtnText}>⬇️ Importera från denna sida</Text>
+            : <Text style={styles.primaryBtnText}>Importera från denna sida</Text>
           }
         </TouchableOpacity>
       </View>

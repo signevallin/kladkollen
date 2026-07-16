@@ -143,7 +143,7 @@ export default function Inspiration() {
       Alert.alert('Något gick fel', error.message)
     } else {
       setAddedToWishlist(prev => [...prev, itemName])
-      Alert.alert('🛍️ Lagt till!', `"${itemName}" finns nu i din köplista.`)
+      Alert.alert('Lagt till!', `"${itemName}" finns nu i din köplista.`)
     }
   }
 
@@ -194,7 +194,7 @@ export default function Inspiration() {
       }])
       if (error) throw error
       setSavedInspo(true)
-      Alert.alert('Outfit sparad! 🍒', 'Du hittar den under Outfits.')
+      Alert.alert('Outfit sparad!', 'Du hittar den under Outfits.')
     } catch (e: any) {
       Alert.alert('Något gick fel', e.message)
     } finally {
@@ -225,7 +225,7 @@ export default function Inspiration() {
                   if (item) deleteMoodboardImage(item.id)
                 }}
               >
-                <Text style={styles.imageModalDeleteText}>🗑 Ta bort</Text>
+                <Text style={styles.imageModalDeleteText}>Ta bort</Text>
               </TouchableOpacity>
             </>
           )}
@@ -244,7 +244,7 @@ export default function Inspiration() {
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'analys' ? '✨ AI-analys' : '🖼 Moodboard'}
+                {tab === 'analys' ? 'AI-analys' : 'Moodboard'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -258,7 +258,6 @@ export default function Inspiration() {
                 <Image source={{ uri: inspoImage }} style={styles.inspoImage} resizeMode="contain" />
               ) : (
                 <View style={styles.uploadPlaceholder}>
-                  <Text style={styles.uploadIcon}>📸</Text>
                   <Text style={styles.uploadText}>Ladda upp inspirationsbild</Text>
                   <Text style={styles.uploadSub}>Pinterest · Instagram · Kamera</Text>
                 </View>
@@ -276,7 +275,7 @@ export default function Inspiration() {
               disabled={loading || !inspoImage}
             >
               <Text style={styles.analyzeButtonText}>
-                {loading ? 'Analyserar...' : '✨ Matcha mot min garderob'}
+                {loading ? 'Analyserar...' : 'Matcha mot min garderob'}
               </Text>
             </TouchableOpacity>
 
@@ -299,7 +298,7 @@ export default function Inspiration() {
                     <View key={index} style={styles.outfitItem}>
                       {item.image_url
                         ? <SignedImage path={item.image_url} style={styles.outfitItemImage} />
-                        : <View style={styles.outfitItemEmptyBox}><Text style={styles.outfitItemEmoji}>👗</Text></View>
+                        : <View style={styles.outfitItemEmptyBox} />
                       }
                       <Text style={styles.outfitItemName}>{item.name}</Text>
                     </View>
@@ -308,7 +307,6 @@ export default function Inspiration() {
                 {outfit.missing.length > 0 && (
                   <View style={styles.missingSection}>
                     <View style={styles.missingSectionHeader}>
-                      <Text style={styles.missingIcon}>💡</Text>
                       <View>
                         <Text style={styles.missingTitle}>Du saknar i garderoben</Text>
                         <Text style={styles.missingSubtitle}>Lägg till i köplistan för att komplettera</Text>
@@ -337,7 +335,6 @@ export default function Inspiration() {
                   </View>
                 )}
                 <View style={styles.tipCard}>
-                  <Text style={styles.tipIcon}>🍒</Text>
                   <Text style={styles.tipText}>{outfit.tip}</Text>
                 </View>
                 <TouchableOpacity
@@ -346,7 +343,7 @@ export default function Inspiration() {
                   disabled={savingInspo || savedInspo}
                 >
                   <Text style={styles.saveInspoBtnText}>
-                    {savingInspo ? '...' : savedInspo ? '✓ Sparad i outfits' : '🍒 Spara outfit'}
+                    {savingInspo ? '...' : savedInspo ? '✓ Sparad i outfits' : 'Spara outfit'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -366,7 +363,6 @@ export default function Inspiration() {
 
             {moodboardImages.length === 0 ? (
               <View style={styles.moodboardEmpty}>
-                <Text style={styles.moodboardEmptyIcon}>🖼</Text>
                 <Text style={styles.moodboardEmptyText}>Din moodboard är tom</Text>
                 <Text style={styles.moodboardEmptyHint}>Lägg till bilder som inspirerar dig</Text>
               </View>
