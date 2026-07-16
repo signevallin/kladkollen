@@ -28,6 +28,13 @@ const WISH_SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const COLORS = ['Alla', 'Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
 const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
 
+const COLOR_HEX: Record<string, string> = {
+  'Svart': '#1A1A1A', 'Vit': '#F5F5F5', 'Grå': '#9E9E9E', 'Beige': '#D4B896',
+  'Brun': '#795548', 'Röd': '#E53935', 'Rosa': '#EC407A', 'Lila': '#8E24AA',
+  'Blå': '#1E88E5', 'Ljusblå': '#81D4FA', 'Grön': '#43A047', 'Olivgrön': '#708238',
+  'Gul': '#FDD835', 'Orange': '#FB8C00', 'Vinröd': '#7B2D3A', 'Guld': '#C9A96E',
+}
+
 const SORT_OPTIONS: { key: string; label: string }[] = [
   { key: 'recent', label: 'Senast tillagd' },
   { key: 'name', label: 'A–Ö' },
@@ -609,7 +616,7 @@ export default function Wardrobe() {
 
           {showFilterPanel && (
           <>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRow}>
+          <View style={styles.chipRow}>
             {[
               { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
               { key: 'category', label: 'Kategori', value: activeCategory, on: activeCategory !== 'Alla' },
@@ -631,7 +638,7 @@ export default function Wardrobe() {
                 <Text style={styles.chipClearText}>Rensa</Text>
               </TouchableOpacity>
             )}
-          </ScrollView>
+          </View>
 
           {openDropdown && (
             <View style={styles.dropdown}>
@@ -655,6 +662,9 @@ export default function Wardrobe() {
                             style={[styles.dropdownPill, isActive && styles.dropdownPillActive]}
                             onPress={() => openDropdown === 'category' ? handleCategory(item) : openDropdown === 'season' ? handleSeason(item) : handleColor(item)}
                           >
+                            {openDropdown === 'color' && COLOR_HEX[item] && (
+                              <View style={[styles.pillColorDot, { backgroundColor: COLOR_HEX[item] }]} />
+                            )}
                             <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{item}</Text>
                           </TouchableOpacity>
                         )
@@ -997,7 +1007,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
-  iconBtnActive: { backgroundColor: '#7A1828', borderColor: t.primary },
+  iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.onPrimary },
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
@@ -1008,8 +1018,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   searchContainer: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: t.border },
   searchInput: { flex: 1, fontFamily: 'Lora_400Regular', paddingVertical: 12, color: t.textPrimary, fontSize: 14 },
   searchClear: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, paddingLeft: 8 },
-  chipScroll: { marginBottom: 8 },
-  chipRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, alignItems: 'center' },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 8, alignItems: 'center', marginBottom: 10 },
   chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   chipActive: { backgroundColor: t.primary, borderColor: t.primary },
   chipText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
@@ -1018,9 +1027,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   chipClearText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 12, textDecorationLine: 'underline' },
   dropdown: { marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 10, borderWidth: 1, borderColor: t.border },
   dropdownRow: { flexDirection: 'row', gap: 8 },
-  dropdownPill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  dropdownPill: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   dropdownPillActive: { backgroundColor: t.primary, borderColor: t.primary },
   dropdownPillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12 },
+  pillColorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: t.border },
   dropdownPillTextActive: { color: t.onPrimary },
   flatList: { flex: 1 },
   grid: { paddingHorizontal: 16, paddingBottom: 100, gap: 10 },

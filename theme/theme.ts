@@ -15,6 +15,7 @@ export type ThemeColors = {
   onPrimary: string     // text/ikon ovanpå primärfärgen (knappar)
   // Brand
   primary: string       // primär knapp/accent
+  primaryActive: string // aktivt/intryckt läge för primära knappar
   tan: string
   accent: string        // ljusblå accent
   // Linjer
@@ -45,6 +46,7 @@ export const lightColors: ThemeColors = {
   textFaint: 'rgba(108,77,56,0.6)',
   onPrimary: '#FEFAF8',
   primary: '#402D21',
+  primaryActive: '#6C4D38',
   tan: '#CFB59E',
   accent: '#DDE6ED',
   border: 'rgba(108,77,56,0.20)',
@@ -65,6 +67,7 @@ export const darkColors: ThemeColors = {
   textFaint: 'rgba(201,174,148,0.6)',
   onPrimary: '#181009',
   primary: '#DBB48D',
+  primaryActive: '#B8935F',
   tan: '#6E5844',
   accent: '#33454F',
   border: 'rgba(245,233,223,0.16)',
