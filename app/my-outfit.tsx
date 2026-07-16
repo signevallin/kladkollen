@@ -110,26 +110,57 @@ export default function MyOutfits() {
     }
   }
 
-  async function assignOutfitToDate(outfitId: string) {
+  // Justerar plaggens användningsräkning (+1/-1). Vid +1 sätts last_worn till
+  // datumet om det är senare än det befintliga.
+  async function adjustGarmentWear(garmentIds: string[], delta: 1 | -1, wearDate?: string) {
+    for (const gid of garmentIds) {
+      const { data } = await supabase.from('garments').select('times_worn, last_worn').eq('id', gid).single()
+      const update: any = { times_worn: Math.max(0, (data?.times_worn || 0) + delta) }
+      if (delta > 0 && wearDate && (!data?.last_worn || wearDate > data.last_worn)) update.last_worn = wearDate
+      await supabase.from('garments').update(update).eq('id', gid)
+    }
+  }
+
+  async function assignOutfitToDate(outfit: any) {
     if (!selectedDate) return
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    const prevEntry = calendarEntries[selectedDate]
+    // Samma outfit igen → ingen förändring.
+    if (prevEntry?.outfit_id === outfit.id) { setShowOutfitPicker(false); setSelectedDate(null); return }
+    // Byter man ut en tidigare outfit på dagen: räkna ner den först.
+    if (prevEntry?.outfits?.garment_ids?.length) {
+      await adjustGarmentWear(prevEntry.outfits.garment_ids, -1)
+    }
+
     await supabase.from('outfit_calendar').upsert({
       user_id: user.id,
-      outfit_id: outfitId,
+      outfit_id: outfit.id,
       date: selectedDate,
     }, { onConflict: 'user_id,date' })
+
+    // Att lägga en outfit på en dag räknas som att plaggen använts den dagen.
+    await adjustGarmentWear(outfit.garment_ids || [], 1, selectedDate)
+
     setShowOutfitPicker(false)
     setSelectedDate(null)
     fetchCalendarEntries()
+    fetchGarments()
   }
 
   async function removeOutfitFromDate(date: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    // Räkna ner plaggen som var kopplade till dagen.
+    const entry = calendarEntries[date]
+    if (entry?.outfits?.garment_ids?.length) {
+      await adjustGarmentWear(entry.outfits.garment_ids, -1)
+    }
     await supabase.from('outfit_calendar').delete().eq('user_id', user.id).eq('date', date)
     setDayDetailDate(null)
     fetchCalendarEntries()
+    fetchGarments()
   }
 
   // Calendar helpers
@@ -378,7 +409,7 @@ function isPast(date: Date) {
                 </View>
               ) : (
                 outfits.map((outfit: any) => (
-                  <TouchableOpacity key={outfit.id} style={styles.outfitPickerItem} onPress={() => assignOutfitToDate(outfit.id)}>
+                  <TouchableOpacity key={outfit.id} style={styles.outfitPickerItem} onPress={() => assignOutfitToDate(outfit)}>
                     <View style={styles.outfitPickerImages}>
                       {(outfit.image_urls || []).slice(0, 3).map((url: string, i: number) => (
                         <SignedImage key={i} path={url} style={styles.outfitPickerImage} />
