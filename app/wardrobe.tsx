@@ -3,7 +3,7 @@ import type { Theme } from '../theme/theme'
 
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   FlatList,
   Modal,
@@ -31,7 +31,6 @@ export default function Wardrobe() {
   const t = useTheme()
   const styles = makeStyles(t)
   const [garments, setGarments] = useState<any[]>([])
-  const [filtered, setFiltered] = useState<any[]>([])
   const [forSale, setForSale] = useState<any[]>([])
   const [archived, setArchived] = useState<any[]>([])
   const [wishlist, setWishlist] = useState<any[]>([])
@@ -81,7 +80,6 @@ export default function Wardrobe() {
       const sale = data.filter(g => g.for_sale && !g.archived)
       const arch = data.filter(g => g.archived)
       setGarments(active)
-      setFiltered(active)
       setForSale(sale)
       setArchived(arch)
       // Garments eligible for sale: active, not already for sale
@@ -209,27 +207,29 @@ export default function Wardrobe() {
   ).sort((a, b) => (a.times_worn || 0) - (b.times_worn || 0))
 
   // --- Wardrobe filters ---
-  function applyFilters(searchText: string, category: string, season: string, color: string, data: any[]) {
-    let result = data
-    if (category !== 'Alla') result = result.filter(g => g.category === category)
-    if (season !== 'Alla') result = result.filter(g => g.season?.includes(season))
-    if (color !== 'Alla') result = result.filter(g => g.color === color)
-    if (searchText.trim()) {
+  // Härleds från garderoben + aktiva filter så att listan alltid speglar
+  // både senaste datan (efter ändringar/omhämtning) och valda filter.
+  const filtered = useMemo(() => {
+    let result = garments
+    if (activeCategory !== 'Alla') result = result.filter(g => g.category === activeCategory)
+    if (activeSeason !== 'Alla') result = result.filter(g => g.season?.includes(activeSeason))
+    if (activeColor !== 'Alla') result = result.filter(g => g.color === activeColor)
+    if (search.trim()) {
+      const q = search.toLowerCase()
       result = result.filter(g =>
-        g.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        g.color?.toLowerCase().includes(searchText.toLowerCase())
+        g.name.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)
       )
     }
-    setFiltered(result)
-  }
+    return result
+  }, [garments, activeCategory, activeSeason, activeColor, search])
 
-  function handleSearch(text: string) { setSearch(text); applyFilters(text, activeCategory, activeSeason, activeColor, garments) }
-  function handleCategory(cat: string) { setActiveCategory(cat); setOpenDropdown(null); applyFilters(search, cat, activeSeason, activeColor, garments) }
-  function handleSeason(s: string) { setActiveSeason(s); setOpenDropdown(null); applyFilters(search, activeCategory, s, activeColor, garments) }
-  function handleColor(c: string) { setActiveColor(c); setOpenDropdown(null); applyFilters(search, activeCategory, activeSeason, c, garments) }
+  function handleSearch(text: string) { setSearch(text) }
+  function handleCategory(cat: string) { setActiveCategory(cat); setOpenDropdown(null) }
+  function handleSeason(s: string) { setActiveSeason(s); setOpenDropdown(null) }
+  function handleColor(c: string) { setActiveColor(c); setOpenDropdown(null) }
   function clearFilters() {
     setActiveCategory('Alla'); setActiveSeason('Alla'); setActiveColor('Alla')
-    setSearch(''); setFiltered(garments); setOpenDropdown(null)
+    setSearch(''); setOpenDropdown(null)
   }
 
   async function markAsSold(item: any) {
