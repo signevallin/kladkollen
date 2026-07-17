@@ -6,7 +6,9 @@ import { useState } from 'react'
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 // Ljusblå plusknapp – samma i både ljust och mörkt läge (som användaren bad om).
-const PLUS_BLUE = '#7CC6EA'
+const PLUS_BLUE = '#DDE6ED'
+// Mörk ikon för god kontrast mot den ljusa knappen.
+const PLUS_ICON = '#402D21'
 
 // Fyra flikar + en upphöjd plusknapp i mitten (Statistik nås numera via Profil).
 const tabs = [
@@ -66,7 +68,7 @@ export default function BottomNav() {
           accessibilityLabel="Lägg till"
           accessibilityRole="button"
         >
-          <Ionicons name="add" size={30} color="#FFFFFF" />
+          <Ionicons name="add" size={30} color={PLUS_ICON} />
         </TouchableOpacity>
       </View>
 
