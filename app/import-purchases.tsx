@@ -15,6 +15,7 @@ import {
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
+import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 
 // WebView finns bara i native-apparna – på webben visar vi en hänvisning.
@@ -27,17 +28,37 @@ if (Platform.OS !== 'web') {
 // Startsidor för respektive butiks orderhistorik. Användaren kan navigera
 // fritt i webbläsaren, så exakta URL:er är bara en genväg – importen läser
 // den sida som visas när man trycker på Importera.
-const STORES: { name: string; emoji: string; url: string }[] = [
-  { name: 'H&M', emoji: '', url: 'https://www2.hm.com/sv_se/account/purchases.html' },
-  { name: 'Zalando', emoji: '', url: 'https://www.zalando.se/myaccount/orders/' },
-  { name: 'Boozt', emoji: '', url: 'https://www.boozt.com/se/sv/account/orders' },
-  { name: 'Arket', emoji: '', url: 'https://www.arket.com/en-se/account/orders' },
-  { name: 'Zara', emoji: '', url: 'https://www.zara.com/se/sv/user/orders' },
-  { name: 'ASOS', emoji: '', url: 'https://my.asos.com/my-account/orders' },
-  { name: 'NA-KD', emoji: '', url: 'https://www.na-kd.com/sv/account/orders' },
-  { name: 'Vinted', emoji: '', url: 'https://www.vinted.se/member/settings/orders' },
-  { name: 'Sellpy', emoji: '', url: 'https://www.sellpy.se/anvandare/kop' },
+const STORES: { name: string; url: string }[] = [
+  { name: 'H&M', url: 'https://www2.hm.com/sv_se/account/purchases.html' },
+  { name: 'Zalando', url: 'https://www.zalando.se/myaccount/orders/' },
+  { name: 'Boozt', url: 'https://www.boozt.com/se/sv/account/orders' },
+  { name: 'Arket', url: 'https://www.arket.com/en-se/account/orders' },
+  { name: 'Zara', url: 'https://www.zara.com/se/sv/user/orders' },
+  { name: 'ASOS', url: 'https://my.asos.com/my-account/orders' },
+  { name: 'NA-KD', url: 'https://www.na-kd.com/sv/account/orders' },
+  { name: 'Vinted', url: 'https://www.vinted.se/member/settings/orders' },
+  { name: 'Sellpy', url: 'https://www.sellpy.se/anvandare/kop' },
+  { name: 'Gina Tricot', url: 'https://www.ginatricot.com/se/mina-sidor/mina-kop' },
+  { name: 'Nelly', url: 'https://nelly.com/se/mitt-konto/mina-ordrar/' },
+  { name: 'Lindex', url: 'https://www.lindex.com/se/mina-sidor/mina-kop/' },
+  { name: 'Åhléns', url: 'https://www.ahlens.se/mina-sidor/mina-kop' },
+  { name: 'KappAhl', url: 'https://www.kappahl.com/sv-se/mina-sidor/mina-kop/' },
+  { name: 'About You', url: 'https://www.aboutyou.se/mitt-konto/bestallningar' },
+  { name: 'Ellos', url: 'https://www.ellos.se/mina-sidor/mina-ordrar' },
+  { name: 'Tradera', url: 'https://www.tradera.com/my/purchases' },
+  { name: 'COS', url: 'https://www.cos.com/en-sek/account/orders' },
+  { name: '& Other Stories', url: 'https://www.stories.com/en_sek/account/orders' },
 ]
+
+// Butikens logga hämtas som favicon utifrån dess domän – funkar för alla
+// butiker utan att vi behöver bundla bilder, och överlever omdesigner.
+function storeLogoUrl(url: string): string | null {
+  try {
+    return `https://www.google.com/s2/favicons?sz=64&domain=${new URL(url).hostname}`
+  } catch {
+    return null
+  }
+}
 
 // Körs i WebView:n när användaren trycker Importera. Plockar sidans synliga
 // text + bild-URL:er i dokumentordning (bilder markeras med [BILD]) så att
@@ -193,6 +214,8 @@ export default function ImportPurchases() {
           color: analysis.color || '',
           season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : 'Alla årstider',
           image_url: imageUrl,
+          brand: item.brand || null,
+          price: parsePrice(item.price),
         }])
       }
 
@@ -241,7 +264,11 @@ export default function ImportPurchases() {
           </Text>
           {STORES.map(s => (
             <TouchableOpacity key={s.name} style={styles.storeRow} onPress={() => { setStore(s); setStep('browse') }}>
-              <Text style={styles.storeEmoji}>{s.emoji}</Text>
+              <View style={styles.storeLogoWrap}>
+                {storeLogoUrl(s.url)
+                  ? <Image source={{ uri: storeLogoUrl(s.url)! }} style={styles.storeLogo} resizeMode="contain" />
+                  : <Text style={styles.storeLogoFallback}>{s.name.charAt(0)}</Text>}
+              </View>
               <Text style={styles.storeName}>{s.name}</Text>
               <Text style={styles.storeArrow}>›</Text>
             </TouchableOpacity>
@@ -342,7 +369,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   subtitle: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 20 },
 
   storeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: t.border },
-  storeEmoji: { fontSize: 20 },
+  storeLogoWrap: { width: 34, height: 34, borderRadius: 8, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, overflow: 'hidden' },
+  storeLogo: { width: 22, height: 22 },
+  storeLogoFallback: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textSecondary },
   storeName: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary, flex: 1 },
   storeArrow: { fontFamily: 'Lora_400Regular', fontSize: 22, color: t.textSecondary },
 

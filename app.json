@@ -53,13 +53,20 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Klädkollen behöver åtkomst till dina foton för att du ska kunna lägga till bilder på dina plagg."
+          "photosPermission": "Klädkollen behöver åtkomst till dina foton för att du ska kunna lägga till bilder på dina plagg.",
+          "cameraPermission": "Klädkollen behöver åtkomst till kameran för att du ska kunna ta bilder på dina plagg."
         }
       ],
       [
         "expo-location",
         {
           "locationWhenInUsePermission": "Klädkollen använder din plats för att hämta det lokala vädret och föreslå outfits som passar dagens väder."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#402D21"
         }
       ]
     ],

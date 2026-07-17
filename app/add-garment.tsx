@@ -21,6 +21,7 @@ import BrandInput from '../components/BrandInput'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
+import { pickImageSmart } from '../utils/imagePicker'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SUBCATEGORIES: Record<string, string[]> = {
@@ -104,7 +105,7 @@ export default function AddGarment() {
 
   async function pickImages() {
     setBgError(null)
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await pickImageSmart({
       mediaTypes: ['images'] as any,
       allowsMultipleSelection: true,
       quality: 0.7,
@@ -276,7 +277,7 @@ export default function AddGarment() {
   if (step === 'pick') {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.backButton} onPress={() => goBack('/wardrobe')}>
             <Text style={styles.backButtonText}>← Tillbaka</Text>
           </TouchableOpacity>

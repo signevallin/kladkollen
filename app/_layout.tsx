@@ -1,10 +1,12 @@
 import { Lora_400Regular, Lora_500Medium } from '@expo-google-fonts/lora'
 import { Poppins_600SemiBold, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins'
+import * as Notifications from 'expo-notifications'
 import { Stack, router, usePathname } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { View } from 'react-native'
 import { supabase } from '../supabase'
+import { registerForPush } from '../utils/push'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
 import '../global.css'
 
@@ -42,6 +44,18 @@ function RootLayout() {
     }
   }, [ready, hasSession, pathname])
 
+  // Registrera för push när användaren är inloggad, och skicka den vidare
+  // till rätt vy när en notis trycks på.
+  useEffect(() => {
+    if (!hasSession) return
+    registerForPush()
+    const sub = Notifications.addNotificationResponseReceivedListener(res => {
+      const route = (res.notification.request.content.data as any)?.route
+      if (typeof route === 'string' && route.startsWith('/')) router.push(route as any)
+    })
+    return () => sub.remove()
+  }, [hasSession])
+
   if (!ready || (!fontsLoaded && !fontError)) {
     return <View style={{ flex: 1, backgroundColor: t.bg }} />
   }
@@ -61,6 +75,7 @@ function RootLayout() {
         <Stack.Screen name="import-purchases" />
         <Stack.Screen name="import-email" />
         <Stack.Screen name="locations" />
+        <Stack.Screen name="notifications" />
         <Stack.Screen name="garment-detail" />
         <Stack.Screen name="login" />
         <Stack.Screen name="reset-password" />

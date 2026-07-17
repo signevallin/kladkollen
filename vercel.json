@@ -3,5 +3,9 @@
     { "src": "^/$", "dest": "/landing.html" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "crons": [
+    { "path": "/api/send-notifications?slot=morning", "schedule": "30 6 * * *" },
+    { "path": "/api/send-notifications?slot=evening", "schedule": "0 19 * * *" }
   ]
 }

@@ -540,7 +540,7 @@ function isPast(date: Date) {
                 return (
                   <TouchableOpacity
                     key={ds}
-                    style={[styles.dayCell, todayStyle && styles.dayCellToday, entry && styles.dayCellHasOutfit]}
+                    style={[styles.dayCell, todayStyle && styles.dayCellToday, entry && (pastStyle ? styles.dayCellWorn : styles.dayCellPlanned)]}
                     onPress={() => setDayDetailDate(ds)}
                   >
                     <Text style={[styles.dayNumber, todayStyle && styles.dayNumberToday, pastStyle && !entry && styles.dayNumberPast]}>
@@ -570,11 +570,15 @@ function isPast(date: Date) {
             {/* Legend */}
             <View style={styles.calendarLegend}>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: t.primary }]} />
-                <Text style={styles.legendText}>Outfit planerad</Text>
+                <View style={[styles.legendDot, styles.legendDotWorn]} />
+                <Text style={styles.legendText}>Buren</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: 'rgba(64,45,33,0.25)' }]} />
+                <View style={[styles.legendDot, styles.legendDotPlanned]} />
+                <Text style={styles.legendText}>Planerad</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, styles.legendDotToday]} />
                 <Text style={styles.legendText}>Idag</Text>
               </View>
             </View>
@@ -706,8 +710,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   weekdayLabel: { fontFamily: 'Poppins_600SemiBold', flex: 1, textAlign: 'center', fontSize: 11, color: t.textFaint },
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   dayCell: { width: '14.28%', aspectRatio: 1, padding: 2, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
-  dayCellToday: { backgroundColor: 'rgba(64,45,33,0.25)', borderWidth: 1, borderColor: 'rgba(64,45,33,0.5)' },
-  dayCellHasOutfit: { backgroundColor: 'rgba(64,45,33,0.15)' },
+  dayCellToday: { borderWidth: 1.5, borderColor: t.primary },
+  // Burna outfits (dagar som passerat) = varm brun ton. Planerade (idag/framåt) = sval accent.
+  dayCellWorn: { backgroundColor: t.primaryActive + '33' },
+  dayCellPlanned: { backgroundColor: t.accent },
   dayNumber: { fontFamily: 'Lora_500Medium', fontSize: 11, color: t.textPrimary, marginBottom: 2 },
   dayNumberToday: { color: t.textSecondary, fontWeight: '700' },
   dayNumberPast: { color: t.textFaint },
@@ -719,6 +725,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   calendarLegend: { flexDirection: 'row', gap: 16, justifyContent: 'center', marginTop: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendDotWorn: { backgroundColor: t.primaryActive },
+  legendDotPlanned: { backgroundColor: t.accent, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+  legendDotToday: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: t.primary },
   legendText: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint },
 
   // Outfit picker modal

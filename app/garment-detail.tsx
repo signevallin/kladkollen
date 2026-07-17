@@ -13,6 +13,7 @@ import {
   View
 } from 'react-native'
 import BrandInput from '../components/BrandInput'
+import { pickImageSmart } from '../utils/imagePicker'
 import SignedImage from '../components/SignedImage'
 import { router } from 'expo-router'
 import { supabase } from '../supabase'
@@ -179,7 +180,7 @@ export default function GarmentDetail() {
   }
 
   async function pickImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await pickImageSmart({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.8,
@@ -291,7 +292,7 @@ export default function GarmentDetail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.backButton}
