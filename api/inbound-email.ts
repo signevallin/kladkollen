@@ -3,6 +3,25 @@ import { clip, json, openaiChat, parseAiJson } from './_utils'
 
 export const config = { runtime: 'edge' }
 
+// Skickar en push-notis till användaren om att nya plagg hittats i ett kvitto.
+async function sendPush(token: string, count: number) {
+  try {
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        to: token,
+        sound: 'default',
+        title: count === 1 ? 'Nytt plagg hittat 📩' : `${count} nya plagg hittade 📩`,
+        body: count === 1
+          ? 'Vi hittade ett plagg i ditt kvitto. Tryck för att granska och lägga till det.'
+          : `Vi hittade ${count} plagg i ditt kvitto. Tryck för att granska och lägga till dem.`,
+        data: { route: '/import-email', kind: 'email_import' },
+      }),
+    })
+  } catch { /* notis är en bonus – blockera aldrig importen */ }
+}
+
 /**
  * Tar emot vidarebefordrade orderbekräftelser och plockar ut köpta plagg.
  *
@@ -50,7 +69,7 @@ export default async function handler(request: Request): Promise<Response> {
     if (!tokenMatch) return json({ error: 'Ingen import-adress hittades' }, 200)
     const token = tokenMatch[1].toLowerCase()
 
-    const { data: profile } = await admin.from('profiles').select('id').eq('import_token', token).single()
+    const { data: profile } = await admin.from('profiles').select('id, push_token, notif_enabled').eq('import_token', token).single()
     if (!profile) { console.log('[inbound] okänd token', token); return json({ error: 'Okänd import-adress' }, 200) }
     const userId = profile.id
 
@@ -127,6 +146,10 @@ ${content}`
     if (rows.length > 0) {
       const { error: insErr } = await admin.from('pending_imports').insert(rows)
       if (insErr) { console.log('[inbound] insert-fel', insErr.message); await setStatus(`Databasfel: ${insErr.message}`); return json({ error: insErr.message }, 500) }
+      // Notis om att nya plagg väntar på granskning (om användaren har notiser på).
+      if (profile.push_token && profile.notif_enabled !== false) {
+        await sendPush(profile.push_token, rows.length)
+      }
     }
     console.log('[inbound] sparade', rows.length, 'plagg')
     await setStatus(`Importerade ${rows.length} plagg`)
