@@ -580,26 +580,6 @@ export default function Wardrobe() {
               <MaterialIcons name="tune" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
-          {activeTab === 'köp' && (
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={() => setShowAddWish(true)}
-              accessibilityLabel="Lägg till på köplistan"
-              accessibilityRole="button"
-            >
-              <Text style={styles.iconBtnText}>＋</Text>
-            </TouchableOpacity>
-          )}
-          {activeTab === 'sälj' && (
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={() => setShowAddSale(true)}
-              accessibilityLabel="Lägg till till salu"
-              accessibilityRole="button"
-            >
-              <Text style={styles.iconBtnText}>＋</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
@@ -895,7 +875,13 @@ export default function Wardrobe() {
         </ScrollView>
       )}
 
-      <BottomNav />
+      <BottomNav
+        onAddGarment={() => {
+          if (activeTab === 'köp') setShowAddWish(true)
+          else if (activeTab === 'sälj') setShowAddSale(true)
+          else router.push('/add-garment')
+        }}
+      />
     </SafeAreaView>
   )
 }
@@ -1055,7 +1041,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   // Modal (shared)
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#1E0509', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
+  modalContent: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary },
   modalClose: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textSecondary, padding: 4 },
