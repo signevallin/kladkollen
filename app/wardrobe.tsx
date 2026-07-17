@@ -21,6 +21,7 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
+import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
 
 const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
@@ -87,6 +88,10 @@ export default function Wardrobe() {
   const [wishSeason, setWishSeason] = useState('')
   const [wishImage, setWishImage] = useState<string | null>(null)
   const [savingWish, setSavingWish] = useState(false)
+  const [showWishChooser, setShowWishChooser] = useState(false)
+  const [showWishUrl, setShowWishUrl] = useState(false)
+  const [wishUrl, setWishUrl] = useState('')
+  const [fetchingUrl, setFetchingUrl] = useState(false)
 
   // Sale modal
   const [showAddSale, setShowAddSale] = useState(false)
@@ -188,6 +193,27 @@ export default function Wardrobe() {
     return urlData.publicUrl
   }
 
+  // Hämtar produktinfo från en länk och förifyller köp-formuläret.
+  async function parseWishUrl() {
+    const url = wishUrl.trim()
+    if (!url) return
+    setFetchingUrl(true)
+    try {
+      const data = await apiPost('/api/parse-url', { url })
+      if (data.error) throw new Error(data.error)
+      setWishName(data.name || '')
+      setWishImage(data.imageUrl || null)
+      setShowWishUrl(false)
+      setShowWishChooser(false)
+      setWishUrl('')
+      setShowAddWish(true)
+    } catch (e: any) {
+      showAlert('Kunde inte hämta länken', e.message || 'Försök med en annan länk.')
+    } finally {
+      setFetchingUrl(false)
+    }
+  }
+
   async function addWishItem() {
     if (!wishName.trim()) { showAlert('Fyll i ett namn!'); return }
     setSavingWish(true)
@@ -195,7 +221,10 @@ export default function Wardrobe() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       let imageUrl: string | null = null
-      if (wishImage) imageUrl = await uploadWishImage(wishImage)
+      if (wishImage) {
+        try { imageUrl = await uploadWishImage(wishImage) }
+        catch { imageUrl = /^https?:\/\//.test(wishImage) ? wishImage : null }
+      }
       const { error } = await supabase.from('wishlist').insert([{
         user_id: user.id,
         name: wishName.trim(),
@@ -425,6 +454,60 @@ export default function Wardrobe() {
 
   return (
     <SafeAreaView style={styles.container}>
+
+      {/* Köp: välj hur man lägger till */}
+      <Modal visible={showWishChooser} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lägg till på köplistan</Text>
+              <TouchableOpacity onPress={() => setShowWishChooser(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); setWishName(''); setWishImage(null); setWishCategory(''); setWishColor(''); setWishSeason(''); setShowAddWish(true) }}>
+              <Text style={styles.wishChoiceTitle}>Välj foto</Text>
+              <Text style={styles.wishChoiceHint}>Ta eller välj en bild och fyll i detaljerna själv</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); router.push('/import-purchases?target=wishlist') }}>
+              <Text style={styles.wishChoiceTitle}>Importera via butiker</Text>
+              <Text style={styles.wishChoiceHint}>Bläddra i en butik och lägg köpta/önskade plagg på köplistan</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); setShowWishUrl(true) }}>
+              <Text style={styles.wishChoiceTitle}>Via URL</Text>
+              <Text style={styles.wishChoiceHint}>Klistra in en produktlänk – namn och bild hämtas automatiskt</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Köp: lägg till via URL */}
+      <Modal visible={showWishUrl} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lägg till via URL</Text>
+              <TouchableOpacity onPress={() => { setShowWishUrl(false); setWishUrl('') }}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalLabel}>Produktlänk</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="https://..."
+              placeholderTextColor={t.placeholder}
+              value={wishUrl}
+              onChangeText={setWishUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+            />
+            <TouchableOpacity style={[styles.modalSaveBtn, (!wishUrl.trim() || fetchingUrl) && { opacity: 0.5 }]} onPress={parseWishUrl} disabled={!wishUrl.trim() || fetchingUrl}>
+              <Text style={styles.modalSaveBtnText}>{fetchingUrl ? 'Hämtar...' : 'Hämta produkt'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Add wishlist modal */}
       <Modal visible={showAddWish} animationType="slide" transparent>
@@ -877,7 +960,7 @@ export default function Wardrobe() {
 
       <BottomNav
         onAddGarment={() => {
-          if (activeTab === 'köp') setShowAddWish(true)
+          if (activeTab === 'köp') setShowWishChooser(true)
           else if (activeTab === 'sälj') setShowAddSale(true)
           else router.push('/add-garment')
         }}
@@ -1046,6 +1129,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   modalTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary },
   modalClose: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textSecondary, padding: 4 },
   modalLabel: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 13, marginBottom: 8, marginTop: 12 },
+  wishChoiceBtn: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: t.border },
+  wishChoiceTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, marginBottom: 3 },
+  wishChoiceHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 18 },
   modalInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginBottom: 4 },
   pillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
