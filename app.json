@@ -62,6 +62,12 @@
         {
           "locationWhenInUsePermission": "Klädkollen använder din plats för att hämta det lokala vädret och föreslå outfits som passar dagens väder."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#402D21"
+        }
       ]
     ],
     "experiments": {
