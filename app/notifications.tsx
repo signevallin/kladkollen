@@ -99,7 +99,8 @@ export default function NotificationsSettings() {
             value={enabled}
             onValueChange={toggleMaster}
             trackColor={{ true: t.primary, false: t.border }}
-            thumbColor={t.onPrimary}
+            thumbColor="#FFFFFF"
+            ios_backgroundColor={t.border}
           />
         </View>
 
@@ -114,7 +115,8 @@ export default function NotificationsSettings() {
               disabled={!enabled}
               onValueChange={v => toggleCategory(c.key, v)}
               trackColor={{ true: t.primary, false: t.border }}
-              thumbColor={t.onPrimary}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor={t.border}
             />
           </View>
         ))}
