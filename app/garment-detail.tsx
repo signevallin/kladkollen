@@ -44,14 +44,14 @@ const COLORS = [
   { name: 'Svart', hex: '#1A1A1A' }, { name: 'Vit', hex: '#F5F5F5' },
   { name: 'Grå', hex: '#9E9E9E' }, { name: 'Beige', hex: '#D4B896' },
   { name: 'Brun', hex: '#795548' }, { name: 'Röd', hex: '#E53935' },
-  { name: 'Rosa', hex: '#EC407A' }, { name: 'Lila', hex: '#8E24AA' },
-  { name: 'Blå', hex: '#1E88E5' }, { name: 'Ljusblå', hex: '#81D4FA' },
+  { name: 'Vinröd', hex: '#7B2D3A' }, { name: 'Rosa', hex: '#EC407A' },
+  { name: 'Lila', hex: '#8E24AA' }, { name: 'Blå', hex: '#1E88E5' },
+  { name: 'Ljusblå', hex: '#81D4FA' }, { name: 'Turkos', hex: '#26C6DA' },
   { name: 'Grön', hex: '#43A047' }, { name: 'Olivgrön', hex: '#708238' },
   { name: 'Gul', hex: '#FDD835' }, { name: 'Orange', hex: '#FB8C00' },
-  { name: 'Vinröd', hex: '#7B2D3A' }, { name: 'Guld', hex: '#C9A96E' },
-  { name: 'Silver', hex: '#BFC1C2' }, { name: 'Turkos', hex: '#26C6DA' },
+  { name: 'Guld', hex: '#C9A96E' }, { name: 'Silver', hex: '#BFC1C2' },
 ]
-const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld', 'Silver', 'Turkos']
+const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Vinröd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Turkos', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Guld', 'Silver']
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
 // Läser en Blob som base64 (utan data:-prefix). Funkar på både native och web.
