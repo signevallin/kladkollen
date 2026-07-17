@@ -98,7 +98,7 @@ export default function NotificationsSettings() {
           <Switch
             value={enabled}
             onValueChange={toggleMaster}
-            trackColor={{ true: t.primary, false: t.border }}
+            trackColor={{ true: '#6C4D38', false: t.border }}
             thumbColor="#FFFFFF"
             ios_backgroundColor={t.border}
           />
@@ -114,7 +114,7 @@ export default function NotificationsSettings() {
               value={enabled && prefs[c.key]}
               disabled={!enabled}
               onValueChange={v => toggleCategory(c.key, v)}
-              trackColor={{ true: t.primary, false: t.border }}
+              trackColor={{ true: '#6C4D38', false: t.border }}
               thumbColor="#FFFFFF"
               ios_backgroundColor={t.border}
             />
