@@ -1,7 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as Location from 'expo-location'
 import { router, useFocusEffect } from 'expo-router'
@@ -725,11 +725,11 @@ export default function Home() {
               >
                 {sharing
                   ? <ActivityIndicator color={t.primary} size="small" />
-                  : <MaterialIcons name="ios-share" size={22} color={t.primary} />
+                  : <Ionicons name="share-outline" size={22} color={t.primary} />
                 }
               </TouchableOpacity>
               <TouchableOpacity style={styles.newBtn} onPress={generateOutfit}>
-                <Text style={styles.newBtnText}>↻</Text>
+                <Ionicons name="refresh" size={22} color={t.textSecondary} />
               </TouchableOpacity>
             </View>
             <TouchableOpacity

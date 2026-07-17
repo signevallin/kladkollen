@@ -1,5 +1,6 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import { Ionicons } from '@expo/vector-icons'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -634,7 +635,7 @@ function isPast(date: Date) {
                         accessibilityLabel="Ändra outfit"
                         accessibilityRole="button"
                       >
-                        <Text style={styles.editLink}>Ändra</Text>
+                        <Ionicons name="create-outline" size={20} color={t.primary} />
                       </TouchableOpacity>
                       <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString('sv-SE')}</Text>
                     </View>
