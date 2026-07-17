@@ -5,6 +5,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -14,6 +15,7 @@ import {
   View
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { ARCHIVE_REASONS } from '../utils/archiveReasons'
 import BrandInput from '../components/BrandInput'
 import CropModal from '../components/CropModal'
 import { pickImageSmart } from '../utils/imagePicker'
@@ -93,6 +95,8 @@ export default function GarmentDetail() {
   const [ownBrands, setOwnBrands] = useState<string[]>([])
   const [locations, setLocations] = useState<Location[]>([])
   const [archived, setArchived] = useState(false)
+  const [archiveReason, setArchiveReason] = useState<string | null>(null)
+  const [showReasonPicker, setShowReasonPicker] = useState(false)
   const [sold, setSold] = useState(false)
 
   // Autospar: alla ändringar sparas automatiskt med kort fördröjning.
@@ -129,6 +133,7 @@ export default function GarmentDetail() {
       setSize(data.size || ''); setLocation(data.location || '')
       setBrand(data.brand || ''); setPrice(data.price != null ? String(data.price) : '')
       setArchived(!!data.archived); setSold(!!data.sold)
+      setArchiveReason(data.archive_reason || null)
       setLoaded(true)
     }
     // Egna märken för autocomplete
@@ -163,6 +168,7 @@ export default function GarmentDetail() {
           brand: brand.trim() || null,
           price: parsePrice(price),
           archived: archivedVal,
+          archive_reason: archivedVal ? archiveReason : null,
           ...(archivedVal ? {} : { sold: false }),
         }).eq('id', id)
         if (error) throw error
@@ -184,7 +190,7 @@ export default function GarmentDetail() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [name, category, subcategory, color, seasons, size, location, brand, price])
+  }, [name, category, subcategory, color, seasons, size, location, brand, price, archiveReason])
 
   // Håll arkiv-badgen i synk med vald plats.
   useEffect(() => {
@@ -344,16 +350,21 @@ export default function GarmentDetail() {
         showAlert('Ingen arkiv-plats', 'Skapa först en plats markerad som Arkiv (t.ex. Källaren) under Min profil → Egna platser.')
         return
       }
-      showConfirm(
-        'Arkivera plagg',
-        `"${name}" flyttas till ${archiveLoc.name} (arkiv) och föreslås inte i outfits.`,
-        () => setLocation(archiveLoc.name),
-        'Arkivera'
-      )
+      // Fråga varför plagget arkiveras innan det flyttas.
+      setShowReasonPicker(true)
     } else {
       const homeLoc = locations.find(l => !l.is_archive)
+      setArchiveReason(null)
       setLocation(homeLoc ? homeLoc.name : 'Garderoben')
     }
+  }
+
+  // Väljer arkiveringsanledning och flyttar plagget till arkiv-platsen.
+  function pickArchiveReason(reasonKey: string) {
+    const archiveLoc = locations.find(l => l.is_archive)
+    setArchiveReason(reasonKey)
+    setShowReasonPicker(false)
+    if (archiveLoc) setLocation(archiveLoc.name)
   }
 
   async function markAsWorn() {
@@ -451,6 +462,20 @@ export default function GarmentDetail() {
           onCancel={() => setCropUri(null)}
           onCropped={saveCropped}
         />
+
+        <Modal visible={showReasonPicker} transparent animationType="fade" onRequestClose={() => setShowReasonPicker(false)}>
+          <TouchableOpacity style={styles.reasonBackdrop} activeOpacity={1} onPress={() => setShowReasonPicker(false)}>
+            <TouchableOpacity style={styles.reasonSheet} activeOpacity={1}>
+              <Text style={styles.reasonTitle}>Varför arkiveras plagget?</Text>
+              {ARCHIVE_REASONS.map(r => (
+                <TouchableOpacity key={r.key} style={styles.reasonRow} onPress={() => pickArchiveReason(r.key)}>
+                  <Ionicons name={r.icon as any} size={22} color={t.textPrimary} />
+                  <Text style={styles.reasonLabel}>{r.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
 
         <Text style={styles.label}>Namn</Text>
         <TextInput style={styles.input} placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
@@ -608,6 +633,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   imageActionsRow: { flexDirection: 'row', gap: 10, marginTop: -12, marginBottom: 22 },
   redoBgBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   redoBgBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
+  reasonBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  reasonSheet: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 36 },
+  reasonTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary, marginBottom: 16 },
+  reasonRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+  reasonLabel: { fontFamily: 'Lora_500Medium', fontSize: 16, color: t.textPrimary },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   manageLink: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 12, textDecorationLine: 'underline' },

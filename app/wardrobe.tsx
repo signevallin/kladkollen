@@ -2,7 +2,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { MaterialIcons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -23,6 +23,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
+import { reasonFor } from '../utils/archiveReasons'
 
 const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const WISH_CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
@@ -1062,14 +1063,32 @@ export default function Wardrobe() {
           ) : (
             filteredArchive.map((item) => (
               <TouchableOpacity key={item.id} style={[styles.saleItem, item.sold && styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
-                {item.image_url
-                  ? <SignedImage path={item.image_url} style={[styles.saleImage, item.sold && { opacity: 0.6 }]} />
-                  : <View style={styles.saleImageEmpty} />
-                }
+                <View style={styles.archImageWrap}>
+                  {item.image_url
+                    ? <SignedImage path={item.image_url} style={[styles.saleImage, item.sold && { opacity: 0.6 }]} />
+                    : <View style={styles.saleImageEmpty} />
+                  }
+                  {!item.sold && reasonFor(item.archive_reason) && (
+                    <View style={styles.reasonBadge}>
+                      <Ionicons name={reasonFor(item.archive_reason)!.icon as any} size={14} color={t.onPrimary} />
+                    </View>
+                  )}
+                </View>
                 <View style={styles.saleInfo}>
                   <Text style={styles.saleName}>{item.name}</Text>
                   <Text style={styles.saleCategory}>{item.subcategory || item.category}{item.size ? ` · ${item.size}` : ''}</Text>
-                  {item.location ? <Text style={styles.locationTag}>📍 {item.location}</Text> : null}
+                  {item.location ? (
+                    <View style={styles.archMetaRow}>
+                      <Ionicons name="location-outline" size={13} color={t.textSecondary} />
+                      <Text style={styles.archMetaText}>{item.location}</Text>
+                    </View>
+                  ) : null}
+                  {!item.sold && reasonFor(item.archive_reason) ? (
+                    <View style={styles.archMetaRow}>
+                      <Ionicons name={reasonFor(item.archive_reason)!.icon as any} size={13} color={t.textSecondary} />
+                      <Text style={styles.archMetaText}>{reasonFor(item.archive_reason)!.label}</Text>
+                    </View>
+                  ) : null}
                   {item.sold && <Text style={styles.soldTag}>Såld</Text>}
                 </View>
                 {!item.sold && (
@@ -1222,6 +1241,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   archivedItem: { opacity: 0.7 },
   saleImage: { width: 60, height: 60, borderRadius: 12, backgroundColor: 'transparent' },
   saleImageEmpty: { width: 60, height: 60, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
+  archImageWrap: { position: 'relative' },
+  reasonBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.bg },
+  archMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  archMetaText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
   saleInfo: { flex: 1 },
   saleName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary },
   saleCategory: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, marginTop: 2 },
