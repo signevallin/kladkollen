@@ -491,11 +491,6 @@ function isPast(date: Date) {
       <View style={styles.topArea}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Mina outfits</Text>
-          {activeTab === 'outfits' && (
-            <TouchableOpacity style={styles.iconBtn} onPress={() => setCreating(true)}>
-              <Text style={styles.iconBtnText}>＋</Text>
-            </TouchableOpacity>
-          )}
           {activeTab === 'kollage' && (
             <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/collage')} accessibilityLabel="Nytt kollage" accessibilityRole="button">
               <Text style={styles.iconBtnText}>＋</Text>
