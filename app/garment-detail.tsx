@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import BrandInput from '../components/BrandInput'
 import CropModal from '../components/CropModal'
 import { pickImageSmart } from '../utils/imagePicker'
@@ -430,7 +431,7 @@ export default function GarmentDetail() {
             >
               {redoing
                 ? <ActivityIndicator color={t.textSecondary} size="small" />
-                : <Text style={styles.redoBgBtnText}>✨ Ta bort bakgrund</Text>
+                : <><Ionicons name="sparkles-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>Ta bort bakgrund</Text></>
               }
             </TouchableOpacity>
             <TouchableOpacity
@@ -439,7 +440,7 @@ export default function GarmentDetail() {
               accessibilityLabel="Beskär bild"
               accessibilityRole="button"
             >
-              <Text style={styles.redoBgBtnText}>✂️ Beskär bild</Text>
+              <Ionicons name="cut-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>Beskär bild</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -605,7 +606,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
   imageOverlayText: { fontFamily: 'Lora_500Medium', color: t.onPrimary, fontSize: 12 },
   imageActionsRow: { flexDirection: 'row', gap: 10, marginTop: -12, marginBottom: 22 },
-  redoBgBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  redoBgBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   redoBgBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
