@@ -308,7 +308,7 @@ export default function AddGarment() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.backButton} onPress={() => setStep('pick')}>
           <Text style={styles.backButtonText}>← Välj andra foton</Text>
         </TouchableOpacity>
