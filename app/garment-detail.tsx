@@ -26,11 +26,12 @@ import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
 import { resolveImageUrl } from '../utils/storage'
 
-const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
+const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Shorts', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SUBCATEGORIES: Record<string, string[]> = {
   'Toppar': ['Linne', 'T-shirt', 'Långärmad topp', 'Body', 'Blus', 'Skjorta'],
   'Tröjor': ['Sweatshirt', 'Hoodie', 'Stickad tröja', 'Collegetröja', 'Kofta'],
-  'Byxor': ['Jeans', 'Chinos', 'Kostymbyxor', 'Leggings', 'Shorts', 'Mjukisbyxor'],
+  'Byxor': ['Jeans', 'Chinos', 'Kostymbyxor', 'Leggings', 'Mjukisbyxor'],
+  'Shorts': ['Jeansshorts', 'Chinosshorts', 'Linneshorts', 'Träningsshorts', 'Skräddade shorts'],
   'Kjolar': ['Minikjol', 'Midikjol', 'Maxikjol', 'Plisserad kjol', 'Pennkjol'],
   'Klänningar': ['Miniklänning', 'Midiklänning', 'Maxiklänning', 'Festklänning', 'Vardagsklänning'],
   'Kavajer': ['Kavaj', 'Blazer', 'Kostymjacka'],

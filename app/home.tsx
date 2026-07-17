@@ -216,6 +216,7 @@ export default function Home() {
     const categoryMap: Record<string, string> = {
       'Klänningar': 'KLÄNNING (välj 1 om du vill ha heldress – då skippar du nederdel och överdel)',
       'Byxor': 'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)',
+      'Shorts': 'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)',
       'Kjolar': 'NEDERDEL – obligatorisk om ingen klänning (välj exakt 1)',
       'Toppar': 'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)',
       'Tröjor': 'ÖVERDEL – obligatorisk om ingen klänning (välj exakt 1)',
@@ -238,7 +239,7 @@ export default function Home() {
   }
 
   function validateOutfit(items: string[], garmentList: any[], requiresOuterwear: boolean): { valid: boolean; missing: string } {
-    const BOTTOM_CATS = ['Byxor', 'Kjolar']
+    const BOTTOM_CATS = ['Byxor', 'Shorts', 'Kjolar']
     const TOP_CATS = ['Toppar', 'Tröjor']
     const DRESS_CATS = ['Klänningar']
     const SHOE_CATS = ['Skor']
@@ -310,7 +311,7 @@ export default function Home() {
       const season = getCurrentSeason()
       const seasonalPool = activeGarments.filter(g => seasonAppropriate(g, season))
       const SHOE_CATS = ['Skor']
-      const BOTTOM_OR_DRESS = ['Byxor', 'Kjolar', 'Klänningar']
+      const BOTTOM_OR_DRESS = ['Byxor', 'Shorts', 'Kjolar', 'Klänningar']
       const TOP_OR_DRESS = ['Toppar', 'Tröjor', 'Klänningar']
       const poolCanFormOutfit =
         seasonalPool.some(g => SHOE_CATS.includes(g.category)) &&
