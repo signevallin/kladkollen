@@ -1,9 +1,11 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import * as ImagePicker from 'expo-image-picker'
 import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import {
+  ActivityIndicator,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -22,6 +24,7 @@ import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
 import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
+import { resolveImageUrl } from '../utils/storage'
 
 const CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SUBCATEGORIES: Record<string, string[]> = {
@@ -80,6 +83,7 @@ export default function GarmentDetail() {
   const [loaded, setLoaded] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveError, setSaveError] = useState('')
+  const [redoing, setRedoing] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -226,6 +230,37 @@ export default function GarmentDetail() {
     return urlData.publicUrl
   }
 
+  // Kör bakgrundsborttagning igen på den befintliga bilden – utan att behöva
+  // ladda upp den på nytt. Läser nuvarande bild, skickar till Replicate och
+  // sparar resultatet.
+  async function redoBackground() {
+    const src = imageUrl || newImage
+    if (!src || redoing) return
+    setRedoing(true)
+    setSaveState('saving')
+    try {
+      const url = await resolveImageUrl(src)
+      const rendered = await ImageManipulator.manipulate(url).renderAsync()
+      const out = await rendered.saveAsync({ compress: 0.9, format: SaveFormat.JPEG, base64: true })
+      if (!out.base64) throw new Error('Kunde inte läsa bilden')
+      const data = await apiPost('/api/remove-background', { base64: out.base64 })
+      if (!data.base64) throw new Error('Bakgrunden kunde inte tas bort just nu. Försök igen om en stund.')
+      const newUrl = await uploadPng(data.base64)
+      const table = isWishlistItem ? 'wishlist' : 'garments'
+      const rowId = isWishlistItem ? wishlistId : id
+      const { error } = await supabase.from(table).update({ image_url: newUrl }).eq('id', rowId)
+      if (error) throw error
+      setImageUrl(newUrl)
+      setNewImage(`data:image/png;base64,${data.base64}`)
+      setSaveState('saved')
+    } catch (e: any) {
+      setSaveState('error')
+      showAlert('Kunde inte ta bort bakgrunden', e.message)
+    } finally {
+      setRedoing(false)
+    }
+  }
+
   async function uploadImage(uri: string) {
     const filename = `${Date.now()}.jpg`
     const filePath = `public/${filename}`
@@ -337,6 +372,21 @@ export default function GarmentDetail() {
             </View>
           )}
         </TouchableOpacity>
+
+        {(imageUrl || newImage) && (
+          <TouchableOpacity
+            style={styles.redoBgBtn}
+            onPress={redoBackground}
+            disabled={redoing}
+            accessibilityLabel="Ta bort bakgrunden igen"
+            accessibilityRole="button"
+          >
+            {redoing
+              ? <ActivityIndicator color={t.textSecondary} size="small" />
+              : <Text style={styles.redoBgBtnText}>✨ Ta bort bakgrunden igen</Text>
+            }
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.label}>Namn</Text>
         <TextInput style={styles.input} placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
@@ -491,6 +541,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   previewImage: { width: '100%', height: '100%', resizeMode: 'contain', backgroundColor: 'transparent' },
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
   imageOverlayText: { fontFamily: 'Lora_500Medium', color: t.onPrimary, fontSize: 12 },
+  redoBgBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, marginTop: -12, marginBottom: 22 },
+  redoBgBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   manageLink: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 12, textDecorationLine: 'underline' },
