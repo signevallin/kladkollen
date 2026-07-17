@@ -655,6 +655,12 @@ export default function Profile() {
           <MaterialIcons name="chevron-right" size={22} color={t.textSecondary} />
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/stats')}>
+          <MaterialIcons name="bar-chart" size={20} color={t.textSecondary} />
+          <Text style={styles.linkRowText}>Statistik</Text>
+          <MaterialIcons name="chevron-right" size={22} color={t.textSecondary} />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
           <Text style={styles.signOutText}>Logga ut</Text>
         </TouchableOpacity>
