@@ -20,6 +20,7 @@ import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
+import { pickImageSmart } from '../utils/imagePicker'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
@@ -126,7 +127,7 @@ export default function Profile() {
   }
 
   async function pickAvatar() {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await pickImageSmart({
       mediaTypes: ['images'] as any,
       allowsEditing: true,
       aspect: [1, 1],
@@ -154,7 +155,7 @@ export default function Profile() {
   }
 
   async function pickColorImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await pickImageSmart({
       mediaTypes: ['images'] as any,
       allowsEditing: true,
       base64: true,

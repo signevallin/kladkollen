@@ -53,7 +53,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Klädkollen behöver åtkomst till dina foton för att du ska kunna lägga till bilder på dina plagg."
+          "photosPermission": "Klädkollen behöver åtkomst till dina foton för att du ska kunna lägga till bilder på dina plagg.",
+          "cameraPermission": "Klädkollen behöver åtkomst till kameran för att du ska kunna ta bilder på dina plagg."
         }
       ],
       [

@@ -21,6 +21,7 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
+import { pickImageSmart } from '../utils/imagePicker'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
@@ -62,7 +63,7 @@ export default function Inspiration() {
   }
 
   async function pickMoodboardImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await pickImageSmart({
       mediaTypes: ['images'] as any,
       allowsEditing: false,
       quality: 0.8,
@@ -133,7 +134,7 @@ export default function Inspiration() {
   }
 
   async function pickInspoImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await pickImageSmart({
       mediaTypes: ['images'] as any,
       allowsEditing: true,
       aspect: [3, 4],
