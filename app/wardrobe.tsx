@@ -655,7 +655,7 @@ export default function Wardrobe() {
           )}
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
-              style={[styles.iconBtn, (showFilterPanel || hasActiveFilters || sortBy !== 'recent') && styles.iconBtnActive]}
+              style={[styles.iconBtn, (showFilterPanel || hasActiveFilters) && styles.iconBtnActive]}
               onPress={() => { setShowFilterPanel(s => !s); setOpenDropdown(null) }}
               accessibilityLabel="Filter och sortering"
               accessibilityRole="button"
