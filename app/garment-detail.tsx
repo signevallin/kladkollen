@@ -49,8 +49,9 @@ const COLORS = [
   { name: 'Grön', hex: '#43A047' }, { name: 'Olivgrön', hex: '#708238' },
   { name: 'Gul', hex: '#FDD835' }, { name: 'Orange', hex: '#FB8C00' },
   { name: 'Vinröd', hex: '#7B2D3A' }, { name: 'Guld', hex: '#C9A96E' },
+  { name: 'Silver', hex: '#BFC1C2' }, { name: 'Turkos', hex: '#26C6DA' },
 ]
-const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
+const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld', 'Silver', 'Turkos']
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
 export default function GarmentDetail() {
