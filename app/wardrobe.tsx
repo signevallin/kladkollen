@@ -429,6 +429,24 @@ export default function Wardrobe() {
     }, 'Ta bort', true)
   }
 
+  // Markera som köpt: skapa ett plagg i garderoben och ta bort från köplistan.
+  async function markWishBought(item: any) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('garments').insert([{
+      user_id: user.id,
+      name: item.name,
+      category: item.category || '',
+      color: item.color || '',
+      season: item.season || 'Alla årstider',
+      image_url: item.image_url || null,
+    }])
+    await supabase.from('wishlist').delete().eq('id', item.id)
+    fetchGarments()
+    fetchWishlist()
+    showAlert('Grattis!', `${item.name} finns nu i garderoben.`)
+  }
+
   const hasActiveFilters = activeCategory !== 'Alla' || activeSeason !== 'Alla' || activeColor !== 'Alla' || activeType !== 'Alla' || search !== ''
 
   function generateCapsule() {
@@ -952,15 +970,25 @@ export default function Wardrobe() {
                         </View>
                       )}
                     </View>
-                    <TouchableOpacity
-                      style={styles.deleteBtn}
-                      onPress={() => deleteWishItem(item)}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      accessibilityLabel={`Ta bort ${item.name}`}
-                      accessibilityRole="button"
-                    >
-                      <Text style={styles.deleteBtnText}>✕</Text>
-                    </TouchableOpacity>
+                    <View style={styles.wishActions}>
+                      <TouchableOpacity
+                        style={styles.boughtBtn}
+                        onPress={() => markWishBought(item)}
+                        accessibilityLabel={`Markera ${item.name} som köpt`}
+                        accessibilityRole="button"
+                      >
+                        <Text style={styles.boughtBtnText}>Köpt</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.deleteBtn}
+                        onPress={() => deleteWishItem(item)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityLabel={`Ta bort ${item.name}`}
+                        accessibilityRole="button"
+                      >
+                        <Text style={styles.deleteBtnText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
                   </TouchableOpacity>
                 )
               })}
@@ -1256,6 +1284,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishMetaText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
   outfitBadge: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: t.surfaceMuted, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: t.border },
   outfitBadgeText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
+  wishActions: { alignItems: 'center', gap: 6 },
+  boughtBtn: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12, alignItems: 'center' },
+  boughtBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
   deleteBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   deleteBtnText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
 
