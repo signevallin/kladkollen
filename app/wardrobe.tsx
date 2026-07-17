@@ -73,6 +73,7 @@ export default function Wardrobe() {
   const [showFilterPanel, setShowFilterPanel] = useState(false)
   const [sortBy, setSortBy] = useState('recent')
   const [showArchive, setShowArchive] = useState(false)
+  const [showArchiveHint, setShowArchiveHint] = useState(false)
   // Arkivets egna filter/sortering
   const [archCat, setArchCat] = useState('Alla')
   const [archType, setArchType] = useState('Alla')
@@ -818,7 +819,7 @@ export default function Wardrobe() {
 
           {showFilterPanel && (
           <>
-          <View style={styles.chipRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRowContent}>
             {[
               { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
               { key: 'category', label: 'Kategori', value: activeCategory, on: activeCategory !== 'Alla' },
@@ -841,7 +842,7 @@ export default function Wardrobe() {
                 <Text style={styles.chipClearText}>Rensa</Text>
               </TouchableOpacity>
             )}
-          </View>
+          </ScrollView>
 
           {openDropdown && (
             <View style={styles.dropdown}>
@@ -1033,14 +1034,21 @@ export default function Wardrobe() {
       {/* ARKIV – nås från både Garderob- och Sälj-fliken */}
       {(activeTab === 'nuvarande' || activeTab === 'sälj') && showArchive && (
         <ScrollView contentContainerStyle={styles.saleScroll}>
-          <Text style={styles.archiveTitle}>Arkiv</Text>
-          <Text style={styles.archiveHint}>
-            Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.
-          </Text>
+          <View style={styles.archiveTitleRow}>
+            <Text style={styles.archiveTitle}>Arkiv</Text>
+            <TouchableOpacity onPress={() => setShowArchiveHint(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Om arkivet" accessibilityRole="button">
+              <Ionicons name="information-circle-outline" size={20} color={t.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          {showArchiveHint && (
+            <Text style={styles.archiveHint}>
+              Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.
+            </Text>
+          )}
 
           {archived.length > 0 && (
             <>
-              <View style={styles.chipRow}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRowContent}>
                 {[
                   { key: 'sort', label: 'Sortera', value: SORT_LABEL[archSort], on: archSort !== 'recent' },
                   { key: 'category', label: 'Kategori', value: archCat, on: archCat !== 'Alla' },
@@ -1061,7 +1069,7 @@ export default function Wardrobe() {
                     <Text style={styles.chipClearText}>Rensa</Text>
                   </TouchableOpacity>
                 )}
-              </View>
+              </ScrollView>
 
               {archDropdown && (
                 <View style={styles.dropdown}>
@@ -1188,6 +1196,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   searchInput: { flex: 1, fontFamily: 'Lora_400Regular', paddingVertical: 12, color: t.textPrimary, fontSize: 14 },
   searchClear: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, paddingLeft: 8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 8, alignItems: 'center', marginBottom: 10 },
+  chipScroll: { marginBottom: 10 },
+  chipRowContent: { flexDirection: 'row', gap: 8, alignItems: 'center', paddingHorizontal: 16 },
   chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   chipActive: { backgroundColor: t.primary, borderColor: t.primary },
   chipText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
@@ -1319,7 +1329,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   archiveToggleBtnText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
   backToSale: { marginBottom: 16 },
   backToSaleText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
-  archiveTitle: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: t.textPrimary, marginBottom: 8 },
+  archiveTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  archiveTitle: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: t.textPrimary },
   archiveHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', marginBottom: 16, lineHeight: 18 },
 
   // Sale picker modal
