@@ -19,6 +19,7 @@ import {
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
+import CapsuleView from '../components/CapsuleView'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
@@ -29,7 +30,7 @@ const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
 export default function Inspiration() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const [activeTab, setActiveTab] = useState<'analys' | 'moodboard'>('analys')
+  const [activeTab, setActiveTab] = useState<'analys' | 'moodboard' | 'capsule'>('analys')
 
   // AI-analys state
   const [inspoImage, setInspoImage] = useState<string | null>(null)
@@ -281,14 +282,14 @@ export default function Inspiration() {
 
         {/* Tabs */}
         <View style={styles.tabRow}>
-          {(['analys', 'moodboard'] as const).map(tab => (
+          {(['analys', 'moodboard', 'capsule'] as const).map(tab => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'analys' ? 'AI-analys' : 'Moodboard'}
+                {tab === 'analys' ? 'AI-analys' : tab === 'moodboard' ? 'Moodboard' : 'Capsule'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -426,6 +427,8 @@ export default function Inspiration() {
             )}
           </>
         )}
+
+        {activeTab === 'capsule' && <CapsuleView />}
       </ScrollView>
       <BottomNav />
     </SafeAreaView>
