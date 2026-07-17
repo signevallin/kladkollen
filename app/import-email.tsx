@@ -185,43 +185,7 @@ export default function ImportEmail() {
           <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
         ) : (
           <>
-            {/* Din import-adress */}
-            <View style={styles.card}>
-              <Text style={styles.cardLabel}>DIN IMPORT-ADRESS</Text>
-              <Text style={styles.address} selectable>{address || '—'}</Text>
-              <TouchableOpacity style={styles.copyBtn} onPress={copyAddress}>
-                <Text style={styles.copyBtnText}>Kopiera adress</Text>
-              </TouchableOpacity>
-            </View>
-
-            {(forwardCode || forwardLink) && (
-              <View style={styles.codeCard}>
-                <Text style={styles.codeLabel}>Bekräfta vidarebefordran från Gmail</Text>
-                {forwardLink ? (
-                  <>
-                    <TouchableOpacity style={styles.confirmBtn} onPress={() => Linking.openURL(forwardLink)}>
-                      <Text style={styles.confirmBtnText}>Bekräfta i Gmail</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.codeHint}>Öppnar Googles bekräftelselänk. Var inloggad på rätt Google-konto.</Text>
-                  </>
-                ) : null}
-                {forwardCode ? (
-                  <Text style={styles.codeHintSmall}>Eller ange koden i Gmail: <Text style={styles.code}>{forwardCode}</Text></Text>
-                ) : null}
-              </View>
-            )}
-
-            {/* Så här ställer du in det */}
-            <View style={styles.stepsCard}>
-              <Text style={styles.stepsTitle}>Så här kopplar du din Gmail (en gång)</Text>
-              <Text style={styles.step}>1. Gmail på datorn → Inställningar → “Vidarebefordran och POP/IMAP”.</Text>
-              <Text style={styles.step}>2. “Lägg till en vidarebefordringsadress” → klistra in adressen ovan.</Text>
-              <Text style={styles.step}>3. Gmail skickar en bekräftelsekod – den dyker upp här i appen inom någon minut. Klistra in den i Gmail.</Text>
-              <Text style={styles.step}>4. Skapa ett filter: sök t.ex. “orderbekräftelse OR order confirmation” → “Skapa filter” → “Vidarebefordra till” din adress.</Text>
-              <Text style={styles.stepNote}>Klart! Nya orderbekräftelser dyker upp här automatiskt för granskning.</Text>
-            </View>
-
-            {/* Väntande importer */}
+            {/* Väntande importer – högst upp så nya importer syns direkt */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>
                 {pending.length > 0 ? `${pending.length} plagg att granska` : 'Inga nya importer än'}
@@ -273,6 +237,42 @@ export default function ImportEmail() {
                 </TouchableOpacity>
               </>
             )}
+
+            {/* Din import-adress */}
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>DIN IMPORT-ADRESS</Text>
+              <Text style={styles.address} selectable>{address || '—'}</Text>
+              <TouchableOpacity style={styles.copyBtn} onPress={copyAddress}>
+                <Text style={styles.copyBtnText}>Kopiera adress</Text>
+              </TouchableOpacity>
+            </View>
+
+            {(forwardCode || forwardLink) && (
+              <View style={styles.codeCard}>
+                <Text style={styles.codeLabel}>Bekräfta vidarebefordran från Gmail</Text>
+                {forwardLink ? (
+                  <>
+                    <TouchableOpacity style={styles.confirmBtn} onPress={() => Linking.openURL(forwardLink)}>
+                      <Text style={styles.confirmBtnText}>Bekräfta i Gmail</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.codeHint}>Öppnar Googles bekräftelselänk. Var inloggad på rätt Google-konto.</Text>
+                  </>
+                ) : null}
+                {forwardCode ? (
+                  <Text style={styles.codeHintSmall}>Eller ange koden i Gmail: <Text style={styles.code}>{forwardCode}</Text></Text>
+                ) : null}
+              </View>
+            )}
+
+            {/* Så här ställer du in det */}
+            <View style={styles.stepsCard}>
+              <Text style={styles.stepsTitle}>Så här kopplar du din Gmail (en gång)</Text>
+              <Text style={styles.step}>1. Gmail på datorn → Inställningar → “Vidarebefordran och POP/IMAP”.</Text>
+              <Text style={styles.step}>2. “Lägg till en vidarebefordringsadress” → klistra in adressen ovan.</Text>
+              <Text style={styles.step}>3. Gmail skickar en bekräftelsekod – den dyker upp här i appen inom någon minut. Klistra in den i Gmail.</Text>
+              <Text style={styles.step}>4. Skapa ett filter: sök t.ex. “orderbekräftelse OR order confirmation” → “Skapa filter” → “Vidarebefordra till” din adress.</Text>
+              <Text style={styles.stepNote}>Klart! Nya orderbekräftelser dyker upp här automatiskt för granskning.</Text>
+            </View>
           </>
         )}
       </ScrollView>
