@@ -37,7 +37,7 @@ const SUBCATEGORIES: Record<string, string[]> = {
   'Ytterkläder': ['Kappa', 'Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka'],
   'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor', 'Tofflor'],
   'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
-  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Mössa', 'Smycken', 'Solglasögon', 'Håraccessoarer'],
+  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Keps', 'Mössa', 'Smycken', 'Solglasögon', 'Håraccessoarer'],
 }
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const COLORS = [
