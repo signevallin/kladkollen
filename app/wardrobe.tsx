@@ -399,6 +399,13 @@ export default function Wardrobe() {
     showAlert('Välkommen tillbaka!', `${item.name} är nu i garderoben igen.`)
   }
 
+  // Flyttar ett arkiverat plagg till säljlistan (ur arkivet, markerat till salu).
+  async function sellFromArchive(item: any) {
+    await supabase.from('garments').update({ for_sale: true, archived: false, sold: false, archive_reason: null }).eq('id', item.id)
+    fetchGarments()
+    showAlert('Lagt till salu!', `${item.name} finns nu på säljlistan.`)
+  }
+
   async function moveWishItem(index: number, direction: 'up' | 'down') {
     const newList = [...wishlist]
     const swapIndex = direction === 'up' ? index - 1 : index + 1
@@ -1095,15 +1102,24 @@ export default function Wardrobe() {
                   {item.sold && <Text style={styles.soldTag}>Såld</Text>}
                 </View>
                 {!item.sold && (
-                  <TouchableOpacity
-                    style={styles.unarchiveBtn}
-                    onPress={() => unarchive(item)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    accessibilityLabel={`Ta tillbaka ${item.name} till garderoben`}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.unarchiveBtnText}>Ta tillbaka</Text>
-                  </TouchableOpacity>
+                  <View style={styles.archActions}>
+                    <TouchableOpacity
+                      style={styles.unarchiveBtn}
+                      onPress={() => unarchive(item)}
+                      accessibilityLabel={`Ta tillbaka ${item.name} till garderoben`}
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.unarchiveBtnText}>Ta tillbaka</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.sellArchiveBtn}
+                      onPress={() => sellFromArchive(item)}
+                      accessibilityLabel={`Sälj ${item.name}`}
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.sellArchiveBtnText}>Sälj</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </TouchableOpacity>
             ))
@@ -1253,8 +1269,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   saleCategory: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, marginTop: 2 },
   soldTag: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, marginTop: 4, fontStyle: 'italic' },
   locationTag: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary, marginTop: 4 },
-  unarchiveBtn: { backgroundColor: t.surfaceMuted, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: t.border },
-  unarchiveBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
+  archActions: { gap: 6, alignItems: 'stretch' },
+  unarchiveBtn: { backgroundColor: t.surfaceMuted, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: t.border, alignItems: 'center' },
+  unarchiveBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 12 },
+  sellArchiveBtn: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, alignItems: 'center' },
+  sellArchiveBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
   saleActions: { flexDirection: 'row', gap: 6, alignItems: 'center' },
   soldBtn: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 10 },
   soldBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
