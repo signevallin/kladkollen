@@ -26,14 +26,16 @@ const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar
 const WISH_CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const SEASONS = ['Alla', 'Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 const WISH_SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
-const COLORS = ['Alla', 'Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
-const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld']
+// Samma ordning som färgvalen i Lägg till plagg.
+const COLORS = ['Alla', 'Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Vinröd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Turkos', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Guld', 'Silver']
+const WISH_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Vinröd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Turkos', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Guld', 'Silver']
 
 const COLOR_HEX: Record<string, string> = {
   'Svart': '#1A1A1A', 'Vit': '#F5F5F5', 'Grå': '#9E9E9E', 'Beige': '#D4B896',
-  'Brun': '#795548', 'Röd': '#E53935', 'Rosa': '#EC407A', 'Lila': '#8E24AA',
-  'Blå': '#1E88E5', 'Ljusblå': '#81D4FA', 'Grön': '#43A047', 'Olivgrön': '#708238',
-  'Gul': '#FDD835', 'Orange': '#FB8C00', 'Vinröd': '#7B2D3A', 'Guld': '#C9A96E',
+  'Brun': '#795548', 'Röd': '#E53935', 'Vinröd': '#7B2D3A', 'Rosa': '#EC407A',
+  'Lila': '#8E24AA', 'Blå': '#1E88E5', 'Ljusblå': '#81D4FA', 'Turkos': '#26C6DA',
+  'Grön': '#43A047', 'Olivgrön': '#708238', 'Gul': '#FDD835', 'Orange': '#FB8C00',
+  'Guld': '#C9A96E', 'Silver': '#BFC1C2',
 }
 
 const SORT_OPTIONS: { key: string; label: string }[] = [
