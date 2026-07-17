@@ -46,18 +46,18 @@ const COLORS = [
   { name: 'Beige', hex: '#D4B896' },
   { name: 'Brun', hex: '#795548' },
   { name: 'Röd', hex: '#E53935' },
+  { name: 'Vinröd', hex: '#7B2D3A' },
   { name: 'Rosa', hex: '#EC407A' },
   { name: 'Lila', hex: '#8E24AA' },
   { name: 'Blå', hex: '#1E88E5' },
   { name: 'Ljusblå', hex: '#81D4FA' },
+  { name: 'Turkos', hex: '#26C6DA' },
   { name: 'Grön', hex: '#43A047' },
   { name: 'Olivgrön', hex: '#708238' },
   { name: 'Gul', hex: '#FDD835' },
   { name: 'Orange', hex: '#FB8C00' },
-  { name: 'Vinröd', hex: '#7B2D3A' },
   { name: 'Guld', hex: '#C9A96E' },
   { name: 'Silver', hex: '#BFC1C2' },
-  { name: 'Turkos', hex: '#26C6DA' },
 ]
 
 // Max bredd på lagrade/skickade bilder. En mobilbild är ofta 3000–4000 px;
