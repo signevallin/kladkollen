@@ -1,5 +1,6 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import { useLocalSearchParams } from 'expo-router'
 import { useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -101,6 +102,9 @@ export default function ImportPurchases() {
   const t = useTheme()
   const styles = makeStyles(t)
   const webRef = useRef<any>(null)
+  // target=wishlist → plaggen hamnar på köplistan i stället för i garderoben.
+  const { target } = useLocalSearchParams()
+  const toWishlist = target === 'wishlist'
 
   const [store, setStore] = useState<{ name: string; url: string } | null>(null)
   const [step, setStep] = useState<'store' | 'browse' | 'select'>('store')
@@ -213,20 +217,34 @@ export default function ImportPurchases() {
           }
         }
 
-        await supabase.from('garments').insert([{
-          user_id: user.id,
-          name: item.name,
-          category: analysis.category || '',
-          subcategory: analysis.subcategory || null,
-          color: analysis.color || '',
-          season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : 'Alla årstider',
-          image_url: imageUrl,
-          brand: item.brand || null,
-          price: parsePrice(item.price),
-        }])
+        if (toWishlist) {
+          await supabase.from('wishlist').insert([{
+            user_id: user.id,
+            name: item.name,
+            category: analysis.category || null,
+            color: analysis.color || null,
+            season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : null,
+            image_url: imageUrl,
+          }])
+        } else {
+          await supabase.from('garments').insert([{
+            user_id: user.id,
+            name: item.name,
+            category: analysis.category || '',
+            subcategory: analysis.subcategory || null,
+            color: analysis.color || '',
+            season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : 'Alla årstider',
+            image_url: imageUrl,
+            brand: item.brand || null,
+            price: parsePrice(item.price),
+          }])
+        }
       }
 
-      showAlert(`${chosen.length} plagg importerade!`, 'Du hittar dem i garderoben. Öppna gärna varje plagg och kontrollera kategori och säsong.')
+      showAlert(
+        `${chosen.length} plagg tillagda!`,
+        toWishlist ? 'Du hittar dem på köplistan.' : 'Du hittar dem i garderoben. Öppna gärna varje plagg och kontrollera kategori och säsong.',
+      )
       goBack('/wardrobe')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
