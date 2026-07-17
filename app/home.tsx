@@ -1,6 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { MaterialIcons } from '@expo/vector-icons'
 import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as Location from 'expo-location'
 import { router, useFocusEffect } from 'expo-router'
@@ -724,7 +725,7 @@ export default function Home() {
               >
                 {sharing
                   ? <ActivityIndicator color={t.primary} size="small" />
-                  : <Text style={styles.shareBtnText}>Dela</Text>
+                  : <MaterialIcons name="ios-share" size={22} color={t.primary} />
                 }
               </TouchableOpacity>
               <TouchableOpacity style={styles.newBtn} onPress={generateOutfit}>
