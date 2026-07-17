@@ -28,33 +28,40 @@ if (Platform.OS !== 'web') {
 // Startsidor för respektive butiks orderhistorik. Användaren kan navigera
 // fritt i webbläsaren, så exakta URL:er är bara en genväg – importen läser
 // den sida som visas när man trycker på Importera.
+// Startsidor (inte djupa order-URL:er): djupa länkar 404:ar ofta när man inte
+// är inloggad eller när butiken bytt sökväg. Startsidan finns alltid – man
+// loggar in, går till sin orderhistorik och trycker Importera.
 const STORES: { name: string; url: string }[] = [
-  { name: 'H&M', url: 'https://www2.hm.com/sv_se/account/purchases.html' },
-  { name: 'Zalando', url: 'https://www.zalando.se/myaccount/orders/' },
-  { name: 'Boozt', url: 'https://www.boozt.com/se/sv/account/orders' },
-  { name: 'Arket', url: 'https://www.arket.com/en-se/account/orders' },
-  { name: 'Zara', url: 'https://www.zara.com/se/sv/user/orders' },
-  { name: 'ASOS', url: 'https://my.asos.com/my-account/orders' },
-  { name: 'NA-KD', url: 'https://www.na-kd.com/sv/account/orders' },
-  { name: 'Vinted', url: 'https://www.vinted.se/member/settings/orders' },
-  { name: 'Sellpy', url: 'https://www.sellpy.se/anvandare/kop' },
-  { name: 'Gina Tricot', url: 'https://www.ginatricot.com/se/mina-sidor/mina-kop' },
-  { name: 'Nelly', url: 'https://nelly.com/se/mitt-konto/mina-ordrar/' },
-  { name: 'Lindex', url: 'https://www.lindex.com/se/mina-sidor/mina-kop/' },
-  { name: 'Åhléns', url: 'https://www.ahlens.se/mina-sidor/mina-kop' },
-  { name: 'KappAhl', url: 'https://www.kappahl.com/sv-se/mina-sidor/mina-kop/' },
-  { name: 'About You', url: 'https://www.aboutyou.se/mitt-konto/bestallningar' },
-  { name: 'Ellos', url: 'https://www.ellos.se/mina-sidor/mina-ordrar' },
-  { name: 'Tradera', url: 'https://www.tradera.com/my/purchases' },
-  { name: 'COS', url: 'https://www.cos.com/en-sek/account/orders' },
-  { name: '& Other Stories', url: 'https://www.stories.com/en_sek/account/orders' },
+  { name: 'H&M', url: 'https://www2.hm.com/sv_se/' },
+  { name: 'Zalando', url: 'https://www.zalando.se/' },
+  { name: 'Boozt', url: 'https://www.boozt.com/se/sv' },
+  { name: 'Arket', url: 'https://www.arket.com/en-se/' },
+  { name: 'Zara', url: 'https://www.zara.com/se/' },
+  { name: 'ASOS', url: 'https://www.asos.com/se/' },
+  { name: 'NA-KD', url: 'https://www.na-kd.com/sv' },
+  { name: 'Vinted', url: 'https://www.vinted.se/' },
+  { name: 'Sellpy', url: 'https://www.sellpy.se/' },
+  { name: 'Gina Tricot', url: 'https://www.ginatricot.com/se' },
+  { name: 'Nelly', url: 'https://nelly.com/se/' },
+  { name: 'Lindex', url: 'https://www.lindex.com/se/' },
+  { name: 'Åhléns', url: 'https://www.ahlens.se/' },
+  { name: 'KappAhl', url: 'https://www.kappahl.com/sv-se/' },
+  { name: 'About You', url: 'https://www.aboutyou.se/' },
+  { name: 'Ellos', url: 'https://www.ellos.se/' },
+  { name: 'Tradera', url: 'https://www.tradera.com/' },
+  { name: 'COS', url: 'https://www.cos.com/en-sek/' },
+  { name: '& Other Stories', url: 'https://www.stories.com/en_sek/' },
 ]
 
-// Butikens logga hämtas som favicon utifrån dess domän – funkar för alla
-// butiker utan att vi behöver bundla bilder, och överlever omdesigner.
+// Butikens logga hämtas som favicon utifrån rot­domänen (inte underdomäner
+// som my.asos.com, som ofta saknar favicon) – funkar för alla butiker utan
+// att vi behöver bundla bilder, och överlever omdesigner.
 function storeLogoUrl(url: string): string | null {
   try {
-    return `https://www.google.com/s2/favicons?sz=64&domain=${new URL(url).hostname}`
+    const host = new URL(url).hostname.replace(/^www\d*\./, '')
+    const parts = host.split('.')
+    const root = parts.length > 2 ? parts.slice(-2).join('.') : host
+    return `https://www.google.com/s2/favicons?sz=64&domain=${root}`
   } catch {
     return null
   }
@@ -259,8 +266,9 @@ export default function ImportPurchases() {
           </TouchableOpacity>
           <Text style={styles.title}>Importera köp</Text>
           <Text style={styles.subtitle}>
-            Logga in i butiken, gå till din orderhistorik och tryck Importera – så
-            hämtas dina köpta plagg automatiskt.
+            Välj din butik nedan. Logga in, gå till din orderhistorik (t.ex. "Mina
+            köp" eller "Mina ordrar") och tryck Importera – så hämtas dina köpta
+            plagg automatiskt.
           </Text>
           {STORES.map(s => (
             <TouchableOpacity key={s.name} style={styles.storeRow} onPress={() => { setStore(s); setStep('browse') }}>
