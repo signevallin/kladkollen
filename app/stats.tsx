@@ -113,7 +113,7 @@ interface WinningCombo {
 export default function Stats() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const [activeTab, setActiveTab] = useState<'stil' | 'garderob'>('stil')
+  const [activeTab, setActiveTab] = useState<'stil' | 'garderob'>('garderob')
 
   // Garderob
   const [garments, setGarments] = useState<any[]>([])
@@ -362,7 +362,7 @@ export default function Stats() {
       <View style={styles.header}>
         <Text style={styles.title}>Statistik</Text>
         <View style={styles.tabRow}>
-          {(['stil', 'garderob'] as const).map(tab => (
+          {(['garderob', 'stil'] as const).map(tab => (
             <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
                 {tab === 'stil' ? 'Min stil' : 'Min garderob'}

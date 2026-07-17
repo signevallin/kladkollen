@@ -697,6 +697,7 @@ export default function Wardrobe() {
                   : null
                 }
                 <Text style={styles.itemName}>{item.name}</Text>
+                {item.brand ? <Text style={styles.itemBrand} numberOfLines={1}>{item.brand}</Text> : null}
                 <Text style={styles.itemCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
               </TouchableOpacity>
             )}
@@ -1039,6 +1040,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   itemImage: { width: '100%', height: 90, borderRadius: 10, marginBottom: 6, resizeMode: 'contain', backgroundColor: 'transparent' },
   itemEmoji: { fontFamily: 'Lora_400Regular', fontSize: 32, marginBottom: 6 },
   itemName: { fontFamily: 'Lora_500Medium', fontSize: 12, color: t.textPrimary, textAlign: 'center' },
+  itemBrand: { fontFamily: 'Poppins_600SemiBold', fontSize: 10, color: t.textSecondary, textAlign: 'center', marginTop: 1, textTransform: 'uppercase', letterSpacing: 0.5 },
   itemCategory: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, textAlign: 'center', marginTop: 2 },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 24 },
