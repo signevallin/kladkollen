@@ -1,6 +1,5 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import * as ImagePicker from 'expo-image-picker'
 import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
@@ -54,6 +53,19 @@ const COLORS = [
 ]
 const COLOR_NAMES = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange', 'Vinröd', 'Guld', 'Silver', 'Turkos']
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
+
+// Läser en Blob som base64 (utan data:-prefix). Funkar på både native och web.
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const r = reader.result as string
+      resolve(r.includes(',') ? r.split(',')[1] : r)
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
 
 export default function GarmentDetail() {
   const t = useTheme()
@@ -241,11 +253,14 @@ export default function GarmentDetail() {
     setRedoing(true)
     setSaveState('saving')
     try {
+      // Hämta bilden själva och läs den som base64. (ImageManipulator kan inte
+      // läsa en fjärr-URL på native – därav "File is not readable".)
       const url = await resolveImageUrl(src)
-      const rendered = await ImageManipulator.manipulate(url).renderAsync()
-      const out = await rendered.saveAsync({ compress: 0.9, format: SaveFormat.JPEG, base64: true })
-      if (!out.base64) throw new Error('Kunde inte läsa bilden')
-      const data = await apiPost('/api/remove-background', { base64: out.base64 })
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('Kunde inte hämta bilden')
+      const base64 = await blobToBase64(await res.blob())
+      if (!base64) throw new Error('Kunde inte läsa bilden')
+      const data = await apiPost('/api/remove-background', { base64 })
       if (!data.base64) throw new Error('Bakgrunden kunde inte tas bort just nu. Försök igen om en stund.')
       const newUrl = await uploadPng(data.base64)
       const table = isWishlistItem ? 'wishlist' : 'garments'
