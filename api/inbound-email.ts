@@ -110,7 +110,7 @@ Para ihop varje produkt med den [BILD]-URL som ligger närmast produktnamnet
 (produktbilder är oftast från butikens CDN – ignorera logotyper, spårpixlar och ikoner).
 
 Gissa även kategori, färg och säsong utifrån produktnamnet:
-- category: EXAKT ett av: Toppar, Tröjor, Byxor, Kjolar, Klänningar, Kavajer, Ytterkläder, Skor, Väskor, Accessoarer (eller null om osäker)
+- category: EXAKT ett av: Toppar, Tröjor, Byxor, Shorts, Kjolar, Klänningar, Kavajer, Ytterkläder, Skor, Väskor, Accessoarer (eller null om osäker)
 - color: EXAKT ett av: Svart, Vit, Grå, Beige, Brun, Röd, Rosa, Lila, Blå, Ljusblå, Grön, Olivgrön, Gul, Orange, Vinröd, Guld (eller null)
 - seasons: en lista med noll eller flera av: Vår, Sommar, Höst, Vinter, Alla årstider
 
