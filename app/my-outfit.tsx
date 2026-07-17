@@ -545,7 +545,7 @@ function isPast(date: Date) {
                     style={[styles.dayCell, todayStyle && styles.dayCellToday, entry && (pastStyle ? styles.dayCellWorn : styles.dayCellPlanned)]}
                     onPress={() => setDayDetailDate(ds)}
                   >
-                    <Text style={[styles.dayNumber, todayStyle && styles.dayNumberToday, pastStyle && !entry && styles.dayNumberPast]}>
+                    <Text style={[styles.dayNumber, todayStyle && styles.dayNumberToday, pastStyle && !entry && styles.dayNumberPast, entry && !pastStyle && styles.dayNumberPlanned]}>
                       {day.getDate()}
                     </Text>
                     {entry ? (
@@ -713,12 +713,14 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   dayCell: { width: '14.28%', aspectRatio: 1, padding: 2, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
   dayCellToday: { borderWidth: 1.5, borderColor: t.primary },
-  // Burna outfits (dagar som passerat) = varm brun ton. Planerade (idag/framåt) = sval accent.
+  // Burna outfits (dagar som passerat) = varm brun ton. Planerade (idag/framåt)
+  // = samma ljusblå som plusknappen (fast, oavsett tema).
   dayCellWorn: { backgroundColor: t.primaryActive + '33' },
-  dayCellPlanned: { backgroundColor: t.accent },
+  dayCellPlanned: { backgroundColor: '#DDE6ED' },
   dayNumber: { fontFamily: 'Lora_500Medium', fontSize: 11, color: t.textPrimary, marginBottom: 2 },
   dayNumberToday: { color: t.textSecondary, fontWeight: '700' },
   dayNumberPast: { color: t.textFaint },
+  dayNumberPlanned: { color: '#2B2320' },
   dayCellGrid: { width: 30, height: 30, flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'center' },
   dayCellImage: { width: 28, height: 28, borderRadius: 6 },
   dayCellImageSmall: { width: 14, height: 14, borderRadius: 3 },
@@ -728,7 +730,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
   legendDotWorn: { backgroundColor: t.primaryActive },
-  legendDotPlanned: { backgroundColor: t.accent, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+  legendDotPlanned: { backgroundColor: '#DDE6ED', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
   legendDotToday: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: t.primary },
   legendText: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint },
 
