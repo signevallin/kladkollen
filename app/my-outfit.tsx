@@ -46,6 +46,7 @@ export default function MyOutfits() {
   }, [create])
   const [selectedGarments, setSelectedGarments] = useState<any[]>([])
   const [outfitName, setOutfitName] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState('Alla')
   const [activeSeason, setActiveSeason] = useState('Alla')
@@ -220,6 +221,16 @@ function isPast(date: Date) {
     })
   }
 
+  // Öppnar redigering av en befintlig outfit med dess plagg förvalda.
+  function startEditOutfit(outfit: any) {
+    const ids: string[] = outfit.garment_ids || []
+    const picked = ids.map(id => garments.find(g => g.id === id)).filter(Boolean)
+    setSelectedGarments(picked)
+    setOutfitName(outfit.name || '')
+    setEditingId(outfit.id)
+    setCreating(true)
+  }
+
   async function saveManualOutfit() {
     if (selectedGarments.length === 0) { showAlert('Välj minst ett plagg!'); return }
     const { data: { user } } = await supabase.auth.getUser()
@@ -227,15 +238,19 @@ function isPast(date: Date) {
     const garmentIds = selectedGarments.filter(g => !g.isWishlist).map(g => g.id)
     const garmentNames = selectedGarments.map(g => g.name)
     const imageUrls = selectedGarments.map(g => g.image_url).filter(Boolean)
-    const { error } = await supabase.from('outfits').insert([{
-      user_id: user?.id, name, garment_ids: garmentIds, garment_names: garmentNames,
-      image_urls: imageUrls, style: activeStyle !== 'Alla' ? activeStyle : null,
-    }])
+
+    const error = editingId
+      ? (await supabase.from('outfits').update({ name, garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls }).eq('id', editingId)).error
+      : (await supabase.from('outfits').insert([{
+          user_id: user?.id, name, garment_ids: garmentIds, garment_names: garmentNames,
+          image_urls: imageUrls, style: activeStyle !== 'Alla' ? activeStyle : null,
+        }])).error
+
     if (error) {
       showAlert('Något gick fel', error.message)
     } else {
-      showAlert('Outfit sparad!')
-      setCreating(false); setSelectedGarments([]); setOutfitName(''); fetchOutfits()
+      showAlert(editingId ? 'Outfit uppdaterad!' : 'Outfit sparad!')
+      setCreating(false); setSelectedGarments([]); setOutfitName(''); setEditingId(null); fetchOutfits()
     }
   }
 
@@ -279,10 +294,10 @@ function isPast(date: Date) {
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.createHeader}>
-            <TouchableOpacity onPress={() => { setCreating(false); setSelectedGarments([]) }}>
+            <TouchableOpacity onPress={() => { setCreating(false); setSelectedGarments([]); setEditingId(null) }}>
               <Text style={styles.cancelText}>✕ Avbryt</Text>
             </TouchableOpacity>
-            <Text style={styles.title}>Skapa outfit</Text>
+            <Text style={styles.title}>{editingId ? 'Ändra outfit' : 'Skapa outfit'}</Text>
             <TouchableOpacity onPress={saveManualOutfit}>
               <Text style={styles.saveText}>Spara</Text>
             </TouchableOpacity>
@@ -611,8 +626,18 @@ function isPast(date: Date) {
               filteredOutfits.map((outfit: any) => (
                 <TouchableOpacity key={outfit.id} style={styles.outfitCard} onPress={() => wearOutfit(outfit)} onLongPress={() => deleteOutfit(outfit.id)}>
                   <View style={styles.outfitCardHeader}>
-                    <Text style={styles.outfitName}>{outfit.name}</Text>
-                    <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString('sv-SE')}</Text>
+                    <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
+                    <View style={styles.outfitCardHeaderRight}>
+                      <TouchableOpacity
+                        onPress={() => startEditOutfit(outfit)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityLabel="Ändra outfit"
+                        accessibilityRole="button"
+                      >
+                        <Text style={styles.editLink}>Ändra</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString('sv-SE')}</Text>
+                    </View>
                   </View>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.outfitImages}>
@@ -822,8 +847,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: t.border, gap: 10 },
   collageCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: t.border, gap: 10 },
   collagePreview: { backgroundColor: 'rgba(248,234,222,0.6)', borderRadius: 14, overflow: 'hidden', position: 'relative' },
-  outfitCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  outfitName: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary },
+  outfitCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  outfitCardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  outfitName: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, flexShrink: 1 },
+  editLink: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.primary },
   outfitDate: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic' },
   outfitImages: { flexDirection: 'row', gap: 8 },
   outfitImage: { width: 70, height: 70, borderRadius: 12 },
