@@ -120,9 +120,11 @@ export default function Wardrobe() {
   async function fetchGarments() {
     const { data } = await supabase.from('garments').select('*')
     if (data) {
+      // Till salu: alla plagg som är till salu (även arkiverade). Arkivet visar
+      // därför bara arkiverade plagg som INTE är till salu, så inget hamnar dubbelt.
       const active = data.filter(g => !g.archived)
-      const sale = data.filter(g => g.for_sale && !g.archived)
-      const arch = data.filter(g => g.archived)
+      const sale = data.filter(g => g.for_sale)
+      const arch = data.filter(g => g.archived && !g.for_sale)
       setGarments(active)
       setForSale(sale)
       setArchived(arch)
@@ -388,6 +390,8 @@ export default function Wardrobe() {
     }, 'Ja, arkivera', true)
   }
 
+  // Tar bort ur säljlistan. Plagget återgår automatiskt dit det hörde hemma:
+  // arkivet om det är arkiverat, annars garderoben.
   async function removeFromSale(item: any) {
     await supabase.from('garments').update({ for_sale: false }).eq('id', item.id)
     fetchGarments()
@@ -399,9 +403,10 @@ export default function Wardrobe() {
     showAlert('Välkommen tillbaka!', `${item.name} är nu i garderoben igen.`)
   }
 
-  // Flyttar ett arkiverat plagg till säljlistan (ur arkivet, markerat till salu).
+  // Lägger ett arkiverat plagg till salu men behåller arkiv-statusen, så det
+  // återgår till arkivet när det tas bort ur säljlistan.
   async function sellFromArchive(item: any) {
-    await supabase.from('garments').update({ for_sale: true, archived: false, sold: false, archive_reason: null }).eq('id', item.id)
+    await supabase.from('garments').update({ for_sale: true, sold: false }).eq('id', item.id)
     fetchGarments()
     showAlert('Lagt till salu!', `${item.name} finns nu på säljlistan.`)
   }
