@@ -816,9 +816,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   unlockProgress: { fontFamily: 'Lora_400Regular', fontSize: 10, color: 'rgba(181,123,219,0.7)' },
 
   heroCard: { backgroundColor: t.primary, borderRadius: 20, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  heroNumber: { fontFamily: 'Poppins_700Bold', fontSize: 56, color: t.textPrimary, lineHeight: 60 },
-  heroLabel: { fontFamily: 'Lora_400Regular', fontSize: 13, color: 'rgba(64,45,33,0.7)', marginTop: 4, maxWidth: 160 },
-  heroIcon: { fontFamily: 'Lora_400Regular', fontSize: 48, opacity: 0.5 },
+  heroNumber: { fontFamily: 'Poppins_700Bold', fontSize: 56, color: t.onPrimary, lineHeight: 60 },
+  heroLabel: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.onPrimary, opacity: 0.8, marginTop: 4, maxWidth: 160 },
+  heroIcon: { fontFamily: 'Lora_400Regular', fontSize: 48, color: t.onPrimary, opacity: 0.5 },
 
   miniStatsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   miniStat: { flex: 1, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: t.border },
