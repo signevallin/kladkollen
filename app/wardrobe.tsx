@@ -96,6 +96,7 @@ export default function Wardrobe() {
   const [wishSeason, setWishSeason] = useState('')
   const [wishImage, setWishImage] = useState<string | null>(null)
   const [savingWish, setSavingWish] = useState(false)
+  const [showAddChooser, setShowAddChooser] = useState(false)
   const [showWishChooser, setShowWishChooser] = useState(false)
   const [showWishUrl, setShowWishUrl] = useState(false)
   const [wishUrl, setWishUrl] = useState('')
@@ -496,6 +497,32 @@ export default function Wardrobe() {
 
   return (
     <SafeAreaView style={styles.container}>
+
+      {/* Garderob: välj hur man lägger till plagg */}
+      <Modal visible={showAddChooser} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lägg till plagg</Text>
+              <TouchableOpacity onPress={() => setShowAddChooser(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowAddChooser(false); router.push('/add-garment?start=photos') }}>
+              <Text style={styles.wishChoiceTitle}>Välj foton</Text>
+              <Text style={styles.wishChoiceHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowAddChooser(false); router.push('/import-purchases') }}>
+              <Text style={styles.wishChoiceTitle}>Importera via butiker</Text>
+              <Text style={styles.wishChoiceHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowAddChooser(false); router.push('/import-email') }}>
+              <Text style={styles.wishChoiceTitle}>Importera från mejl</Text>
+              <Text style={styles.wishChoiceHint}>Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Köp: välj hur man lägger till */}
       <Modal visible={showWishChooser} animationType="slide" transparent>
@@ -1066,7 +1093,7 @@ export default function Wardrobe() {
         onAddGarment={() => {
           if (activeTab === 'köp') setShowWishChooser(true)
           else if (activeTab === 'sälj') setShowAddSale(true)
-          else router.push('/add-garment')
+          else setShowAddChooser(true)
         }}
       />
     </SafeAreaView>

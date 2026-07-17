@@ -2,7 +2,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { goBack } from '../utils/nav'
 import { useEffect, useState } from 'react'
 import {
@@ -100,10 +100,18 @@ export default function AddGarment() {
   const [bgError, setBgError] = useState<string | null>(null)
   const [ownBrands, setOwnBrands] = useState<string[]>([])
 
+  const { start } = useLocalSearchParams()
+
   useEffect(() => {
     supabase.from('garments').select('brand').then(({ data }) => {
       if (data) setOwnBrands([...new Set(data.map((g: any) => g.brand).filter(Boolean))] as string[])
     })
+  }, [])
+
+  // Kommer man in via "Välj foton" i garderobens valruta – öppna bildväljaren direkt.
+  useEffect(() => {
+    if (start === 'photos') pickImages()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function pickImages() {
