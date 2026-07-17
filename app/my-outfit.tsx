@@ -1,7 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Dimensions,
   Modal,
@@ -28,9 +28,9 @@ const MONTHS = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', '
 export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { tab } = useLocalSearchParams()
+  const { tab, create } = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'kollage'>(
-    tab === 'kollage' ? 'kollage' : tab === 'outfits' ? 'outfits' : 'kalender'
+    create ? 'outfits' : tab === 'kollage' ? 'kollage' : tab === 'outfits' ? 'outfits' : 'kalender'
   )
   const [collages, setCollages] = useState<any[]>([])
 
@@ -38,7 +38,12 @@ export default function MyOutfits() {
   const [outfits, setOutfits] = useState<any[]>([])
   const [garments, setGarments] = useState<any[]>([])
   const [wishlist, setWishlist] = useState<any[]>([])
-  const [creating, setCreating] = useState(false)
+  const [creating, setCreating] = useState(!!create)
+
+  // Öppnar skapa-outfit direkt när man kommer från "Lägg till outfit" i plusmenyn.
+  useEffect(() => {
+    if (create) { setActiveTab('outfits'); setCreating(true) }
+  }, [create])
   const [selectedGarments, setSelectedGarments] = useState<any[]>([])
   const [outfitName, setOutfitName] = useState('')
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)

@@ -7,8 +7,10 @@ import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'reac
 
 // Ljusblå plusknapp – samma i både ljust och mörkt läge (som användaren bad om).
 const PLUS_BLUE = '#DDE6ED'
-// Mörk ikon för god kontrast mot den ljusa knappen.
 const PLUS_ICON = '#402D21'
+// Mörk pill-nav i öppet läge – fast mörk oavsett tema (som referensen).
+const PILL_DARK = '#1F1813'
+const PILL_ICON = '#F3ECE4'
 
 // Fyra flikar + en upphöjd plusknapp i mitten (Statistik nås numera via Profil).
 const tabs = [
@@ -19,8 +21,8 @@ const tabs = [
 ]
 
 const addOptions = [
-  { label: 'Lägg till plagg',           icon: 'shirt-outline',    path: '/add-garment' },
-  { label: 'Lägg till outfit',          icon: 'sparkles-outline', path: '/collage' },
+  { label: 'Lägg till plagg',            icon: 'shirt-outline',    path: '/add-garment' },
+  { label: 'Lägg till outfit',           icon: 'sparkles-outline', path: '/my-outfit?create=1' },
   { label: 'Lägg till inspirationsbild', icon: 'camera-outline',   path: '/inspiration' },
 ]
 
@@ -77,23 +79,52 @@ export default function BottomNav() {
 
       <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setMenuOpen(false)}>
-          <View style={styles.menuCard}>
-            {addOptions.map((o, i) => (
-              <TouchableOpacity
-                key={o.path + i}
-                style={[styles.menuRow, i > 0 && styles.menuRowBorder]}
-                onPress={() => go(o.path)}
-                accessibilityRole="button"
-                accessibilityLabel={o.label}
-              >
-                <View style={styles.menuIcon}>
-                  <Ionicons name={o.icon as any} size={20} color={t.primary} />
-                </View>
-                <Text style={styles.menuLabel}>{o.label}</Text>
-                <Ionicons name="chevron-forward" size={18} color={t.textFaint} />
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            {/* Kort med alternativ */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Lägg till</Text>
+              {addOptions.map((o, i) => (
+                <TouchableOpacity
+                  key={o.path + i}
+                  style={[styles.optionRow, i === 0 ? styles.optionRowFirst : styles.optionRowRest]}
+                  onPress={() => go(o.path)}
+                  accessibilityRole="button"
+                  accessibilityLabel={o.label}
+                >
+                  <View style={styles.optionIcon}>
+                    <Ionicons name={o.icon as any} size={20} color="#2B2320" />
+                  </View>
+                  <Text style={styles.optionLabel}>{o.label}</Text>
+                  <Ionicons name="chevron-forward" size={18} color="#6B605A" />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Stäng-knapp som ligger mellan kortet och pill-navet */}
+            <TouchableOpacity
+              style={styles.closeBtn}
+              onPress={() => setMenuOpen(false)}
+              accessibilityLabel="Stäng"
+              accessibilityRole="button"
+            >
+              <Ionicons name="close" size={24} color="#2B2320" />
+            </TouchableOpacity>
+
+            {/* Mörk pill-nav */}
+            <View style={styles.pill}>
+              {tabs.map(tab => (
+                <TouchableOpacity
+                  key={tab.name}
+                  style={styles.pillTab}
+                  onPress={() => go(tab.path)}
+                  accessibilityLabel={tab.label}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name={tab.iconOutline as any} size={24} color={PILL_ICON} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </View>
@@ -123,10 +154,24 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   label: { fontSize: 12, color: t.textFaint, fontWeight: '500' },
   labelActive: { color: t.textPrimary, fontWeight: '700' },
 
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end', paddingBottom: 96, paddingHorizontal: 24 },
-  menuCard: { backgroundColor: t.surface, borderRadius: 20, borderWidth: 1, borderColor: t.border, overflow: 'hidden' },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 18 },
-  menuRowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-  menuIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
-  menuLabel: { flex: 1, fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
+  // ── Öppet läge ──
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: { paddingHorizontal: 16, paddingBottom: 28, alignItems: 'stretch' },
+  card: { backgroundColor: PLUS_BLUE, borderRadius: 28, padding: 14, paddingBottom: 34 },
+  cardTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: '#2B2320', marginBottom: 12, marginLeft: 6 },
+  optionRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, paddingHorizontal: 14, borderRadius: 20, marginBottom: 8 },
+  optionRowFirst: { backgroundColor: '#FFFFFF' },
+  optionRowRest: { backgroundColor: 'rgba(255,255,255,0.55)' },
+  optionIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.85)', alignItems: 'center', justifyContent: 'center' },
+  optionLabel: { flex: 1, fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: '#2B2320' },
+
+  closeBtn: {
+    alignSelf: 'center', width: 52, height: 52, borderRadius: 26,
+    backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
+    marginTop: -26, marginBottom: -26, zIndex: 10,
+    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 6,
+  },
+
+  pill: { flexDirection: 'row', backgroundColor: PILL_DARK, borderRadius: 32, height: 68, alignItems: 'center', paddingTop: 14, paddingHorizontal: 16 },
+  pillTab: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 })
