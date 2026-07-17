@@ -291,7 +291,7 @@ export default function GarmentDetail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.backButton}

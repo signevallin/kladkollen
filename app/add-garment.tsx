@@ -276,7 +276,7 @@ export default function AddGarment() {
   if (step === 'pick') {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.backButton} onPress={() => goBack('/wardrobe')}>
             <Text style={styles.backButtonText}>← Tillbaka</Text>
           </TouchableOpacity>
