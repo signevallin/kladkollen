@@ -136,8 +136,7 @@ export default function Inspiration() {
   async function pickInspoImage() {
     const result = await pickImageSmart({
       mediaTypes: ['images'] as any,
-      allowsEditing: true,
-      aspect: [3, 4],
+      allowsEditing: false,
       quality: 0.6,
       base64: true,
     })
