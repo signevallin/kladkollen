@@ -1,10 +1,11 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MaterialIcons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   FlatList,
   Modal,
@@ -61,6 +62,8 @@ export default function Wardrobe() {
   const [activeCategory, setActiveCategory] = useState('Alla')
   const [activeSeason, setActiveSeason] = useState('Alla')
   const [activeColor, setActiveColor] = useState('Alla')
+  const [activeType, setActiveType] = useState('Alla')
+  const [prefsLoaded, setPrefsLoaded] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
   const [showSearch, setShowSearch] = useState(false)
@@ -238,6 +241,7 @@ export default function Wardrobe() {
     if (activeCategory !== 'Alla') result = result.filter(g => g.category === activeCategory)
     if (activeSeason !== 'Alla') result = result.filter(g => g.season?.includes(activeSeason))
     if (activeColor !== 'Alla') result = result.filter(g => g.color === activeColor)
+    if (activeType !== 'Alla') result = result.filter(g => g.subcategory === activeType)
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(g =>
@@ -258,17 +262,47 @@ export default function Wardrobe() {
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     }
     return sorted
-  }, [garments, activeCategory, activeSeason, activeColor, search, sortBy])
+  }, [garments, activeCategory, activeSeason, activeColor, activeType, search, sortBy])
+
+  // Typ-alternativ (subkategorier) som faktiskt finns i garderoben, för filtret.
+  const typeOptions = useMemo(() => {
+    const set = new Set<string>()
+    garments.forEach(g => { if (g.subcategory) set.add(g.subcategory) })
+    return ['Alla', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'sv'))]
+  }, [garments])
 
   function handleSearch(text: string) { setSearch(text) }
   function handleCategory(cat: string) { setActiveCategory(cat); setOpenDropdown(null) }
   function handleSeason(s: string) { setActiveSeason(s); setOpenDropdown(null) }
   function handleColor(c: string) { setActiveColor(c); setOpenDropdown(null) }
+  function handleType(ty: string) { setActiveType(ty); setOpenDropdown(null) }
   function handleSort(key: string) { setSortBy(key); setOpenDropdown(null) }
   function clearFilters() {
-    setActiveCategory('Alla'); setActiveSeason('Alla'); setActiveColor('Alla')
+    setActiveCategory('Alla'); setActiveSeason('Alla'); setActiveColor('Alla'); setActiveType('Alla')
     setSearch(''); setSortBy('recent'); setShowSearch(false); setOpenDropdown(null)
   }
+
+  // Kom ihåg sortering och filter mellan besök tills något annat väljs.
+  const PREFS_KEY = 'kladkollen_wardrobe_prefs'
+  useEffect(() => {
+    AsyncStorage.getItem(PREFS_KEY).then(raw => {
+      if (raw) {
+        try {
+          const p = JSON.parse(raw)
+          if (p.sortBy) setSortBy(p.sortBy)
+          if (p.activeCategory) setActiveCategory(p.activeCategory)
+          if (p.activeColor) setActiveColor(p.activeColor)
+          if (p.activeSeason) setActiveSeason(p.activeSeason)
+          if (p.activeType) setActiveType(p.activeType)
+        } catch { /* strunt i det */ }
+      }
+      setPrefsLoaded(true)
+    })
+  }, [])
+  useEffect(() => {
+    if (!prefsLoaded) return
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ sortBy, activeCategory, activeColor, activeSeason, activeType }))
+  }, [prefsLoaded, sortBy, activeCategory, activeColor, activeSeason, activeType])
 
   async function markAsSold(item: any) {
     showConfirm('Markera som såld', `Är "${item.name}" såld?`, async () => {
@@ -307,7 +341,7 @@ export default function Wardrobe() {
     }, 'Ta bort', true)
   }
 
-  const hasActiveFilters = activeCategory !== 'Alla' || activeSeason !== 'Alla' || activeColor !== 'Alla' || search !== ''
+  const hasActiveFilters = activeCategory !== 'Alla' || activeSeason !== 'Alla' || activeColor !== 'Alla' || activeType !== 'Alla' || search !== ''
 
   function generateCapsule() {
     if (garments.length === 0) { showAlert('Garderoben är tom', 'Lägg till plagg först!'); return }
@@ -613,6 +647,7 @@ export default function Wardrobe() {
             {[
               { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
               { key: 'category', label: 'Kategori', value: activeCategory, on: activeCategory !== 'Alla' },
+              { key: 'type', label: 'Typ', value: activeType, on: activeType !== 'Alla' },
               { key: 'color', label: 'Färg', value: activeColor, on: activeColor !== 'Alla' },
               { key: 'season', label: 'Säsong', value: activeSeason, on: activeSeason !== 'Alla' },
             ].map(f => (
@@ -647,13 +682,13 @@ export default function Wardrobe() {
                           <Text style={[styles.dropdownPillText, sortBy === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
                         </TouchableOpacity>
                       ))
-                    : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
-                        const isActive = openDropdown === 'category' ? activeCategory === item : openDropdown === 'season' ? activeSeason === item : activeColor === item
+                    : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'type' ? typeOptions : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
+                        const isActive = openDropdown === 'category' ? activeCategory === item : openDropdown === 'type' ? activeType === item : openDropdown === 'season' ? activeSeason === item : activeColor === item
                         return (
                           <TouchableOpacity
                             key={item}
                             style={[styles.dropdownPill, isActive && styles.dropdownPillActive]}
-                            onPress={() => openDropdown === 'category' ? handleCategory(item) : openDropdown === 'season' ? handleSeason(item) : handleColor(item)}
+                            onPress={() => openDropdown === 'category' ? handleCategory(item) : openDropdown === 'type' ? handleType(item) : openDropdown === 'season' ? handleSeason(item) : handleColor(item)}
                           >
                             {openDropdown === 'color' && COLOR_HEX[item] && (
                               <View style={[styles.pillColorDot, { backgroundColor: COLOR_HEX[item] }]} />
@@ -690,7 +725,7 @@ export default function Wardrobe() {
                 }
                 <Text style={styles.itemName}>{item.name}</Text>
                 {item.brand ? <Text style={styles.itemBrand} numberOfLines={1}>{item.brand}</Text> : null}
-                <Text style={styles.itemCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
+                <Text style={styles.itemCategory} numberOfLines={1}>{item.subcategory || item.category}</Text>
               </TouchableOpacity>
             )}
             ListFooterComponent={
