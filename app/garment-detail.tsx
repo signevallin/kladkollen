@@ -393,6 +393,9 @@ export default function GarmentDetail() {
         <Text style={styles.label}>Namn</Text>
         <TextInput style={styles.input} placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
 
+        <Text style={styles.label}>Märke</Text>
+        <BrandInput value={brand} onChange={setBrand} ownBrands={ownBrands} />
+
         <Text style={styles.label}>Kategori</Text>
         <View style={styles.pills}>
           {CATEGORIES.map((cat) => (
@@ -480,9 +483,6 @@ export default function GarmentDetail() {
                 </TouchableOpacity>
               ))}
             </View>
-
-            <Text style={styles.label}>Märke</Text>
-            <BrandInput value={brand} onChange={setBrand} ownBrands={ownBrands} />
 
             <Text style={styles.label}>Pris (kr)</Text>
             <TextInput

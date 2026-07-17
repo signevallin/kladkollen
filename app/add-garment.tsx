@@ -364,6 +364,10 @@ export default function AddGarment() {
 
               {!isProcessing && (
                 <>
+                  {/* Brand */}
+                  <Text style={styles.cardLabel}>MÄRKE (VALFRITT)</Text>
+                  <BrandInput value={draft.brand} onChange={v => updateDraft(draft.id, 'brand', v)} ownBrands={ownBrands} />
+
                   {/* Category */}
                   <Text style={styles.cardLabel}>KATEGORI</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -450,10 +454,6 @@ export default function AddGarment() {
                     value={SIZES.includes(draft.size) ? '' : draft.size}
                     onChangeText={v => updateDraft(draft.id, 'size', v)}
                   />
-
-                  {/* Brand */}
-                  <Text style={styles.cardLabel}>MÄRKE (VALFRITT)</Text>
-                  <BrandInput value={draft.brand} onChange={v => updateDraft(draft.id, 'brand', v)} ownBrands={ownBrands} />
 
                   {/* Price */}
                   <Text style={styles.cardLabel}>PRIS I KR (VALFRITT)</Text>
