@@ -5,11 +5,11 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
+import Toggle from '../components/Toggle'
 import { supabase } from '../supabase'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
@@ -95,13 +95,7 @@ export default function NotificationsSettings() {
             <Text style={styles.masterTitle}>Tillåt notiser</Text>
             <Text style={styles.masterDesc}>Slå av för att pausa alla notiser.</Text>
           </View>
-          <Switch
-            value={enabled}
-            onValueChange={toggleMaster}
-            trackColor={{ true: '#6C4D38', false: t.border }}
-            thumbColor="#FFFFFF"
-            ios_backgroundColor={t.border}
-          />
+          <Toggle value={enabled} onValueChange={toggleMaster} />
         </View>
 
         {CATEGORIES.map(c => (
@@ -110,13 +104,10 @@ export default function NotificationsSettings() {
               <Text style={styles.rowTitle}>{c.title}</Text>
               <Text style={styles.rowDesc}>{c.desc}</Text>
             </View>
-            <Switch
+            <Toggle
               value={enabled && prefs[c.key]}
               disabled={!enabled}
               onValueChange={v => toggleCategory(c.key, v)}
-              trackColor={{ true: '#6C4D38', false: t.border }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor={t.border}
             />
           </View>
         ))}
