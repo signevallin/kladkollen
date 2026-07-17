@@ -23,7 +23,9 @@ const addOptions = [
   { label: 'Lägg till inspirationsbild', icon: 'camera-outline',   path: '/inspiration' },
 ]
 
-export default function BottomNav() {
+// onAddGarment: låter en skärm (t.ex. garderoben) ta över vad "Lägg till plagg"
+// gör – t.ex. öppna köp-/sälj-flödet beroende på vilken flik man är på.
+export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void } = {}) {
   const t = useTheme()
   const styles = makeStyles(t)
   const pathname = usePathname()
@@ -66,7 +68,10 @@ export default function BottomNav() {
               <TouchableOpacity
                 key={o.path + i}
                 style={[styles.optionRow, i === 0 ? styles.optionRowFirst : styles.optionRowRest]}
-                onPress={() => go(o.path)}
+                onPress={() => {
+                  if (o.path === '/add-garment' && onAddGarment) { setMenuOpen(false); onAddGarment() }
+                  else go(o.path)
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={o.label}
               >
