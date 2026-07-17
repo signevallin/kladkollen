@@ -108,14 +108,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   nav: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     backgroundColor: t.bg,
     borderTopWidth: 1,
     borderTopColor: t.border,
-    paddingBottom: 24,
-    paddingTop: 8,
+    height: 72,
   },
-  tab: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 4, height: 48 },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
   plusSlot: { width: 72, alignItems: 'center' },
   plusBtn: {
     width: 56, height: 56, borderRadius: 28,

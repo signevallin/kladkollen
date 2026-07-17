@@ -736,7 +736,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   weekdayRow: { flexDirection: 'row', marginBottom: 4 },
   weekdayLabel: { fontFamily: 'Poppins_600SemiBold', flex: 1, textAlign: 'center', fontSize: 11, color: t.textFaint },
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  dayCell: { width: '14.28%', aspectRatio: 1, padding: 2, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
+  dayCell: { width: '14.28%', aspectRatio: 0.72, padding: 2, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
   dayCellToday: { borderWidth: 1.5, borderColor: t.primary },
   // Burna outfits (dagar som passerat) = varm brun ton. Planerade (idag/framåt)
   // = samma ljusblå som plusknappen (fast, oavsett tema).
@@ -746,9 +746,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dayNumberToday: { color: t.textSecondary, fontWeight: '700' },
   dayNumberPast: { color: t.textFaint },
   dayNumberPlanned: { color: '#2B2320' },
-  dayCellGrid: { width: 30, height: 30, flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'center' },
-  dayCellImage: { width: 28, height: 28, borderRadius: 6 },
-  dayCellImageSmall: { width: 14, height: 14, borderRadius: 3 },
+  dayCellGrid: { width: 42, height: 42, flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'center' },
+  dayCellImage: { width: 40, height: 40, borderRadius: 7 },
+  dayCellImageSmall: { width: 20, height: 20, borderRadius: 4 },
   dayCellOutfitDot: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textPrimary },
   dayCellPlus: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint },
   calendarLegend: { flexDirection: 'row', gap: 16, justifyContent: 'center', marginTop: 12 },
