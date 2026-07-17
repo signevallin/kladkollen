@@ -195,7 +195,10 @@ export default function GarmentDetail() {
   // Håll arkiv-badgen i synk med vald plats.
   useEffect(() => {
     const matched = locations.find(l => l.name === location)
-    if (matched) setArchived(matched.is_archive)
+    if (matched) {
+      setArchived(matched.is_archive)
+      if (!matched.is_archive) setArchiveReason(null)
+    }
   }, [location, locations])
 
   function toggleSeason(s: string) {
@@ -571,6 +574,23 @@ export default function GarmentDetail() {
               ))}
             </View>
 
+            {archived && (
+              <>
+                <Text style={styles.label}>Anledning till arkivering</Text>
+                <View style={styles.pills}>
+                  {ARCHIVE_REASONS.map(r => {
+                    const on = archiveReason === r.key
+                    return (
+                      <TouchableOpacity key={r.key} style={[styles.pill, styles.reasonPill, on && styles.pillActive]} onPress={() => setArchiveReason(on ? null : r.key)}>
+                        <Ionicons name={r.icon as any} size={14} color={on ? t.onPrimary : t.textSecondary} />
+                        <Text style={[styles.pillText, on && styles.pillTextActive]}>{r.label}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              </>
+            )}
+
             <Text style={styles.label}>Pris (kr)</Text>
             <TextInput
               style={styles.input}
@@ -644,6 +664,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginBottom: 16 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  reasonPill: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   pillActive: { backgroundColor: t.primary, borderColor: t.primary },
   pillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
   pillTextActive: { color: t.onPrimary },
