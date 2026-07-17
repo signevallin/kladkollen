@@ -48,7 +48,8 @@ const SORT_OPTIONS: { key: string; label: string }[] = [
 ]
 const SORT_LABEL: Record<string, string> = Object.fromEntries(SORT_OPTIONS.map(s => [s.key, s.label]))
 // Färgordning för sortering på färg (mörkt → ljust → kulörer)
-const COLOR_ORDER = ['Svart', 'Grå', 'Vit', 'Beige', 'Brun', 'Guld', 'Röd', 'Vinröd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Olivgrön', 'Gul', 'Orange']
+// Samma ordning som färgfiltret / Lägg till plagg (utan "Alla").
+const COLOR_ORDER = COLORS.slice(1)
 
 export default function Wardrobe() {
   const t = useTheme()
