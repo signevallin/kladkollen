@@ -59,9 +59,9 @@ const CTX_META: Record<string, { emoji: string; color: string }> = {
 
 const COLOR_GROUPS: Record<string, string[]> = {
   'Mörka neutraler': ['Svart'],
-  'Neutraler':       ['Vit', 'Grå', 'Beige', 'Brun'],
+  'Neutraler':       ['Vit', 'Grå', 'Beige', 'Brun', 'Silver'],
   'Varmt & kraftfullt': ['Röd', 'Orange', 'Gul', 'Guld'],
-  'Svalt & lugnt':   ['Blå', 'Ljusblå', 'Grön'],
+  'Svalt & lugnt':   ['Blå', 'Ljusblå', 'Grön', 'Turkos'],
   'Romantiskt':      ['Rosa', 'Lila'],
 }
 const COLOR_EMOJIS: Record<string, string> = {
@@ -75,6 +75,7 @@ const COLOR_HEX: Record<string, string> = {
   'Brun': '#795548', 'Röd': '#E53935', 'Rosa': '#EC407A', 'Lila': '#8E24AA',
   'Blå': '#1E88E5', 'Ljusblå': '#81D4FA', 'Grön': '#43A047', 'Olivgrön': '#708238',
   'Gul': '#FDD835', 'Orange': '#FB8C00', 'Vinröd': '#7B2D3A', 'Guld': '#C9A96E',
+  'Silver': '#BFC1C2', 'Turkos': '#26C6DA',
 }
 
 // Semantiska färger för säsong (vår grön, sommar gul, höst orange, vinter blå).
