@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons'
+import { FontAwesome, Ionicons } from '@expo/vector-icons'
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
 import { useEffect } from 'react'
 import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -67,19 +67,21 @@ export default function SongCard({ song }: { song: SongData }) {
 
       <View style={styles.links}>
         <TouchableOpacity
+          style={styles.logoBtn}
           onPress={() => Linking.openURL(`https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`)}
           accessibilityLabel="Öppna i Spotify"
           accessibilityRole="link"
         >
-          <Text style={styles.link}>Öppna i Spotify ↗</Text>
+          <FontAwesome name="spotify" size={26} color="#1DB954" />
         </TouchableOpacity>
         {song.appleMusicUrl ? (
           <TouchableOpacity
+            style={styles.logoBtn}
             onPress={() => Linking.openURL(song.appleMusicUrl!)}
             accessibilityLabel="Öppna i Apple Music"
             accessibilityRole="link"
           >
-            <Text style={styles.link}>Öppna i Apple Music ↗</Text>
+            <FontAwesome name="apple" size={24} color={t.textPrimary} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -98,6 +100,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   artist: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
   reason: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, fontStyle: 'italic', lineHeight: 19 },
   playBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  links: { flexDirection: 'row', flexWrap: 'wrap', gap: 18 },
-  link: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary, textDecorationLine: 'underline' },
+  links: { flexDirection: 'row', gap: 12 },
+  logoBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.borderSoft },
 })
