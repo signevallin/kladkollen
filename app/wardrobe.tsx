@@ -23,7 +23,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
-import { reasonFor } from '../utils/archiveReasons'
+import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
 
 const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
 const WISH_CATEGORIES = ['Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
@@ -79,6 +79,7 @@ export default function Wardrobe() {
   const [archColor, setArchColor] = useState('Alla')
   const [archSeason, setArchSeason] = useState('Alla')
   const [archPlace, setArchPlace] = useState('Alla')
+  const [archReason, setArchReason] = useState('Alla')
   const [archSort, setArchSort] = useState('recent')
   const [archDropdown, setArchDropdown] = useState<string | null>(null)
 
@@ -326,6 +327,7 @@ export default function Wardrobe() {
     if (archColor !== 'Alla') r = r.filter(g => g.color === archColor)
     if (archSeason !== 'Alla') r = r.filter(g => g.season?.includes(archSeason))
     if (archPlace !== 'Alla') r = r.filter(g => g.location === archPlace)
+    if (archReason !== 'Alla') r = r.filter(g => (g.archive_reason || '') === archReason)
     const sorted = [...r]
     switch (archSort) {
       case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name, 'sv')); break
@@ -338,11 +340,11 @@ export default function Wardrobe() {
       default: sorted.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     }
     return sorted
-  }, [archived, archCat, archType, archColor, archSeason, archPlace, archSort])
+  }, [archived, archCat, archType, archColor, archSeason, archPlace, archReason, archSort])
 
-  const archHasFilters = archCat !== 'Alla' || archType !== 'Alla' || archColor !== 'Alla' || archSeason !== 'Alla' || archPlace !== 'Alla'
+  const archHasFilters = archCat !== 'Alla' || archType !== 'Alla' || archColor !== 'Alla' || archSeason !== 'Alla' || archPlace !== 'Alla' || archReason !== 'Alla'
   function clearArchiveFilters() {
-    setArchCat('Alla'); setArchType('Alla'); setArchColor('Alla'); setArchSeason('Alla'); setArchPlace('Alla'); setArchSort('recent'); setArchDropdown(null)
+    setArchCat('Alla'); setArchType('Alla'); setArchColor('Alla'); setArchSeason('Alla'); setArchPlace('Alla'); setArchReason('Alla'); setArchSort('recent'); setArchDropdown(null)
   }
 
   function handleSearch(text: string) { setSearch(text) }
@@ -991,9 +993,6 @@ export default function Wardrobe() {
       {/* ARKIV – nås från både Garderob- och Sälj-fliken */}
       {(activeTab === 'nuvarande' || activeTab === 'sälj') && showArchive && (
         <ScrollView contentContainerStyle={styles.saleScroll}>
-          <TouchableOpacity style={styles.backToSale} onPress={() => setShowArchive(false)}>
-            <Text style={styles.backToSaleText}>← Tillbaka</Text>
-          </TouchableOpacity>
           <Text style={styles.archiveTitle}>Arkiv</Text>
           <Text style={styles.archiveHint}>
             Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.
@@ -1009,6 +1008,7 @@ export default function Wardrobe() {
                   { key: 'color', label: 'Färg', value: archColor, on: archColor !== 'Alla' },
                   { key: 'season', label: 'Säsong', value: archSeason, on: archSeason !== 'Alla' },
                   { key: 'place', label: 'Plats', value: archPlace, on: archPlace !== 'Alla' },
+                  { key: 'reason', label: 'Anledning', value: reasonFor(archReason)?.label || archReason, on: archReason !== 'Alla' },
                 ].map(f => (
                   <TouchableOpacity key={f.key} style={[styles.chip, (f.on || archDropdown === f.key) && styles.chipActive]} onPress={() => setArchDropdown(archDropdown === f.key ? null : f.key)}>
                     <Text style={[styles.chipText, (f.on || archDropdown === f.key) && styles.chipTextActive]}>
@@ -1033,19 +1033,22 @@ export default function Wardrobe() {
                               <Text style={[styles.dropdownPillText, archSort === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
                             </TouchableOpacity>
                           ))
-                        : (archDropdown === 'category' ? CATEGORIES : archDropdown === 'type' ? archTypeOptions : archDropdown === 'season' ? SEASONS : archDropdown === 'place' ? archPlaceOptions : COLORS).map(item => {
-                            const isActive = archDropdown === 'category' ? archCat === item : archDropdown === 'type' ? archType === item : archDropdown === 'season' ? archSeason === item : archDropdown === 'place' ? archPlace === item : archColor === item
+                        : (archDropdown === 'category' ? CATEGORIES : archDropdown === 'type' ? archTypeOptions : archDropdown === 'season' ? SEASONS : archDropdown === 'place' ? archPlaceOptions : archDropdown === 'reason' ? ['Alla', ...ARCHIVE_REASONS.map(r => r.key)] : COLORS).map(item => {
+                            const isActive = archDropdown === 'category' ? archCat === item : archDropdown === 'type' ? archType === item : archDropdown === 'season' ? archSeason === item : archDropdown === 'place' ? archPlace === item : archDropdown === 'reason' ? archReason === item : archColor === item
+                            const reasonMeta = archDropdown === 'reason' && item !== 'Alla' ? reasonFor(item) : undefined
                             return (
                               <TouchableOpacity key={item} style={[styles.dropdownPill, isActive && styles.dropdownPillActive]} onPress={() => {
                                 if (archDropdown === 'category') setArchCat(item)
                                 else if (archDropdown === 'type') setArchType(item)
                                 else if (archDropdown === 'season') setArchSeason(item)
                                 else if (archDropdown === 'place') setArchPlace(item)
+                                else if (archDropdown === 'reason') setArchReason(item)
                                 else setArchColor(item)
                                 setArchDropdown(null)
                               }}>
                                 {archDropdown === 'color' && COLOR_HEX[item] && <View style={[styles.pillColorDot, { backgroundColor: COLOR_HEX[item] }]} />}
-                                <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{item}</Text>
+                                {reasonMeta && <Ionicons name={reasonMeta.icon as any} size={14} color={isActive ? t.onPrimary : t.textSecondary} style={{ marginRight: 4 }} />}
+                                <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{reasonMeta ? reasonMeta.label : item}</Text>
                               </TouchableOpacity>
                             )
                           })}
@@ -1127,9 +1130,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.onPrimary },
   tabRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 8, gap: 8 },
-  tab: { flex: 1, paddingVertical: 8, borderRadius: 12, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  tab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   tabActive: { backgroundColor: t.primary, borderColor: t.primary },
-  tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
+  tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 13 },
   tabTextActive: { color: t.onPrimary, fontWeight: '600' },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
   searchContainer: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: t.border },
