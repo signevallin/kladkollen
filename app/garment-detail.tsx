@@ -14,6 +14,7 @@ import {
   View
 } from 'react-native'
 import BrandInput from '../components/BrandInput'
+import CropModal from '../components/CropModal'
 import { pickImageSmart } from '../utils/imagePicker'
 import SignedImage from '../components/SignedImage'
 import { router } from 'expo-router'
@@ -98,6 +99,7 @@ export default function GarmentDetail() {
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveError, setSaveError] = useState('')
   const [redoing, setRedoing] = useState(false)
+  const [cropUri, setCropUri] = useState<string | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -226,6 +228,33 @@ export default function GarmentDetail() {
       if (error) throw error
       setImageUrl(url)
       if (processed) setNewImage(`data:image/png;base64,${processed}`)
+      setSaveState('saved')
+    } catch (e: any) {
+      setSaveState('error')
+      showAlert('Bilden kunde inte sparas', e.message)
+    }
+  }
+
+  // Öppnar beskärningsvyn med den nuvarande bilden (löst till en visningsbar URL).
+  async function openCrop() {
+    const src = imageUrl || newImage
+    if (!src) return
+    const url = await resolveImageUrl(src)
+    setCropUri(url)
+  }
+
+  // Sparar den beskurna bilden och uppdaterar plagget.
+  async function saveCropped(base64: string) {
+    setCropUri(null)
+    setSaveState('saving')
+    try {
+      const newUrl = await uploadPng(base64)
+      const table = isWishlistItem ? 'wishlist' : 'garments'
+      const rowId = isWishlistItem ? wishlistId : id
+      const { error } = await supabase.from(table).update({ image_url: newUrl }).eq('id', rowId)
+      if (error) throw error
+      setImageUrl(newUrl)
+      setNewImage(`data:image/png;base64,${base64}`)
       setSaveState('saved')
     } catch (e: any) {
       setSaveState('error')
@@ -391,19 +420,36 @@ export default function GarmentDetail() {
         </TouchableOpacity>
 
         {(imageUrl || newImage) && (
-          <TouchableOpacity
-            style={styles.redoBgBtn}
-            onPress={redoBackground}
-            disabled={redoing}
-            accessibilityLabel="Ta bort bakgrunden igen"
-            accessibilityRole="button"
-          >
-            {redoing
-              ? <ActivityIndicator color={t.textSecondary} size="small" />
-              : <Text style={styles.redoBgBtnText}>✨ Ta bort bakgrunden igen</Text>
-            }
-          </TouchableOpacity>
+          <View style={styles.imageActionsRow}>
+            <TouchableOpacity
+              style={[styles.redoBgBtn, { flex: 1 }]}
+              onPress={redoBackground}
+              disabled={redoing}
+              accessibilityLabel="Ta bort bakgrunden igen"
+              accessibilityRole="button"
+            >
+              {redoing
+                ? <ActivityIndicator color={t.textSecondary} size="small" />
+                : <Text style={styles.redoBgBtnText}>✨ Ta bort bakgrund</Text>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.redoBgBtn, { flex: 1 }]}
+              onPress={openCrop}
+              accessibilityLabel="Beskär bild"
+              accessibilityRole="button"
+            >
+              <Text style={styles.redoBgBtnText}>✂️ Beskär bild</Text>
+            </TouchableOpacity>
+          </View>
         )}
+
+        <CropModal
+          visible={!!cropUri}
+          uri={cropUri}
+          onCancel={() => setCropUri(null)}
+          onCropped={saveCropped}
+        />
 
         <Text style={styles.label}>Namn</Text>
         <TextInput style={styles.input} placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
@@ -558,7 +604,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   previewImage: { width: '100%', height: '100%', resizeMode: 'contain', backgroundColor: 'transparent' },
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
   imageOverlayText: { fontFamily: 'Lora_500Medium', color: t.onPrimary, fontSize: 12 },
-  redoBgBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, marginTop: -12, marginBottom: 22 },
+  imageActionsRow: { flexDirection: 'row', gap: 10, marginTop: -12, marginBottom: 22 },
+  redoBgBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   redoBgBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 13 },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
