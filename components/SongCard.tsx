@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
+import { useEffect } from 'react'
 import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
@@ -20,6 +21,12 @@ export default function SongCard({ song }: { song: SongData }) {
   const player = useAudioPlayer(song.previewUrl ? { uri: song.previewUrl } : null)
   const status = useAudioPlayerStatus(player)
   const playing = !!status?.playing
+
+  // Spela även när telefonens ljudomkopplare står på tyst (annars händer inget
+  // på iOS när man trycker play).
+  useEffect(() => {
+    setAudioModeAsync({ playsInSilentMode: true }).catch(() => {})
+  }, [])
 
   function togglePlay() {
     if (!song.previewUrl) return
