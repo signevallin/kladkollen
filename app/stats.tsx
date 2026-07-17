@@ -77,6 +77,18 @@ const COLOR_HEX: Record<string, string> = {
   'Gul': '#FDD835', 'Orange': '#FB8C00', 'Vinröd': '#7B2D3A', 'Guld': '#C9A96E',
 }
 
+// Semantiska färger för säsong (vår grön, sommar gul, höst orange, vinter blå).
+const SEASON_HEX: Record<string, string> = {
+  'Vår': '#9CCC65', 'Sommar': '#FFCA28', 'Höst': '#E08E45',
+  'Vinter': '#7EA6C7', 'Alla årstider': '#B0A8A0',
+}
+
+// Roterande palett för kategorier (godtyckligt antal) – tilldelas i storleksordning.
+const PIE_PALETTE = [
+  '#B5896E', '#8B9BB4', '#A8B5A0', '#6FA8A0', '#E8A0B4', '#B57BDB',
+  '#D98A4B', '#7EA6C7', '#C9A96E', '#9CCC65', '#EC9B9B', '#9E8FB0',
+]
+
 interface MoodStat {
   label: string; emoji: string; color: string
   count: number; pct: number; avgRating: number | null
@@ -293,6 +305,33 @@ export default function Stats() {
       .sort((a, b) => b.count - a.count)
   })()
   const colorTotal = colorBreakdown.reduce((s, c) => s + c.count, 0) || 1
+
+  // Säsongsfördelning – ett plagg kan gälla flera säsonger (kommaseparerat),
+  // så varje säsong räknas för sig. Mest först, som färgerna.
+  const seasonBreakdown = (() => {
+    const counts: Record<string, number> = {}
+    garments.forEach(g => {
+      if (!g.season) return
+      String(g.season).split(',').map((s: string) => s.trim()).filter(Boolean).forEach((s: string) => {
+        counts[s] = (counts[s] || 0) + 1
+      })
+    })
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count, hex: SEASON_HEX[name] || '#B5896E' }))
+      .sort((a, b) => b.count - a.count)
+  })()
+  const seasonTotal = seasonBreakdown.reduce((s, c) => s + c.count, 0) || 1
+
+  // Kategorifördelning – antal plagg per kategori, mest först.
+  const categoryBreakdown = (() => {
+    const counts: Record<string, number> = {}
+    garments.forEach(g => { if (g.category) counts[g.category] = (counts[g.category] || 0) + 1 })
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .map((e, i) => ({ ...e, hex: PIE_PALETTE[i % PIE_PALETTE.length] }))
+  })()
+  const categoryTotal = categoryBreakdown.reduce((s, c) => s + c.count, 0) || 1
 
   // Märkesfördelning – slår ihop stavningsvarianter, visar vanligaste stavningen.
   const brandBreakdown = (() => {
@@ -521,6 +560,44 @@ export default function Stats() {
                         <View style={[styles.legendDot, { backgroundColor: c.hex }]} />
                         <Text style={styles.legendName} numberOfLines={1}>{c.name}</Text>
                         <Text style={styles.legendCount}>{Math.round((c.count / colorTotal) * 100)}%</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {categoryBreakdown.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Din garderobs kategorier</Text>
+                <Text style={styles.sectionSubtitle}>Så här fördelar sig plaggen mellan kategorier</Text>
+                <View style={styles.pieWrap}>
+                  <ColorPie data={categoryBreakdown} total={categoryTotal} />
+                  <View style={styles.legend}>
+                    {categoryBreakdown.map(c => (
+                      <View key={c.name} style={styles.legendRow}>
+                        <View style={[styles.legendDot, { backgroundColor: c.hex }]} />
+                        <Text style={styles.legendName} numberOfLines={1}>{c.name}</Text>
+                        <Text style={styles.legendCount}>{Math.round((c.count / categoryTotal) * 100)}%</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {seasonBreakdown.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Din garderobs säsonger</Text>
+                <Text style={styles.sectionSubtitle}>Så här fördelar sig plaggen mellan årstider</Text>
+                <View style={styles.pieWrap}>
+                  <ColorPie data={seasonBreakdown} total={seasonTotal} />
+                  <View style={styles.legend}>
+                    {seasonBreakdown.map(c => (
+                      <View key={c.name} style={styles.legendRow}>
+                        <View style={[styles.legendDot, { backgroundColor: c.hex }]} />
+                        <Text style={styles.legendName} numberOfLines={1}>{c.name}</Text>
+                        <Text style={styles.legendCount}>{Math.round((c.count / seasonTotal) * 100)}%</Text>
                       </View>
                     ))}
                   </View>
