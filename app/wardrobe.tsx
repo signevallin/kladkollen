@@ -543,16 +543,6 @@ export default function Wardrobe() {
               <MaterialIcons name="tune" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
-          {activeTab === 'nuvarande' && (
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={() => router.push('/add-garment')}
-              accessibilityLabel="Lägg till plagg"
-              accessibilityRole="button"
-            >
-              <Text style={styles.iconBtnText}>＋</Text>
-            </TouchableOpacity>
-          )}
           {activeTab === 'köp' && (
             <TouchableOpacity
               style={styles.iconBtn}
