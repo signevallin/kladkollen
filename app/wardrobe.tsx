@@ -72,6 +72,14 @@ export default function Wardrobe() {
   const [showFilterPanel, setShowFilterPanel] = useState(false)
   const [sortBy, setSortBy] = useState('recent')
   const [showArchive, setShowArchive] = useState(false)
+  // Arkivets egna filter/sortering
+  const [archCat, setArchCat] = useState('Alla')
+  const [archType, setArchType] = useState('Alla')
+  const [archColor, setArchColor] = useState('Alla')
+  const [archSeason, setArchSeason] = useState('Alla')
+  const [archPlace, setArchPlace] = useState('Alla')
+  const [archSort, setArchSort] = useState('recent')
+  const [archDropdown, setArchDropdown] = useState<string | null>(null)
 
   // Capsule
   const [capsuleGenerated, setCapsuleGenerated] = useState(false)
@@ -300,6 +308,40 @@ export default function Wardrobe() {
     garments.forEach(g => { if (g.subcategory) set.add(g.subcategory) })
     return ['Alla', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'sv'))]
   }, [garments])
+
+  // Arkivets typ- och platsalternativ (utifrån vad som faktiskt finns i arkivet).
+  const archTypeOptions = useMemo(() =>
+    ['Alla', ...Array.from(new Set(archived.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))],
+    [archived])
+  const archPlaceOptions = useMemo(() =>
+    ['Alla', ...Array.from(new Set(archived.map(g => g.location).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))],
+    [archived])
+
+  const filteredArchive = useMemo(() => {
+    let r = archived
+    if (archCat !== 'Alla') r = r.filter(g => g.category === archCat)
+    if (archType !== 'Alla') r = r.filter(g => g.subcategory === archType)
+    if (archColor !== 'Alla') r = r.filter(g => g.color === archColor)
+    if (archSeason !== 'Alla') r = r.filter(g => g.season?.includes(archSeason))
+    if (archPlace !== 'Alla') r = r.filter(g => g.location === archPlace)
+    const sorted = [...r]
+    switch (archSort) {
+      case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name, 'sv')); break
+      case 'most': sorted.sort((a, b) => (b.times_worn || 0) - (a.times_worn || 0)); break
+      case 'least': sorted.sort((a, b) => (a.times_worn || 0) - (b.times_worn || 0)); break
+      case 'color': sorted.sort((a, b) => {
+        const ai = COLOR_ORDER.indexOf(a.color), bi = COLOR_ORDER.indexOf(b.color)
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+      }); break
+      default: sorted.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    }
+    return sorted
+  }, [archived, archCat, archType, archColor, archSeason, archPlace, archSort])
+
+  const archHasFilters = archCat !== 'Alla' || archType !== 'Alla' || archColor !== 'Alla' || archSeason !== 'Alla' || archPlace !== 'Alla'
+  function clearArchiveFilters() {
+    setArchCat('Alla'); setArchType('Alla'); setArchColor('Alla'); setArchSeason('Alla'); setArchPlace('Alla'); setArchSort('recent'); setArchDropdown(null)
+  }
 
   function handleSearch(text: string) { setSearch(text) }
   function handleCategory(cat: string) { setActiveCategory(cat); setOpenDropdown(null) }
@@ -663,6 +705,16 @@ export default function Wardrobe() {
               <MaterialIcons name="tune" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
+          {(activeTab === 'nuvarande' || activeTab === 'sälj') && (
+            <TouchableOpacity
+              style={[styles.iconBtn, showArchive && styles.iconBtnActive]}
+              onPress={() => setShowArchive(v => !v)}
+              accessibilityLabel="Arkiv"
+              accessibilityRole="button"
+            >
+              <MaterialIcons name="inventory-2" size={20} color={t.onPrimary} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -791,11 +843,6 @@ export default function Wardrobe() {
                 <Text style={styles.itemCategory} numberOfLines={1}>{item.subcategory || item.category}</Text>
               </TouchableOpacity>
             )}
-            ListFooterComponent={
-              <TouchableOpacity style={styles.archiveToggleBtn} onPress={() => setShowArchive(true)}>
-                <Text style={styles.archiveToggleBtnText}>Arkiv ({archived.length})</Text>
-              </TouchableOpacity>
-            }
           />
         </>
       )}
@@ -910,9 +957,6 @@ export default function Wardrobe() {
               </TouchableOpacity>
             ))
           )}
-          <TouchableOpacity style={styles.archiveToggleBtn} onPress={() => setShowArchive(true)}>
-            <Text style={styles.archiveToggleBtnText}>Arkiv ({archived.length})</Text>
-          </TouchableOpacity>
         </ScrollView>
       )}
 
@@ -926,19 +970,79 @@ export default function Wardrobe() {
           <Text style={styles.archiveHint}>
             Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.
           </Text>
+
+          {archived.length > 0 && (
+            <>
+              <View style={styles.chipRow}>
+                {[
+                  { key: 'sort', label: 'Sortera', value: SORT_LABEL[archSort], on: archSort !== 'recent' },
+                  { key: 'category', label: 'Kategori', value: archCat, on: archCat !== 'Alla' },
+                  { key: 'type', label: 'Typ', value: archType, on: archType !== 'Alla' },
+                  { key: 'color', label: 'Färg', value: archColor, on: archColor !== 'Alla' },
+                  { key: 'season', label: 'Säsong', value: archSeason, on: archSeason !== 'Alla' },
+                  { key: 'place', label: 'Plats', value: archPlace, on: archPlace !== 'Alla' },
+                ].map(f => (
+                  <TouchableOpacity key={f.key} style={[styles.chip, (f.on || archDropdown === f.key) && styles.chipActive]} onPress={() => setArchDropdown(archDropdown === f.key ? null : f.key)}>
+                    <Text style={[styles.chipText, (f.on || archDropdown === f.key) && styles.chipTextActive]}>
+                      {f.key === 'sort' ? `${f.label}: ${f.value}` : (f.on ? f.value : f.label)} ▾
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                {(archHasFilters || archSort !== 'recent') && (
+                  <TouchableOpacity style={styles.chipClear} onPress={clearArchiveFilters}>
+                    <Text style={styles.chipClearText}>Rensa</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {archDropdown && (
+                <View style={styles.dropdown}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.dropdownRow}>
+                      {archDropdown === 'sort'
+                        ? SORT_OPTIONS.map(opt => (
+                            <TouchableOpacity key={opt.key} style={[styles.dropdownPill, archSort === opt.key && styles.dropdownPillActive]} onPress={() => { setArchSort(opt.key); setArchDropdown(null) }}>
+                              <Text style={[styles.dropdownPillText, archSort === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
+                            </TouchableOpacity>
+                          ))
+                        : (archDropdown === 'category' ? CATEGORIES : archDropdown === 'type' ? archTypeOptions : archDropdown === 'season' ? SEASONS : archDropdown === 'place' ? archPlaceOptions : COLORS).map(item => {
+                            const isActive = archDropdown === 'category' ? archCat === item : archDropdown === 'type' ? archType === item : archDropdown === 'season' ? archSeason === item : archDropdown === 'place' ? archPlace === item : archColor === item
+                            return (
+                              <TouchableOpacity key={item} style={[styles.dropdownPill, isActive && styles.dropdownPillActive]} onPress={() => {
+                                if (archDropdown === 'category') setArchCat(item)
+                                else if (archDropdown === 'type') setArchType(item)
+                                else if (archDropdown === 'season') setArchSeason(item)
+                                else if (archDropdown === 'place') setArchPlace(item)
+                                else setArchColor(item)
+                                setArchDropdown(null)
+                              }}>
+                                {archDropdown === 'color' && COLOR_HEX[item] && <View style={[styles.pillColorDot, { backgroundColor: COLOR_HEX[item] }]} />}
+                                <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{item}</Text>
+                              </TouchableOpacity>
+                            )
+                          })}
+                    </View>
+                  </ScrollView>
+                </View>
+              )}
+            </>
+          )}
+
           {archived.length === 0 ? (
             <View style={styles.emptyTab}><Text style={styles.emptyTabText}>Inga arkiverade plagg</Text></View>
+          ) : filteredArchive.length === 0 ? (
+            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>Inga plagg matchar filtret</Text></View>
           ) : (
-            archived.map((item) => (
-              <TouchableOpacity key={item.id} style={[styles.saleItem, styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+            filteredArchive.map((item) => (
+              <TouchableOpacity key={item.id} style={[styles.saleItem, item.sold && styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 {item.image_url
-                  ? <SignedImage path={item.image_url} style={[styles.saleImage, { opacity: 0.6 }]} />
+                  ? <SignedImage path={item.image_url} style={[styles.saleImage, item.sold && { opacity: 0.6 }]} />
                   : <View style={styles.saleImageEmpty} />
                 }
                 <View style={styles.saleInfo}>
                   <Text style={styles.saleName}>{item.name}</Text>
-                  <Text style={styles.saleCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
-                  {item.location ? <Text style={styles.locationTag}>{item.location}</Text> : null}
+                  <Text style={styles.saleCategory}>{item.subcategory || item.category}{item.size ? ` · ${item.size}` : ''}</Text>
+                  {item.location ? <Text style={styles.locationTag}>📍 {item.location}</Text> : null}
                   {item.sold && <Text style={styles.soldTag}>Såld</Text>}
                 </View>
                 {!item.sold && (
