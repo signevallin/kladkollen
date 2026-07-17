@@ -80,7 +80,9 @@ export default function MyOutfits() {
   }
 
   async function fetchOutfits() {
-    const { data } = await supabase.from('outfits').select('*').order('created_at', { ascending: false })
+    // Bara aktivt sparade outfits visas – outfits som bara fått ett betyg
+    // (feedback till AI:n) ska inte synas här.
+    const { data } = await supabase.from('outfits').select('*').eq('saved', true).order('created_at', { ascending: false })
     if (data) setOutfits(data)
   }
 

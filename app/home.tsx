@@ -414,18 +414,26 @@ export default function Home() {
     setSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
-      const garmentNames = outfit.itemsWithImages.map((i: any) => i.name)
-      const imageUrls = outfit.itemsWithImages.map((i: any) => i.image_url).filter(Boolean)
-      const { data: outfitData, error } = await supabase.from('outfits').insert([{
-        user_id: user?.id, name: outfit.outfitName,
-        garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
-        mood: CONTEXTS[selectedContext].label,
-        context: CONTEXTS[selectedContext].label.toLowerCase(),
-      }]).select('id').single()
-      if (error) throw error
+      // Om outfiten redan finns (fått ett betyg) markerar vi bara den som sparad,
+      // annars skapar vi en ny sparad rad.
+      if (savedOutfitId) {
+        const { error } = await supabase.from('outfits').update({ saved: true }).eq('id', savedOutfitId)
+        if (error) throw error
+      } else {
+        const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
+        const garmentNames = outfit.itemsWithImages.map((i: any) => i.name)
+        const imageUrls = outfit.itemsWithImages.map((i: any) => i.image_url).filter(Boolean)
+        const { data: outfitData, error } = await supabase.from('outfits').insert([{
+          user_id: user?.id, name: outfit.outfitName,
+          garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
+          mood: CONTEXTS[selectedContext].label,
+          context: CONTEXTS[selectedContext].label.toLowerCase(),
+          saved: true,
+        }]).select('id').single()
+        if (error) throw error
+        setSavedOutfitId(outfitData.id)
+      }
       setSaved(true)
-      setSavedOutfitId(outfitData.id)
       showAlert('Outfit sparad!', 'Du hittar den under Outfits.')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
@@ -501,10 +509,12 @@ export default function Home() {
           garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls,
           mood: CONTEXTS[selectedContext].label,
           context: CONTEXTS[selectedContext].label.toLowerCase(),
+          // Betyg är feedback till AI:n – outfiten dyker inte upp i "Outfits"
+          // förrän användaren aktivt trycker Spara.
+          saved: false,
         }]).select('id').single()
         if (outfitError) throw outfitError
         outfitId = outfitData.id
-        setSaved(true)
         setSavedOutfitId(outfitId)
       }
 
