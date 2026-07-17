@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as Location from 'expo-location'
 import { router, useFocusEffect } from 'expo-router'
+import * as Sharing from 'expo-sharing'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -17,7 +18,9 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
+import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
 import SongCard from '../components/SongCard'
 import { supabase } from '../supabase'
@@ -53,8 +56,11 @@ export default function Home() {
   const [rating, setRating] = useState<number | null>(null)
   const [ratingLoading, setRatingLoading] = useState(false)
   const [swapIndex, setSwapIndex] = useState<number | null>(null)
+  const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
+
+  const shareCardRef = useRef<View>(null)
 
   const [selectedContext, setSelectedContext] = useState(2) // 0=Jobb, 1=Skola, 2=Ledig, 3=Aktiv, 4=Date, 5=Fest
   const intensity = 3 // Fast: Balanserad
@@ -381,6 +387,28 @@ export default function Home() {
     }
   }
 
+  async function shareOutfit() {
+    if (!outfit || sharing) return
+    setSharing(true)
+    try {
+      // Ge den dolda dela-vyn ett ögonblick att rita klart bilderna.
+      await new Promise(r => setTimeout(r, 350))
+      const uri = await captureRef(shareCardRef, { format: 'png', quality: 1 })
+      const canShare = await Sharing.isAvailableAsync()
+      if (canShare) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Dela din outfit' })
+      } else if (typeof navigator !== 'undefined' && (navigator as any).share) {
+        await (navigator as any).share({ title: 'Min outfit', text: outfit.outfitName })
+      } else {
+        showAlert('Delning stöds inte här', 'Öppna appen på din telefon för att dela din outfit.')
+      }
+    } catch (e: any) {
+      if (e?.message && !/cancel/i.test(e.message)) showAlert('Kunde inte dela', e.message)
+    } finally {
+      setSharing(false)
+    }
+  }
+
   async function saveOutfit() {
     if (!outfit) return
     setSaving(true)
@@ -676,6 +704,18 @@ export default function Home() {
                   : <Text style={styles.saveBtnText}>{saved ? '✓ Sparad' : 'Spara outfit'}</Text>
                 }
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.shareBtn}
+                onPress={shareOutfit}
+                disabled={sharing}
+                accessibilityLabel="Dela outfit"
+                accessibilityRole="button"
+              >
+                {sharing
+                  ? <ActivityIndicator color={t.primary} size="small" />
+                  : <Text style={styles.shareBtnText}>Dela</Text>
+                }
+              </TouchableOpacity>
               <TouchableOpacity style={styles.newBtn} onPress={generateOutfit}>
                 <Text style={styles.newBtnText}>↻</Text>
               </TouchableOpacity>
@@ -760,6 +800,18 @@ export default function Home() {
           </View>
         </View>
       </Modal>
+
+      {/* Dold vy som fångas som bild vid delning. Placeras utanför skärmen. */}
+      {outfit && (
+        <View style={styles.shareCardHidden} pointerEvents="none">
+          <View ref={shareCardRef} collapsable={false}>
+            <OutfitShareCard
+              outfit={outfit}
+              subtitle={`${CONTEXTS[selectedContext].label}${weather ? ` · ${weather.temp}°` : ''}`}
+            />
+          </View>
+        </View>
+      )}
 
       <BottomNav />
     </SafeAreaView>
@@ -850,6 +902,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   saveBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 14 },
   newBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   newBtnText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 18 },
+  shareBtn: { paddingHorizontal: 16, height: 44, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
+  shareBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 14 },
+  shareCardHidden: { position: 'absolute', left: -9999, top: 0 },
   ratingRow: { alignItems: 'center', gap: 8 },
   ratingLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
   stars: { flexDirection: 'row', gap: 6 },
