@@ -26,6 +26,15 @@ export function storagePathFrom(value: string): string | null {
  * inget nätverksanrop.
  */
 export async function resolveImageUrl(value: string): Promise<string> {
+  return imageUrl(value)
+}
+
+/**
+ * Synkron variant – eftersom bucketen är publik behövs inget nätverksanrop.
+ * Används i SignedImage så bilder får sin URL direkt vid render, utan en tom
+ * ruta + extra omrendering per bild (märkbart i stora rutnät).
+ */
+export function imageUrl(value: string): string {
   const path = storagePathFrom(value)
   if (!path) return value
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl

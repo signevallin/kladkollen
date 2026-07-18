@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { StyleProp, StyleSheet, View } from 'react-native'
 import { Image, ImageContentFit, ImageProps, ImageStyle } from 'expo-image'
 import { useTheme } from '../theme/ThemeProvider'
-import { resolveImageUrl } from '../utils/storage'
+import { imageUrl } from '../utils/storage'
 
 // Bygger på expo-image istället för RN Image: bilderna nedskalas till
 // vyns storlek (allowDownscaling) och cachas på disk, så små miniatyrer
@@ -36,14 +36,9 @@ const RESIZE_TO_FIT: Record<ResizeMode, ImageContentFit> = {
  */
 export default function SignedImage({ path, style, flat, resizeMode, contentFit, ...rest }: Props) {
   const t = useTheme()
-  const [uri, setUri] = useState<string | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    setUri(null)
-    if (path) resolveImageUrl(path).then(url => { if (alive) setUri(url) })
-    return () => { alive = false }
-  }, [path])
+  // Publik bucket → URL:en kan räknas ut synkront, så bilden får sin källa
+  // direkt (ingen tom ruta + extra render per bild).
+  const uri = useMemo(() => (path ? imageUrl(path) : null), [path])
 
   if (!uri) return <View style={style} />
 
@@ -61,6 +56,8 @@ export default function SignedImage({ path, style, flat, resizeMode, contentFit,
     <Image
       {...rest}
       contentFit={fit}
+      cachePolicy="memory-disk"
+      recyclingKey={uri}
       style={flat ? style : [style, { backgroundColor: t.imageBg }]}
       source={{ uri }}
     />
