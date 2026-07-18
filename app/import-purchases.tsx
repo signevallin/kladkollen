@@ -18,6 +18,7 @@ import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
+import { newImageId } from '../utils/id'
 
 // WebView finns bara i native-apparna – på webben visar vi en hänvisning.
 // Kräv modulen först när den faktiskt används så webbygget inte kraschar.
@@ -204,7 +205,7 @@ export default function ImportPurchases() {
             ])
             try {
               const ext = uploadType.includes('png') ? 'png' : 'jpg'
-              const filePath = `public/${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`
+              const filePath = `public/${newImageId()}.${ext}`
               const binaryStr = atob(uploadBase64)
               const bytes = new Uint8Array(binaryStr.length)
               for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)

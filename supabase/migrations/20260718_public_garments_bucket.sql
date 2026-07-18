@@ -1,0 +1,11 @@
+-- Gör garments-bucketen publik för LÄSNING.
+-- Bilderna får då stabila publika URL:er (ingen signering) vilket gör att både
+-- Supabase-CDN:n och telefonens bildcache kan återanvända dem mellan appstarter.
+-- Det kapar egressen rejält – tidigare gav en ny signerad token vid varje kall
+-- appstart cache-miss och laddade ner alla synliga bilder på nytt.
+--
+-- OBS: Endast läsning blir publik. Uppladdning/ändring/radering styrs
+-- fortfarande av dina RLS-policies (bara inloggade användare).
+-- Kör i Supabase SQL Editor. Kör detta INNAN du släpper den nya appbuilden,
+-- annars slutar bilderna funka (publik URL på en privat bucket ger 400).
+update storage.buckets set public = true where id = 'garments';

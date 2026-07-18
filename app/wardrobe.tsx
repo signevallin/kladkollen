@@ -22,6 +22,7 @@ import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
+import { newImageId } from '../utils/id'
 import { pickImageSmart } from '../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
 import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, SEASONS as SEASON_LIST } from '../utils/constants'
@@ -188,7 +189,7 @@ export default function Wardrobe() {
   }
 
   async function uploadWishImage(uri: string) {
-    const filename = `wish-${Date.now()}.jpg`
+    const filename = `${newImageId()}.jpg`
     const filePath = `public/${filename}`
     const response = await fetch(uri)
     const arrayBuffer = await response.arrayBuffer()
@@ -1188,7 +1189,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   searchInput: { flex: 1, fontFamily: 'Lora_400Regular', paddingVertical: 12, color: t.textPrimary, fontSize: 14 },
   searchClear: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, paddingLeft: 8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 8, alignItems: 'center', marginBottom: 10 },
-  chipScroll: { marginBottom: 10 },
+  // Fast höjd så den horisontella listan inte sträcker ut sig vertikalt och
+  // centrerar chipsen mitt i tomrummet (gav stora tomma band över/under raden).
+  chipScroll: { height: 52, marginBottom: 10, flexGrow: 0 },
   chipRowContent: { flexDirection: 'row', gap: 8, alignItems: 'center', paddingHorizontal: 16 },
   chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   chipActive: { backgroundColor: t.primary, borderColor: t.primary },
