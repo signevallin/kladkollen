@@ -21,6 +21,8 @@ export default async function handler(request: Request): Promise<Response> {
     const groupedList = clip(body.groupedList, 8000)
     const season = clip(body.season, 20)
     const avoidSongs = clip(body.avoidSongs, 600)
+    const contextNote = clip(body.contextNote, 400)
+    const musicGenres = clip(body.musicGenres, 200)
     const previousItems = clip(body.previousItems, 400)
     const retry = body.retry === true
 
@@ -33,6 +35,7 @@ export default async function handler(request: Request): Promise<Response> {
     const prompt = `Du är en personlig stylist. Välj en komplett outfit från garderoben nedan.
 
 Kontext: ${contextLabel} – ${contextLogic}
+${contextNote ? `Användarens egen önskan för "${contextLabel}": ${contextNote}\n(Väg in detta tydligt – det är användarens personliga instruktion för just detta tillfälle.)` : ''}
 Intensitet: ${intensity}
 ${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
@@ -77,8 +80,9 @@ Föreslå också EN låt som matchar outfitens känsla och kontexten. Välj en r
 känd låt som går att hitta på Apple Music.
 LÅTREGLER:
 - VARIERA! Fastna inte i självklara klichéer (t.ex. Uptown Funk, Happy, Good as Hell).
-  Överraska gärna – olika artister, genrer och årtionden från gång till gång.
+  Överraska gärna – olika artister och årtionden från gång till gång.
 - Välj en låt som verkligen passar just "${contextLabel}" och looken.
+${musicGenres ? `- Användaren lyssnar helst på: ${musicGenres}. Välj ENDAST en låt som hör hemma i någon av dessa genrer.` : '- Variera gärna mellan olika genrer från gång till gång.'}
 ${avoidSongs ? `- Föreslå INTE någon av dessa nyligen använda låtar: ${avoidSongs}` : ''}
 
 Svara ENDAST med JSON, inga backticks:

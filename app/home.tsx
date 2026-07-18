@@ -6,7 +6,7 @@ import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as Location from 'expo-location'
 import { router, useFocusEffect } from 'expo-router'
 import * as Sharing from 'expo-sharing'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Animated,
@@ -22,6 +22,7 @@ import {
 import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
 import AddGarmentChooser from '../components/AddGarmentChooser'
+import { OUTFIT_CONTEXTS } from '../utils/constants'
 import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
 import SongCard from '../components/SongCard'
@@ -29,14 +30,7 @@ import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 import { apiPost } from '../utils/api'
 
-const CONTEXTS = [
-  { label: 'Jobb', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
-  { label: 'Skola', logic: 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual' },
-  { label: 'Ledig', logic: 'casual, bekvämt, avslappnat men snyggt, vardaglig känsla' },
-  { label: 'Aktiv', logic: 'sportigt och funktionellt, athleisure, rörelsevänligt, bekväma tekniska material och sneakers – passar promenad och träning' },
-  { label: 'Date', logic: 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch' },
-  { label: 'Fest', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
-]
+const CONTEXTS = OUTFIT_CONTEXTS
 
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
 const RECENT_SONGS_KEY = 'kladkollen_recent_songs'
@@ -59,6 +53,8 @@ export default function Home() {
   const [ratingLoading, setRatingLoading] = useState(false)
   const [swapIndex, setSwapIndex] = useState<number | null>(null)
   const [showAddChooser, setShowAddChooser] = useState(false)
+  const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
+  const [musicGenres, setMusicGenres] = useState<string>('')
   const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
@@ -71,12 +67,11 @@ export default function Home() {
 
   const outfitAnim = useRef(new Animated.Value(0)).current
 
-  useEffect(() => {
-    loadUser()
-  }, [])
-
   useFocusEffect(
     useCallback(() => {
+      // loadUser körs även på fokus så egna kommentarer/genrer man precis
+      // ändrat i profilen slår igenom direkt när man kommer tillbaka hit.
+      loadUser()
       fetchAll()
     }, [])
   )
@@ -84,10 +79,12 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres').eq('id', user.id).single()
       if (profile?.name) setUserName(profile.name)
       else setUserName(user.email?.split('@')[0] || '')
       if (profile?.avatar_url) setUserAvatar(profile.avatar_url)
+      setContextNotes(profile?.outfit_context_notes || {})
+      setMusicGenres(profile?.music_genres || '')
     }
   }
 
@@ -353,6 +350,8 @@ export default function Home() {
           groupedList,
           season,
           avoidSongs: avoidSongsStr,
+          contextNote: contextNotes[ctx.label] || '',
+          musicGenres,
           previousItems: attempts === 1 ? previousItems : '',
           retry: attempts > 1,
         })

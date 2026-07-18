@@ -21,6 +21,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
+import { MUSIC_GENRES, OUTFIT_CONTEXTS } from '../utils/constants'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
@@ -78,6 +79,9 @@ export default function Profile() {
   const [stilProfil, setStilProfil] = useState<string[]>([])
   const [fargsatt, setFargsatt] = useState('')
   const [livsstil, setLivsstil] = useState<string[]>([])
+  // Kommentar per tillfälle + musikgenrer (används av outfit-AI:n)
+  const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
+  const [musicGenres, setMusicGenres] = useState<string[]>([])
 
   // Färganalys
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysis | null>(null)
@@ -114,6 +118,8 @@ export default function Profile() {
         if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
         if (data.fargsatt) setFargsatt(data.fargsatt)
         if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
+        if (data.outfit_context_notes) setContextNotes(data.outfit_context_notes)
+        if (data.music_genres) setMusicGenres(data.music_genres.split(', ').filter(Boolean))
       }
     }
   }
@@ -218,6 +224,8 @@ export default function Profile() {
         stil_profil: stilProfil.join(', '),
         fargsatt,
         livsstil: livsstil.join(', '),
+        outfit_context_notes: contextNotes,
+        music_genres: musicGenres.join(', '),
       })
       if (error) throw error
       showAlert('Sparat!')
@@ -384,6 +392,38 @@ export default function Profile() {
                   onPress={() => setLivsstil(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l])}
                 >
                   <Text style={[styles.pillText, livsstil.includes(l) && styles.pillTextActive]}>{l}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Kommentar per tillfälle – väger in i outfit-genereringen */}
+            <Text style={styles.label}>Kommentar per tillfälle</Text>
+            <Text style={styles.hint}>Skriv en egen instruktion för varje tillfälle – AI:n tar hänsyn till den när den matchar outfiten</Text>
+            {OUTFIT_CONTEXTS.map(ctx => (
+              <View key={ctx.label} style={styles.contextNoteGroup}>
+                <Text style={styles.contextNoteLabel}>{ctx.label}</Text>
+                <TextInput
+                  style={styles.contextNoteInput}
+                  placeholder={`T.ex. "gärna kjol", "aldrig klänning", "mycket färg"...`}
+                  placeholderTextColor={t.placeholder}
+                  value={contextNotes[ctx.label] || ''}
+                  onChangeText={text => setContextNotes(prev => ({ ...prev, [ctx.label]: text }))}
+                  multiline
+                />
+              </View>
+            ))}
+
+            {/* Musikgenrer – AI:n väljer låtar ur dessa */}
+            <Text style={styles.label}>Musikgenrer</Text>
+            <Text style={styles.hint}>Välj en eller flera – outfitens låtförslag hämtas ur dina genrer</Text>
+            <View style={styles.pills}>
+              {MUSIC_GENRES.map(g => (
+                <TouchableOpacity
+                  key={g}
+                  style={[styles.pill, musicGenres.includes(g) && styles.pillActive]}
+                  onPress={() => setMusicGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])}
+                >
+                  <Text style={[styles.pillText, musicGenres.includes(g) && styles.pillTextActive]}>{g}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -704,6 +744,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   // ── Stilprofil ──
   stilprofilSection: { marginBottom: 24 },
+  contextNoteGroup: { marginBottom: 12 },
+  contextNoteLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary, marginBottom: 6 },
+  contextNoteInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 12, color: t.textPrimary, fontSize: 14, borderWidth: 1, borderColor: t.border, minHeight: 44 },
   stilprofilCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, marginTop: 16, marginBottom: 16, borderWidth: 1, borderColor: t.border, gap: 10 },
   stilprofilCardLabel: { fontFamily: 'Poppins_700Bold', fontSize: 11, color: t.textSecondary, letterSpacing: 1, marginBottom: 4 },
   stilprofilRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },

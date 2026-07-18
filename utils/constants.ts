@@ -47,6 +47,24 @@ export const COLOR_HEX: Record<string, string> = Object.fromEntries(COLOR_OPTION
 
 export const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 
+// Tillfällen som outfit-genereringen kan utgå från. label visas i appen,
+// logic är grundbeskrivningen som skickas till AI:n. Delas mellan hemskärmen
+// (väljaren) och profilen (kommentar per tillfälle) så de aldrig glider isär.
+export const OUTFIT_CONTEXTS = [
+  { label: 'Jobb', logic: 'professionellt, snyggt, välskräddrat, stilrent, passar arbetsplatsen' },
+  { label: 'Skola', logic: 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual' },
+  { label: 'Ledig', logic: 'casual, bekvämt, avslappnat men snyggt, vardaglig känsla' },
+  { label: 'Aktiv', logic: 'sportigt och funktionellt, athleisure, rörelsevänligt, bekväma tekniska material och sneakers – passar promenad och träning' },
+  { label: 'Date', logic: 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch' },
+  { label: 'Fest', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
+]
+
+// Musikgenrer användaren kan välja i profilen. AI:n väljer då låtar ur dessa.
+export const MUSIC_GENRES = [
+  'Pop', 'Rock', 'Hip-hop', 'R&B', 'Indie', 'Elektroniskt', 'Klassiskt',
+  'Jazz', 'Soul', 'Country', 'Folk', 'Latin', 'Reggae', 'Metal', 'Schlager', 'K-pop', 'Afrobeats',
+]
+
 // Färggrupper för stil-statistiken (Min stil).
 export const COLOR_GROUPS: Record<string, string[]> = {
   'Mörka neutraler': ['Svart'],
