@@ -1,10 +1,30 @@
 import { useEffect, useState } from 'react'
-import { Image, ImageProps, View } from 'react-native'
+import { StyleProp, StyleSheet, View } from 'react-native'
+import { Image, ImageContentFit, ImageProps, ImageStyle } from 'expo-image'
 import { useTheme } from '../theme/ThemeProvider'
 import { resolveImageUrl } from '../utils/storage'
 
+// Bygger på expo-image istället för RN Image: bilderna nedskalas till
+// vyns storlek (allowDownscaling) och cachas på disk, så små miniatyrer
+// inte längre laddar in fullstora bilder i minnet.
+
+type ResizeMode = 'contain' | 'cover' | 'stretch' | 'center'
+
 // flat = ingen ljus platta bakom bilden (t.ex. i kollaget där plaggen ska flyta fritt)
-type Props = Omit<ImageProps, 'source'> & { path?: string | null; flat?: boolean }
+type Props = Omit<ImageProps, 'source' | 'style'> & {
+  path?: string | null
+  flat?: boolean
+  style?: StyleProp<ImageStyle>
+  // Bakåtkompatibelt: kod skickar resizeMode (som RN Image), vi översätter till contentFit.
+  resizeMode?: ResizeMode
+}
+
+const RESIZE_TO_FIT: Record<ResizeMode, ImageContentFit> = {
+  contain: 'contain',
+  cover: 'cover',
+  stretch: 'fill',
+  center: 'none',
+}
 
 /**
  * Drop-in-ersättare för <Image> för bilder i vår privata storage-bucket.
@@ -14,7 +34,7 @@ type Props = Omit<ImageProps, 'source'> & { path?: string | null; flat?: boolean
  * Lägger en ljus platta bakom bilden (imageBg) så urklippta plagg med
  * genomskinlig bakgrund syns även i mörkt läge. Passerad style kan överstyra.
  */
-export default function SignedImage({ path, style, flat, ...rest }: Props) {
+export default function SignedImage({ path, style, flat, resizeMode, contentFit, ...rest }: Props) {
   const t = useTheme()
   const [uri, setUri] = useState<string | null>(null)
 
@@ -26,10 +46,23 @@ export default function SignedImage({ path, style, flat, ...rest }: Props) {
   }, [path])
 
   if (!uri) return <View style={style} />
+
+  // resizeMode kan komma som prop ELLER ligga i style-objektet (RN-stil). expo-image
+  // läser inte style.resizeMode, så vi plockar ut det och översätter till contentFit.
+  // contain som standard: hela plagget ska alltid synas, aldrig beskäras.
+  const flatStyle = StyleSheet.flatten(style) || {}
+  const styleResize = (flatStyle as { resizeMode?: ResizeMode }).resizeMode
+  const fit: ImageContentFit = contentFit ?? RESIZE_TO_FIT[resizeMode ?? styleResize ?? 'contain'] ?? 'contain'
+
   // imageBg läggs SIST så den vinner över enskilda stilars backgroundColor
   // (flera plaggstilar sätter 'transparent', vilket annars skulle överköra oss).
   // Med flat hoppas plattan över – plagget renderas mot underlaget som det är.
-  // contain som standard: hela plagget ska alltid synas, aldrig beskäras.
-  // Skicka resizeMode="cover" uttryckligen där beskärning önskas (t.ex. avatarer).
-  return <Image resizeMode="contain" {...rest} style={flat ? style : [style, { backgroundColor: t.imageBg }]} source={{ uri }} />
+  return (
+    <Image
+      {...rest}
+      contentFit={fit}
+      style={flat ? style : [style, { backgroundColor: t.imageBg }]}
+      source={{ uri }}
+    />
+  )
 }
