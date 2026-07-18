@@ -44,7 +44,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
       >
         <Ionicons
           name={(active ? tab.icon : tab.iconOutline) as any}
-          size={24}
+          size={22}
           color={active ? t.primary : t.textFaint}
         />
         <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
@@ -97,7 +97,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
             accessibilityLabel={menuOpen ? 'Stäng' : 'Lägg till'}
             accessibilityRole="button"
           >
-            <Ionicons name={menuOpen ? 'close' : 'add'} size={30} color={PLUS_ICON} />
+            <Ionicons name={menuOpen ? 'close' : 'add'} size={27} color={PLUS_ICON} />
           </TouchableOpacity>
         </View>
 
@@ -117,19 +117,19 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     backgroundColor: t.bg,
     borderTopWidth: 1,
     borderTopColor: t.border,
-    height: 72,
+    height: 58,
   },
-  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  plusSlot: { width: 72, alignItems: 'center' },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  plusSlot: { width: 64, alignItems: 'center' },
   plusBtn: {
-    width: 56, height: 56, borderRadius: 28,
+    width: 50, height: 50, borderRadius: 25,
     backgroundColor: PLUS_BLUE,
     alignItems: 'center', justifyContent: 'center',
-    transform: [{ translateY: -18 }],
+    transform: [{ translateY: -16 }],
     shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
-  label: { fontSize: 12, color: t.textFaint, fontWeight: '500' },
+  label: { fontSize: 11, color: t.textFaint, fontWeight: '500' },
   labelActive: { color: t.textPrimary, fontWeight: '700' },
 
   // ── Popup ovanför nav-baren ──
