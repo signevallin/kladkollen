@@ -5,6 +5,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { router, useLocalSearchParams } from 'expo-router'
 import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
+import { toast } from '../components/Toast'
 import { base64ToBytes, pngToWebp } from '../utils/image'
 import { useEffect, useState } from 'react'
 import {
@@ -243,7 +244,7 @@ export default function AddGarment() {
           image_url: imageUrl,
         }])
       }
-      Alert.alert(`${ready.length} ${ready.length === 1 ? 'plagg sparat' : 'plagg sparade'}!`)
+      toast(`${ready.length} ${ready.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
       goBack('/wardrobe')
     } catch (e: any) {
       Alert.alert('Något gick fel', e.message)
