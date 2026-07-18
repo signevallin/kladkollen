@@ -5,6 +5,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { router, useLocalSearchParams } from 'expo-router'
 import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
+import { base64ToBytes, pngToWebp } from '../utils/image'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -191,12 +192,12 @@ export default function AddGarment() {
     const filename = newImageId()
 
     if (draft.processedBase64) {
-      // Bakgrundsfri PNG från remove.bg
-      const filePath = `public/${filename}.png`
-      const binaryStr = atob(draft.processedBase64)
-      const bytes = new Uint8Array(binaryStr.length)
-      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-      const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: 'image/png', upsert: true })
+      // Bakgrundsfri bild – omkoda från PNG till WebP (behåller transparens
+      // men blir mycket mindre) innan uppladdning.
+      const opt = await pngToWebp(draft.processedBase64)
+      const filePath = `public/${filename}.${opt.ext}`
+      const bytes = base64ToBytes(opt.base64)
+      const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: opt.contentType, upsert: true })
       if (error) throw error
       const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
       return urlData.publicUrl

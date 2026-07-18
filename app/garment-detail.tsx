@@ -28,6 +28,7 @@ import { parsePrice } from '../utils/brands'
 import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
+import { base64ToBytes, pngToWebp } from '../utils/image'
 import { CATEGORIES, COLOR_NAMES, COLOR_OPTIONS as COLORS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { resolveImageUrl } from '../utils/storage'
 
@@ -248,11 +249,11 @@ export default function GarmentDetail() {
   }
 
   async function uploadPng(base64: string) {
-    const filePath = `public/${newImageId()}.png`
-    const binary = atob(base64)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-    const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: 'image/png', upsert: true })
+    // Omkoda till WebP (behåller transparens, mycket mindre fil än PNG).
+    const opt = await pngToWebp(base64)
+    const filePath = `public/${newImageId()}.${opt.ext}`
+    const bytes = base64ToBytes(opt.base64)
+    const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: opt.contentType, upsert: true })
     if (error) throw error
     const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
     return urlData.publicUrl
