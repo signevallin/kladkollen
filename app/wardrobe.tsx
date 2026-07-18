@@ -1039,13 +1039,13 @@ export default function Wardrobe() {
             <>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRowContent}>
                 {[
+                  { key: 'place', label: 'Plats', value: archPlace, on: archPlace !== 'Alla' },
+                  { key: 'reason', label: 'Anledning', value: reasonFor(archReason)?.label || archReason, on: archReason !== 'Alla' },
                   { key: 'sort', label: 'Sortera', value: SORT_LABEL[archSort], on: archSort !== 'recent' },
                   { key: 'category', label: 'Kategori', value: archCat, on: archCat !== 'Alla' },
                   { key: 'type', label: 'Typ', value: archType, on: archType !== 'Alla' },
                   { key: 'color', label: 'Färg', value: archColor, on: archColor !== 'Alla' },
                   { key: 'season', label: 'Säsong', value: archSeason, on: archSeason !== 'Alla' },
-                  { key: 'place', label: 'Plats', value: archPlace, on: archPlace !== 'Alla' },
-                  { key: 'reason', label: 'Anledning', value: reasonFor(archReason)?.label || archReason, on: archReason !== 'Alla' },
                 ].map(f => (
                   <TouchableOpacity key={f.key} style={[styles.chip, (f.on || archDropdown === f.key) && styles.chipActive]} onPress={() => setArchDropdown(archDropdown === f.key ? null : f.key)}>
                     <Text style={[styles.chipText, (f.on || archDropdown === f.key) && styles.chipTextActive]}>
