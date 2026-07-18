@@ -629,7 +629,7 @@ export default function Stats() {
                         }
                         <View style={styles.pieceInfo}>
                           <Text style={styles.pieceName} numberOfLines={1}>{item.name}</Text>
-                          <Text style={styles.pieceRating}>{item.cpw} kr / användning</Text>
+                          <Text style={styles.pieceCpw}>{item.cpw} kr / användning</Text>
                         </View>
                       </View>
                     ))}
@@ -771,6 +771,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   pieceInfo: { flex: 1 },
   pieceName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary, marginBottom: 3 },
   pieceRating: { fontFamily: 'Lora_400Regular', fontSize: 12, color: '#F5C842' },
+  pieceCpw: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
 
   // Color Psychology
   colorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
