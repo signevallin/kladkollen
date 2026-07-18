@@ -77,13 +77,13 @@ export default function AddGarment() {
     })
   }, [])
 
-  // Kommer man in via "Välj foton" i garderobens valruta – öppna bildväljaren direkt.
+  // Kommer man in via "Välj foton" i valrutan – öppna bildväljaren direkt.
   useEffect(() => {
-    if (start === 'photos') pickImages()
+    if (start === 'photos') pickImages(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function pickImages() {
+  async function pickImages(auto = false) {
     setBgError(null)
     const result = await pickImageSmart({
       mediaTypes: ['images'] as any,
@@ -91,7 +91,12 @@ export default function AddGarment() {
       quality: 0.7,
       base64: true,
     })
-    if (result.canceled || result.assets.length === 0) return
+    // Avbryter man den automatiska väljaren (kom hit via "Välj foton") går vi
+    // tillbaka i stället för att visa helsides-valrutan.
+    if (result.canceled || result.assets.length === 0) {
+      if (auto) goBack('/wardrobe')
+      return
+    }
 
     const newDrafts: GarmentDraft[] = result.assets.map((asset, i) => ({
       id: `${Date.now()}-${i}`,
@@ -255,6 +260,17 @@ export default function AddGarment() {
 
   // ── PICK STEP ──────────────────────────────────────────────
   if (step === 'pick') {
+    // Kom man hit via "Välj foton" öppnas bildväljaren direkt – visa bara en
+    // spinner medan den öppnas, aldrig helsides-valrutan.
+    if (start === 'photos' && drafts.length === 0) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={t.primary} />
+          </View>
+        </SafeAreaView>
+      )
+    }
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -262,7 +278,7 @@ export default function AddGarment() {
             <Text style={styles.backButtonText}>← Tillbaka</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Lägg till plagg</Text>
-          <TouchableOpacity style={styles.pickBtn} onPress={pickImages}>
+          <TouchableOpacity style={styles.pickBtn} onPress={() => pickImages()}>
             <Text style={styles.pickBtnTitle}>Välj foton</Text>
             <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt</Text>
           </TouchableOpacity>

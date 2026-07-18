@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { router, usePathname } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import AddGarmentChooser from './AddGarmentChooser'
 
 // Ljusblå plusknapp – samma i både ljust och mörkt läge (som användaren bad om).
 const PLUS_BLUE = '#DDE6ED'
@@ -30,6 +31,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
   const styles = makeStyles(t)
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showAddChooser, setShowAddChooser] = useState(false)
 
   function renderTab(tab: typeof tabs[number]) {
     const active = pathname === tab.path
@@ -59,6 +61,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
 
   return (
     <View style={styles.wrapper}>
+      <AddGarmentChooser visible={showAddChooser} onClose={() => setShowAddChooser(false)} />
       {/* Popup ovanför nav-baren – nav-baren själv ändrar aldrig utseende. */}
       {menuOpen && (
         <Pressable style={styles.overlay} onPress={() => setMenuOpen(false)}>
@@ -69,7 +72,13 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
                 key={o.path + i}
                 style={[styles.optionRow, i === 0 ? styles.optionRowFirst : styles.optionRowRest]}
                 onPress={() => {
-                  if (o.path === '/add-garment' && onAddGarment) { setMenuOpen(false); onAddGarment() }
+                  if (o.path === '/add-garment') {
+                    setMenuOpen(false)
+                    // Samma valruta överallt. onAddGarment låter en skärm (garderoben)
+                    // ta över för sina köp-/sälj-flikar; annars öppnas standardvalrutan.
+                    if (onAddGarment) onAddGarment()
+                    else setShowAddChooser(true)
+                  }
                   else go(o.path)
                 }}
                 accessibilityRole="button"

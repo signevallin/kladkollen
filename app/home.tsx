@@ -21,7 +21,6 @@ import {
 } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
-import AddGarmentChooser from '../components/AddGarmentChooser'
 import { OUTFIT_CONTEXTS } from '../utils/constants'
 import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
@@ -52,7 +51,6 @@ export default function Home() {
   const [rating, setRating] = useState<number | null>(null)
   const [ratingLoading, setRatingLoading] = useState(false)
   const [swapIndex, setSwapIndex] = useState<number | null>(null)
-  const [showAddChooser, setShowAddChooser] = useState(false)
   const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
   const [musicGenres, setMusicGenres] = useState<string>('')
   const [sharing, setSharing] = useState(false)
@@ -831,8 +829,7 @@ export default function Home() {
         </View>
       )}
 
-      <AddGarmentChooser visible={showAddChooser} onClose={() => setShowAddChooser(false)} />
-      <BottomNav onAddGarment={() => setShowAddChooser(true)} />
+      <BottomNav />
     </SafeAreaView>
   )
 }
