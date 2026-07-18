@@ -8,7 +8,9 @@ import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -559,7 +561,7 @@ export default function Wardrobe() {
 
       {/* Köp: lägg till via URL */}
       <Modal visible={showWishUrl} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Lägg till via URL</Text>
@@ -582,12 +584,12 @@ export default function Wardrobe() {
               <Text style={styles.modalSaveBtnText}>{fetchingUrl ? 'Hämtar...' : 'Hämta produkt'}</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Add wishlist modal */}
       <Modal visible={showAddWish} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Lägg till på köplistan</Text>
@@ -600,7 +602,7 @@ export default function Wardrobe() {
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
               {/* Bildväljare */}
               <TouchableOpacity style={styles.imagePicker} onPress={pickWishImage}>
@@ -669,7 +671,7 @@ export default function Wardrobe() {
               </TouchableOpacity>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Add to sale modal */}
