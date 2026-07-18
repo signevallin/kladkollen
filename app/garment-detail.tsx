@@ -27,6 +27,7 @@ import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
 import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
+import { newImageId } from '../utils/id'
 import { CATEGORIES, COLOR_NAMES, COLOR_OPTIONS as COLORS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { resolveImageUrl } from '../utils/storage'
 
@@ -247,7 +248,7 @@ export default function GarmentDetail() {
   }
 
   async function uploadPng(base64: string) {
-    const filePath = `public/${Date.now()}-${Math.random().toString(36).substring(2)}.png`
+    const filePath = `public/${newImageId()}.png`
     const binary = atob(base64)
     const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
@@ -292,7 +293,7 @@ export default function GarmentDetail() {
   }
 
   async function uploadImage(uri: string) {
-    const filename = `${Date.now()}.jpg`
+    const filename = `${newImageId()}.jpg`
     const filePath = `public/${filename}`
     const response = await fetch(uri)
     const arrayBuffer = await response.arrayBuffer()

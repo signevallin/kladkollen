@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { router, useLocalSearchParams } from 'expo-router'
 import { goBack } from '../utils/nav'
+import { newImageId } from '../utils/id'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -187,7 +188,7 @@ export default function AddGarment() {
   }
 
   async function uploadImage(draft: GarmentDraft) {
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2)}`
+    const filename = newImageId()
 
     if (draft.processedBase64) {
       // Bakgrundsfri PNG från remove.bg
