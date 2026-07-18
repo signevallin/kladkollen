@@ -661,27 +661,25 @@ export default function Home() {
 
             <Text style={styles.outfitName}>{outfit.outfitName}</Text>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.outfitImagesScroll}>
-              <View style={styles.outfitImages}>
-                {outfit.itemsWithImages.map((item: any, i: number) => (
-                  <TouchableOpacity
-                    key={i}
-                    style={styles.outfitItemWrap}
-                    onPress={() => setSwapIndex(i)}
-                    activeOpacity={0.7}
-                    accessibilityLabel={`Byt ut ${item.name}`}
-                    accessibilityRole="button"
-                  >
-                    {item.image_url
-                      ? <SignedImage path={item.image_url} style={styles.outfitImage} />
-                      : <View style={styles.outfitImageEmpty} />
-                    }
-                    <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
-                    <Text style={styles.outfitItemName} numberOfLines={1}>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+            <View style={styles.outfitImages}>
+              {outfit.itemsWithImages.map((item: any, i: number) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.outfitItemWrap}
+                  onPress={() => setSwapIndex(i)}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Byt ut ${item.name}`}
+                  accessibilityRole="button"
+                >
+                  {item.image_url
+                    ? <SignedImage path={item.image_url} style={styles.outfitImage} />
+                    : <View style={styles.outfitImageEmpty} />
+                  }
+                  <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
+                  <Text style={styles.outfitItemName} numberOfLines={2}>{item.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             {outfit.song && <SongCard song={outfit.song} />}
 
@@ -890,7 +888,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   messageText: { fontFamily: 'Lora_400Regular', flex: 1, fontSize: 14, color: t.textPrimary, lineHeight: 20, fontStyle: 'italic' },
   outfitName: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary },
   outfitImagesScroll: { marginHorizontal: -4 },
-  outfitImages: { flexDirection: 'row', gap: 10, paddingHorizontal: 4 },
+  outfitImages: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: 10, rowGap: 14, paddingHorizontal: 4 },
   outfitItemWrap: { alignItems: 'center', gap: 4, width: 80 },
   outfitImage: { width: 80, height: 80, borderRadius: 14 },
   swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
