@@ -22,6 +22,7 @@ import {
 import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
 import { OUTFIT_CONTEXTS } from '../utils/constants'
+import { cacheGet, cacheSet } from '../utils/cache'
 import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
 import SongCard from '../components/SongCard'
@@ -40,8 +41,8 @@ export default function Home() {
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [weather, setWeather] = useState<any>(null)
   const [outfit, setOutfit] = useState<any>(null)
-  const [garments, setGarments] = useState<any[]>([])
-  const [stats, setStats] = useState({ total: 0, vintedTips: 0 })
+  const [garments, setGarments] = useState<any[]>(() => cacheGet('home.garments') ?? [])
+  const [stats, setStats] = useState(() => cacheGet<{ total: number; vintedTips: number }>('home.stats') ?? { total: 0, vintedTips: 0 })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -91,10 +92,11 @@ export default function Home() {
     // slipper dra hela plaggraden vid varje appstart.
     const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived')
     if (data) {
-      setGarments(data)
+      setGarments(data); cacheSet('home.garments', data)
       const active = data.filter(g => !g.archived)
       const vintedTips = active.filter(g => !g.times_worn || g.times_worn === 0).length
-      setStats({ total: active.length, vintedTips })
+      const nextStats = { total: active.length, vintedTips }
+      setStats(nextStats); cacheSet('home.stats', nextStats)
     }
     fetchWeather()
   }

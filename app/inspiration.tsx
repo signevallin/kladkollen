@@ -2,6 +2,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect } from 'expo-router'
+import { cacheGet, cacheSet } from '../utils/cache'
 import { useCallback, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -42,7 +43,7 @@ export default function Inspiration() {
   const [savingInspo, setSavingInspo] = useState(false)
 
   // Moodboard state
-  const [moodboardImages, setMoodboardImages] = useState<any[]>([])
+  const [moodboardImages, setMoodboardImages] = useState<any[]>(() => cacheGet('inspo.moodboard') ?? [])
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [uploadingMoodboard, setUploadingMoodboard] = useState(false)
 
@@ -60,7 +61,7 @@ export default function Inspiration() {
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-    if (data) setMoodboardImages(data)
+    if (data) { setMoodboardImages(data); cacheSet('inspo.moodboard', data) }
   }
 
   async function pickMoodboardImage() {

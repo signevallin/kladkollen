@@ -18,6 +18,7 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { CATEGORIES as CATEGORY_LIST, COLOR_NAMES, SEASONS as SEASON_LIST } from '../utils/constants'
+import { cacheGet, cacheSet } from '../utils/cache'
 import { showAlert, showConfirm } from '../utils/alert'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
@@ -34,11 +35,11 @@ export default function MyOutfits() {
   const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'kollage'>(
     create ? 'outfits' : tab === 'kollage' ? 'kollage' : tab === 'outfits' ? 'outfits' : 'kalender'
   )
-  const [collages, setCollages] = useState<any[]>([])
+  const [collages, setCollages] = useState<any[]>(() => cacheGet('myoutfit.collages') ?? [])
 
   // Outfit state
-  const [outfits, setOutfits] = useState<any[]>([])
-  const [garments, setGarments] = useState<any[]>([])
+  const [outfits, setOutfits] = useState<any[]>(() => cacheGet('myoutfit.outfits') ?? [])
+  const [garments, setGarments] = useState<any[]>(() => cacheGet('myoutfit.garments') ?? [])
   const [wishlist, setWishlist] = useState<any[]>([])
   const [creating, setCreating] = useState(!!create)
 
@@ -54,13 +55,13 @@ export default function MyOutfits() {
   const [activeSeason, setActiveSeason] = useState('Alla')
   const [activeColor, setActiveColor] = useState('Alla')
   const [activeStyle, setActiveStyle] = useState('Alla')
-  const [filteredGarments, setFilteredGarments] = useState<any[]>([])
+  const [filteredGarments, setFilteredGarments] = useState<any[]>(() => cacheGet('myoutfit.garments') ?? [])
   const [activeStyleFilter, setActiveStyleFilter] = useState('Alla')
   const [showWishlistItems, setShowWishlistItems] = useState(true)
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [calendarEntries, setCalendarEntries] = useState<Record<string, any>>({})
+  const [calendarEntries, setCalendarEntries] = useState<Record<string, any>>(() => cacheGet('myoutfit.calendar') ?? {})
   const [showOutfitPicker, setShowOutfitPicker] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [dayDetailDate, setDayDetailDate] = useState<string | null>(null)
@@ -77,7 +78,7 @@ export default function MyOutfits() {
 
   async function fetchCollages() {
     const { data } = await supabase.from('collages').select('*').order('updated_at', { ascending: false })
-    if (data) setCollages(data)
+    if (data) { setCollages(data); cacheSet('myoutfit.collages', data) }
   }
 
   async function deleteCollage(id: string) {
@@ -91,12 +92,12 @@ export default function MyOutfits() {
     // Bara aktivt sparade outfits visas – outfits som bara fått ett betyg
     // (feedback till AI:n) ska inte synas här.
     const { data } = await supabase.from('outfits').select('*').eq('saved', true).order('created_at', { ascending: false })
-    if (data) setOutfits(data)
+    if (data) { setOutfits(data); cacheSet('myoutfit.outfits', data) }
   }
 
   async function fetchGarments() {
     const { data } = await supabase.from('garments').select('*').eq('archived', false)
-    if (data) { setGarments(data); setFilteredGarments(data) }
+    if (data) { setGarments(data); setFilteredGarments(data); cacheSet('myoutfit.garments', data) }
   }
 
   async function fetchWishlist() {
@@ -116,7 +117,7 @@ export default function MyOutfits() {
     if (data) {
       const map: Record<string, any> = {}
       data.forEach(entry => { map[entry.date] = entry })
-      setCalendarEntries(map)
+      setCalendarEntries(map); cacheSet('myoutfit.calendar', map)
     }
   }
 
