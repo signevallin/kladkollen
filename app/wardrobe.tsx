@@ -88,6 +88,7 @@ export default function Wardrobe() {
   // Wishlist modal
   const [showAddWish, setShowAddWish] = useState(false)
   const [wishName, setWishName] = useState('')
+  const [wishBrand, setWishBrand] = useState('')
   const [wishCategory, setWishCategory] = useState('')
   const [wishColor, setWishColor] = useState('')
   const [wishSeason, setWishSeason] = useState('')
@@ -236,6 +237,7 @@ export default function Wardrobe() {
       const { error } = await supabase.from('wishlist').insert([{
         user_id: user.id,
         name: wishName.trim(),
+        brand: wishBrand.trim() || null,
         category: wishCategory || null,
         color: wishColor || null,
         season: wishSeason || null,
@@ -254,7 +256,7 @@ export default function Wardrobe() {
 
   function closeWishModal() {
     setShowAddWish(false)
-    setWishName(''); setWishCategory(''); setWishColor(''); setWishSeason(''); setWishImage(null)
+    setWishName(''); setWishBrand(''); setWishCategory(''); setWishColor(''); setWishSeason(''); setWishImage(null)
   }
 
   // --- Sale ---
@@ -539,7 +541,7 @@ export default function Wardrobe() {
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); setWishName(''); setWishImage(null); setWishCategory(''); setWishColor(''); setWishSeason(''); setShowAddWish(true) }}>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); setWishName(''); setWishBrand(''); setWishImage(null); setWishCategory(''); setWishColor(''); setWishSeason(''); setShowAddWish(true) }}>
               <Text style={styles.wishChoiceTitle}>Välj foto</Text>
               <Text style={styles.wishChoiceHint}>Ta eller välj en bild och fyll i detaljerna själv</Text>
             </TouchableOpacity>
@@ -625,6 +627,15 @@ export default function Wardrobe() {
                 onChangeText={setWishName}
               />
 
+              <Text style={styles.modalLabel}>Märke</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="t.ex. Arket"
+                placeholderTextColor={t.placeholder}
+                value={wishBrand}
+                onChangeText={setWishBrand}
+              />
+
               <Text style={styles.modalLabel}>Kategori</Text>
               <View style={styles.pillsWrap}>
                 {WISH_CATEGORIES.map(c => (
@@ -637,7 +648,8 @@ export default function Wardrobe() {
               <Text style={styles.modalLabel}>Färg</Text>
               <View style={styles.pillsWrap}>
                 {WISH_COLORS.map(c => (
-                  <TouchableOpacity key={c} style={[styles.pill, wishColor === c && styles.pillActive]} onPress={() => setWishColor(wishColor === c ? '' : c)}>
+                  <TouchableOpacity key={c} style={[styles.pill, styles.colorPill, wishColor === c && styles.pillActive]} onPress={() => setWishColor(wishColor === c ? '' : c)}>
+                    <View style={[styles.colorDot, { backgroundColor: COLOR_HEX[c] || t.surfaceMuted }]} />
                     <Text style={[styles.pillText, wishColor === c && styles.pillTextActive]}>{c}</Text>
                   </TouchableOpacity>
                 ))}
@@ -931,9 +943,15 @@ export default function Wardrobe() {
                     }
                     <View style={styles.wishInfo}>
                       <Text style={styles.wishName}>{item.name}</Text>
+                      {item.brand ? <Text style={styles.wishBrand} numberOfLines={1}>{item.brand}</Text> : null}
                       <View style={styles.wishMeta}>
                         {item.category ? <Text style={styles.wishMetaText}>{item.category}</Text> : null}
-                        {item.color ? <Text style={styles.wishMetaText}>· {item.color}</Text> : null}
+                        {item.color ? (
+                          <View style={styles.wishColorMeta}>
+                            <View style={[styles.wishColorDot, { backgroundColor: COLOR_HEX[item.color] || t.surfaceMuted }]} />
+                            <Text style={styles.wishMetaText}>{item.color}</Text>
+                          </View>
+                        ) : null}
                         {item.season ? <Text style={styles.wishMetaText}>· {item.season}</Text> : null}
                       </View>
                       {count > 0 && (
@@ -1263,8 +1281,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishImageEmpty: { width: 52, height: 52, borderRadius: 10, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, borderStyle: 'dashed' },
   wishInfo: { flex: 1 },
   wishName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary },
-  wishMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 3 },
+  wishBrand: { fontFamily: 'Poppins_600SemiBold', fontSize: 10, color: t.textSecondary, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 1 },
+  wishMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 3 },
   wishMetaText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
+  wishColorMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  wishColorDot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: t.border },
   outfitBadge: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: t.surfaceMuted, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: t.border },
   outfitBadgeText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
   wishActions: { alignItems: 'center', gap: 6 },
@@ -1331,6 +1352,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   modalInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginBottom: 4 },
   pillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  colorPill: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  colorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: t.border },
   pillActive: { backgroundColor: t.primary, borderColor: t.primary },
   pillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
   pillTextActive: { color: t.onPrimary },
