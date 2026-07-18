@@ -18,6 +18,7 @@ import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
+import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
 
 // WebView finns bara i native-apparna – på webben visar vi en hänvisning.
@@ -242,9 +243,9 @@ export default function ImportPurchases() {
         }
       }
 
-      showAlert(
-        `${chosen.length} plagg tillagda!`,
-        toWishlist ? 'Du hittar dem på köplistan.' : 'Du hittar dem i garderoben. Öppna gärna varje plagg och kontrollera kategori och säsong.',
+      toast(
+        `${chosen.length} ${chosen.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`,
+        toWishlist ? 'Du hittar dem på köplistan.' : 'Du hittar dem i garderoben – kolla gärna kategori och säsong.',
       )
       goBack('/wardrobe')
     } catch (e: any) {

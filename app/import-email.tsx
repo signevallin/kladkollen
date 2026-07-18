@@ -18,6 +18,7 @@ import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
+import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
 
 // Domänen där import-adresserna tas emot. Ligger på Elairis (företaget) så den
@@ -159,7 +160,7 @@ export default function ImportEmail() {
       }
 
       await supabase.from('pending_imports').delete().in('id', chosen.map(p => p.id))
-      showAlert(`${chosen.length} plagg tillagda!`, 'De ligger nu i garderoben – med bild och bakgrunden borttagen.')
+      toast(`${chosen.length} ${chosen.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
       goBack('/wardrobe')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)

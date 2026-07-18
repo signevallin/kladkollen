@@ -5,9 +5,11 @@ import { Stack, router, usePathname } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { View } from 'react-native'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
 import { registerForPush } from '../utils/push'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
+import { ToastHost } from '../components/Toast'
 import '../global.css'
 
 // Sidor som får besökas utan inloggning.
@@ -82,14 +84,17 @@ function RootLayout() {
         <Stack.Screen name="privacy" />
         <Stack.Screen name="terms" />
       </Stack>
+      <ToastHost />
     </>
   )
 }
 
 export default function Layout() {
   return (
-    <ThemeProvider>
-      <RootLayout />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <RootLayout />
+      </ThemeProvider>
+    </SafeAreaProvider>
   )
 }
