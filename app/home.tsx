@@ -189,7 +189,7 @@ export default function Home() {
     const m = new Date().getMonth() // 0 = jan
     if (m === 11 || m <= 1) return 'Vinter'
     if (m <= 4) return 'Vår'
-    if (m <= 7) return 'Sommar'
+    if (m <= 8) return 'Sommar'
     return 'Höst'
   }
 
@@ -331,7 +331,7 @@ export default function Home() {
 
       // Nyligen föreslagna låtar (sparas lokalt) så AI:n slipper upprepa sig.
       const recentSongs: string[] = JSON.parse((await AsyncStorage.getItem(RECENT_SONGS_KEY)) || '[]')
-      const avoidSongsStr = recentSongs.slice(0, 20).join(', ')
+      const avoidSongsStr = recentSongs.slice(0, 50).join(', ')
 
       let parsed: any = null
       let attempts = 0
@@ -377,9 +377,9 @@ export default function Home() {
 
       // Hämta matchande låt + Apple Music-preview (blockerar inte outfiten om det failar)
       if (parsed.song?.title) {
-        // Minns låten så vi undviker upprepning nästa gång (senaste 20).
+        // Minns låten så vi undviker upprepning nästa gång (senaste 50).
         try {
-          const next = [parsed.song.title, ...recentSongs.filter(s => s !== parsed.song.title)].slice(0, 20)
+          const next = [parsed.song.title, ...recentSongs.filter(s => s !== parsed.song.title)].slice(0, 50)
           await AsyncStorage.setItem(RECENT_SONGS_KEY, JSON.stringify(next))
         } catch { /* ignorera */ }
         try {
