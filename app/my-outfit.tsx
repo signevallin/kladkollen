@@ -17,11 +17,12 @@ import {
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
+import { CATEGORIES as CATEGORY_LIST, COLOR_NAMES, SEASONS as SEASON_LIST } from '../utils/constants'
 import { showAlert, showConfirm } from '../utils/alert'
 
-const CATEGORIES = ['Alla', 'Toppar', 'Tröjor', 'Byxor', 'Kjolar', 'Klänningar', 'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer']
-const SEASONS = ['Alla', 'Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
-const COLORS = ['Alla', 'Svart', 'Vit', 'Grå', 'Beige', 'Brun', 'Röd', 'Rosa', 'Lila', 'Blå', 'Ljusblå', 'Grön', 'Gul', 'Orange', 'Guld']
+const CATEGORIES = ['Alla', ...CATEGORY_LIST]
+const SEASONS = ['Alla', ...SEASON_LIST]
+const COLORS = ['Alla', ...COLOR_NAMES]
 const STYLE_TAGS = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 const WEEKDAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön']
 const MONTHS = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December']

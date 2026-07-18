@@ -16,6 +16,7 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { normalizeBrand } from '../utils/brands'
+import { COLOR_GROUPS, COLOR_HEX } from '../utils/constants'
 
 // Donut-diagram över garderobens färger. Ritar varje färg som ett segment
 // med strokeDasharray – börjar högst upp (roterad -90°).
@@ -57,25 +58,9 @@ const CTX_META: Record<string, { emoji: string; color: string }> = {
   'Fest':  { emoji: '', color: '#B57BDB' },
 }
 
-const COLOR_GROUPS: Record<string, string[]> = {
-  'Mörka neutraler': ['Svart'],
-  'Neutraler':       ['Vit', 'Grå', 'Beige', 'Brun', 'Silver'],
-  'Varmt & kraftfullt': ['Röd', 'Orange', 'Gul', 'Guld'],
-  'Svalt & lugnt':   ['Blå', 'Ljusblå', 'Grön', 'Turkos'],
-  'Romantiskt':      ['Rosa', 'Lila'],
-}
 const COLOR_EMOJIS: Record<string, string> = {
   'Mörka neutraler': '', 'Neutraler': '',
   'Varmt & kraftfullt': '', 'Svalt & lugnt': '', 'Romantiskt': '',
-}
-
-// Färgprickarnas hex – speglar färgvalen i Lägg till plagg.
-const COLOR_HEX: Record<string, string> = {
-  'Svart': '#1A1A1A', 'Vit': '#F5F5F5', 'Grå': '#9E9E9E', 'Beige': '#D4B896',
-  'Brun': '#795548', 'Röd': '#E53935', 'Rosa': '#EC407A', 'Lila': '#8E24AA',
-  'Blå': '#1E88E5', 'Ljusblå': '#81D4FA', 'Grön': '#43A047', 'Olivgrön': '#708238',
-  'Gul': '#FDD835', 'Orange': '#FB8C00', 'Vinröd': '#7B2D3A', 'Guld': '#C9A96E',
-  'Silver': '#BFC1C2', 'Turkos': '#26C6DA',
 }
 
 // Semantiska färger för säsong (vår grön, sommar gul, höst orange, vinter blå).
