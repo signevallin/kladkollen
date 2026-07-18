@@ -22,6 +22,7 @@ import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
 import { MUSIC_GENRES, OUTFIT_CONTEXTS } from '../utils/constants'
+import { cacheClear } from '../utils/cache'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
@@ -239,6 +240,7 @@ export default function Profile() {
 
   async function signOut() {
     showConfirm('Logga ut', 'Är du säker?', async () => {
+      cacheClear()
       await supabase.auth.signOut()
       if (typeof window !== 'undefined') {
         window.location.href = '/login'
@@ -255,6 +257,7 @@ export default function Profile() {
       async () => {
         try {
           await apiPost('/api/delete-account', {})
+          cacheClear()
           await supabase.auth.signOut()
           if (typeof window !== 'undefined') {
             window.location.href = '/'

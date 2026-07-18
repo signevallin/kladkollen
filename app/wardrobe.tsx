@@ -26,6 +26,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { newImageId } from '../utils/id'
+import { cacheGet, cacheSet } from '../utils/cache'
 import { pickImageSmart } from '../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
 import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, SEASONS as SEASON_LIST } from '../utils/constants'
@@ -52,10 +53,12 @@ const COLOR_ORDER = COLORS.slice(1)
 export default function Wardrobe() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const [garments, setGarments] = useState<any[]>([])
-  const [forSale, setForSale] = useState<any[]>([])
-  const [archived, setArchived] = useState<any[]>([])
-  const [wishlist, setWishlist] = useState<any[]>([])
+  // Seedas från cachen så garderoben ritas direkt vid flikbyte, medan en
+  // uppdatering hämtas i bakgrunden.
+  const [garments, setGarments] = useState<any[]>(() => cacheGet('wardrobe.garments') ?? [])
+  const [forSale, setForSale] = useState<any[]>(() => cacheGet('wardrobe.forSale') ?? [])
+  const [archived, setArchived] = useState<any[]>(() => cacheGet('wardrobe.archived') ?? [])
+  const [wishlist, setWishlist] = useState<any[]>(() => cacheGet('wardrobe.wishlist') ?? [])
   const [outfitCounts, setOutfitCounts] = useState<Record<string, number>>({})
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('Alla')
@@ -125,9 +128,9 @@ export default function Wardrobe() {
       const active = data.filter(g => !g.archived && !g.for_sale)
       const sale = data.filter(g => g.for_sale)
       const arch = data.filter(g => g.archived && !g.for_sale)
-      setGarments(active)
-      setForSale(sale)
-      setArchived(arch)
+      setGarments(active); cacheSet('wardrobe.garments', active)
+      setForSale(sale); cacheSet('wardrobe.forSale', sale)
+      setArchived(arch); cacheSet('wardrobe.archived', arch)
       // Plagg som kan läggas till salu = garderobens aktiva plagg.
       setSaleGarments(active)
     }
@@ -142,7 +145,7 @@ export default function Wardrobe() {
       .eq('user_id', user.id)
       .order('sort_order', { ascending: true })
     if (data) {
-      setWishlist(data)
+      setWishlist(data); cacheSet('wardrobe.wishlist', data)
       fetchOutfitCounts(data)
     }
   }

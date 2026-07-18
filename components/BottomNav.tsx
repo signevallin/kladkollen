@@ -39,7 +39,9 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
       <TouchableOpacity
         key={tab.name}
         style={styles.tab}
-        onPress={() => router.push(tab.path as any)}
+        // navigate (inte push) återanvänder en redan öppnad flik i stället för
+        // att montera om skärmen och ladda om allt – gör flikbyten mycket snabbare.
+        onPress={() => { if (!active) router.navigate(tab.path as any) }}
         accessibilityLabel={tab.label}
         accessibilityRole="button"
         accessibilityState={{ selected: active }}
