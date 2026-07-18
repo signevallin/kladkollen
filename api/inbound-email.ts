@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { clip, json, openaiChat, parseAiJson } from './_utils'
+import { CATEGORIES, COLOR_NAMES, SEASONS } from '../utils/constants'
 
 export const config = { runtime: 'edge' }
 
@@ -110,9 +111,9 @@ Para ihop varje produkt med den [BILD]-URL som ligger närmast produktnamnet
 (produktbilder är oftast från butikens CDN – ignorera logotyper, spårpixlar och ikoner).
 
 Gissa även kategori, färg och säsong utifrån produktnamnet:
-- category: EXAKT ett av: Toppar, Tröjor, Byxor, Shorts, Kjolar, Klänningar, Kavajer, Ytterkläder, Skor, Väskor, Accessoarer (eller null om osäker)
-- color: EXAKT ett av: Svart, Vit, Grå, Beige, Brun, Röd, Rosa, Lila, Blå, Ljusblå, Grön, Olivgrön, Gul, Orange, Vinröd, Guld (eller null)
-- seasons: en lista med noll eller flera av: Vår, Sommar, Höst, Vinter, Alla årstider
+- category: EXAKT ett av: ${CATEGORIES.join(', ')} (eller null om osäker)
+- color: EXAKT ett av: ${COLOR_NAMES.join(', ')} (eller null)
+- seasons: en lista med noll eller flera av: ${SEASONS.join(', ')}
 
 Svara ENDAST med JSON, inga backticks:
 {"items": [{"name": "produktnamn", "brand": "märke eller null", "price": "pris eller null", "orderDate": "datum eller null", "category": "kategori eller null", "color": "färg eller null", "seasons": ["..."], "imageUrl": "bild-URL eller null"}]}
