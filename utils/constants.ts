@@ -7,7 +7,7 @@ export const CATEGORIES = [
 ]
 
 export const SUBCATEGORIES: Record<string, string[]> = {
-  'Toppar': ['Linne', 'T-shirt', 'Långärmad topp', 'Body', 'Blus', 'Skjorta'],
+  'Toppar': ['Linne', 'T-shirt', 'Piké', 'Långärmad topp', 'Body', 'Blus', 'Skjorta'],
   'Tröjor': ['Sweatshirt', 'Hoodie', 'Stickad tröja', 'Collegetröja', 'Kofta'],
   'Byxor': ['Jeans', 'Chinos', 'Kostymbyxor', 'Leggings', 'Mjukisbyxor'],
   'Shorts': ['Jeansshorts', 'Chinosshorts', 'Linneshorts', 'Träningsshorts', 'Skräddade shorts'],
