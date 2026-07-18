@@ -29,7 +29,7 @@ import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
-import { CATEGORIES, COLOR_NAMES, COLOR_OPTIONS as COLORS, SEASONS, SUBCATEGORIES } from '../utils/constants'
+import { CATEGORIES, COLOR_OPTIONS as COLORS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { resolveImageUrl } from '../utils/storage'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -92,6 +92,7 @@ export default function GarmentDetail() {
     const { data } = await supabase.from('wishlist').select('*').eq('id', wishlistId).single()
     if (data) {
       setName(data.name)
+      setBrand(data.brand || '')
       setCategory(data.category || '')
       setColor(data.color || '')
       setSeasons(data.season ? [data.season] : [])
@@ -124,6 +125,7 @@ export default function GarmentDetail() {
       if (isWishlistItem) {
         const { error } = await supabase.from('wishlist').update({
           name,
+          brand: brand.trim() || null,
           category: category || null,
           color: color || null,
           season: seasons[0] || null,
@@ -484,28 +486,16 @@ export default function GarmentDetail() {
           </>
         )}
 
-        {/* Färg – visas för både garderob och köplista */}
+        {/* Färg – swatch-väljare med faktiska färger (både garderob och köplista) */}
         <Text style={styles.label}>Färg</Text>
-        {isWishlistItem ? (
-          <View style={styles.pills}>
-            {COLOR_NAMES.map((c) => (
-              <TouchableOpacity key={c} style={[styles.pill, color === c && styles.pillActive]} onPress={() => setColor(color === c ? '' : c)}>
-                <Text style={[styles.pillText, color === c && styles.pillTextActive]}>{c}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : (
-          <>
-            <View style={styles.colorGrid}>
-              {COLORS.map((c) => (
-                <TouchableOpacity key={c.name} style={[styles.colorDot, { backgroundColor: c.hex }, color === c.name && styles.colorDotActive]} onPress={() => setColor(c.name)}>
-                  {color === c.name && <Text style={styles.colorCheck}>✓</Text>}
-                </TouchableOpacity>
-              ))}
-            </View>
-            {color ? <Text style={styles.colorSelected}>Vald färg: {color}</Text> : null}
-          </>
-        )}
+        <View style={styles.colorGrid}>
+          {COLORS.map((c) => (
+            <TouchableOpacity key={c.name} style={[styles.colorDot, { backgroundColor: c.hex }, color === c.name && styles.colorDotActive]} onPress={() => setColor(color === c.name ? '' : c.name)}>
+              {color === c.name && <Text style={styles.colorCheck}>✓</Text>}
+            </TouchableOpacity>
+          ))}
+        </View>
+        {color ? <Text style={styles.colorSelected}>Vald färg: {color}</Text> : null}
 
         {/* Säsong – visas för både garderob och köplista */}
         <Text style={styles.label}>Säsong</Text>
