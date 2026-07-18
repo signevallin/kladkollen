@@ -18,6 +18,7 @@ import {
   View
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
+import AddGarmentChooser from '../components/AddGarmentChooser'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
@@ -525,31 +526,8 @@ export default function Wardrobe() {
   return (
     <SafeAreaView style={styles.container}>
 
-      {/* Garderob: välj hur man lägger till plagg */}
-      <Modal visible={showAddChooser} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lägg till plagg</Text>
-              <TouchableOpacity onPress={() => setShowAddChooser(false)}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowAddChooser(false); router.push('/add-garment?start=photos') }}>
-              <Text style={styles.wishChoiceTitle}>Välj foton</Text>
-              <Text style={styles.wishChoiceHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowAddChooser(false); router.push('/import-purchases') }}>
-              <Text style={styles.wishChoiceTitle}>Importera via butiker</Text>
-              <Text style={styles.wishChoiceHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowAddChooser(false); router.push('/import-email') }}>
-              <Text style={styles.wishChoiceTitle}>Importera från mejl</Text>
-              <Text style={styles.wishChoiceHint}>Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Garderob: välj hur man lägger till plagg (delad valruta med hemskärmen) */}
+      <AddGarmentChooser visible={showAddChooser} onClose={() => setShowAddChooser(false)} />
 
       {/* Köp: välj hur man lägger till */}
       <Modal visible={showWishChooser} animationType="slide" transparent>
