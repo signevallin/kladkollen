@@ -66,12 +66,14 @@ function RootLayout() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg } }}>
-        <Stack.Screen name="home" />
+        {/* Flik-sidorna byts direkt (ingen in-slide) så det känns som en riktig
+            flikbar. Detaljsidor (plaggvy, lägg till ...) behåller sin slide. */}
+        <Stack.Screen name="home" options={{ animation: 'none' }} />
         <Stack.Screen name="profile" />
-        <Stack.Screen name="wardrobe" />
-        <Stack.Screen name="my-outfit" />
+        <Stack.Screen name="wardrobe" options={{ animation: 'none' }} />
+        <Stack.Screen name="my-outfit" options={{ animation: 'none' }} />
         <Stack.Screen name="collage" />
-        <Stack.Screen name="inspiration" />
+        <Stack.Screen name="inspiration" options={{ animation: 'none' }} />
         <Stack.Screen name="stats" />
         <Stack.Screen name="add-garment" />
         <Stack.Screen name="import-purchases" />
