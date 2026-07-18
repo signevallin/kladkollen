@@ -57,59 +57,68 @@ export default function CropModal({
     return { w, h, x: (cont.w - w) / 2, y: (cont.h - h) / 2 }
   })()
 
+  // PanResponder skapas EN gång (stabil identitet). Skapas den om vid varje
+  // render byts panHandlers ut mitt i en dragrörelse – den nya instansens
+  // gest-state är då oinitierad och rörelsen tappas, så inget går att dra.
+  // Callbacken läser därför alltid senaste box/disp via refs.
+  const boxRef = useRef(box)
+  boxRef.current = box
+  const dispRef = useRef(disp)
+  dispRef.current = disp
+
   // Initiera rutan till hela bilden när måtten är kända.
   useEffect(() => {
     if (disp) setBox({ x: disp.x, y: disp.y, w: disp.w, h: disp.h })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [natural, cont])
 
-  function clampMove(nx: number, ny: number) {
-    if (!disp) return { x: nx, y: ny }
-    return {
-      x: Math.max(disp.x, Math.min(nx, disp.x + disp.w - box.w)),
-      y: Math.max(disp.y, Math.min(ny, disp.y + disp.h - box.h)),
-    }
-  }
-
-  const moveResponder = PanResponder.create({
+  const moveResponder = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => { start.current = { ...box } },
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { start.current = { ...boxRef.current } },
     onPanResponderMove: (_e, g) => {
-      const p = clampMove(start.current.x + g.dx, start.current.y + g.dy)
-      setBox(b => ({ ...b, x: p.x, y: p.y }))
+      const d = dispRef.current, b = boxRef.current
+      if (!d) return
+      const nx = Math.max(d.x, Math.min(start.current.x + g.dx, d.x + d.w - b.w))
+      const ny = Math.max(d.y, Math.min(start.current.y + g.dy, d.y + d.h - b.h))
+      setBox(prev => ({ ...prev, x: nx, y: ny }))
     },
-  })
+  })).current
 
   // Resize från övre-vänstra hörnet.
-  const tlResponder = PanResponder.create({
+  const tlResponder = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => { start.current = { ...box } },
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { start.current = { ...boxRef.current } },
     onPanResponderMove: (_e, g) => {
-      if (!disp) return
+      const d = dispRef.current
+      if (!d) return
       const right = start.current.x + start.current.w
       const bottom = start.current.y + start.current.h
-      const nx = Math.max(disp.x, Math.min(start.current.x + g.dx, right - MIN))
-      const ny = Math.max(disp.y, Math.min(start.current.y + g.dy, bottom - MIN))
+      const nx = Math.max(d.x, Math.min(start.current.x + g.dx, right - MIN))
+      const ny = Math.max(d.y, Math.min(start.current.y + g.dy, bottom - MIN))
       setBox({ x: nx, y: ny, w: right - nx, h: bottom - ny })
     },
-  })
+  })).current
 
   // Resize från nedre-högra hörnet.
-  const brResponder = PanResponder.create({
+  const brResponder = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => { start.current = { ...box } },
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { start.current = { ...boxRef.current } },
     onPanResponderMove: (_e, g) => {
-      if (!disp) return
-      const maxW = disp.x + disp.w - start.current.x
-      const maxH = disp.y + disp.h - start.current.y
+      const d = dispRef.current
+      if (!d) return
+      const maxW = d.x + d.w - start.current.x
+      const maxH = d.y + d.h - start.current.y
       const nw = Math.max(MIN, Math.min(start.current.w + g.dx, maxW))
       const nh = Math.max(MIN, Math.min(start.current.h + g.dy, maxH))
       setBox(b => ({ ...b, w: nw, h: nh }))
     },
-  })
+  })).current
 
   // Roterar bilden 90° och bakar in det i en ny fil, så att beskärningen
   // sedan sker på den redan roterade bilden.
