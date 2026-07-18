@@ -118,16 +118,18 @@ export default function Wardrobe() {
   async function fetchGarments() {
     const { data } = await supabase.from('garments').select('*')
     if (data) {
+      // Garderoben visar bara plagg som varken är arkiverade eller till salu,
+      // så ett plagg försvinner ur garderoben när det läggs på säljlistan.
       // Till salu: alla plagg som är till salu (även arkiverade). Arkivet visar
-      // därför bara arkiverade plagg som INTE är till salu, så inget hamnar dubbelt.
-      const active = data.filter(g => !g.archived)
+      // bara arkiverade plagg som INTE är till salu, så inget hamnar dubbelt.
+      const active = data.filter(g => !g.archived && !g.for_sale)
       const sale = data.filter(g => g.for_sale)
       const arch = data.filter(g => g.archived && !g.for_sale)
       setGarments(active)
       setForSale(sale)
       setArchived(arch)
-      // Garments eligible for sale: active, not already for sale
-      setSaleGarments(active.filter(g => !g.for_sale))
+      // Plagg som kan läggas till salu = garderobens aktiva plagg.
+      setSaleGarments(active)
     }
   }
 
