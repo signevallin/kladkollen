@@ -782,7 +782,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dayDetailOutfitName: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary, marginBottom: 4 },
   dayDetailGarments: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
   dayDetailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
-  dayDetailImage: { width: '31%', aspectRatio: 1, borderRadius: 14 },
+  dayDetailImage: { width: '31%', height: 104, borderRadius: 14 },
   dayDetailActions: { flexDirection: 'row', gap: 10, marginTop: 8 },
   dayDetailChangeBtn: { flex: 1, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: t.border },
   dayDetailChangeBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 14 },

@@ -15,8 +15,9 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 
 const MIN = 48 // minsta storlek på beskärningsrutan (i skärmpixlar)
+const HANDLE = 32 // handtagets storlek
 
-// Låter användaren dra en ruta över det som ska behållas och beskär bilden.
+// Låter användaren dra en ruta över det som ska behållas, rotera bilden och beskär.
 // Bra t.ex. för produktbilder från butiker där en modell/ansikte följer med.
 export default function CropModal({
   visible, uri, onCancel, onCropped,
@@ -28,17 +29,23 @@ export default function CropModal({
 }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  // imgUri är den bild vi arbetar med just nu. Rotation byter ut den mot en
+  // ny (redan roterad) fil så att beskärningsmatten alltid är enkel.
+  const [imgUri, setImgUri] = useState<string | null>(uri)
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null)
   const [cont, setCont] = useState<{ w: number; h: number } | null>(null)
   const [box, setBox] = useState({ x: 0, y: 0, w: 0, h: 0 })
   const [working, setWorking] = useState(false)
   const start = useRef({ x: 0, y: 0, w: 0, h: 0 })
 
+  // Återställ till ursprungsbilden när modalen öppnas eller bilden byts.
+  useEffect(() => { setImgUri(uri) }, [uri, visible])
+
   // Bildens naturliga storlek (för att mappa rutan till pixlar).
   useEffect(() => {
     setNatural(null)
-    if (uri) Image.getSize(uri, (w, h) => setNatural({ w, h }), () => setNatural({ w: 1, h: 1 }))
-  }, [uri])
+    if (imgUri) Image.getSize(imgUri, (w, h) => setNatural({ w, h }), () => setNatural({ w: 1, h: 1 }))
+  }, [imgUri])
 
   // Var bilden faktiskt ritas i containern (contain – med letterbox).
   const disp = (() => {
@@ -66,6 +73,7 @@ export default function CropModal({
 
   const moveResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: () => { start.current = { ...box } },
     onPanResponderMove: (_e, g) => {
       const p = clampMove(start.current.x + g.dx, start.current.y + g.dy)
@@ -76,6 +84,7 @@ export default function CropModal({
   // Resize från övre-vänstra hörnet.
   const tlResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: () => { start.current = { ...box } },
     onPanResponderMove: (_e, g) => {
       if (!disp) return
@@ -90,6 +99,7 @@ export default function CropModal({
   // Resize från nedre-högra hörnet.
   const brResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: () => { start.current = { ...box } },
     onPanResponderMove: (_e, g) => {
       if (!disp) return
@@ -101,8 +111,29 @@ export default function CropModal({
     },
   })
 
+  // Roterar bilden 90° och bakar in det i en ny fil, så att beskärningen
+  // sedan sker på den redan roterade bilden.
+  async function rotate(deg: 90 | -90) {
+    if (!imgUri || working) return
+    setWorking(true)
+    try {
+      let local = imgUri
+      if (!imgUri.startsWith('file://')) {
+        local = FileSystem.cacheDirectory + `rot-${Date.now()}.jpg`
+        await FileSystem.downloadAsync(imgUri, local)
+      }
+      const rendered = await ImageManipulator.manipulate(local).rotate(deg).renderAsync()
+      const out = await rendered.saveAsync({ format: SaveFormat.PNG })
+      setImgUri(out.uri)
+    } catch {
+      // behåll nuvarande bild om rotationen misslyckas
+    } finally {
+      setWorking(false)
+    }
+  }
+
   async function confirm() {
-    if (!uri || !natural || !disp || working) return
+    if (!imgUri || !natural || !disp || working) return
     setWorking(true)
     try {
       const scale = natural.w / disp.w
@@ -113,8 +144,11 @@ export default function CropModal({
         height: Math.min(natural.h, Math.round(box.h * scale)),
       }
       // ImageManipulator kan inte läsa fjärr-URL på native – ladda ner först.
-      const local = FileSystem.cacheDirectory + `crop-${Date.now()}.jpg`
-      await FileSystem.downloadAsync(uri, local)
+      let local = imgUri
+      if (!imgUri.startsWith('file://')) {
+        local = FileSystem.cacheDirectory + `crop-${Date.now()}.jpg`
+        await FileSystem.downloadAsync(imgUri, local)
+      }
       const rendered = await ImageManipulator.manipulate(local).crop(crop).renderAsync()
       const out = await rendered.saveAsync({ format: SaveFormat.PNG, base64: true })
       if (!out.base64) throw new Error('Kunde inte beskära bilden')
@@ -132,7 +166,7 @@ export default function CropModal({
         <Text style={styles.hint}>Dra i hörnen för att välja det du vill behålla</Text>
 
         <View style={styles.stage} onLayout={e => setCont({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-          {uri && <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="contain" />}
+          {imgUri && <Image source={{ uri: imgUri }} style={StyleSheet.absoluteFill} resizeMode="contain" />}
 
           {disp && (
             <>
@@ -142,13 +176,32 @@ export default function CropModal({
               <View style={[styles.dim, { left: 0, width: box.x, top: box.y, height: box.h }]} />
               <View style={[styles.dim, { right: 0, left: box.x + box.w, top: box.y, height: box.h }]} />
 
-              {/* Beskärningsrutan */}
-              <View style={[styles.box, { left: box.x, top: box.y, width: box.w, height: box.h }]} {...moveResponder.panHandlers}>
-                <View style={[styles.handle, styles.handleTL]} {...tlResponder.panHandlers} />
-                <View style={[styles.handle, styles.handleBR]} {...brResponder.panHandlers} />
-              </View>
+              {/* Beskärningsrutan (flyttbar) */}
+              <View style={[styles.box, { left: box.x, top: box.y, width: box.w, height: box.h }]} {...moveResponder.panHandlers} />
+
+              {/* Hörnhandtag – egna vyer direkt i stage så de alltid går att träffa
+                  (barn som ritas utanför sin förälders yta får inte touch på Android). */}
+              <View
+                style={[styles.handle, { left: box.x - HANDLE / 2, top: box.y - HANDLE / 2 }]}
+                hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+                {...tlResponder.panHandlers}
+              />
+              <View
+                style={[styles.handle, { left: box.x + box.w - HANDLE / 2, top: box.y + box.h - HANDLE / 2 }]}
+                hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+                {...brResponder.panHandlers}
+              />
             </>
           )}
+        </View>
+
+        <View style={styles.tools}>
+          <TouchableOpacity style={styles.toolBtn} onPress={() => rotate(-90)} disabled={working} accessibilityLabel="Rotera vänster">
+            <Text style={styles.toolText}>↺</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.toolBtn} onPress={() => rotate(90)} disabled={working} accessibilityLabel="Rotera höger">
+            <Text style={styles.toolText}>↻</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.actions}>
@@ -170,9 +223,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   stage: { flex: 1, marginHorizontal: 12, position: 'relative' },
   dim: { position: 'absolute', backgroundColor: 'rgba(0,0,0,0.6)' },
   box: { position: 'absolute', borderWidth: 2, borderColor: '#FFFFFF' },
-  handle: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: t.primary },
-  handleTL: { top: -14, left: -14 },
-  handleBR: { bottom: -14, right: -14 },
+  handle: { position: 'absolute', width: HANDLE, height: HANDLE, borderRadius: HANDLE / 2, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: t.primary },
+  tools: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 16 },
+  toolBtn: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', backgroundColor: 'rgba(255,255,255,0.08)' },
+  toolText: { color: '#FFFFFF', fontSize: 26, lineHeight: 30 },
   actions: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, marginTop: 20 },
   cancelBtn: { flex: 1, height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
   cancelText: { fontFamily: 'Poppins_600SemiBold', color: '#FFFFFF', fontSize: 15 },
