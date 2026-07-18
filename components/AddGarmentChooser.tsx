@@ -1,0 +1,60 @@
+import { router } from 'expo-router'
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useTheme } from '../theme/ThemeProvider'
+import type { Theme } from '../theme/theme'
+
+// Delad valruta för "Lägg till plagg" så att flödet ser likadant ut oavsett
+// varifrån man öppnar det (hemskärmen, garderoben, ...). Tidigare gick plus →
+// "Lägg till plagg" från hemskärmen rakt in i den helsides-vyn i stället.
+export default function AddGarmentChooser({
+  visible, onClose,
+}: {
+  visible: boolean
+  onClose: () => void
+}) {
+  const t = useTheme()
+  const styles = makeStyles(t)
+
+  function goto(path: string) {
+    onClose()
+    router.push(path as any)
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Lägg till plagg</Text>
+            <TouchableOpacity onPress={onClose} accessibilityLabel="Stäng" accessibilityRole="button">
+              <Text style={styles.modalClose}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/add-garment?start=photos')}>
+            <Text style={styles.choiceTitle}>Välj foton</Text>
+            <Text style={styles.choiceHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/import-purchases')}>
+            <Text style={styles.choiceTitle}>Importera via butiker</Text>
+            <Text style={styles.choiceHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/import-email')}>
+            <Text style={styles.choiceTitle}>Importera från mejl</Text>
+            <Text style={styles.choiceHint}>Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  )
+}
+
+const makeStyles = (t: Theme) => StyleSheet.create({
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  modalTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary },
+  modalClose: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textSecondary, padding: 4 },
+  choiceBtn: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: t.border },
+  choiceTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, marginBottom: 3 },
+  choiceHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 18 },
+})
