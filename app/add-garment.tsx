@@ -2,16 +2,17 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
-import { router, useLocalSearchParams } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
 import { toast } from '../components/Toast'
 import { base64ToBytes, pngToWebp } from '../utils/image'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Image,
+  InteractionManager,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -77,22 +78,41 @@ export default function AddGarment() {
     })
   }, [])
 
-  // Kommer man in via "Välj foton" i valrutan – öppna bildväljaren direkt.
-  useEffect(() => {
-    if (start === 'photos') pickImages(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Kommer man in via "Välj foton" i valrutan – öppna bildväljaren automatiskt.
+  // Vi väntar tills skärmen fått fokus OCH animationer/valrutan lagt sig, annars
+  // vägrar iOS presentera väljaren ovanpå en modal som håller på att stängas
+  // (då fastnade man på en snurrande sida).
+  const autoStarted = useRef(false)
+  useFocusEffect(
+    useCallback(() => {
+      if (start !== 'photos' || autoStarted.current) return
+      autoStarted.current = true
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const task = InteractionManager.runAfterInteractions(() => {
+        timer = setTimeout(() => pickImages(true), 250)
+      })
+      return () => { task.cancel(); if (timer) clearTimeout(timer) }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [start]),
+  )
 
   async function pickImages(auto = false) {
     setBgError(null)
-    const result = await pickImageSmart({
-      mediaTypes: ['images'] as any,
-      allowsMultipleSelection: true,
-      quality: 0.7,
-      base64: true,
-    })
+    let result: ImagePicker.ImagePickerResult
+    try {
+      result = await pickImageSmart({
+        mediaTypes: ['images'] as any,
+        allowsMultipleSelection: true,
+        quality: 0.7,
+        base64: true,
+      })
+    } catch {
+      // Kunde inte öppna väljaren – lämna inte användaren på en snurrande sida.
+      if (auto) goBack('/wardrobe')
+      return
+    }
     // Avbryter man den automatiska väljaren (kom hit via "Välj foton") går vi
-    // tillbaka i stället för att visa helsides-valrutan.
+    // tillbaka i stället för att fastna på laddningsvyn.
     if (result.canceled || result.assets.length === 0) {
       if (auto) goBack('/wardrobe')
       return
@@ -260,13 +280,21 @@ export default function AddGarment() {
 
   // ── PICK STEP ──────────────────────────────────────────────
   if (step === 'pick') {
-    // Kom man hit via "Välj foton" öppnas bildväljaren direkt – visa bara en
-    // spinner medan den öppnas, aldrig helsides-valrutan.
+    // Kom man hit via "Välj foton" öppnas bildväljaren automatiskt – visa en
+    // spinner medan den öppnas. Skulle den inte öppna sig finns knappar kvar
+    // så man aldrig fastnar på en snurrande sida.
     if (start === 'photos' && drafts.length === 0) {
       return (
         <SafeAreaView style={styles.container}>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={styles.autoPickWrap}>
             <ActivityIndicator color={t.primary} />
+            <Text style={styles.autoPickHint}>Öppnar galleriet…</Text>
+            <TouchableOpacity style={styles.autoPickBtn} onPress={() => pickImages()}>
+              <Text style={styles.autoPickBtnText}>Välj foton</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => goBack('/wardrobe')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Text style={styles.autoPickCancel}>Avbryt</Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       )
@@ -502,6 +530,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   pickBtnIcon: { fontFamily: 'Lora_400Regular', fontSize: 48 },
   pickBtnTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textPrimary },
   pickBtnHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, textAlign: 'center', paddingHorizontal: 32 },
+  autoPickWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 32 },
+  autoPickHint: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary },
+  autoPickBtn: { backgroundColor: t.primary, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8 },
+  autoPickBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.onPrimary },
+  autoPickCancel: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, textDecorationLine: 'underline' },
 
   progressRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
