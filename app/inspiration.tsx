@@ -179,7 +179,7 @@ export default function Inspiration() {
     setOutfit(null)
     setAddedToWishlist([])
     try {
-      const { data: currentGarments } = await supabase.from('garments').select('*')
+      const { data: currentGarments } = await supabase.from('garments').select('id, name, category, season, archived, image_url')
       const garments = (currentGarments || []).filter((g: any) => !g.archived)
       const garmentList = garments.map(g => `- ${g.name} (${g.category}, ${g.season || 'alla årstider'})`).join('\n')
       const parsed = await apiPost('/api/analyze-inspo', { base64: inspoBase64, garmentList })
