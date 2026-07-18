@@ -94,7 +94,7 @@ export default function Home() {
   async function fetchAll() {
     // Bara kolumnerna hemskärmen faktiskt använder (outfit-generering + räknare) –
     // slipper dra hela plaggraden vid varje appstart.
-    const { data } = await supabase.from('garments').select('id, name, category, color, season, image_url, times_worn, archived')
+    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived')
     if (data) {
       setGarments(data)
       const active = data.filter(g => !g.archived)
@@ -234,7 +234,10 @@ export default function Home() {
     for (const g of garmentList) {
       const group = categoryMap[g.category]
       if (group) {
-        groups[group].push(`  • ${g.name}${g.color ? ' (' + g.color + ')' : ''}`)
+        // Ta med typen (t.ex. Festklänning/Vardagsklänning) så AI:n kan matcha
+        // formalitetsnivån till kontexten – annars syns bara huvudkategorin.
+        const meta = [g.subcategory, g.color].filter(Boolean).join(', ')
+        groups[group].push(`  • ${g.name}${meta ? ' (' + meta + ')' : ''}`)
       }
     }
     return Object.entries(groups)

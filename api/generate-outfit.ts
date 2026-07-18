@@ -39,6 +39,10 @@ ${weatherSummary}
 VIKTIGT: Anpassa valet TYDLIGT efter kontexten "${contextLabel}". En festoutfit
 ska skilja sig markant från en vardags-/jobboutfit – annan känsla, andra plagg.
 Välj inte samma look oavsett tillfälle.
+Varje plagg visas med sin typ inom parentes (t.ex. "(Festklänning, Svart)"). Använd
+typen för att matcha formalitetsnivån: välj INTE utpräglade festplagg (t.ex.
+Festklänning) till en ledig/vardaglig kontext, och inte utpräglat vardagliga plagg
+till en festkontext.
 ${previousItems ? `Föregående förslag var: ${previousItems}. Ge ett TYDLIGT ANNORLUNDA förslag denna gång – byt ut minst hälften av plaggen (samma plagg får återkomma bara om garderoben är för liten för alternativ).` : ''}
 ${avoid}${feedback ? `\nSmakprofil:\n${feedback}` : ''}
 ${retryInstruction}
