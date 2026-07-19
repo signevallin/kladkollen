@@ -132,32 +132,34 @@ export default function MyOutfits() {
     }
   }
 
-  async function assignOutfitToDate(outfit: any) {
-    if (!selectedDate) return
+  // Lägger en outfit på ett datum i kalendern och räknar plaggen som använda
+  // den dagen. Delas av kalendern och "registrera som använd" i Outfits-listan.
+  async function assignOutfitToDay(outfit: any, date: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
-    const prevEntry = calendarEntries[selectedDate]
+    const prevEntry = calendarEntries[date]
     // Samma outfit igen → ingen förändring.
-    if (prevEntry?.outfit_id === outfit.id) { setShowOutfitPicker(false); setSelectedDate(null); return }
+    if (prevEntry?.outfit_id === outfit.id) return
     // Byter man ut en tidigare outfit på dagen: räkna ner den först.
     if (prevEntry?.outfits?.garment_ids?.length) {
       await adjustGarmentWear(prevEntry.outfits.garment_ids, -1)
     }
-
     await supabase.from('outfit_calendar').upsert({
       user_id: user.id,
       outfit_id: outfit.id,
-      date: selectedDate,
+      date,
     }, { onConflict: 'user_id,date' })
-
     // Att lägga en outfit på en dag räknas som att plaggen använts den dagen.
-    await adjustGarmentWear(outfit.garment_ids || [], 1, selectedDate)
-
-    setShowOutfitPicker(false)
-    setSelectedDate(null)
+    await adjustGarmentWear(outfit.garment_ids || [], 1, date)
     fetchCalendarEntries()
     fetchGarments()
+  }
+
+  async function assignOutfitToDate(outfit: any) {
+    if (!selectedDate) return
+    await assignOutfitToDay(outfit, selectedDate)
+    setShowOutfitPicker(false)
+    setSelectedDate(null)
   }
 
   async function removeOutfitFromDate(date: string) {
@@ -278,12 +280,9 @@ function isPast(date: Date) {
 
   async function wearOutfit(outfit: any) {
     const today = new Date().toISOString().split('T')[0]
-    const ids = outfit.garment_ids || []
-    for (const gid of ids) {
-      const { data } = await supabase.from('garments').select('times_worn').eq('id', gid).single()
-      await supabase.from('garments').update({ times_worn: (data?.times_worn || 0) + 1, last_worn: today }).eq('id', gid)
-    }
-    showAlert('Outfit registrerad!', `${ids.length} plagg markerade som använda idag.`)
+    // Lägg outfiten på dagens datum i kalendern (och räkna plaggen som använda).
+    await assignOutfitToDay(outfit, today)
+    showAlert('Outfit registrerad!', 'Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.')
   }
 
   const wishlistAsGarments = wishlist.map(w => ({ ...w, isWishlist: true, times_worn: 0, season: null, color: null }))
