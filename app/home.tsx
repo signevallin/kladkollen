@@ -362,11 +362,28 @@ export default function Home() {
 
       if (!parsed?.items?.length) throw new Error('AI:n gav inget giltigt förslag – försök igen.')
 
+      // Matcha AI:ns plaggnamn mot rätt plagg – exakt först, sedan mest
+      // specifikt, och aldrig samma plagg två gånger. (Lös includes-matchning
+      // gav ibland fel bild när två plagg hade liknande namn.)
+      const usedIds = new Set<string>()
+      const findMatch = (name: string) => {
+        const target = name.trim().toLowerCase()
+        const free = (g: any) => !g.id || !usedIds.has(g.id)
+        // 1. Exakt samma namn
+        let m = pool.find(g => free(g) && (g.name || '').trim().toLowerCase() === target)
+        // 2. Plaggets namn innehåller hela AI-namnet
+        if (!m) m = pool.find(g => free(g) && (g.name || '').toLowerCase().includes(target))
+        // 3. AI-namnet innehåller plaggets namn – välj det LÄNGSTA (mest specifika)
+        if (!m) {
+          m = pool
+            .filter(g => free(g) && g.name && target.includes(g.name.toLowerCase()))
+            .sort((a, b) => b.name.length - a.name.length)[0]
+        }
+        if (m?.id) usedIds.add(m.id)
+        return m
+      }
       const itemsWithImages = parsed.items.map((name: string) => {
-        const match = pool.find(g =>
-          g.name.toLowerCase().includes(name.toLowerCase()) ||
-          name.toLowerCase().includes(g.name.toLowerCase())
-        )
+        const match = findMatch(name)
         return { name, image_url: match?.image_url || null, id: match?.id || null }
       })
 
