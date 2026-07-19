@@ -935,6 +935,12 @@ export default function Wardrobe() {
             </View>
           ) : (
             <>
+              <View style={styles.wishTotalCard}>
+                <Text style={styles.wishTotalLabel}>Önskelistans värde</Text>
+                <Text style={styles.wishTotalValue}>
+                  {wishlist.reduce((s, w) => s + (Number(w.price) || 0), 0).toLocaleString('sv-SE')} kr
+                </Text>
+              </View>
               <Text style={styles.wishHint}>Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera</Text>
               {wishlist.map((item, index) => {
                 const count = outfitCounts[item.id] || 0
@@ -1318,6 +1324,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary },
   wishBrand: { fontFamily: 'Poppins_600SemiBold', fontSize: 10, color: t.textSecondary, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 1 },
   wishPrice: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, marginTop: 2 },
+  wishTotalCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: t.surfaceMuted, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 18, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
+  wishTotalLabel: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textSecondary },
+  wishTotalValue: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary },
   wishMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 3 },
   wishMetaText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
   wishColorMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
