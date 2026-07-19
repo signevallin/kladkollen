@@ -94,8 +94,10 @@ export default function GarmentDetail() {
       setName(data.name)
       setBrand(data.brand || '')
       setCategory(data.category || '')
+      setSubcategory(data.subcategory || '')
       setColor(data.color || '')
-      setSeasons(data.season ? [data.season] : [])
+      setSeasons(data.season ? data.season.split(', ').filter(Boolean) : [])
+      setPrice(data.price != null ? String(data.price) : '')
       setImageUrl(data.image_url)
       setLoaded(true)
     }
@@ -126,9 +128,11 @@ export default function GarmentDetail() {
         const { error } = await supabase.from('wishlist').update({
           name,
           brand: brand.trim() || null,
+          price: parsePrice(price),
           category: category || null,
+          subcategory: subcategory || null,
           color: color || null,
-          season: seasons[0] || null,
+          season: seasons.join(', '),
         }).eq('id', wishlistId)
         if (error) throw error
       } else {
@@ -506,6 +510,21 @@ export default function GarmentDetail() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Pris – även på köplistan (för budget/överblick) */}
+        {isWishlistItem && (
+          <>
+            <Text style={styles.label}>Pris (kr)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="t.ex. 299"
+              placeholderTextColor={t.placeholder}
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+            />
+          </>
+        )}
 
         {/* Storlek & plats – bara för egna plagg */}
         {!isWishlistItem && (
