@@ -29,14 +29,14 @@ import { newImageId } from '../utils/id'
 import { cacheGet, cacheSet } from '../utils/cache'
 import { pickImageSmart } from '../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
-import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, SEASONS as SEASON_LIST } from '../utils/constants'
+import { parsePrice } from '../utils/brands'
+import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, COLOR_OPTIONS, SEASONS as SEASON_LIST, SUBCATEGORIES } from '../utils/constants'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const WISH_CATEGORIES = CATEGORY_LIST
 const SEASONS = ['Alla', ...SEASON_LIST]
 const WISH_SEASONS = SEASON_LIST
 const COLORS = ['Alla', ...COLOR_NAMES]
-const WISH_COLORS = COLOR_NAMES
 
 const SORT_OPTIONS: { key: string; label: string }[] = [
   { key: 'recent', label: 'Senast tillagd' },
@@ -94,9 +94,11 @@ export default function Wardrobe() {
   const [showAddWish, setShowAddWish] = useState(false)
   const [wishName, setWishName] = useState('')
   const [wishBrand, setWishBrand] = useState('')
+  const [wishPrice, setWishPrice] = useState('')
   const [wishCategory, setWishCategory] = useState('')
+  const [wishSubcategory, setWishSubcategory] = useState('')
   const [wishColor, setWishColor] = useState('')
-  const [wishSeason, setWishSeason] = useState('')
+  const [wishSeasons, setWishSeasons] = useState<string[]>([])
   const [wishImage, setWishImage] = useState<string | null>(null)
   const [savingWish, setSavingWish] = useState(false)
   const [showAddChooser, setShowAddChooser] = useState(false)
@@ -245,9 +247,11 @@ export default function Wardrobe() {
         user_id: user.id,
         name: wishName.trim(),
         brand: wishBrand.trim() || null,
+        price: parsePrice(wishPrice),
         category: wishCategory || null,
+        subcategory: wishSubcategory || null,
         color: wishColor || null,
-        season: wishSeason || null,
+        season: wishSeasons.join(', ') || null,
         image_url: imageUrl,
         sort_order: wishlist.length,
       }])
@@ -263,7 +267,7 @@ export default function Wardrobe() {
 
   function closeWishModal() {
     setShowAddWish(false)
-    setWishName(''); setWishBrand(''); setWishCategory(''); setWishColor(''); setWishSeason(''); setWishImage(null)
+    setWishName(''); setWishBrand(''); setWishPrice(''); setWishCategory(''); setWishSubcategory(''); setWishColor(''); setWishSeasons([]); setWishImage(null)
   }
 
   // --- Sale ---
@@ -548,7 +552,7 @@ export default function Wardrobe() {
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); setWishName(''); setWishBrand(''); setWishImage(null); setWishCategory(''); setWishColor(''); setWishSeason(''); setShowAddWish(true) }}>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); closeWishModal(); setShowAddWish(true) }}>
               <Text style={styles.wishChoiceTitle}>Välj foto</Text>
               <Text style={styles.wishChoiceHint}>Ta eller välj en bild och fyll i detaljerna själv</Text>
             </TouchableOpacity>
@@ -643,30 +647,53 @@ export default function Wardrobe() {
                 onChangeText={setWishBrand}
               />
 
+              <Text style={styles.modalLabel}>Pris (kr)</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="t.ex. 299"
+                placeholderTextColor={t.placeholder}
+                value={wishPrice}
+                onChangeText={setWishPrice}
+                keyboardType="numeric"
+              />
+
               <Text style={styles.modalLabel}>Kategori</Text>
               <View style={styles.pillsWrap}>
                 {WISH_CATEGORIES.map(c => (
-                  <TouchableOpacity key={c} style={[styles.pill, wishCategory === c && styles.pillActive]} onPress={() => setWishCategory(wishCategory === c ? '' : c)}>
+                  <TouchableOpacity key={c} style={[styles.pill, wishCategory === c && styles.pillActive]} onPress={() => { setWishCategory(wishCategory === c ? '' : c); setWishSubcategory('') }}>
                     <Text style={[styles.pillText, wishCategory === c && styles.pillTextActive]}>{c}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
+              {wishCategory && SUBCATEGORIES[wishCategory] && (
+                <>
+                  <Text style={styles.modalLabel}>Typ</Text>
+                  <View style={styles.pillsWrap}>
+                    {SUBCATEGORIES[wishCategory].map(sub => (
+                      <TouchableOpacity key={sub} style={[styles.pill, wishSubcategory === sub && styles.pillActive]} onPress={() => setWishSubcategory(wishSubcategory === sub ? '' : sub)}>
+                        <Text style={[styles.pillText, wishSubcategory === sub && styles.pillTextActive]}>{sub}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+
               <Text style={styles.modalLabel}>Färg</Text>
-              <View style={styles.pillsWrap}>
-                {WISH_COLORS.map(c => (
-                  <TouchableOpacity key={c} style={[styles.pill, styles.colorPill, wishColor === c && styles.pillActive]} onPress={() => setWishColor(wishColor === c ? '' : c)}>
-                    <View style={[styles.colorDot, { backgroundColor: COLOR_HEX[c] || t.surfaceMuted }]} />
-                    <Text style={[styles.pillText, wishColor === c && styles.pillTextActive]}>{c}</Text>
+              <View style={styles.wishSwatchGrid}>
+                {COLOR_OPTIONS.map(c => (
+                  <TouchableOpacity key={c.name} style={[styles.wishSwatch, { backgroundColor: c.hex }, wishColor === c.name && styles.wishSwatchActive]} onPress={() => setWishColor(wishColor === c.name ? '' : c.name)}>
+                    {wishColor === c.name && <Text style={styles.wishSwatchCheck}>✓</Text>}
                   </TouchableOpacity>
                 ))}
               </View>
+              {wishColor ? <Text style={styles.wishSwatchSelected}>Vald färg: {wishColor}</Text> : null}
 
               <Text style={styles.modalLabel}>Säsong</Text>
               <View style={styles.pillsWrap}>
                 {WISH_SEASONS.map(s => (
-                  <TouchableOpacity key={s} style={[styles.pill, wishSeason === s && styles.pillActive]} onPress={() => setWishSeason(wishSeason === s ? '' : s)}>
-                    <Text style={[styles.pillText, wishSeason === s && styles.pillTextActive]}>{s}</Text>
+                  <TouchableOpacity key={s} style={[styles.pill, wishSeasons.includes(s) && styles.pillActive]} onPress={() => setWishSeasons(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}>
+                    <Text style={[styles.pillText, wishSeasons.includes(s) && styles.pillTextActive]}>{s}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -951,6 +978,7 @@ export default function Wardrobe() {
                     <View style={styles.wishInfo}>
                       <Text style={styles.wishName}>{item.name}</Text>
                       {item.brand ? <Text style={styles.wishBrand} numberOfLines={1}>{item.brand}</Text> : null}
+                      {item.price != null ? <Text style={styles.wishPrice}>{item.price} kr</Text> : null}
                       <View style={styles.wishMeta}>
                         {item.category ? <Text style={styles.wishMetaText}>{item.category}</Text> : null}
                         {item.color ? (
@@ -1289,6 +1317,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishInfo: { flex: 1 },
   wishName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary },
   wishBrand: { fontFamily: 'Poppins_600SemiBold', fontSize: 10, color: t.textSecondary, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 1 },
+  wishPrice: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, marginTop: 2 },
   wishMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, marginTop: 3 },
   wishMetaText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
   wishColorMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -1361,6 +1390,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   colorPill: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   colorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: t.border },
+  // Färgväljare i köplistans formulär – samma swatch-stil som när man redigerar ett plagg.
+  wishSwatchGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
+  wishSwatch: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  wishSwatchActive: { borderColor: t.primary, transform: [{ scale: 1.15 }] },
+  wishSwatchCheck: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
+  wishSwatchSelected: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12, fontStyle: 'italic', marginBottom: 12 },
   pillActive: { backgroundColor: t.primary, borderColor: t.primary },
   pillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
   pillTextActive: { color: t.onPrimary },
