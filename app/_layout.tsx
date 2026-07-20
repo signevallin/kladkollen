@@ -8,6 +8,7 @@ import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
 import { registerForPush } from '../utils/push'
+import { scheduleSmartPush } from '../utils/smartPush'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
 import { ToastHost } from '../components/Toast'
 import '../global.css'
@@ -51,6 +52,8 @@ function RootLayout() {
   useEffect(() => {
     if (!hasSession) return
     registerForPush()
+    // Schemalägg om Smart Push (kalenderbaserad morgonnotis) för nästa morgon.
+    scheduleSmartPush()
     const sub = Notifications.addNotificationResponseReceivedListener(res => {
       const route = (res.notification.request.content.data as any)?.route
       if (typeof route === 'string' && route.startsWith('/')) router.push(route as any)

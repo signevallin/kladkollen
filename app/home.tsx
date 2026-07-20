@@ -4,9 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons } from '@expo/vector-icons'
 import { Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins'
 import * as Location from 'expo-location'
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import * as Sharing from 'expo-sharing'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Animated,
@@ -74,6 +74,20 @@ export default function Home() {
       fetchAll()
     }, [])
   )
+
+  // Öppnade man appen via en Smart Push-notis: förvälj kalenderns kontext och
+  // generera outfiten direkt (en gång, när garderoben har laddats).
+  const { smartContext } = useLocalSearchParams<{ smartContext?: string }>()
+  const smartHandled = useRef(false)
+  useEffect(() => {
+    if (!smartContext || smartHandled.current || garments.length === 0) return
+    const idx = CONTEXTS.findIndex(c => c.label === smartContext)
+    if (idx < 0) return
+    smartHandled.current = true
+    setSelectedContext(idx)
+    generateOutfit(idx)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [smartContext, garments.length])
 
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -272,7 +286,7 @@ export default function Home() {
     return { valid: true, missing: '' }
   }
 
-  async function generateOutfit() {
+  async function generateOutfit(ctxIndex: number = selectedContext) {
     if (garments.length === 0) {
       showAlert('Lägg till plagg i garderoben först!')
       return
@@ -288,7 +302,7 @@ export default function Home() {
     setRating(null)
     setOutfit(null)
 
-    const ctx = CONTEXTS[selectedContext]
+    const ctx = CONTEXTS[ctxIndex] ?? CONTEXTS[selectedContext]
     const currentWeather = weather ?? { temp: 10, description: 'okänt', rain: false }
 
     try {
@@ -657,7 +671,7 @@ export default function Home() {
         {/* Generate button */}
         <TouchableOpacity
           style={styles.generateBtn}
-          onPress={generateOutfit}
+          onPress={() => generateOutfit()}
           disabled={loading}
         >
           {loading
@@ -749,7 +763,7 @@ export default function Home() {
                   : <Ionicons name="share-outline" size={22} color={t.primary} />
                 }
               </TouchableOpacity>
-              <TouchableOpacity style={styles.newBtn} onPress={generateOutfit}>
+              <TouchableOpacity style={styles.newBtn} onPress={() => generateOutfit()}>
                 <Ionicons name="refresh" size={22} color={t.textSecondary} />
               </TouchableOpacity>
             </View>
