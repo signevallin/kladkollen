@@ -68,6 +68,12 @@
         {
           "color": "#402D21"
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Klädkollen läser din kalender för att föreslå en outfit som passar dagens planer."
+        }
       ]
     ],
     "experiments": {

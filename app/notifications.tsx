@@ -16,6 +16,7 @@ import type { Theme } from '../theme/theme'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { DEFAULT_PREFS, registerForPush, type NotifPrefs } from '../utils/push'
+import { isSmartPushEnabled, setSmartPushEnabled } from '../utils/smartPush'
 
 const CATEGORIES: { key: keyof NotifPrefs; title: string; desc: string }[] = [
   { key: 'weather', title: 'Väder & kläder', desc: 'Tips baserade på dagens väder – t.ex. plocka fram din stickade tröja när det blir kallare.' },
@@ -30,11 +31,13 @@ export default function NotificationsSettings() {
   const styles = makeStyles(t)
   const [enabled, setEnabled] = useState(true)
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS)
+  const [smart, setSmart] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { load() }, [])
 
   async function load() {
+    setSmart(await isSmartPushEnabled())
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
     const { data } = await supabase.from('profiles').select('notif_enabled, notif_prefs').eq('id', user.id).single()
@@ -43,6 +46,15 @@ export default function NotificationsSettings() {
       setPrefs({ ...DEFAULT_PREFS, ...(data.notif_prefs || {}) })
     }
     setLoading(false)
+  }
+
+  async function toggleSmart(v: boolean) {
+    setSmart(v)
+    const ok = await setSmartPushEnabled(v)
+    if (v && !ok) {
+      setSmart(false)
+      showAlert('Kunde inte slå på Smart Push', 'Tillåt kalender- och notis-åtkomst för Klädkollen i telefonens inställningar.')
+    }
   }
 
   async function persist(nextEnabled: boolean, nextPrefs: NotifPrefs) {
@@ -112,6 +124,17 @@ export default function NotificationsSettings() {
           </View>
         ))}
 
+        <Text style={styles.sectionHeading}>Smart Push</Text>
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>Kalenderbaserad morgonnotis</Text>
+            <Text style={styles.rowDesc}>
+              Läser dagens kalender på din telefon och väljer en outfit som passar dina planer – t.ex. "Idag väntar 3 möten" eller en påminnelse att byta om inför kvällen. Kalendern lämnar aldrig telefonen.
+            </Text>
+          </View>
+          <Toggle value={smart} onValueChange={toggleSmart} />
+        </View>
+
         <Text style={styles.footnote}>
           Väderbaserade notiser använder din senast kända plats. Vi hämtar aldrig platsen i bakgrunden bara för notiser.
         </Text>
@@ -136,5 +159,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   rowDisabled: { opacity: 0.5 },
   rowTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   rowDesc: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 3, lineHeight: 19 },
+  sectionHeading: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary, marginTop: 18, marginBottom: 10 },
   footnote: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, marginTop: 16, lineHeight: 18 },
 })
