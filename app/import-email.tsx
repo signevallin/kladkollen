@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Image,
-  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -41,8 +40,6 @@ export default function ImportEmail() {
   const t = useTheme()
   const styles = makeStyles(t)
   const [token, setToken] = useState<string | null>(null)
-  const [forwardCode, setForwardCode] = useState<string | null>(null)
-  const [forwardLink, setForwardLink] = useState<string | null>(null)
   const [lastStatus, setLastStatus] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -65,10 +62,8 @@ export default function ImportEmail() {
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data: profile } = await supabase.from('profiles').select('import_token, forward_code, forward_link, last_import_status').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('import_token, last_import_status').eq('id', user.id).single()
     setToken(profile?.import_token || null)
-    setForwardCode(profile?.forward_code || null)
-    setForwardLink(profile?.forward_link || null)
     setLastStatus(profile?.last_import_status || null)
     const { data } = await supabase.from('pending_imports').select('*').order('created_at', { ascending: false })
     if (data) {
@@ -201,7 +196,7 @@ export default function ImportEmail() {
             )}
             {pending.length === 0 ? (
               <Text style={styles.emptyText}>
-                När ett kvitto vidarebefordrats dyker plaggen upp här. Vidarebefordra gärna ett gammalt kvitto för att testa.
+                Vidarebefordra en orderbekräftelse eller ett kvitto till din import-adress nedan, så dyker plaggen upp här för granskning. Testa gärna med ett gammalt kvitto.
               </Text>
             ) : (
               <>
@@ -259,31 +254,13 @@ export default function ImportEmail() {
               </TouchableOpacity>
             </View>
 
-            {(forwardCode || forwardLink) && (
-              <View style={styles.codeCard}>
-                <Text style={styles.codeLabel}>Bekräfta vidarebefordran från Gmail</Text>
-                {forwardLink ? (
-                  <>
-                    <TouchableOpacity style={styles.confirmBtn} onPress={() => Linking.openURL(forwardLink)}>
-                      <Text style={styles.confirmBtnText}>Bekräfta i Gmail</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.codeHint}>Öppnar Googles bekräftelselänk. Var inloggad på rätt Google-konto.</Text>
-                  </>
-                ) : null}
-                {forwardCode ? (
-                  <Text style={styles.codeHintSmall}>Eller ange koden i Gmail: <Text style={styles.code}>{forwardCode}</Text></Text>
-                ) : null}
-              </View>
-            )}
-
-            {/* Så här ställer du in det */}
+            {/* Så importerar du ett kvitto */}
             <View style={styles.stepsCard}>
-              <Text style={styles.stepsTitle}>Så här kopplar du din Gmail (en gång)</Text>
-              <Text style={styles.step}>1. Gmail på datorn → Inställningar → “Vidarebefordran och POP/IMAP”.</Text>
-              <Text style={styles.step}>2. “Lägg till en vidarebefordringsadress” → klistra in adressen ovan.</Text>
-              <Text style={styles.step}>3. Gmail skickar en bekräftelsekod – den dyker upp här i appen inom någon minut. Klistra in den i Gmail.</Text>
-              <Text style={styles.step}>4. Skapa ett filter: sök t.ex. “orderbekräftelse OR order confirmation” → “Skapa filter” → “Vidarebefordra till” din adress.</Text>
-              <Text style={styles.stepNote}>Klart! Nya orderbekräftelser dyker upp här automatiskt för granskning.</Text>
+              <Text style={styles.stepsTitle}>Så importerar du ett kvitto</Text>
+              <Text style={styles.step}>1. Öppna en orderbekräftelse eller ett kvitto i din mejl.</Text>
+              <Text style={styles.step}>2. Tryck på “Vidarebefordra” och skicka mejlet till din import-adress ovan.</Text>
+              <Text style={styles.step}>3. Inom någon minut dyker plaggen upp här för granskning.</Text>
+              <Text style={styles.stepNote}>Fungerar från vilken mejlapp som helst – ingen Gmail-inställning eller filter behövs.</Text>
             </View>
           </>
         )}
@@ -304,14 +281,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   address: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary, marginBottom: 12 },
   copyBtn: { backgroundColor: t.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   copyBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 14 },
-
-  codeCard: { backgroundColor: t.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: t.primary, marginBottom: 12, alignItems: 'center' },
-  codeLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary },
-  code: { fontFamily: 'Poppins_700Bold', fontSize: 16, color: t.textPrimary, letterSpacing: 1 },
-  codeHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, textAlign: 'center', marginTop: 6 },
-  codeHintSmall: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, textAlign: 'center', marginTop: 10 },
-  confirmBtn: { backgroundColor: t.primary, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 20, marginTop: 8, alignSelf: 'stretch', alignItems: 'center' },
-  confirmBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
 
   stepsCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: t.border, marginBottom: 24, gap: 8 },
   stepsTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, marginBottom: 4 },
