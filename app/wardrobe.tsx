@@ -647,16 +647,6 @@ export default function Wardrobe() {
                 onChangeText={setWishBrand}
               />
 
-              <Text style={styles.modalLabel}>Pris (kr)</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="t.ex. 299"
-                placeholderTextColor={t.placeholder}
-                value={wishPrice}
-                onChangeText={setWishPrice}
-                keyboardType="numeric"
-              />
-
               <Text style={styles.modalLabel}>Kategori</Text>
               <View style={styles.pillsWrap}>
                 {WISH_CATEGORIES.map(c => (
@@ -697,6 +687,16 @@ export default function Wardrobe() {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              <Text style={styles.modalLabel}>Pris (kr)</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="t.ex. 299"
+                placeholderTextColor={t.placeholder}
+                value={wishPrice}
+                onChangeText={setWishPrice}
+                keyboardType="numeric"
+              />
 
               <TouchableOpacity style={styles.modalSaveBtn} onPress={addWishItem} disabled={savingWish}>
                 <Text style={styles.modalSaveBtnText}>{savingWish ? 'Sparar...' : 'Lägg till'}</Text>

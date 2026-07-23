@@ -184,11 +184,7 @@ export default function GarmentDetail() {
   }, [location, locations])
 
   function toggleSeason(s: string) {
-    if (isWishlistItem) {
-      setSeasons(prev => prev.includes(s) ? [] : [s])
-    } else {
-      setSeasons(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
-    }
+    setSeasons(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
   }
 
   async function pickImage() {
