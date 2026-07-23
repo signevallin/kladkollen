@@ -21,6 +21,7 @@ export default async function handler(request: Request): Promise<Response> {
     const groupedList = clip(body.groupedList, 8000)
     const season = clip(body.season, 20)
     const avoidSongs = clip(body.avoidSongs, 600)
+    const previousSong = clip(body.previousSong, 120)
     const contextNote = clip(body.contextNote, 400)
     const musicGenres = clip(body.musicGenres, 200)
     const recentOutfits = clip(body.recentOutfits, 1500)
@@ -88,7 +89,8 @@ LÅTREGLER:
 - Låten ska matcha känslan i just "${contextLabel}" – en låt för en jobbdag ska
   låta annorlunda än en för fest eller date. Välj INTE samma stämning oavsett tillfälle.
 ${musicGenres ? `- Användaren lyssnar helst på: ${musicGenres}. Välj ENDAST en låt som hör hemma i någon av dessa genrer.` : '- Variera mellan olika genrer från gång till gång.'}
-${avoidSongs ? `- FÖRBJUDET att föreslå någon av dessa nyligen använda låtar (välj en helt annan): ${avoidSongs}` : ''}
+${previousSong ? `- Du föreslog ALLDELES NYSS "${previousSong}". Det är FÖRBJUDET att föreslå den låten igen OCH förbjudet att välja en annan låt av samma artist – välj en HELT annan artist och en helt annan låt.` : ''}
+${avoidSongs ? `- FÖRBJUDET att föreslå någon av dessa nyligen använda låtar eller en annan låt av samma artister (välj en helt annan): ${avoidSongs}` : ''}
 
 Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`
