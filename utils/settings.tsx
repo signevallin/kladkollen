@@ -4,6 +4,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 // App-övergripande inställningar som påverkar hur siffror visas i hela appen:
 // valuta (priser) och temperaturenhet (väder). Sparas lokalt och läses via
 // useSettings() i skärmarna – ändras de slår de igenom direkt överallt.
+//
+// Priser lagras alltid i SEK (basvaluta). Vid visning räknas de om till vald
+// valuta med aktuell växelkurs, och när användaren skriver in ett pris i en
+// annan valuta räknas det tillbaka till SEK innan det sparas.
 
 export type CurrencyCode = 'SEK' | 'NOK' | 'DKK' | 'EUR' | 'USD' | 'GBP'
 export type TempUnit = 'C' | 'F'
@@ -17,8 +21,16 @@ export const CURRENCIES: { code: CurrencyCode; label: string }[] = [
   { code: 'GBP', label: 'GBP · £' },
 ]
 
+// Ungefärliga reservkurser (SEK → valuta) om nätet inte svarar. Ersätts av
+// färska kurser från frankfurter.app (ECB) så fort de hämtats.
+const FALLBACK_RATES: Record<CurrencyCode, number> = {
+  SEK: 1, NOK: 1.02, DKK: 0.66, EUR: 0.088, USD: 0.095, GBP: 0.075,
+}
+
 const CUR_KEY = 'kladkollen_currency'
 const TEMP_KEY = 'kladkollen_tempunit'
+const RATES_KEY = 'kladkollen_rates'
+const RATES_TTL = 12 * 60 * 60 * 1000 // 12 h
 
 function formatWithCurrency(n: number, currency: CurrencyCode): string {
   const grouped = Math.round(n).toLocaleString('sv-SE')
@@ -35,11 +47,15 @@ type SettingsCtx = {
   tempUnit: TempUnit
   setCurrency: (c: CurrencyCode) => void
   setTempUnit: (u: TempUnit) => void
-  /** Formaterar ett belopp med rätt valutasymbol (ingen växelkursomräkning). */
-  formatPrice: (n: number | null | undefined) => string
-  /** Konverterar ett Celsius-värde till valt enhetsvärde (avrundat heltal). */
+  /** Formaterar ett SEK-belopp i vald valuta (med omräkning). */
+  formatPrice: (sek: number | null | undefined) => string
+  /** Räknar om ett inmatat belopp (i vald valuta) till SEK för lagring. */
+  toBaseSEK: (amount: number | null | undefined) => number | null
+  /** Räknar om ett lagrat SEK-belopp till vald valuta (för att förifylla fält). */
+  fromBaseSEK: (sek: number | null | undefined) => number | null
+  /** Aktuell kurs SEK → vald valuta. */
+  rate: number
   tempValue: (celsius: number) => number
-  /** Som tempValue men med gradtecken + enhet, t.ex. "10°C" / "50°F". */
   tempLabel: (celsius: number) => string
 }
 
@@ -48,6 +64,7 @@ const Ctx = createContext<SettingsCtx | null>(null)
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>('SEK')
   const [tempUnit, setTempUnitState] = useState<TempUnit>('C')
+  const [rates, setRates] = useState<Record<CurrencyCode, number>>(FALLBACK_RATES)
 
   useEffect(() => {
     (async () => {
@@ -57,8 +74,30 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const u = await AsyncStorage.getItem(TEMP_KEY)
         if (u === 'F' || u === 'C') setTempUnitState(u)
       } catch { /* behåll standard */ }
+      loadRates()
     })()
   }, [])
+
+  async function loadRates() {
+    // Använd cachade kurser först (om färska), hämta annars nya.
+    try {
+      const raw = await AsyncStorage.getItem(RATES_KEY)
+      if (raw) {
+        const cached = JSON.parse(raw)
+        if (cached?.rates) setRates({ ...FALLBACK_RATES, ...cached.rates, SEK: 1 })
+        if (cached?.ts && Date.now() - cached.ts < RATES_TTL) return
+      }
+    } catch { /* ignorera */ }
+    try {
+      const res = await fetch('https://api.frankfurter.app/latest?base=SEK&symbols=NOK,DKK,EUR,USD,GBP')
+      const data = await res.json()
+      if (data?.rates) {
+        const next = { ...FALLBACK_RATES, ...data.rates, SEK: 1 }
+        setRates(next)
+        AsyncStorage.setItem(RATES_KEY, JSON.stringify({ ts: Date.now(), rates: next })).catch(() => {})
+      }
+    } catch { /* behåll reserv/cache */ }
+  }
 
   function setCurrency(c: CurrencyCode) {
     setCurrencyState(c)
@@ -69,6 +108,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     AsyncStorage.setItem(TEMP_KEY, u).catch(() => {})
   }
 
+  const rate = rates[currency] ?? 1
   const toUnit = (celsius: number) => tempUnit === 'F' ? Math.round(celsius * 9 / 5 + 32) : Math.round(celsius)
 
   const value: SettingsCtx = {
@@ -76,7 +116,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     tempUnit,
     setCurrency,
     setTempUnit,
-    formatPrice: (n) => formatWithCurrency(Number(n) || 0, currency),
+    rate,
+    formatPrice: (sek) => formatWithCurrency((Number(sek) || 0) * rate, currency),
+    toBaseSEK: (amount) => (amount == null || amount === ('' as any)) ? null : Math.round((Number(amount) || 0) / rate),
+    fromBaseSEK: (sek) => sek == null ? null : Math.round((Number(sek) || 0) * rate),
     tempValue: toUnit,
     tempLabel: (celsius) => `${toUnit(celsius)}°${tempUnit}`,
   }

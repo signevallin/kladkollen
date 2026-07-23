@@ -54,7 +54,7 @@ const COLOR_ORDER = COLORS.slice(1)
 export default function Wardrobe() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { formatPrice, currency } = useSettings()
+  const { formatPrice, currency, toBaseSEK } = useSettings()
   // Seedas från cachen så garderoben ritas direkt vid flikbyte, medan en
   // uppdatering hämtas i bakgrunden.
   const [garments, setGarments] = useState<any[]>(() => cacheGet('wardrobe.garments') ?? [])
@@ -249,7 +249,7 @@ export default function Wardrobe() {
         user_id: user.id,
         name: wishName.trim(),
         brand: wishBrand.trim() || null,
-        price: parsePrice(wishPrice),
+        price: toBaseSEK(parsePrice(wishPrice)),
         category: wishCategory || null,
         subcategory: wishSubcategory || null,
         color: wishColor || null,

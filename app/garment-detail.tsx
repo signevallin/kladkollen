@@ -52,7 +52,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 export default function GarmentDetail() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { currency } = useSettings()
+  const { currency, toBaseSEK, fromBaseSEK } = useSettings()
   const { id, wishlistId } = useLocalSearchParams()
   const isWishlistItem = !!wishlistId && !id
 
@@ -101,7 +101,7 @@ export default function GarmentDetail() {
       setSubcategory(data.subcategory || '')
       setColor(data.color || '')
       setSeasons(data.season ? data.season.split(', ').filter(Boolean) : [])
-      setPrice(data.price != null ? String(data.price) : '')
+      setPrice(data.price != null ? String(fromBaseSEK(data.price)) : '')
       setImageUrl(data.image_url)
       setLoaded(true)
     }
@@ -114,7 +114,7 @@ export default function GarmentDetail() {
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
       setSize(data.size || ''); setFit(data.fit || ''); setLocation(data.location || '')
-      setBrand(data.brand || ''); setPrice(data.price != null ? String(data.price) : '')
+      setBrand(data.brand || ''); setPrice(data.price != null ? String(fromBaseSEK(data.price)) : '')
       setArchived(!!data.archived); setSold(!!data.sold)
       setArchiveReason(data.archive_reason || null)
       setLoaded(true)
@@ -132,7 +132,7 @@ export default function GarmentDetail() {
         const { error } = await supabase.from('wishlist').update({
           name,
           brand: brand.trim() || null,
-          price: parsePrice(price),
+          price: toBaseSEK(parsePrice(price)),
           category: category || null,
           subcategory: subcategory || null,
           color: color || null,
@@ -153,7 +153,7 @@ export default function GarmentDetail() {
           fit: fit || null,
           location: location.trim() || null,
           brand: brand.trim() || null,
-          price: parsePrice(price),
+          price: toBaseSEK(parsePrice(price)),
           archived: archivedVal,
           archive_reason: archivedVal ? archiveReason : null,
           ...(archivedVal ? {} : { sold: false }),
