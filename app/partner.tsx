@@ -142,13 +142,19 @@ export default function Partner() {
               const partner = members.find(m => m.user_id !== myId)
               if (!partner) return null
               return (
-                <TouchableOpacity
-                  style={styles.viewBtn}
-                  onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
-                >
-                  <MaterialIcons name="checkroom" size={20} color={t.onPrimary} />
-                  <Text style={styles.viewBtnText}>Visa {partner.name}s garderob & outfits</Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    style={styles.viewBtn}
+                    onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
+                  >
+                    <MaterialIcons name="checkroom" size={20} color={t.onPrimary} />
+                    <Text style={styles.viewBtnText}>Visa {partner.name}s garderob & outfits</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.matchBtn} onPress={() => router.push('/couple-match')}>
+                    <MaterialIcons name="auto-awesome" size={20} color={t.primary} />
+                    <Text style={styles.matchBtnText}>Matcha outfits inför att gå bort</Text>
+                  </TouchableOpacity>
+                </>
               )
             })()}
 
@@ -228,6 +234,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   memberName: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, marginTop: 10 },
   viewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16, paddingVertical: 15, borderRadius: 14, backgroundColor: t.primary },
   viewBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
+  matchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 10, paddingVertical: 15, borderRadius: 14, backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary },
+  matchBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 15 },
   unlinkBtn: { marginTop: 12, padding: 14, alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: t.border },
   unlinkBtnText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
 })

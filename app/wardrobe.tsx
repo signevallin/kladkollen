@@ -909,10 +909,17 @@ export default function Wardrobe() {
             }
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.item} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
-                {item.image_url
-                  ? <SignedImage path={item.image_url} style={styles.itemImage} />
-                  : null
-                }
+                <View>
+                  {item.image_url
+                    ? <SignedImage path={item.image_url} style={styles.itemImage} />
+                    : null
+                  }
+                  {item.lendable && (
+                    <View style={styles.lendBadge}>
+                      <Ionicons name="swap-horizontal" size={12} color={t.onPrimary} />
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.itemName}>{item.name}</Text>
                 {item.brand ? <Text style={styles.itemBrand} numberOfLines={1}>{item.brand}</Text> : null}
                 <Text style={styles.itemCategory} numberOfLines={1}>{item.subcategory || item.category}</Text>
@@ -1338,6 +1345,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   saleImageEmpty: { width: 60, height: 60, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   archImageWrap: { position: 'relative' },
   reasonBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  lendBadge: { position: 'absolute', top: -6, right: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primaryActive, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.bg },
   archMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   archMetaText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
   saleInfo: { flex: 1 },
