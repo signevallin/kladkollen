@@ -24,6 +24,7 @@ import BottomNav from '../components/BottomNav'
 import { OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheGet, cacheSet } from '../utils/cache'
 import { useSettings } from '../utils/settings'
+import { loadPartner } from '../utils/household'
 import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
 import SongCard from '../components/SongCard'
@@ -68,6 +69,7 @@ export default function Home() {
   const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  const [partnerName, setPartnerName] = useState<string | null>(null)
 
   const shareCardRef = useRef<View>(null)
 
@@ -83,6 +85,7 @@ export default function Home() {
       // ändrat i profilen slår igenom direkt när man kommer tillbaka hit.
       loadUser()
       fetchAll()
+      loadPartner().then(({ partner }) => setPartnerName(partner?.name || null))
     }, [])
   )
 
@@ -737,6 +740,14 @@ export default function Home() {
           }
         </TouchableOpacity>
 
+        {/* Par-generering – bara i samboläge */}
+        {partnerName && (
+          <TouchableOpacity style={styles.coupleBtn} onPress={() => router.push('/couple-match')}>
+            <Ionicons name="sparkles-outline" size={18} color={t.primary} />
+            <Text style={styles.coupleBtnText}>Generera outfits för mig och {partnerName}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Outfit result */}
         {outfit && !loading && (
           <Animated.View style={[styles.outfitCard, {
@@ -968,8 +979,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   toggleKnobOn: { alignSelf: 'flex-end', backgroundColor: t.bg },
 
   // Generate
-  generateBtn: { marginHorizontal: 28, backgroundColor: t.primary, borderRadius: 18, padding: 18, alignItems: 'center', marginBottom: 28 },
+  generateBtn: { marginHorizontal: 28, backgroundColor: t.primary, borderRadius: 18, padding: 18, alignItems: 'center', marginBottom: 12 },
   generateBtnText: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, letterSpacing: 0.5 },
+  coupleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 28, backgroundColor: t.surface, borderRadius: 16, paddingVertical: 15, borderWidth: 1, borderColor: t.primary, marginBottom: 28 },
+  coupleBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 14 },
 
   // Outfit card
   outfitCard: { marginHorizontal: 28, backgroundColor: t.surfaceMuted, borderRadius: 22, padding: 20, marginBottom: 28, borderWidth: 1, borderColor: t.border, gap: 16 },

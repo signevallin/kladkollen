@@ -142,19 +142,13 @@ export default function Partner() {
               const partner = members.find(m => m.user_id !== myId)
               if (!partner) return null
               return (
-                <>
-                  <TouchableOpacity
-                    style={styles.viewBtn}
-                    onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
-                  >
-                    <MaterialIcons name="checkroom" size={20} color={t.onPrimary} />
-                    <Text style={styles.viewBtnText}>Visa {partner.name}s garderob & outfits</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.matchBtn} onPress={() => router.push('/couple-match')}>
-                    <MaterialIcons name="auto-awesome" size={20} color={t.primary} />
-                    <Text style={styles.matchBtnText}>Matcha outfits inför att gå bort</Text>
-                  </TouchableOpacity>
-                </>
+                <TouchableOpacity
+                  style={styles.viewBtn}
+                  onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
+                >
+                  <MaterialIcons name="checkroom" size={20} color={t.onPrimary} />
+                  <Text style={styles.viewBtnText}>Visa {partner.name}s garderob & outfits</Text>
+                </TouchableOpacity>
               )
             })()}
 

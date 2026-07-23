@@ -16,7 +16,8 @@ import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { loadPartner } from '../utils/household'
-import { OUTFIT_CONTEXTS } from '../utils/constants'
+import { fetchCurrentWeather, buildWeatherContext, getCurrentSeason } from '../utils/weather'
+import { OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 
 export default function CoupleMatch() {
   const t = useTheme()
@@ -32,6 +33,12 @@ export default function CoupleMatch() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any | null>(null)
 
+  // Samma regler som vanlig outfit-generering (från min profil).
+  const [styleRuleKeys, setStyleRuleKeys] = useState<string[]>([])
+  const [avoidNote, setAvoidNote] = useState('')
+  const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
+  const [coldSensitivity, setColdSensitivity] = useState(3)
+
   useEffect(() => { load() }, [])
 
   async function load() {
@@ -40,11 +47,15 @@ export default function CoupleMatch() {
     if (!user || !partner) { setReady(true); return }
     setPartnerName(partner.name)
     const [{ data: prof }, mine, theirs] = await Promise.all([
-      supabase.from('profiles').select('name').eq('id', user.id).single(),
+      supabase.from('profiles').select('name, style_rules, avoid_note, outfit_context_notes, cold_sensitivity').eq('id', user.id).single(),
       supabase.from('garments').select('*').eq('user_id', user.id),
       supabase.rpc('partner_garments', { target: partner.id }),
     ])
     if (prof?.name) setMyName(prof.name)
+    setStyleRuleKeys(prof?.style_rules ? prof.style_rules.split(', ').filter(Boolean) : [])
+    setAvoidNote(prof?.avoid_note || '')
+    setContextNotes(prof?.outfit_context_notes || {})
+    if (prof?.cold_sensitivity != null) setColdSensitivity(prof.cold_sensitivity)
     setMyGarments((mine.data || []).filter((g: any) => !g.archived && !g.for_sale))
     setPartnerGarments((theirs.data || []).filter((g: any) => !g.archived && !g.for_sale))
     setReady(true)
@@ -80,6 +91,9 @@ export default function CoupleMatch() {
     setLoading(true); setResult(null)
     try {
       const ctx = OUTFIT_CONTEXTS[ctxIndex] || OUTFIT_CONTEXTS[0]
+      const weather = await fetchCurrentWeather()
+      const weatherCtx = buildWeatherContext(weather, coldSensitivity)
+      const styleRules = STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n')
       const parsed = await apiPost('/api/match-couple', {
         nameA: myName,
         nameB: partnerName,
@@ -87,6 +101,12 @@ export default function CoupleMatch() {
         listB: groupList(partnerGarments),
         contextLabel: ctx.label,
         contextLogic: ctx.logic,
+        weatherSummary: weatherCtx.summary,
+        weatherRules: weatherCtx.rules,
+        styleRules,
+        avoid: avoidNote.trim(),
+        contextNote: (contextNotes[ctx.label] || '').trim(),
+        season: getCurrentSeason(),
       })
       setResult(parsed)
     } catch (e: any) {
