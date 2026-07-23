@@ -6,6 +6,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
 import { toast } from '../components/Toast'
+import { showAlert } from '../utils/alert'
 import { base64ToBytes, pngToWebp } from '../utils/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -245,11 +246,11 @@ export default function AddGarment() {
   async function saveAll() {
     const ready = drafts.filter(d => !d.analyzing && !d.removingBg)
     if (ready.some(d => !d.name || !d.category)) {
-      Alert.alert('Fyll i namn och kategori för alla plagg')
+      showAlert('Fyll i namn och kategori för alla plagg')
       return
     }
     if (ready.some(d => d.seasons.length === 0)) {
-      Alert.alert('Välj årstid', 'Ange minst en årstid för varje plagg – det används för att ge säsongsrätta outfit-förslag. Välj "Alla årstider" om plagget passar året runt.')
+      showAlert('Välj årstid', 'Ange minst en årstid för varje plagg – det används för att ge säsongsrätta outfit-förslag. Välj "Alla årstider" om plagget passar året runt.')
       return
     }
     setSaving(true)
@@ -275,7 +276,7 @@ export default function AddGarment() {
       toast(`${ready.length} ${ready.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
       goBack('/wardrobe')
     } catch (e: any) {
-      Alert.alert('Något gick fel', e.message)
+      showAlert('Något gick fel', e.message)
     } finally {
       setSaving(false)
     }

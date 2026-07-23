@@ -23,6 +23,7 @@ import SignedImage from '../components/SignedImage'
 import CapsuleView from '../components/CapsuleView'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
+import { showAlert, showConfirm } from '../utils/alert'
 import { pickImageSmart } from '../utils/imagePicker'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -93,7 +94,7 @@ export default function Inspiration() {
         if (dbError) throw dbError
         fetchMoodboard()
       } catch (error: any) {
-        Alert.alert('Något gick fel', error.message)
+        showAlert('Något gick fel', error.message)
       } finally {
         setUploadingMoodboard(false)
       }
@@ -122,17 +123,11 @@ export default function Inspiration() {
   })).current
 
   async function deleteMoodboardImage(id: string) {
-    Alert.alert('Ta bort bild', 'Vill du ta bort bilden från moodboarden?', [
-      { text: 'Avbryt', style: 'cancel' },
-      {
-        text: 'Ta bort', style: 'destructive',
-        onPress: async () => {
-          await supabase.from('moodboard').delete().eq('id', id)
-          setSelectedImage(null)
-          fetchMoodboard()
-        }
-      }
-    ])
+    showConfirm('Ta bort bild', 'Vill du ta bort bilden från moodboarden?', async () => {
+      await supabase.from('moodboard').delete().eq('id', id)
+      setSelectedImage(null)
+      fetchMoodboard()
+    }, 'Ta bort', true)
   }
 
   async function pickInspoImage() {
@@ -164,16 +159,16 @@ export default function Inspiration() {
       sort_order: count || 0,
     })
     if (error) {
-      Alert.alert('Något gick fel', error.message)
+      showAlert('Något gick fel', error.message)
     } else {
       setAddedToWishlist(prev => [...prev, itemName])
-      Alert.alert('Lagt till!', `"${itemName}" finns nu i din köplista.`)
+      showAlert('Lagt till!', `"${itemName}" finns nu i din köplista.`)
     }
   }
 
   async function analyzeAndMatch() {
     if (!inspoBase64) {
-      Alert.alert('Välj en inspirationsbild först!')
+      showAlert('Välj en inspirationsbild först!')
       return
     }
     setLoading(true)
@@ -209,7 +204,7 @@ export default function Inspiration() {
       setOutfit({ ...parsed, missing: missingArray, itemsWithImages })
       setSavedInspo(false)
     } catch (error: any) {
-      Alert.alert('Något gick fel', error.message)
+      showAlert('Något gick fel', error.message)
     } finally {
       setLoading(false)
     }
@@ -232,9 +227,9 @@ export default function Inspiration() {
       }])
       if (error) throw error
       setSavedInspo(true)
-      Alert.alert('Outfit sparad!', 'Du hittar den under Outfits.')
+      showAlert('Outfit sparad!', 'Du hittar den under Outfits.')
     } catch (e: any) {
-      Alert.alert('Något gick fel', e.message)
+      showAlert('Något gick fel', e.message)
     } finally {
       setSavingInspo(false)
     }
