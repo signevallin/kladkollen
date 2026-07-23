@@ -90,6 +90,7 @@ function RootLayout() {
         <Stack.Screen name="my-outfit" options={{ animation: 'none' }} />
         <Stack.Screen name="inspiration" options={{ animation: 'none' }} />
         <Stack.Screen name="stats" />
+        <Stack.Screen name="wardrobe-analysis" />
         <Stack.Screen name="add-garment" />
         <Stack.Screen name="import-purchases" />
         <Stack.Screen name="import-email" />
