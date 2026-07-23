@@ -323,7 +323,7 @@ export default function ImportPurchases() {
             <Text style={styles.backButtonText}>← Tillbaka till butiken</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Hittade {items.length} plagg</Text>
-          <Text style={styles.subtitle}>Bocka ur det du inte vill lägga till i garderoben.</Text>
+          <Text style={styles.subtitle}>Bocka ur det du inte vill lägga till {toWishlist ? 'på köplistan' : 'i garderoben'}.</Text>
           {items.map((item, i) => (
             <TouchableOpacity key={i} style={[styles.itemRow, selected.has(i) && styles.itemRowSelected]} onPress={() => toggle(i)} disabled={adding}>
               {item.imageUrl
@@ -348,7 +348,7 @@ export default function ImportPurchases() {
           >
             {adding
               ? <View style={styles.btnRow}><ActivityIndicator color={t.onPrimary} /><Text style={styles.primaryBtnText}> {addProgress}</Text></View>
-              : <Text style={styles.primaryBtnText}>Lägg till {selected.size} plagg i garderoben</Text>
+              : <Text style={styles.primaryBtnText}>Lägg till {selected.size} plagg {toWishlist ? 'i köplistan' : 'i garderoben'}</Text>
             }
           </TouchableOpacity>
         </ScrollView>
