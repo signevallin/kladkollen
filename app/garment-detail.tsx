@@ -29,7 +29,7 @@ import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
-import { CATEGORIES, COLOR_OPTIONS as COLORS, SEASONS, SUBCATEGORIES } from '../utils/constants'
+import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { resolveImageUrl } from '../utils/storage'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -65,6 +65,7 @@ export default function GarmentDetail() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [newImage, setNewImage] = useState<string | null>(null)
   const [size, setSize] = useState('')
+  const [fit, setFit] = useState('')
   const [location, setLocation] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
@@ -109,7 +110,7 @@ export default function GarmentDetail() {
       setName(data.name); setCategory(data.category); setSubcategory(data.subcategory || ''); setColor(data.color || '')
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
-      setSize(data.size || ''); setLocation(data.location || '')
+      setSize(data.size || ''); setFit(data.fit || ''); setLocation(data.location || '')
       setBrand(data.brand || ''); setPrice(data.price != null ? String(data.price) : '')
       setArchived(!!data.archived); setSold(!!data.sold)
       setArchiveReason(data.archive_reason || null)
@@ -146,6 +147,7 @@ export default function GarmentDetail() {
           season: seasons.join(', '),
           color,
           size: size.trim() || null,
+          fit: fit || null,
           location: location.trim() || null,
           brand: brand.trim() || null,
           price: parsePrice(price),
@@ -172,7 +174,7 @@ export default function GarmentDetail() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [name, category, subcategory, color, seasons, size, location, brand, price, archiveReason])
+  }, [name, category, subcategory, color, seasons, size, fit, location, brand, price, archiveReason])
 
   // Håll arkiv-badgen i synk med vald plats.
   useEffect(() => {
@@ -540,6 +542,15 @@ export default function GarmentDetail() {
               value={SIZES.includes(size) ? '' : size}
               onChangeText={setSize}
             />
+
+            <Text style={styles.label}>Passform</Text>
+            <View style={styles.pills}>
+              {FITS.map((f) => (
+                <TouchableOpacity key={f} style={[styles.pill, fit === f && styles.pillActive]} onPress={() => setFit(fit === f ? '' : f)}>
+                  <Text style={[styles.pillText, fit === f && styles.pillTextActive]}>{f}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             <View style={styles.labelRow}>
               <Text style={styles.label}>Var finns plagget?</Text>

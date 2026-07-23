@@ -47,6 +47,9 @@ export const COLOR_HEX: Record<string, string> = Object.fromEntries(COLOR_OPTION
 
 export const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 
+// Passform på plagget.
+export const FITS = ['Skinny', 'Slim', 'Regular', 'Relaxed', 'Oversize']
+
 // Tillfällen som outfit-genereringen kan utgå från. label visas i appen,
 // logic är grundbeskrivningen som skickas till AI:n. Delas mellan hemskärmen
 // (väljaren) och profilen (kommentar per tillfälle) så de aldrig glider isär.

@@ -25,7 +25,7 @@ import BrandInput from '../components/BrandInput'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
-import { CATEGORIES, COLOR_OPTIONS as COLORS, SEASONS, SUBCATEGORIES } from '../utils/constants'
+import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { pickImageSmart } from '../utils/imagePicker'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -55,6 +55,7 @@ type GarmentDraft = {
   color: string
   seasons: string[]
   size: string
+  fit: string
   brand: string
   price: string
   analyzing: boolean
@@ -129,6 +130,7 @@ export default function AddGarment() {
       color: '',
       seasons: [],
       size: '',
+      fit: '',
       brand: '',
       price: '',
       analyzing: true,
@@ -264,6 +266,7 @@ export default function AddGarment() {
           color: draft.color,
           season: draft.seasons.join(', '),
           size: draft.size.trim() || null,
+          fit: draft.fit || null,
           brand: draft.brand.trim() || null,
           price: parsePrice(draft.price),
           image_url: imageUrl,
@@ -475,6 +478,20 @@ export default function AddGarment() {
                     value={SIZES.includes(draft.size) ? '' : draft.size}
                     onChangeText={v => updateDraft(draft.id, 'size', v)}
                   />
+
+                  {/* Fit / passform */}
+                  <Text style={styles.cardLabel}>PASSFORM (VALFRITT)</Text>
+                  <View style={styles.pillRow}>
+                    {FITS.map(f => (
+                      <TouchableOpacity
+                        key={f}
+                        style={[styles.pill, draft.fit === f && styles.pillActive]}
+                        onPress={() => updateDraft(draft.id, 'fit', draft.fit === f ? '' : f)}
+                      >
+                        <Text style={[styles.pillText, draft.fit === f && styles.pillTextActive]}>{f}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
 
                   {/* Price */}
                   <Text style={styles.cardLabel}>PRIS I KR (VALFRITT)</Text>
