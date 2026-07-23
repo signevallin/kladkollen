@@ -3,7 +3,7 @@
 
 export const CATEGORIES = [
   'Toppar', 'Tröjor', 'Byxor', 'Shorts', 'Kjolar', 'Klänningar',
-  'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer',
+  'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer', 'Smycken',
 ]
 
 export const SUBCATEGORIES: Record<string, string[]> = {
@@ -17,7 +17,8 @@ export const SUBCATEGORIES: Record<string, string[]> = {
   'Ytterkläder': ['Kappa', 'Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka'],
   'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor', 'Tofflor'],
   'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
-  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Keps', 'Mössa', 'Smycken', 'Solglasögon', 'Håraccessoarer'],
+  'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Keps', 'Mössa', 'Solglasögon', 'Håraccessoarer'],
+  'Smycken': ['Örhängen', 'Halsband', 'Armband', 'Ring', 'Klocka', 'Fotlänk'],
 }
 
 // Ordnad färglista med hex – ordningen används i väljare, filter och sortering.

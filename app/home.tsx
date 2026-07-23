@@ -262,6 +262,7 @@ export default function Home() {
       'Skor': 'SKOR – alltid obligatorisk (välj exakt 1)',
       'Väskor': 'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken',
       'Accessoarer': 'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken',
+      'Smycken': 'VÄSKA / ACCESSOAR – valfritt, lägg till om det lyfter looken',
     }
     for (const g of garmentList) {
       const group = categoryMap[g.category]

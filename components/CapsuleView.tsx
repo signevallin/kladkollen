@@ -56,7 +56,7 @@ export default function CapsuleView() {
     const MAX_PER_CAT: Record<string, number> = {
       'Ytterkläder': 2, 'Kavajer': 1, 'Tröjor': 3, 'Toppar': 3,
       'Byxor': 2, 'Klänningar': 2, 'Kjolar': 1, 'Skor': 2,
-      'Väskor': 1, 'Accessoarer': 2,
+      'Väskor': 1, 'Accessoarer': 2, 'Smycken': 2,
     }
 
     const scored = garments.map((g: any) => {
