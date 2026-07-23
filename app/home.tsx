@@ -823,7 +823,7 @@ export default function Home() {
             >
               {wearingToday
                 ? <ActivityIndicator color={t.onPrimary} size="small" />
-                : <Text style={styles.wearTodayBtnText}>{wornToday ? '✓ Vald för idag' : 'Vill ha på mig idag'}</Text>
+                : <Text style={[styles.wearTodayBtnText, wornToday && styles.wearTodayBtnTextDone]}>{wornToday ? '✓ Vald för idag' : 'Vill ha på mig idag'}</Text>
               }
             </TouchableOpacity>
           </Animated.View>
@@ -1005,9 +1005,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   star: { fontFamily: 'Lora_400Regular', fontSize: 28, color: t.textFaint },
   starFilled: { color: t.textPrimary },
 
-  wearTodayBtn: { borderRadius: 12, padding: 13, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
-  wearTodayBtnDone: { backgroundColor: 'transparent', borderColor: t.border },
+  wearTodayBtn: { borderRadius: 12, padding: 13, alignItems: 'center', backgroundColor: t.primary, borderWidth: 1, borderColor: t.primary },
+  wearTodayBtnDone: { backgroundColor: t.surfaceMuted, borderColor: t.border },
   wearTodayBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 14 },
+  wearTodayBtnTextDone: { color: t.textSecondary },
 
   // Stats
   statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 28 },
