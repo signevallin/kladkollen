@@ -25,6 +25,14 @@ import { MUSIC_GENRES, OUTFIT_CONTEXTS } from '../utils/constants'
 import { cacheClear } from '../utils/cache'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
+// Hur frusen användaren är – justerar hur AI:n tolkar temperaturen vid outfit-förslag.
+const COLD_LEVELS = [
+  { v: 1, label: 'Alltid varm' },
+  { v: 2, label: 'Sällan frusen' },
+  { v: 3, label: 'Lagom' },
+  { v: 4, label: 'Ofta frusen' },
+  { v: 5, label: 'Fryser lätt' },
+]
 const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
 const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter']
 const STIL_PROFIL = ['Minimal', 'Casual', 'Elegant', 'Sport', 'Bohemisk', 'Streetwear']
@@ -71,6 +79,7 @@ export default function Profile() {
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
   const [colorPrefs, setColorPrefs] = useState<string[]>([])
   const [currentSeason, setCurrentSeason] = useState('')
+  const [coldSensitivity, setColdSensitivity] = useState(3)
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
@@ -110,6 +119,7 @@ export default function Profile() {
         setStylePrefs(data.style_prefs ? data.style_prefs.split(', ') : [])
         setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
         setCurrentSeason(data.current_season || '')
+        if (data.cold_sensitivity != null) setColdSensitivity(data.cold_sensitivity)
         if (data.color_analysis) setColorAnalysis(data.color_analysis)
         if (data.skin_tone) setSkinTone(data.skin_tone)
         if (data.skin_undertone) setSkinUndertone(data.skin_undertone)
@@ -222,6 +232,7 @@ export default function Profile() {
         style_prefs: stylePrefs.join(', '),
         color_prefs: colorPrefs.join(', '),
         current_season: currentSeason,
+        cold_sensitivity: coldSensitivity,
         stil_profil: stilProfil.join(', '),
         fargsatt,
         livsstil: livsstil.join(', '),
@@ -345,6 +356,16 @@ export default function Profile() {
           {SEASONS.map(s => (
             <TouchableOpacity key={s} style={[styles.pill, currentSeason === s && styles.pillActive]} onPress={() => setCurrentSeason(s)}>
               <Text style={[styles.pillText, currentSeason === s && styles.pillTextActive]}>{s}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.label}>Hur frusen är du?</Text>
+        <Text style={styles.hint}>Påverkar hur mycket AI:n tar hänsyn till vädret – fryser du lätt föreslås varmare lager.</Text>
+        <View style={styles.pills}>
+          {COLD_LEVELS.map(l => (
+            <TouchableOpacity key={l.v} style={[styles.pill, coldSensitivity === l.v && styles.pillActive]} onPress={() => setColdSensitivity(l.v)}>
+              <Text style={[styles.pillText, coldSensitivity === l.v && styles.pillTextActive]}>{l.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

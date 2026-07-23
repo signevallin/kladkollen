@@ -60,6 +60,7 @@ export default function Home() {
   const [swapIndex, setSwapIndex] = useState<number | null>(null)
   const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
   const [musicGenres, setMusicGenres] = useState<string>('')
+  const [coldSensitivity, setColdSensitivity] = useState(3)
   const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
@@ -98,12 +99,13 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity').eq('id', user.id).single()
       if (profile?.name) setUserName(profile.name)
       else setUserName(user.email?.split('@')[0] || '')
       if (profile?.avatar_url) setUserAvatar(profile.avatar_url)
       setContextNotes(profile?.outfit_context_notes || {})
       setMusicGenres(profile?.music_genres || '')
+      if (profile?.cold_sensitivity != null) setColdSensitivity(profile.cold_sensitivity)
     }
   }
 
@@ -173,26 +175,33 @@ export default function Home() {
     setRating(null)
   }
 
-  function buildWeatherContext(w: any): { summary: string; rules: string; requiresOuterwear: boolean } {
+  // coldSensitivity 1–5 (3 = lagom). Lättfrusna (4–5) upplever det kallare,
+  // värmetåliga (1–2) varmare – vi justerar den "upplevda" temperaturen så att
+  // klädreglerna anpassas per person.
+  function buildWeatherContext(w: any, coldSensitivity = 3): { summary: string; rules: string; requiresOuterwear: boolean } {
     if (!w) return { summary: '', rules: '', requiresOuterwear: false }
     const temp = w.temp
     const rain = w.rain
+    const perceived = temp - (coldSensitivity - 3) * 2
 
     let summary = `Väder just nu: ${temp}°C, ${w.description}.`
     const rules: string[] = []
     let requiresOuterwear = false
 
-    if (temp <= 5) {
+    if (coldSensitivity >= 4) rules.push('ANVÄNDAREN ÄR LÄTTFRUSEN: lägg hellre till ett extra lager – hen fryser lätt.')
+    else if (coldSensitivity <= 2) rules.push('ANVÄNDAREN ÄR VÄRMETÅLIG: undvik att övertäcka – hen fryser sällan, lättare lager räcker.')
+
+    if (perceived <= 5) {
       summary += ' Det är kallt.'
       rules.push('KALLT VÄDER: Ytterkläder (jacka/kappa) är OBLIGATORISKT om det finns i garderoben. Välj varma material.')
       requiresOuterwear = true
-    } else if (temp <= 12) {
+    } else if (perceived <= 12) {
       summary += ' Det är svalt.'
       rules.push('SVALT VÄDER: Lägg till ytterkläder eller kavaj om det finns – annars välj en tjockare tröja.')
-    } else if (temp <= 18) {
+    } else if (perceived <= 18) {
       summary += ' Det är milt.'
       rules.push('MILT VÄDER: En lätt kavaj eller tröja kan passa, men ytterkläder är inte nödvändigt.')
-    } else if (temp >= 23) {
+    } else if (perceived >= 23) {
       summary += ' Det är varmt.'
       rules.push('VARMT VÄDER: Välj lätta material. Undvik tjocka lager och ytterkläder.')
     }
@@ -328,7 +337,7 @@ export default function Home() {
       ].filter(Boolean).join('\n')
 
       const activeGarments = garments.filter(g => !g.archived)
-      const weatherCtx = useWeather ? buildWeatherContext(currentWeather) : { summary: '', rules: '', requiresOuterwear: false }
+      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
 
       // Filtrera bort renodlade off-season-plagg (t.ex. vinterjacka på sommaren).
       // Faller tillbaka till hela garderoben om säsongsurvalet inte räcker för
