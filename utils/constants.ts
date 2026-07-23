@@ -61,6 +61,7 @@ export const STYLE_RULES: { key: string; label: string; rule: string }[] = [
   { key: 'metals', label: 'Matcha metaller', rule: 'Håll metaller enhetliga – blanda inte guld och silver i smycken och detaljer.' },
   { key: 'one_statement', label: 'Max en statementfärg', rule: 'Använd högst EN stark statementfärg, resten neutraler i samma palett.' },
   { key: 'tonal', label: 'Ton-i-ton', rule: 'Sträva efter en ton-i-ton-look – olika nyanser av samma färgfamilj.' },
+  { key: 'no_pattern_clash', label: 'Blanda inte mönster', rule: 'Blanda ALDRIG två olika mönster i samma look (t.ex. blommigt + leopard, eller prickigt + rutigt). Håll högst ETT mönstrat plagg och låt resten vara enfärgat/neutralt.' },
 ]
 
 // Tillfällen som outfit-genereringen kan utgå från. label visas i appen,
