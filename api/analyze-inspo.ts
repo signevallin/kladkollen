@@ -42,7 +42,10 @@ ${garmentList}
 
 1. Beskriv stilen i inspirationsbilden kort.
 2. Gå igenom looken ROLL för ROLL (överdel, underdel/klänning, ytterplagg/kavaj,
-   skor, väska/accessoar). För VARJE roll, gör exakt ETT av två val:
+   skor, väska/accessoar). Välj HÖGST ETT plagg per roll – aldrig två underdelar,
+   två par skor eller två överdelar. Väljer du en KLÄNNING: ta INTE med separat
+   överdel eller underdel (klänningen ersätter båda). För VARJE roll, gör exakt
+   ETT av två val:
    • Har garderoben ett plagg som fyller rollen (samma typ)? Välj det bästa till
      "items" – även om färgen skiljer sig något. Nämn färgskillnaden i "tip".
    • Har garderoben INGET plagg av den typen alls? Lägg då rollen i "missing".
@@ -85,9 +88,22 @@ Svara ENDAST med ett JSON-objekt:
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.items)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
 
-    // Säkerhetsnät: ta bort köpförslag i en roll som redan täcks av ett valt
-    // plagg (t.ex. valde en kavaj → föreslå inte en kavaj till). Deterministiskt,
-    // så en dubblett aldrig slinker igenom även om modellen skulle missa regeln.
+    // Säkerhetsnät 1: högst ETT plagg per roll i items (aldrig 2 underdelar/skor),
+    // och en klänning ersätter över-/underdel. Deterministiskt oavsett vad modellen
+    // returnerar.
+    const hasDress = parsed.items.some((i: any) => slotOf(String(i ?? '')) === 'klanning')
+    const seenSlots = new Set<string>()
+    parsed.items = parsed.items.filter((i: any) => {
+      const slot = slotOf(String(i ?? ''))
+      if (!slot) return true
+      if (hasDress && (slot === 'overdel' || slot === 'nederdel')) return false
+      if (seenSlots.has(slot)) return false
+      seenSlots.add(slot)
+      return true
+    })
+
+    // Säkerhetsnät 2: ta bort köpförslag i en roll som redan täcks av ett valt
+    // plagg (t.ex. valde en kavaj → föreslå inte en kavaj till).
     if (Array.isArray(parsed.missing)) {
       const itemSlots = new Set(parsed.items.map(slotOf).filter(Boolean))
       parsed.missing = parsed.missing.filter((m: any) => {

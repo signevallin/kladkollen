@@ -180,16 +180,30 @@ export default function Inspiration() {
     setOutfit(null)
     setAddedToWishlist([])
     try {
-      const { data: currentGarments } = await supabase.from('garments').select('id, name, category, season, archived, image_url')
-      const garments = (currentGarments || []).filter((g: any) => !g.archived)
-      const garmentList = garments.map(g => `- ${g.name} (${g.category}, ${g.season || 'alla årstider'})`).join('\n')
+      const { data: currentGarments } = await supabase.from('garments').select('id, name, category, subcategory, color, season, archived, for_sale, image_url')
+      const garments = (currentGarments || []).filter((g: any) => !g.archived && !g.for_sale)
+      // Ta med typ + färg så AI:n kan matcha t.ex. "brun mockaväska" mot ett plagg
+      // och inte felaktigt tro att det saknas.
+      const garmentList = garments.map(g => {
+        const meta = [g.subcategory || g.category, g.color].filter(Boolean).join(', ')
+        return `- ${g.name}${meta ? ` (${meta})` : ''}`
+      }).join('\n')
       const parsed = await apiPost('/api/analyze-inspo', { base64: inspoBase64, garmentList })
       const missingArray = Array.isArray(parsed.missing) ? parsed.missing.filter(Boolean) : (parsed.missing ? [parsed.missing] : [])
+      // Matcha AI:ns plaggnamn mot rätt plagg – exakt först, sedan mest specifikt,
+      // och aldrig samma plagg två gånger (samma robusta matchning som hemskärmen).
+      const usedIds = new Set<string>()
+      const findMatch = (name: string) => {
+        const target = name.trim().toLowerCase()
+        const free = (g: any) => !g.id || !usedIds.has(g.id)
+        let m = garments.find(g => free(g) && (g.name || '').trim().toLowerCase() === target)
+        if (!m) m = garments.find(g => free(g) && (g.name || '').toLowerCase().includes(target))
+        if (!m) m = garments.filter(g => free(g) && g.name && target.includes(g.name.toLowerCase())).sort((a: any, b: any) => b.name.length - a.name.length)[0]
+        if (m?.id) usedIds.add(m.id)
+        return m
+      }
       const itemsWithImages = parsed.items.map((itemName: string) => {
-        const match = garments.find(g =>
-          g.name.toLowerCase().includes(itemName.toLowerCase()) ||
-          itemName.toLowerCase().includes(g.name.toLowerCase())
-        )
+        const match = findMatch(itemName)
         return { name: itemName, image_url: match?.image_url || null, id: match?.id || null }
       })
       setOutfit({ ...parsed, missing: missingArray, itemsWithImages })
