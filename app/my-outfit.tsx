@@ -3,7 +3,8 @@ import type { Theme } from '../theme/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons } from '@expo/vector-icons'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
+import * as Sharing from 'expo-sharing'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Modal,
@@ -15,7 +16,9 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
+import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { CATEGORIES as CATEGORY_LIST, COLOR_NAMES, SEASONS as SEASON_LIST } from '../utils/constants'
@@ -63,6 +66,11 @@ export default function MyOutfits() {
   const [filteredGarments, setFilteredGarments] = useState<any[]>(() => cacheGet('myoutfit.garments') ?? [])
   const [activeStyleFilter, setActiveStyleFilter] = useState('Alla')
   const [showWishlistItems, setShowWishlistItems] = useState(true)
+
+  // Delning av en sparad outfit (samma dela-kort som på hemskärmen).
+  const [sharing, setSharing] = useState(false)
+  const [shareTarget, setShareTarget] = useState<any | null>(null)
+  const shareCardRef = useRef<View>(null)
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -297,6 +305,38 @@ function isPast(date: Date) {
     // Lägg outfiten på dagens datum i kalendern (och räkna plaggen som använda).
     await assignOutfitToDay(outfit, today)
     showAlert('Outfit registrerad!', 'Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.')
+  }
+
+  // Delar en sparad outfit som en bild – samma varumärkta dela-kort som på
+  // hemskärmen. Bygger itemsWithImages ur outfitens namn + bilder och renderar
+  // dem i en dold vy som fångas och delas.
+  async function shareSavedOutfit(outfit: any) {
+    if (sharing) return
+    setSharing(true)
+    const names: string[] = outfit.garment_names || []
+    const urls: string[] = outfit.image_urls || []
+    const items = names.length
+      ? names.map((name, i) => ({ name, image_url: urls[i] ?? null }))
+      : urls.map((url) => ({ name: '', image_url: url }))
+    setShareTarget({ outfitName: outfit.name, itemsWithImages: items })
+    try {
+      // Ge den dolda dela-vyn ett ögonblick att rita klart bilderna.
+      await new Promise(r => setTimeout(r, 350))
+      const uri = await captureRef(shareCardRef, { format: 'png', quality: 1 })
+      const canShare = await Sharing.isAvailableAsync()
+      if (canShare) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Dela din outfit' })
+      } else if (typeof navigator !== 'undefined' && (navigator as any).share) {
+        await (navigator as any).share({ title: 'Min outfit', text: outfit.name })
+      } else {
+        showAlert('Delning stöds inte här', 'Öppna appen på din telefon för att dela din outfit.')
+      }
+    } catch (e: any) {
+      if (e?.message && !/cancel/i.test(e.message)) showAlert('Kunde inte dela', e.message)
+    } finally {
+      setSharing(false)
+      setShareTarget(null)
+    }
   }
 
   // ── Reseplanerare ──────────────────────────────────────────────────────────
@@ -756,6 +796,15 @@ function isPast(date: Date) {
                     <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
                     <View style={styles.outfitCardHeaderRight}>
                       <TouchableOpacity
+                        onPress={() => shareSavedOutfit(outfit)}
+                        disabled={sharing}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        accessibilityLabel="Dela outfit"
+                        accessibilityRole="button"
+                      >
+                        <Ionicons name="share-outline" size={20} color={t.primary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
                         onPress={() => startEditOutfit(outfit)}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         accessibilityLabel="Ändra outfit"
@@ -927,6 +976,20 @@ function isPast(date: Date) {
           </>
         )}
       </ScrollView>
+
+      {/* Dold, varumärkt dela-vy som fångas som bild och delas. */}
+      {shareTarget && (
+        <View style={styles.shareCardHidden} pointerEvents="none">
+          <View ref={shareCardRef} collapsable={false}>
+            <OutfitShareCard outfit={shareTarget} />
+          </View>
+        </View>
+      )}
+      {sharing && (
+        <View style={styles.shareOverlay}>
+          <ActivityIndicator size="large" color={t.primary} />
+        </View>
+      )}
 
       <BottomNav />
     </SafeAreaView>
@@ -1105,4 +1168,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   packNameChecked: { color: t.textFaint, textDecorationLine: 'line-through' },
   tripResetBtn: { backgroundColor: t.surfaceMuted, borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 24, borderWidth: 1, borderColor: t.border },
   tripResetBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 15 },
+
+  // Delning
+  shareCardHidden: { position: 'absolute', left: -9999, top: 0 },
+  shareOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' },
 })
