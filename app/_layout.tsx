@@ -10,6 +10,7 @@ import { supabase } from '../supabase'
 import { registerForPush } from '../utils/push'
 import { scheduleSmartPush } from '../utils/smartPush'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
+import { SettingsProvider } from '../utils/settings'
 import { ToastHost } from '../components/Toast'
 import '../global.css'
 
@@ -109,7 +110,9 @@ export default function Layout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <RootLayout />
+        <SettingsProvider>
+          <RootLayout />
+        </SettingsProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   )

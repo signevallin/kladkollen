@@ -30,6 +30,7 @@ import { cacheGet, cacheSet } from '../utils/cache'
 import { pickImageSmart } from '../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
 import { parsePrice } from '../utils/brands'
+import { useSettings } from '../utils/settings'
 import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, COLOR_OPTIONS, SEASONS as SEASON_LIST, SUBCATEGORIES } from '../utils/constants'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
@@ -53,6 +54,7 @@ const COLOR_ORDER = COLORS.slice(1)
 export default function Wardrobe() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { formatPrice, currency } = useSettings()
   // Seedas från cachen så garderoben ritas direkt vid flikbyte, medan en
   // uppdatering hämtas i bakgrunden.
   const [garments, setGarments] = useState<any[]>(() => cacheGet('wardrobe.garments') ?? [])
@@ -688,7 +690,7 @@ export default function Wardrobe() {
                 ))}
               </View>
 
-              <Text style={styles.modalLabel}>Pris (kr)</Text>
+              <Text style={styles.modalLabel}>Pris ({currency})</Text>
               <TextInput
                 style={styles.modalInput}
                 placeholder="t.ex. 299"
@@ -938,7 +940,7 @@ export default function Wardrobe() {
               <View style={styles.wishTotalCard}>
                 <Text style={styles.wishTotalLabel}>Önskelistans värde</Text>
                 <Text style={styles.wishTotalValue}>
-                  {wishlist.reduce((s, w) => s + (Number(w.price) || 0), 0).toLocaleString('sv-SE')} kr
+                  {formatPrice(wishlist.reduce((s, w) => s + (Number(w.price) || 0), 0))}
                 </Text>
               </View>
               <Text style={styles.wishHint}>Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera</Text>
@@ -984,7 +986,7 @@ export default function Wardrobe() {
                     <View style={styles.wishInfo}>
                       <Text style={styles.wishName}>{item.name}</Text>
                       {item.brand ? <Text style={styles.wishBrand} numberOfLines={1}>{item.brand}</Text> : null}
-                      {item.price != null ? <Text style={styles.wishPrice}>{item.price} kr</Text> : null}
+                      {item.price != null ? <Text style={styles.wishPrice}>{formatPrice(item.price)}</Text> : null}
                       <View style={styles.wishMeta}>
                         {item.category ? <Text style={styles.wishMetaText}>{item.category}</Text> : null}
                         {item.color ? (

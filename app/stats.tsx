@@ -17,6 +17,7 @@ import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { normalizeBrand } from '../utils/brands'
 import { showAlert } from '../utils/alert'
+import { useSettings } from '../utils/settings'
 import { CATEGORIES, COLOR_GROUPS, COLOR_HEX } from '../utils/constants'
 
 // Donut-diagram över garderobens färger. Ritar varje färg som ett segment
@@ -100,6 +101,7 @@ interface WinningCombo {
 export default function Stats() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { formatPrice } = useSettings()
   const [activeTab, setActiveTab] = useState<'stil' | 'garderob'>('garderob')
 
   // Garderob
@@ -622,7 +624,7 @@ export default function Stats() {
             {totalValue > 0 && (
               <View style={styles.section}>
                 <View style={styles.usageCard}>
-                  <Text style={styles.usagePercent}>{totalValue.toLocaleString('sv-SE')} kr</Text>
+                  <Text style={styles.usagePercent}>{formatPrice(totalValue)}</Text>
                   <Text style={styles.usageLabel}>uppskattat värde på din garderob (av plagg med pris)</Text>
                 </View>
                 {costPerWear.length > 0 && (
@@ -639,7 +641,7 @@ export default function Stats() {
                         </TouchableOpacity>
                         <View style={styles.pieceInfo}>
                           <Text style={styles.pieceName} numberOfLines={1}>{item.name}</Text>
-                          <Text style={styles.pieceCpw}>{item.cpw} kr / användning</Text>
+                          <Text style={styles.pieceCpw}>{formatPrice(item.cpw)} / användning</Text>
                         </View>
                       </View>
                     ))}

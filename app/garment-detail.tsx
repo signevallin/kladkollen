@@ -31,6 +31,7 @@ import { goBack } from '../utils/nav'
 import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
+import { useSettings } from '../utils/settings'
 import { resolveImageUrl } from '../utils/storage'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -51,6 +52,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 export default function GarmentDetail() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { currency } = useSettings()
   const { id, wishlistId } = useLocalSearchParams()
   const isWishlistItem = !!wishlistId && !id
 
@@ -524,7 +526,7 @@ export default function GarmentDetail() {
         {/* Pris – även på köplistan (för budget/överblick) */}
         {isWishlistItem && (
           <>
-            <Text style={styles.label}>Pris (kr)</Text>
+            <Text style={styles.label}>Pris ({currency})</Text>
             <TextInput
               style={styles.input}
               placeholder="t.ex. 299"
@@ -595,7 +597,7 @@ export default function GarmentDetail() {
               </>
             )}
 
-            <Text style={styles.label}>Pris (kr)</Text>
+            <Text style={styles.label}>Pris ({currency})</Text>
             <TextInput
               style={styles.input}
               placeholder="t.ex. 299"

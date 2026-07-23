@@ -23,6 +23,7 @@ import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
 import { OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheGet, cacheSet } from '../utils/cache'
+import { useSettings } from '../utils/settings'
 import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
 import SongCard from '../components/SongCard'
@@ -44,6 +45,7 @@ const RECENT_GARMENTS_KEY = 'kladkollen_recent_garments'
 export default function Home() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { tempLabel } = useSettings()
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   const [weather, setWeather] = useState<any>(null)
   const [outfit, setOutfit] = useState<any>(null)
@@ -62,6 +64,7 @@ export default function Home() {
   const [musicGenres, setMusicGenres] = useState<string>('')
   const [coldSensitivity, setColdSensitivity] = useState(3)
   const [styleRuleKeys, setStyleRuleKeys] = useState<string[]>([])
+  const [avoidNote, setAvoidNote] = useState('')
   const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
@@ -100,7 +103,7 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note').eq('id', user.id).single()
       if (profile?.name) setUserName(profile.name)
       else setUserName(user.email?.split('@')[0] || '')
       if (profile?.avatar_url) setUserAvatar(profile.avatar_url)
@@ -108,6 +111,7 @@ export default function Home() {
       setMusicGenres(profile?.music_genres || '')
       if (profile?.cold_sensitivity != null) setColdSensitivity(profile.cold_sensitivity)
       setStyleRuleKeys(profile?.style_rules ? profile.style_rules.split(', ').filter(Boolean) : [])
+      setAvoidNote(profile?.avoid_note || '')
     }
   }
 
@@ -362,9 +366,14 @@ export default function Home() {
       // Nyligen använda enskilda plagg (lokalt minne) + plagg ur sparade outfits.
       const recentGarmentsLocal: string[] = JSON.parse((await AsyncStorage.getItem(RECENT_GARMENTS_KEY)) || '[]')
       const avoidGarments = [...new Set([...recentGarmentsLocal, ...recentGarments])].slice(0, 10)
-      const avoidStr = avoidGarments.length > 0
+      const recentAvoidStr = avoidGarments.length > 0
         ? `Undvik om möjligt att återanvända dessa nyligen burna plagg – variera, låt inte samma plagg (särskilt nederdel/överdel) återkomma flera dagar i rad: ${avoidGarments.join(', ')}.`
         : ''
+      // Användarens egen "undvik"-instruktion från profilen väger tungt.
+      const userAvoidStr = avoidNote.trim()
+        ? `Användaren vill UNDVIKA följande – respektera det: ${avoidNote.trim()}.`
+        : ''
+      const avoidStr = [userAvoidStr, recentAvoidStr].filter(Boolean).join(' ')
 
       // Nyligen föreslagna låtar (sparas lokalt som "Titel – Artist") så AI:n
       // slipper upprepa sig – varken samma låt eller samma artist igen.
@@ -706,7 +715,7 @@ export default function Home() {
               <Text style={styles.optionIcon}>{weather?.emoji || '🌤'}</Text>
               <View>
                 <Text style={styles.optionText}>Anpassa efter väder</Text>
-                {weather && <Text style={styles.optionSub}>{weather.temp}° · {weather.description}</Text>}
+                {weather && <Text style={styles.optionSub}>{tempLabel(weather.temp)} · {weather.description}</Text>}
               </View>
             </View>
             <View style={[styles.toggle, useWeather && styles.toggleOn]}>
@@ -901,7 +910,7 @@ export default function Home() {
           <View ref={shareCardRef} collapsable={false}>
             <OutfitShareCard
               outfit={outfit}
-              subtitle={`${CONTEXTS[selectedContext].label}${weather ? ` · ${weather.temp}°` : ''}`}
+              subtitle={`${CONTEXTS[selectedContext].label}${weather ? ` · ${tempLabel(weather.temp)}` : ''}`}
             />
           </View>
         </View>
