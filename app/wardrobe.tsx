@@ -1346,7 +1346,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   saleImageEmpty: { width: 60, height: 60, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   archImageWrap: { position: 'relative' },
   reasonBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  lendBadge: { position: 'absolute', top: -6, right: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primaryActive, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.bg },
+  lendBadge: { position: 'absolute', top: -6, right: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primaryActive, alignItems: 'center', justifyContent: 'center' },
   archMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   archMetaText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
   saleInfo: { flex: 1 },
