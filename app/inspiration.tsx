@@ -3,7 +3,7 @@ import type { Theme } from '../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect } from 'expo-router'
 import { cacheGet, cacheSet } from '../utils/cache'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -24,6 +24,7 @@ import CapsuleView from '../components/CapsuleView'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert, showConfirm } from '../utils/alert'
+import { loadPartner } from '../utils/household'
 import { uploadUserImage } from '../utils/storage'
 import { pickImageSmart } from '../utils/imagePicker'
 
@@ -44,10 +45,37 @@ export default function Inspiration() {
   const [savedInspo, setSavedInspo] = useState(false)
   const [savingInspo, setSavingInspo] = useState(false)
 
+  // Par-matchning (samboläge)
+  const [partner, setPartner] = useState<{ id: string; name: string } | null>(null)
+  const [myName, setMyName] = useState('Jag')
+  const [myGender, setMyGender] = useState('')
+  const [partnerGender, setPartnerGender] = useState('')
+  const [coupleResult, setCoupleResult] = useState<any | null>(null)
+  const [coupleLoading, setCoupleLoading] = useState(false)
+  const [coupleSaving, setCoupleSaving] = useState(false)
+  const [coupleSaved, setCoupleSaved] = useState(false)
+
   // Moodboard state
   const [moodboardImages, setMoodboardImages] = useState<any[]>(() => cacheGet('inspo.moodboard') ?? [])
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [uploadingMoodboard, setUploadingMoodboard] = useState(false)
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { partner: p } = await loadPartner()
+      setPartner(p)
+      if (user) {
+        const { data: me } = await supabase.from('profiles').select('name, gender').eq('id', user.id).single()
+        if (me?.name) setMyName(me.name)
+        if (me?.gender) setMyGender(me.gender)
+      }
+      if (p) {
+        const { data: pg } = await supabase.from('profiles').select('gender').eq('id', p.id).single()
+        if (pg?.gender) setPartnerGender(pg.gender)
+      }
+    })()
+  }, [])
 
   useFocusEffect(
     useCallback(() => {
@@ -229,6 +257,101 @@ export default function Inspiration() {
     }
   }
 
+  // Matchar AI:ns plaggnamn mot rätt plagg i en given pool (för bilder).
+  function matchItemsToPool(names: string[], pool: any[]) {
+    const used = new Set<string>()
+    const find = (name: string) => {
+      const target = (name || '').trim().toLowerCase()
+      const free = (g: any) => !g.id || !used.has(g.id)
+      let m = pool.find(g => free(g) && (g.name || '').trim().toLowerCase() === target)
+      if (!m) m = pool.find(g => free(g) && (g.name || '').toLowerCase().includes(target))
+      if (!m) m = pool.filter(g => free(g) && g.name && target.includes(g.name.toLowerCase())).sort((a: any, b: any) => b.name.length - a.name.length)[0]
+      if (m?.id) used.add(m.id)
+      return m
+    }
+    return (names || []).map((n: string) => {
+      const m = find(n)
+      return { name: n, image_url: m?.image_url || null, id: m?.id || null }
+    })
+  }
+
+  function buildGarmentList(garments: any[]) {
+    return garments.map(g => {
+      const meta = [g.subcategory || g.category, g.color].filter(Boolean).join(', ')
+      return `- ${g.name}${meta ? ` (${meta})` : ''}`
+    }).join('\n')
+  }
+
+  async function analyzeCouple() {
+    if (!inspoBase64) { showAlert('Välj en inspirationsbild först!'); return }
+    if (!partner) return
+    setCoupleLoading(true); setCoupleResult(null); setCoupleSaved(false)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const [mine, theirs] = await Promise.all([
+        supabase.from('garments').select('id, name, category, subcategory, color, archived, for_sale, image_url').eq('user_id', user!.id),
+        supabase.rpc('partner_garments', { target: partner.id }),
+      ])
+      const myG = (mine.data || []).filter((g: any) => !g.archived && !g.for_sale)
+      const parG = (theirs.data || []).filter((g: any) => !g.archived && !g.for_sale)
+      if (myG.length === 0 || parG.length === 0) {
+        showAlert('För få plagg', 'Ni behöver båda ha plagg i garderoben.')
+        return
+      }
+      const parsed = await apiPost('/api/analyze-inspo-couple', {
+        base64: inspoBase64,
+        nameA: myName, nameB: partner.name,
+        genderA: myGender, genderB: partnerGender,
+        listA: buildGarmentList(myG), listB: buildGarmentList(parG),
+      })
+      const results = (parsed.results || []).map((r: any, idx: number) => ({
+        ...r,
+        itemsWithImages: matchItemsToPool(r.items || [], idx === 0 ? myG : parG),
+      }))
+      setCoupleResult({ results })
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setCoupleLoading(false)
+    }
+  }
+
+  async function saveCouple() {
+    if (!coupleResult || !partner) return
+    setCoupleSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const mineR = coupleResult.results[0]
+      const parR = coupleResult.results[1]
+      if (mineR) {
+        const { error } = await supabase.from('outfits').insert([{
+          user_id: user!.id,
+          name: mineR.outfitName,
+          garment_ids: mineR.itemsWithImages.map((i: any) => i.id).filter(Boolean),
+          garment_names: mineR.itemsWithImages.map((i: any) => i.name),
+          image_urls: mineR.itemsWithImages.map((i: any) => i.image_url).filter(Boolean),
+          saved: true,
+        }])
+        if (error) throw error
+      }
+      if (parR) {
+        const { error } = await supabase.rpc('save_partner_outfit', {
+          target: partner.id,
+          p_name: parR.outfitName,
+          p_garment_names: parR.itemsWithImages.map((i: any) => i.name),
+          p_image_urls: parR.itemsWithImages.map((i: any) => i.image_url).filter(Boolean),
+        })
+        if (error) throw error
+      }
+      setCoupleSaved(true)
+      showAlert('Sparat!', `Outfiten finns nu i både ditt och ${partner.name}s konto.`)
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setCoupleSaving(false)
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
 
@@ -328,6 +451,18 @@ export default function Inspiration() {
               </Text>
             </TouchableOpacity>
 
+            {partner && (
+              <TouchableOpacity
+                style={[styles.coupleMatchBtn, (!inspoBase64 || coupleLoading) && styles.analyzeButtonDisabled]}
+                onPress={analyzeCouple}
+                disabled={coupleLoading || loading || !inspoBase64}
+              >
+                <Text style={styles.coupleMatchBtnText}>
+                  {coupleLoading ? 'Analyserar paret...' : `Matcha mot min och ${partner.name}s garderob`}
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {loading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator color={t.textSecondary} />
@@ -397,6 +532,42 @@ export default function Inspiration() {
                 </TouchableOpacity>
               </View>
             )}
+
+            {/* Par-resultat (två personer, en per garderob) */}
+            {coupleResult && (
+              <View style={styles.resultCard}>
+                {coupleResult.results.map((r: any, ri: number) => (
+                  <View key={ri} style={styles.couplePerson}>
+                    <Text style={styles.couplePersonName}>{r.person || (ri === 0 ? myName : partner?.name)}</Text>
+                    {!!r.styleDescription && <Text style={styles.styleDescription}>{r.styleDescription}</Text>}
+                    <Text style={styles.outfitName}>{r.outfitName}</Text>
+                    <View style={styles.outfitItems}>
+                      {r.itemsWithImages.map((item: any, index: number) => (
+                        <View key={index} style={styles.outfitItem}>
+                          {item.image_url
+                            ? <SignedImage path={item.image_url} style={styles.outfitItemImage} />
+                            : <View style={styles.outfitItemEmptyBox} />}
+                          <Text style={styles.outfitItemName}>{item.name}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    {(r.missing || []).length > 0 && (
+                      <Text style={styles.coupleMissing}>Saknas: {r.missing.join(', ')}</Text>
+                    )}
+                    {!!r.tip && <View style={styles.tipCard}><Text style={styles.tipText}>{r.tip}</Text></View>}
+                  </View>
+                ))}
+                <TouchableOpacity
+                  style={[styles.saveInspoBtn, coupleSaved && styles.saveInspoBtnDone]}
+                  onPress={saveCouple}
+                  disabled={coupleSaving || coupleSaved}
+                >
+                  <Text style={styles.saveInspoBtnText}>
+                    {coupleSaving ? '...' : coupleSaved ? '✓ Sparad i båda konton' : 'Spara båda outfits'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </>
         )}
 
@@ -461,6 +632,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   analyzeButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 20 },
   analyzeButtonDisabled: { opacity: 0.4 },
   analyzeButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
+  coupleMatchBtn: { backgroundColor: t.surface, borderRadius: 16, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: t.primary, marginTop: -8, marginBottom: 20 },
+  coupleMatchBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 14 },
+  couplePerson: { gap: 12, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+  couplePersonName: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary },
+  coupleMissing: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
   loadingContainer: { alignItems: 'center', gap: 10, marginBottom: 20 },
   loadingText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, fontStyle: 'italic' },
   resultCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: t.border, gap: 16 },
