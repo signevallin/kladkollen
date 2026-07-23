@@ -85,6 +85,7 @@ export default function Profile() {
   const [currentSeason, setCurrentSeason] = useState('')
   const [coldSensitivity, setColdSensitivity] = useState(3)
   const [avoidNote, setAvoidNote] = useState('')
+  const [lifeMode, setLifeMode] = useState('single')
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
@@ -125,6 +126,7 @@ export default function Profile() {
         setGender(data.gender || '')
         setBirthday(data.birthday || '')
         setAvoidNote(data.avoid_note || '')
+        setLifeMode(data.life_mode || 'single')
         setStylePrefs(data.style_prefs ? data.style_prefs.split(', ') : [])
         setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
         setCurrentSeason(data.current_season || '')
@@ -237,6 +239,7 @@ export default function Profile() {
         gender: gender || null,
         birthday: birthday || null,
         avoid_note: avoidNote || null,
+        life_mode: lifeMode,
         style_prefs: stylePrefs.join(', '),
         color_prefs: colorPrefs.join(', '),
         current_season: currentSeason,
@@ -726,6 +729,22 @@ export default function Profile() {
         {/* ── Inställningar ── */}
         <Text style={styles.sectionTitle}>Inställningar</Text>
         <View style={styles.listCard}>
+          {renderRow('livssituation', 'Livssituation', {
+            icon: 'favorite-border', value: lifeMode === 'couple' ? 'Sambo' : 'Singel',
+            body: (
+              <>
+                <Text style={styles.hint}>Anpassar appen efter var i livet du är. Fler lägen kommer.</Text>
+                <View style={styles.pills}>
+                  {([['single', 'Singel'], ['couple', 'Sambo']] as const).map(([v, lbl]) => (
+                    <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => setLifeMode(v)}>
+                      <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{lbl}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            ),
+          })}
+          {lifeMode === 'couple' && renderRow('partner', 'Min partner', { icon: 'people-outline', onPress: () => router.push('/partner') })}
           {renderRow('valuta', 'Valuta', {
             icon: 'attach-money', value: currency,
             body: (
