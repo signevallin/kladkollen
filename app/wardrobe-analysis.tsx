@@ -1,4 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useEffect, useState } from 'react'
@@ -19,6 +20,8 @@ import { STYLE_RULES } from '../utils/constants'
 
 type Mode = 'color' | 'style' | 'moodboard'
 
+const ANALYSIS_KEY = 'kladkollen_wardrobe_analysis'
+
 const MODES: { key: Mode; icon: any; title: string; desc: string }[] = [
   { key: 'color', icon: 'palette', title: 'Färganalys', desc: 'Hur väl garderobens färger matchar din färgpalett.' },
   { key: 'style', icon: 'checkroom', title: 'Din stil', desc: 'Hur väl garderoben speglar din valda stil.' },
@@ -38,10 +41,19 @@ export default function WardrobeAnalysis() {
   const [moodboard, setMoodboard] = useState<string[]>([])
 
   const [loadingMode, setLoadingMode] = useState<Mode | null>(null)
-  const [result, setResult] = useState<any | null>(null)
-  const [resultMode, setResultMode] = useState<Mode | null>(null)
+  // Sparade resultat per läge, så de överlever flikbyten och appstarter.
+  const [results, setResults] = useState<Record<string, any>>({})
 
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(ANALYSIS_KEY)
+        if (raw) setResults(JSON.parse(raw))
+      } catch { /* ignorera */ }
+    })()
+  }, [])
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -105,17 +117,21 @@ export default function WardrobeAnalysis() {
   async function analyze(mode: Mode) {
     if (garments.length === 0) { showAlert('Tom garderob', 'Lägg till plagg först så kan jag analysera.'); return }
     if (!ready(mode)) { showAlert('Saknar underlag', missingHint(mode)); return }
-    setLoadingMode(mode); setResult(null); setResultMode(mode)
+    setLoadingMode(mode)
     try {
       const payload: any = { mode, garmentList: garmentListText() }
       if (mode === 'color') payload.reference = colorReference()
       if (mode === 'style') payload.reference = styleReference()
       if (mode === 'moodboard') payload.images = moodboard.slice(0, 4)
       const parsed = await apiPost('/api/analyze-wardrobe', payload)
-      setResult(parsed)
+      const withTs = { ...parsed, _ts: Date.now() }
+      setResults(prev => {
+        const next = { ...prev, [mode]: withTs }
+        AsyncStorage.setItem(ANALYSIS_KEY, JSON.stringify(next)).catch(() => {})
+        return next
+      })
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
-      setResultMode(null)
     } finally {
       setLoadingMode(null)
     }
@@ -135,6 +151,7 @@ export default function WardrobeAnalysis() {
         {MODES.map(m => {
           const isReady = ready(m.key)
           const isLoading = loadingMode === m.key
+          const result = results[m.key]
           return (
             <View key={m.key} style={styles.card}>
               <View style={styles.cardHeader}>
@@ -152,11 +169,12 @@ export default function WardrobeAnalysis() {
               >
                 {isLoading
                   ? <ActivityIndicator color={t.onPrimary} size="small" />
-                  : <Text style={styles.analyzeBtnText}>Analysera</Text>}
+                  : <Text style={styles.analyzeBtnText}>{result ? 'Analysera igen' : 'Analysera'}</Text>}
               </TouchableOpacity>
 
-              {resultMode === m.key && result && (
+              {result && (
                 <View style={styles.result}>
+                  {result._ts && <Text style={styles.resultTs}>Senast analyserad {new Date(result._ts).toLocaleDateString('sv-SE')}</Text>}
                   <View style={styles.scoreRow}>
                     <View style={[styles.scoreCircle, { borderColor: scoreColor(result.score) }]}>
                       <Text style={[styles.scoreNum, { color: scoreColor(result.score) }]}>{result.score}</Text>
@@ -216,6 +234,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   analyzeBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
 
   result: { marginTop: 18, gap: 16 },
+  resultTs: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint, fontStyle: 'italic' },
   scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   scoreCircle: { width: 64, height: 64, borderRadius: 32, borderWidth: 4, alignItems: 'center', justifyContent: 'center' },
   scoreNum: { fontFamily: 'Poppins_700Bold', fontSize: 22 },
