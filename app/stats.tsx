@@ -1,6 +1,6 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { useFocusEffect } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useState } from 'react'
 import {
   Alert,
@@ -80,7 +80,7 @@ interface MoodStat {
   count: number; pct: number; avgRating: number | null
 }
 interface PowerPiece {
-  name: string; avgRating: number; appearances: number; image_url: string | null
+  name: string; avgRating: number; appearances: number; image_url: string | null; id: string | null
 }
 interface MoodROI {
   bestLabel: string; bestEmoji: string; bestAvg: number
@@ -153,12 +153,11 @@ export default function Stats() {
     // Outfits lagrar AI:ns plaggnamn, som sällan är exakt samma som namnet i
     // garderoben. Matcha därför luddigt (som i resten av appen): exakt träff
     // först, annars den vars namn innehåller / ingår i det sparade namnet.
-    const findImage = (name: string): string | null => {
+    const findGarment = (name: string) => {
       const n = name.toLowerCase()
-      const exact = gData?.find(g => g.name.toLowerCase() === n)
-      if (exact) return exact.image_url
-      const fuzzy = gData?.find(g => g.name.toLowerCase().includes(n) || n.includes(g.name.toLowerCase()))
-      return fuzzy?.image_url || null
+      return gData?.find(g => g.name.toLowerCase() === n)
+        || gData?.find(g => g.name.toLowerCase().includes(n) || n.includes(g.name.toLowerCase()))
+        || null
     }
 
     // ── Mood distribution ──
@@ -199,7 +198,7 @@ export default function Stats() {
     // ── Power Pieces ──
     const highNames = new Set(rated.filter(o => o.rating >= 4).flatMap(o => o.garment_names || []))
     const power: PowerPiece[] = [...highNames]
-      .map(name => { const r = garmentRatingMap[name]; return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: findImage(name) } : null })
+      .map(name => { const r = garmentRatingMap[name]; const g = findGarment(name); return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: g?.image_url || null, id: g?.id || null } : null })
       .filter((p): p is PowerPiece => p !== null && p.avgRating >= 3.5)
       .sort((a, b) => b.avgRating - a.avgRating).slice(0, 5)
     setPowerPieces(power)
@@ -208,7 +207,7 @@ export default function Stats() {
     const lowNames = new Set(rated.filter(o => o.rating <= 2).flatMap(o => o.garment_names || []))
     const weak: PowerPiece[] = [...lowNames]
       .filter(name => !highNames.has(name))
-      .map(name => { const r = garmentRatingMap[name]; return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: findImage(name) } : null })
+      .map(name => { const r = garmentRatingMap[name]; const g = findGarment(name); return r ? { name, avgRating: Math.round((r.sum / r.count) * 10) / 10, appearances: r.count, image_url: g?.image_url || null, id: g?.id || null } : null })
       .filter((p): p is PowerPiece => p !== null)
       .sort((a, b) => a.avgRating - b.avgRating).slice(0, 5)
     setWeakPieces(weak)
@@ -343,7 +342,7 @@ export default function Stats() {
   const priced = garments.filter(g => g.price != null && g.price > 0)
   const totalValue = priced.reduce((s, g) => s + Number(g.price), 0)
   const costPerWear = priced
-    .map(g => ({ name: g.name, image_url: g.image_url, cpw: Math.round(Number(g.price) / Math.max(1, g.times_worn || 0)) }))
+    .map(g => ({ id: g.id, name: g.name, image_url: g.image_url, cpw: Math.round(Number(g.price) / Math.max(1, g.times_worn || 0)) }))
     .sort((a, b) => b.cpw - a.cpw).slice(0, 5)
 
   return (
@@ -429,10 +428,12 @@ export default function Stats() {
                   {powerPieces.map((item, i) => (
                     <View key={item.name} style={styles.pieceRow}>
                       <Text style={styles.pieceRank}>#{i + 1}</Text>
-                      {item.image_url
-                        ? <SignedImage path={item.image_url} style={styles.pieceImage} />
-                        : <View style={styles.pieceImageEmpty} />
-                      }
+                      <TouchableOpacity disabled={!item.id} activeOpacity={0.7} onPress={() => item.id && router.push(`/garment-detail?id=${item.id}`)}>
+                        {item.image_url
+                          ? <SignedImage path={item.image_url} style={styles.pieceImage} />
+                          : <View style={styles.pieceImageEmpty} />
+                        }
+                      </TouchableOpacity>
                       <View style={styles.pieceInfo}>
                         <Text style={styles.pieceName}>{item.name}</Text>
                         <Text style={styles.pieceRating}>{stars(item.avgRating)} {item.avgRating}</Text>
@@ -472,10 +473,12 @@ export default function Stats() {
                     <View style={styles.horizontalList}>
                       {weakPieces.map(item => (
                         <View key={item.name} style={styles.neverItem}>
-                          {item.image_url
-                            ? <SignedImage path={item.image_url} style={styles.neverImage} />
-                            : <View style={styles.neverImageEmpty} />
-                          }
+                          <TouchableOpacity disabled={!item.id} activeOpacity={0.7} onPress={() => item.id && router.push(`/garment-detail?id=${item.id}`)}>
+                            {item.image_url
+                              ? <SignedImage path={item.image_url} style={styles.neverImage} />
+                              : <View style={styles.neverImageEmpty} />
+                            }
+                          </TouchableOpacity>
                           <Text style={styles.neverName} numberOfLines={1}>{item.name}</Text>
                           <Text style={styles.weakRating}>{item.avgRating}★</Text>
                         </View>
@@ -627,10 +630,12 @@ export default function Stats() {
                     <Text style={styles.sectionSubtitle}>Högst först – bär mer eller överväg att sälja</Text>
                     {costPerWear.map((item, i) => (
                       <View key={item.name + i} style={styles.pieceRow}>
-                        {item.image_url
-                          ? <SignedImage path={item.image_url} style={styles.pieceImage} />
-                          : <View style={styles.pieceImageEmpty} />
-                        }
+                        <TouchableOpacity disabled={!item.id} activeOpacity={0.7} onPress={() => item.id && router.push(`/garment-detail?id=${item.id}`)}>
+                          {item.image_url
+                            ? <SignedImage path={item.image_url} style={styles.pieceImage} />
+                            : <View style={styles.pieceImageEmpty} />
+                          }
+                        </TouchableOpacity>
                         <View style={styles.pieceInfo}>
                           <Text style={styles.pieceName} numberOfLines={1}>{item.name}</Text>
                           <Text style={styles.pieceCpw}>{item.cpw} kr / användning</Text>
@@ -661,10 +666,12 @@ export default function Stats() {
                   <Text style={styles.mostWornEmpty}>Inga använda plagg i den kategorin än.</Text>
                 ) : mostWorn.map(item => (
                   <View key={item.id} style={styles.barRow}>
-                    {item.image_url
-                      ? <SignedImage path={item.image_url} style={styles.barImage} />
-                      : <View style={styles.barImageEmpty} />
-                    }
+                    <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+                      {item.image_url
+                        ? <SignedImage path={item.image_url} style={styles.barImage} />
+                        : <View style={styles.barImageEmpty} />
+                      }
+                    </TouchableOpacity>
                     <View style={styles.barInfo}>
                       <View style={styles.barLabelRow}>
                         <Text style={styles.barName}>{item.name}</Text>
@@ -687,10 +694,12 @@ export default function Stats() {
                   <View style={styles.horizontalList}>
                     {neverWorn.map(item => (
                       <View key={item.id} style={styles.neverItem}>
-                        {item.image_url
-                          ? <SignedImage path={item.image_url} style={styles.neverImage} />
-                          : <View style={styles.neverImageEmpty} />
-                        }
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+                          {item.image_url
+                            ? <SignedImage path={item.image_url} style={styles.neverImage} />
+                            : <View style={styles.neverImageEmpty} />
+                          }
+                        </TouchableOpacity>
                         <Text style={styles.neverName} numberOfLines={1}>{item.name}</Text>
                       </View>
                     ))}
@@ -718,10 +727,12 @@ export default function Stats() {
                       : 'Aldrig använd'
                   return (
                     <View key={item.id} style={styles.vintedItem}>
-                      {item.image_url
-                        ? <SignedImage path={item.image_url} style={styles.vintedImage} />
-                        : <View style={styles.vintedImageEmpty} />
-                      }
+                      <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+                        {item.image_url
+                          ? <SignedImage path={item.image_url} style={styles.vintedImage} />
+                          : <View style={styles.vintedImageEmpty} />
+                        }
+                      </TouchableOpacity>
                       <View style={styles.vintedInfo}>
                         <Text style={styles.vintedItemName}>{item.name}</Text>
                         <Text style={styles.vintedItemCategory}>{item.category}</Text>
