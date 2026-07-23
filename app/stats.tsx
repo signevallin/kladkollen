@@ -16,7 +16,7 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { normalizeBrand } from '../utils/brands'
-import { COLOR_GROUPS, COLOR_HEX } from '../utils/constants'
+import { CATEGORIES, COLOR_GROUPS, COLOR_HEX } from '../utils/constants'
 
 // Donut-diagram över garderobens färger. Ritar varje färg som ett segment
 // med strokeDasharray – börjar högst upp (roterad -90°).
@@ -114,6 +114,7 @@ export default function Stats() {
   const [weakPieces, setWeakPieces] = useState<PowerPiece[]>([])
   const [ratedCount, setRatedCount] = useState(0)
   const [hasStyleData, setHasStyleData] = useState(false)
+  const [mostWornCat, setMostWornCat] = useState('Alla')
 
   useFocusEffect(useCallback(() => { fetchAll() }, []))
 
@@ -260,7 +261,10 @@ export default function Stats() {
     else { Alert.alert('Lagt till i säljlistan!', `${item.name} finns nu under Sälj-fliken i din garderob.`); fetchAll() }
   }
 
-  const mostWorn = garments.filter(g => g.times_worn > 0).slice(0, 5)
+  const mostWornAll = garments.filter(g => g.times_worn > 0)
+  // Kategorier som faktiskt har använda plagg (i garderobens ordning), + "Alla".
+  const mostWornCats = ['Alla', ...CATEGORIES.filter(c => mostWornAll.some(g => g.category === c))]
+  const mostWorn = (mostWornCat === 'Alla' ? mostWornAll : mostWornAll.filter(g => g.category === mostWornCat)).slice(0, 5)
   const neverWorn = garments.filter(g => !g.times_worn || g.times_worn === 0)
   const maxWorn = mostWorn[0]?.times_worn || 1
   const daysSince = (date: string | null) =>
@@ -638,10 +642,24 @@ export default function Stats() {
               </View>
             )}
 
-            {mostWorn.length > 0 && (
+            {mostWornAll.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Mest använda plagg</Text>
-                {mostWorn.map(item => (
+                {mostWornCats.length > 2 && (
+                  <View style={styles.mostWornCats}>
+                    {mostWornCats.map(c => {
+                      const on = mostWornCat === c
+                      return (
+                        <TouchableOpacity key={c} style={[styles.mostWornChip, on && styles.mostWornChipActive]} onPress={() => setMostWornCat(c)}>
+                          <Text style={[styles.mostWornChipText, on && styles.mostWornChipTextActive]}>{c}</Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>
+                )}
+                {mostWorn.length === 0 ? (
+                  <Text style={styles.mostWornEmpty}>Inga använda plagg i den kategorin än.</Text>
+                ) : mostWorn.map(item => (
                   <View key={item.id} style={styles.barRow}>
                     {item.image_url
                       ? <SignedImage path={item.image_url} style={styles.barImage} />
@@ -746,6 +764,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   section: { marginBottom: 24 },
   sectionTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, marginBottom: 4, letterSpacing: 0.5 },
+  mostWornCats: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 8, marginBottom: 12 },
+  mostWornChip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  mostWornChipActive: { backgroundColor: t.primary, borderColor: t.primary },
+  mostWornChipText: { fontFamily: 'Lora_500Medium', fontSize: 12, color: t.textSecondary },
+  mostWornChipTextActive: { color: t.onPrimary },
+  mostWornEmpty: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, fontStyle: 'italic', marginTop: 4 },
   sectionSubtitle: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic', marginBottom: 12 },
 
   moodRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
