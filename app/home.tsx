@@ -34,6 +34,9 @@ const CONTEXTS = OUTFIT_CONTEXTS
 
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
 const RECENT_SONGS_KEY = 'kladkollen_recent_songs'
+// Minne av de senaste genererade outfitsen (lokalt), så AI:n inte upprepar
+// samma kombination flera dagar i rad – även om man inte sparar dem.
+const RECENT_OUTFITS_KEY = 'kladkollen_recent_outfits'
 
 export default function Home() {
   const t = useTheme()
@@ -347,6 +350,11 @@ export default function Home() {
       const recentSongs: string[] = JSON.parse((await AsyncStorage.getItem(RECENT_SONGS_KEY)) || '[]')
       const avoidSongsStr = recentSongs.slice(0, 20).join(', ')
 
+      // Minne av de senaste 10 genererade outfitsen (lokalt, oavsett om de
+      // sparats) → matas in så AI:n ger en tydligt annorlunda kombination.
+      const recentOutfitsLocal: string[] = JSON.parse((await AsyncStorage.getItem(RECENT_OUTFITS_KEY)) || '[]')
+      const recentOutfitsStr = recentOutfitsLocal.slice(0, 10).join(' | ')
+
       let parsed: any = null
       let attempts = 0
       const maxAttempts = 3
@@ -364,6 +372,7 @@ export default function Home() {
           groupedList,
           season,
           avoidSongs: avoidSongsStr,
+          recentOutfits: recentOutfitsStr,
           contextNote: contextNotes[ctx.label] || '',
           musicGenres,
           previousItems: attempts === 1 ? previousItems : '',
@@ -402,6 +411,15 @@ export default function Home() {
       })
 
       setOutfit({ ...parsed, itemsWithImages })
+
+      // Minns kombinationen så nästa generering blir annorlunda.
+      try {
+        const comboStr = (parsed.items || []).join(', ')
+        if (comboStr) {
+          const nextOutfits = [comboStr, ...recentOutfitsLocal.filter(s => s !== comboStr)].slice(0, 10)
+          await AsyncStorage.setItem(RECENT_OUTFITS_KEY, JSON.stringify(nextOutfits))
+        }
+      } catch { /* ignorera */ }
 
       outfitAnim.setValue(0)
       Animated.spring(outfitAnim, { toValue: 1, friction: 7, useNativeDriver: true }).start()

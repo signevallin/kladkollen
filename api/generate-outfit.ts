@@ -23,6 +23,7 @@ export default async function handler(request: Request): Promise<Response> {
     const avoidSongs = clip(body.avoidSongs, 600)
     const contextNote = clip(body.contextNote, 400)
     const musicGenres = clip(body.musicGenres, 200)
+    const recentOutfits = clip(body.recentOutfits, 1500)
     const previousItems = clip(body.previousItems, 400)
     const retry = body.retry === true
 
@@ -47,6 +48,7 @@ typen för att matcha formalitetsnivån: välj INTE utpräglade festplagg (t.ex.
 Festklänning) till en ledig/vardaglig kontext, och inte utpräglat vardagliga plagg
 till en festkontext.
 ${previousItems ? `Föregående förslag var: ${previousItems}. Ge ett TYDLIGT ANNORLUNDA förslag denna gång – byt ut minst hälften av plaggen (samma plagg får återkomma bara om garderoben är för liten för alternativ).` : ''}
+${recentOutfits ? `DINA SENASTE FÖRSLAG (upprepa dem INTE – ge en ny kombination, särskilt INTE samma nederdel+överdel-par som nyligen):\n${recentOutfits}\nVariera från gång till gång precis som en riktig stylist – återanvänd bara ett plagg om garderoben saknar rimliga alternativ i rätt kategori.` : ''}
 ${avoid}${feedback ? `\nSmakprofil:\n${feedback}` : ''}
 ${retryInstruction}
 
@@ -80,10 +82,11 @@ Föreslå också EN låt som matchar outfitens känsla och kontexten. Välj en r
 känd låt som går att hitta på Apple Music.
 LÅTREGLER:
 - VARIERA! Fastna inte i självklara klichéer (t.ex. Uptown Funk, Happy, Good as Hell).
-  Överraska gärna – olika artister och årtionden från gång till gång.
-- Välj en låt som verkligen passar just "${contextLabel}" och looken.
-${musicGenres ? `- Användaren lyssnar helst på: ${musicGenres}. Välj ENDAST en låt som hör hemma i någon av dessa genrer.` : '- Variera gärna mellan olika genrer från gång till gång.'}
-${avoidSongs ? `- Föreslå INTE någon av dessa nyligen använda låtar: ${avoidSongs}` : ''}
+  Överraska med olika artister och årtionden VARJE gång.
+- Låten ska matcha känslan i just "${contextLabel}" – en låt för en jobbdag ska
+  låta annorlunda än en för fest eller date. Välj INTE samma stämning oavsett tillfälle.
+${musicGenres ? `- Användaren lyssnar helst på: ${musicGenres}. Välj ENDAST en låt som hör hemma i någon av dessa genrer.` : '- Variera mellan olika genrer från gång till gång.'}
+${avoidSongs ? `- FÖRBJUDET att föreslå någon av dessa nyligen använda låtar (välj en helt annan): ${avoidSongs}` : ''}
 
 Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`
