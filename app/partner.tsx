@@ -146,7 +146,7 @@ export default function Partner() {
                   style={styles.viewBtn}
                   onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
                 >
-                  <MaterialIcons name="checkroom" size={20} color={t.onPrimary} />
+                  <MaterialIcons name="checkroom" size={20} color={t.textPrimary} />
                   <Text style={styles.viewBtnText}>Visa {partner.name}s garderob & outfits</Text>
                 </TouchableOpacity>
               )
@@ -171,7 +171,7 @@ export default function Partner() {
                 </>
               ) : (
                 <TouchableOpacity style={styles.primaryBtn} onPress={createInvite} disabled={busy}>
-                  {busy ? <ActivityIndicator color={t.onPrimary} size="small" /> : <Text style={styles.primaryBtnText}>Skapa inbjudningskod</Text>}
+                  {busy ? <ActivityIndicator color={t.primary} size="small" /> : <Text style={styles.primaryBtnText}>Skapa inbjudningskod</Text>}
                 </TouchableOpacity>
               )}
             </View>
@@ -190,7 +190,7 @@ export default function Partner() {
                 autoCorrect={false}
               />
               <TouchableOpacity style={styles.primaryBtn} onPress={join} disabled={busy}>
-                {busy ? <ActivityIndicator color={t.onPrimary} size="small" /> : <Text style={styles.primaryBtnText}>Koppla ihop</Text>}
+                {busy ? <ActivityIndicator color={t.primary} size="small" /> : <Text style={styles.primaryBtnText}>Koppla ihop</Text>}
               </TouchableOpacity>
             </View>
           </>
@@ -213,8 +213,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   cardDesc: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 19, marginBottom: 14 },
   hint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, fontStyle: 'italic', marginTop: 10, textAlign: 'center' },
   input: { fontFamily: 'Poppins_600SemiBold', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 18, letterSpacing: 2, borderWidth: 1, borderColor: t.border, marginBottom: 12, textAlign: 'center' },
-  primaryBtn: { backgroundColor: t.primary, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
-  primaryBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
+  primaryBtn: { backgroundColor: t.surfaceMuted, borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: t.border },
+  primaryBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 15 },
   codeBox: { backgroundColor: t.surfaceMuted, borderRadius: 12, paddingVertical: 18, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: t.primary, borderStyle: 'dashed' },
   codeText: { fontFamily: 'Poppins_700Bold', fontSize: 30, color: t.textPrimary, letterSpacing: 6 },
   orText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, textAlign: 'center', marginVertical: 16 },
@@ -226,8 +226,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   avatar: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: t.primary },
   avatarPlaceholder: { width: 72, height: 72, borderRadius: 36, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.border },
   memberName: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, marginTop: 10 },
-  viewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16, paddingVertical: 15, borderRadius: 14, backgroundColor: t.primary },
-  viewBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
+  viewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16, paddingVertical: 15, borderRadius: 14, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  viewBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 15 },
   matchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 10, paddingVertical: 15, borderRadius: 14, backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary },
   matchBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 15 },
   unlinkBtn: { marginTop: 12, padding: 14, alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: t.border },
