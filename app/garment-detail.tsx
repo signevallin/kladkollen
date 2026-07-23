@@ -182,7 +182,7 @@ export default function GarmentDetail() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [name, category, subcategory, color, seasons, size, fit, location, brand, price, archiveReason])
+  }, [name, category, subcategory, color, seasons, size, fit, lendable, location, brand, price, archiveReason])
 
   // Håll arkiv-badgen i synk med vald plats.
   useEffect(() => {
