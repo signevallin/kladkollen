@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons'
 import * as Clipboard from 'expo-clipboard'
+import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -136,6 +137,21 @@ export default function Partner() {
                 ))}
               </View>
             </View>
+
+            {(() => {
+              const partner = members.find(m => m.user_id !== myId)
+              if (!partner) return null
+              return (
+                <TouchableOpacity
+                  style={styles.viewBtn}
+                  onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
+                >
+                  <MaterialIcons name="checkroom" size={20} color={t.onPrimary} />
+                  <Text style={styles.viewBtnText}>Visa {partner.name}s garderob & outfits</Text>
+                </TouchableOpacity>
+              )
+            })()}
+
             <TouchableOpacity style={styles.unlinkBtn} onPress={unlink} disabled={busy}>
               <Text style={styles.unlinkBtnText}>Koppla isär</Text>
             </TouchableOpacity>
@@ -210,6 +226,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   avatar: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: t.primary },
   avatarPlaceholder: { width: 72, height: 72, borderRadius: 36, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.border },
   memberName: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, marginTop: 10 },
-  unlinkBtn: { marginTop: 20, padding: 14, alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: t.border },
+  viewBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16, paddingVertical: 15, borderRadius: 14, backgroundColor: t.primary },
+  viewBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
+  unlinkBtn: { marginTop: 12, padding: 14, alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: t.border },
   unlinkBtnText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
 })

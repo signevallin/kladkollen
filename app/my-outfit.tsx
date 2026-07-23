@@ -436,6 +436,9 @@ function isPast(date: Date) {
       setTripChecked({})
       await AsyncStorage.setItem(TRIP_KEY, JSON.stringify(result)).catch(() => {})
       await AsyncStorage.removeItem(TRIP_CHECK_KEY).catch(() => {})
+      // Spegla resan till databasen så en ev. sambo kan se den (read-only).
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) supabase.from('trips').upsert({ user_id: user.id, data: result, updated_at: new Date().toISOString() }).then(() => {}, () => {})
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
@@ -495,6 +498,8 @@ function isPast(date: Date) {
     setTripDestination('')
     setTripVibe('')
     await AsyncStorage.multiRemove([TRIP_KEY, TRIP_CHECK_KEY]).catch(() => {})
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) supabase.from('trips').delete().eq('user_id', user.id).then(() => {}, () => {})
   }
 
   const wishlistAsGarments = wishlist.map(w => ({ ...w, isWishlist: true, times_worn: 0, season: null, color: null }))
