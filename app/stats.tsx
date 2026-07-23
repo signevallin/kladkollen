@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { router, useFocusEffect } from 'expo-router'
@@ -365,6 +366,18 @@ export default function Stats() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
+
+        {/* AI-analys av hela garderoben */}
+        <TouchableOpacity style={styles.analysisCta} onPress={() => router.push('/wardrobe-analysis')}>
+          <View style={styles.analysisCtaIcon}>
+            <MaterialIcons name="auto-awesome" size={20} color={t.onPrimary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.analysisCtaTitle}>Analysera garderoben med AI</Text>
+            <Text style={styles.analysisCtaSub}>Matcha mot din färganalys, stil eller moodboard</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={22} color={t.textSecondary} />
+        </TouchableOpacity>
 
         {/* ── MIN STIL ── */}
         {activeTab === 'stil' && (
@@ -770,6 +783,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tabTextActive: { color: t.onPrimary },
 
   scroll: { padding: 24, paddingTop: 16, paddingBottom: 100 },
+  analysisCta: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: t.primary, marginBottom: 20 },
+  analysisCtaIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  analysisCtaTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
+  analysisCtaSub: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginTop: 2 },
 
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
   emptyEmoji: { fontFamily: 'Lora_400Regular', fontSize: 52 },
