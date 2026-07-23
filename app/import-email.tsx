@@ -225,6 +225,16 @@ export default function ImportEmail() {
                     <View style={[styles.checkbox, selected.has(p.id) && styles.checkboxOn]}>
                       {selected.has(p.id) && <Text style={styles.checkmark}>✓</Text>}
                     </View>
+                    <TouchableOpacity
+                      onPress={() => dismiss(p.id)}
+                      disabled={adding}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      accessibilityLabel={`Ta bort ${p.name}`}
+                      accessibilityRole="button"
+                      style={styles.dismissBtn}
+                    >
+                      <Text style={styles.dismissX}>✕</Text>
+                    </TouchableOpacity>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
@@ -322,6 +332,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   itemName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary },
   itemMeta: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, marginTop: 3 },
   checkbox: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+  dismissBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  dismissX: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.textFaint },
   checkboxOn: { backgroundColor: t.primary, borderColor: t.primary },
   checkmark: { color: t.onPrimary, fontSize: 14, fontWeight: 'bold' },
 

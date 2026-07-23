@@ -1333,7 +1333,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishColorDot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: t.border },
   outfitBadge: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: t.surfaceMuted, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: t.border },
   outfitBadgeText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
-  wishActions: { alignItems: 'center', gap: 6 },
+  wishActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   boughtBtn: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12, alignItems: 'center' },
   boughtBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
   deleteBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
