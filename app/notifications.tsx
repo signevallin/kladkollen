@@ -16,7 +16,13 @@ import type { Theme } from '../theme/theme'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { DEFAULT_PREFS, registerForPush, type NotifPrefs } from '../utils/push'
-import { isSmartPushEnabled, setSmartPushEnabled } from '../utils/smartPush'
+import { getSmartPushTime, isSmartPushEnabled, setSmartPushEnabled, setSmartPushTime } from '../utils/smartPush'
+
+const TIME_PRESETS = [
+  { hour: 6, minute: 0 }, { hour: 6, minute: 30 }, { hour: 7, minute: 0 },
+  { hour: 7, minute: 30 }, { hour: 8, minute: 0 }, { hour: 8, minute: 30 }, { hour: 9, minute: 0 },
+]
+const pad = (n: number) => String(n).padStart(2, '0')
 
 const CATEGORIES: { key: keyof NotifPrefs; title: string; desc: string }[] = [
   { key: 'weather', title: 'Väder & kläder', desc: 'Tips baserade på dagens väder – t.ex. plocka fram din stickade tröja när det blir kallare.' },
@@ -32,12 +38,14 @@ export default function NotificationsSettings() {
   const [enabled, setEnabled] = useState(true)
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS)
   const [smart, setSmart] = useState(false)
+  const [smartTime, setSmartTime] = useState({ hour: 7, minute: 30 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { load() }, [])
 
   async function load() {
     setSmart(await isSmartPushEnabled())
+    setSmartTime(await getSmartPushTime())
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
     const { data } = await supabase.from('profiles').select('notif_enabled, notif_prefs').eq('id', user.id).single()
@@ -55,6 +63,11 @@ export default function NotificationsSettings() {
       setSmart(false)
       showAlert('Kunde inte slå på Smart Push', 'Tillåt kalender- och notis-åtkomst för Klädkollen i telefonens inställningar.')
     }
+  }
+
+  function chooseTime(hour: number, minute: number) {
+    setSmartTime({ hour, minute })
+    setSmartPushTime(hour, minute)
   }
 
   async function persist(nextEnabled: boolean, nextPrefs: NotifPrefs) {
@@ -135,6 +148,26 @@ export default function NotificationsSettings() {
           <Toggle value={smart} onValueChange={toggleSmart} />
         </View>
 
+        {smart && (
+          <View style={styles.timeBlock}>
+            <Text style={styles.timeLabel}>Notisen skickas kl.</Text>
+            <View style={styles.timeChips}>
+              {TIME_PRESETS.map(({ hour, minute }) => {
+                const on = smartTime.hour === hour && smartTime.minute === minute
+                return (
+                  <TouchableOpacity
+                    key={`${hour}:${minute}`}
+                    style={[styles.timeChip, on && styles.timeChipActive]}
+                    onPress={() => chooseTime(hour, minute)}
+                  >
+                    <Text style={[styles.timeChipText, on && styles.timeChipTextActive]}>{pad(hour)}:{pad(minute)}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+        )}
+
         <Text style={styles.footnote}>
           Väderbaserade notiser använder din senast kända plats. Vi hämtar aldrig platsen i bakgrunden bara för notiser.
         </Text>
@@ -160,5 +193,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   rowTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   rowDesc: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 3, lineHeight: 19 },
   sectionHeading: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary, marginTop: 18, marginBottom: 10 },
+  timeBlock: { marginTop: -2, marginBottom: 4, paddingHorizontal: 4 },
+  timeLabel: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginBottom: 8 },
+  timeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  timeChip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  timeChipActive: { backgroundColor: t.primary, borderColor: t.primary },
+  timeChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary },
+  timeChipTextActive: { color: t.onPrimary },
   footnote: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, marginTop: 16, lineHeight: 18 },
 })
