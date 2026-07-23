@@ -70,6 +70,7 @@ export default function MyOutfits() {
   // Delning av en sparad outfit (samma dela-kort som på hemskärmen).
   const [sharing, setSharing] = useState(false)
   const [shareTarget, setShareTarget] = useState<any | null>(null)
+  const [partnerLikedIds, setPartnerLikedIds] = useState<Set<string>>(new Set())
   const shareCardRef = useRef<View>(null)
 
   // Calendar state
@@ -117,6 +118,12 @@ export default function MyOutfits() {
     // (feedback till AI:n) ska inte synas här.
     const { data } = await supabase.from('outfits').select('*').eq('saved', true).order('created_at', { ascending: false })
     if (data) { setOutfits(data); cacheSet('myoutfit.outfits', data) }
+    // Outfits som partnern gillat (likes på mina outfits av någon annan än jag).
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: likes } = await supabase.from('outfit_likes').select('outfit_id, user_id')
+    if (user && likes) {
+      setPartnerLikedIds(new Set(likes.filter((l: any) => l.user_id !== user.id).map((l: any) => l.outfit_id)))
+    }
   }
 
   async function fetchGarments() {
@@ -864,7 +871,12 @@ function isPast(date: Date) {
               filteredOutfits.map((outfit: any) => (
                 <TouchableOpacity key={outfit.id} style={styles.outfitCard} onPress={() => wearOutfit(outfit)} onLongPress={() => deleteOutfit(outfit.id)}>
                   <View style={styles.outfitCardHeader}>
-                    <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
+                    <View style={styles.outfitNameWrap}>
+                      {partnerLikedIds.has(outfit.id) && (
+                        <Ionicons name="heart" size={16} color={t.danger} style={{ marginRight: 6 }} />
+                      )}
+                      <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
+                    </View>
                     <View style={styles.outfitCardHeaderRight}>
                       <TouchableOpacity
                         onPress={() => shareSavedOutfit(outfit)}
@@ -1214,6 +1226,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: t.border, gap: 10 },
   outfitCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   outfitCardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  outfitNameWrap: { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
   outfitName: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, flexShrink: 1 },
   editLink: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.primary },
   outfitDate: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic' },

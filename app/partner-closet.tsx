@@ -35,6 +35,7 @@ export default function PartnerCloset() {
 
   const [topTab, setTopTab] = useState<'garderob' | 'outfits'>('garderob')
   const [subTab, setSubTab] = useState<string>('garderob')
+  const [likes, setLikes] = useState<Set<string>>(new Set())
 
   useEffect(() => { load() }, [targetId])
 
@@ -54,8 +55,30 @@ export default function PartnerCloset() {
       setOutfits(o.data || [])
       setCalendar(c.data || [])
       setTrip(tr.data || null)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: lk } = await supabase.from('outfit_likes').select('outfit_id').eq('user_id', user.id)
+        setLikes(new Set((lk || []).map((l: any) => l.outfit_id)))
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function toggleLike(outfitId: string) {
+    // Optimistiskt: uppdatera hjärtat direkt, kalla RPC:n i bakgrunden.
+    setLikes(prev => {
+      const next = new Set(prev)
+      if (next.has(outfitId)) next.delete(outfitId); else next.add(outfitId)
+      return next
+    })
+    const { error } = await supabase.rpc('toggle_outfit_like', { target_outfit: outfitId })
+    if (error) { // rulla tillbaka vid fel
+      setLikes(prev => {
+        const next = new Set(prev)
+        if (next.has(outfitId)) next.delete(outfitId); else next.add(outfitId)
+        return next
+      })
     }
   }
 
@@ -170,7 +193,12 @@ export default function PartnerCloset() {
                 ? <Text style={styles.empty}>Inga sparade outfits.</Text>
                 : savedOutfits.map(o => (
                     <View key={o.id} style={styles.outfitCard}>
-                      <Text style={styles.outfitName}>{o.name}</Text>
+                      <View style={styles.outfitHeader}>
+                        <Text style={[styles.outfitName, { flex: 1 }]}>{o.name}</Text>
+                        <TouchableOpacity onPress={() => toggleLike(o.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Gilla outfit">
+                          <Ionicons name={likes.has(o.id) ? 'heart' : 'heart-outline'} size={24} color={likes.has(o.id) ? t.danger : t.textSecondary} />
+                        </TouchableOpacity>
+                      </View>
                       <View style={styles.outfitImages}>
                         {(o.image_urls || []).map((url: string, i: number) => <SignedImage key={i} path={url} style={styles.outfitImg} />)}
                       </View>
@@ -264,6 +292,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishPrice: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
 
   outfitCard: { backgroundColor: t.surfaceMuted, borderRadius: 18, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: t.border, gap: 8 },
+  outfitHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   outfitName: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   outfitImages: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   outfitImg: { width: 64, height: 64, borderRadius: 10 },
