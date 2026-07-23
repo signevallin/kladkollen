@@ -35,13 +35,13 @@ ${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
 ${contextNote ? `Användarens egen önskan för "${contextLabel}": ${contextNote} (väg in det).` : ''}
 
-${nameA}s garderob:
+TILLGÄNGLIGT FÖR ${nameA} (välj ${nameA}s outfit ENDAST härifrån):
 ${listA}
 
-${nameB}s garderob:
+TILLGÄNGLIGT FÖR ${nameB} (välj ${nameB}s outfit ENDAST härifrån):
 ${listB}
 
-Plagg markerade [LÅN] får lånas av den andra personen – du FÅR använda den andras [LÅN]-plagg i en outfit om det lyfter looken (ange då plagget i "borrowed").
+VIKTIGT: Varje persons outfit får ENDAST innehålla plagg ur den personens EGEN lista ovan. Plagg markerade [LÅN] är partnerns plagg som lånats in i den här personens lista – de FÅR användas, och ska då anges i "borrowed". Ta ALDRIG ett plagg som inte står i personens egen lista.
 
 OBLIGATORISKA REGLER FÖR VARJE OUTFIT:
 1. SKOR: exakt ett par.
