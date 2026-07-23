@@ -23,7 +23,11 @@ export default async function handler(request: Request): Promise<Response> {
 
   try {
     // Samla ihop lagrade bildsökvägar innan raderna raderas.
+    // Legacy: äldre bilder låg under avatars/ resp. public/. Nya bilder ligger
+    // i användarens egen mapp ({userId}/...) – lista och ta bort hela mappen.
     const paths = new Set<string>([`avatars/avatar-${userId}.jpg`])
+    const { data: ownFiles } = await admin.storage.from('garments').list(userId)
+    for (const f of ownFiles || []) paths.add(`${userId}/${f.name}`)
     for (const table of ['garments', 'wishlist', 'moodboard'] as const) {
       const { data } = await admin.from(table).select('image_url').eq('user_id', userId)
       for (const row of data || []) {
@@ -32,7 +36,7 @@ export default async function handler(request: Request): Promise<Response> {
       }
     }
 
-    for (const table of ['outfit_calendar', 'outfits', 'collages', 'wishlist', 'moodboard', 'pending_imports', 'garments', 'profiles'] as const) {
+    for (const table of ['outfit_calendar', 'outfits', 'collages', 'wishlist', 'moodboard', 'pending_imports', 'garments', 'locations', 'trips', 'household_members', 'profiles'] as const) {
       const column = table === 'profiles' ? 'id' : 'user_id'
       const { error } = await admin.from(table).delete().eq(column, userId)
       if (error && error.code !== '42P01') throw new Error(`Kunde inte radera ${table}: ${error.message}`)

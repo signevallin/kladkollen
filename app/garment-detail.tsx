@@ -32,7 +32,7 @@ import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { useSettings } from '../utils/settings'
-import { resolveImageUrl } from '../utils/storage'
+import { resolveImageUrl, uploadUserImage } from '../utils/storage'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -258,12 +258,7 @@ export default function GarmentDetail() {
   async function uploadPng(base64: string) {
     // Omkoda till WebP (behåller transparens, mycket mindre fil än PNG).
     const opt = await pngToWebp(base64)
-    const filePath = `public/${newImageId()}.${opt.ext}`
-    const bytes = base64ToBytes(opt.base64)
-    const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: opt.contentType, upsert: true })
-    if (error) throw error
-    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-    return urlData.publicUrl
+    return uploadUserImage(base64ToBytes(opt.base64), opt.ext, opt.contentType)
   }
 
   // Kör bakgrundsborttagning igen på den befintliga bilden – utan att behöva
@@ -301,15 +296,9 @@ export default function GarmentDetail() {
   }
 
   async function uploadImage(uri: string) {
-    const filename = `${newImageId()}.jpg`
-    const filePath = `public/${filename}`
     const response = await fetch(uri)
     const arrayBuffer = await response.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-    const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
-    if (error) throw error
-    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-    return urlData.publicUrl
+    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
   }
 
   async function deleteGarment() {

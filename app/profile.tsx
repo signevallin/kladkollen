@@ -22,6 +22,7 @@ import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
 import { MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheClear } from '../utils/cache'
+import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
@@ -165,17 +166,10 @@ export default function Profile() {
   }
 
   async function uploadAvatar(uri: string) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const filename = `avatar-${user.id}.jpg`
     const response = await fetch(uri)
     const arrayBuffer = await response.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-    await supabase.storage.from('garments').upload(`avatars/${filename}`, uint8Array, {
-      contentType: 'image/jpeg', upsert: true,
-    })
-    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(`avatars/${filename}`)
-    setAvatar(urlData.publicUrl)
+    const url = await uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+    setAvatar(url)
   }
 
   async function pickColorImage() {

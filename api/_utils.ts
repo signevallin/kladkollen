@@ -47,6 +47,23 @@ export async function requireUser(request: Request): Promise<AuthedUser | Respon
 
   const user = (await res.json()) as AuthedUser
   if (!user?.id) return json({ error: 'Ogiltig session' }, 401)
+
+  // Beständig rate limit i databasen (överlever edge-instansbyten och stoppar
+  // därför ihållande spam mot de dyra AI-endpointsen). Faller tillbaka på den
+  // minnesbaserade räknaren om RPC:n inte finns eller inte svarar.
+  try {
+    const rl = await fetch(`${supabaseUrl}/rest/v1/rpc/bump_rate_limit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: anonKey, Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ max_calls: MAX_PER_WINDOW, window_seconds: 60 }),
+    })
+    if (rl.ok) {
+      const allowed = await rl.json()
+      if (allowed === false) return json({ error: 'För många förfrågningar – vänta en stund' }, 429)
+      return user
+    }
+  } catch { /* faller tillbaka på minnesräknaren nedan */ }
+
   if (rateLimited(user.id)) return json({ error: 'För många förfrågningar – vänta en stund' }, 429)
   return user
 }

@@ -24,6 +24,7 @@ import CapsuleView from '../components/CapsuleView'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert, showConfirm } from '../utils/alert'
+import { uploadUserImage } from '../utils/storage'
 import { pickImageSmart } from '../utils/imagePicker'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -75,21 +76,14 @@ export default function Inspiration() {
       setUploadingMoodboard(true)
       try {
         const uri = result.assets[0].uri
-        const filename = `moodboard-${Date.now()}.jpg`
-        const filePath = `moodboard/${filename}`
         const response = await fetch(uri)
         const arrayBuffer = await response.arrayBuffer()
-        const uint8Array = new Uint8Array(arrayBuffer)
-        const { error: uploadError } = await supabase.storage
-          .from('garments')
-          .upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
-        if (uploadError) throw uploadError
-        const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
+        const publicUrl = await uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
         const { error: dbError } = await supabase.from('moodboard').insert({
           user_id: user.id,
-          image_url: urlData.publicUrl,
+          image_url: publicUrl,
         })
         if (dbError) throw dbError
         fetchMoodboard()

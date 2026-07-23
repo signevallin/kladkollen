@@ -26,6 +26,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { newImageId } from '../utils/id'
+import { uploadUserImage } from '../utils/storage'
 import { cacheGet, cacheSet } from '../utils/cache'
 import { pickImageSmart } from '../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
@@ -202,15 +203,9 @@ export default function Wardrobe() {
   }
 
   async function uploadWishImage(uri: string) {
-    const filename = `${newImageId()}.jpg`
-    const filePath = `public/${filename}`
     const response = await fetch(uri)
     const arrayBuffer = await response.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-    const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
-    if (error) throw error
-    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-    return urlData.publicUrl
+    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
   }
 
   // Hämtar produktinfo från en länk och förifyller köp-formuläret.

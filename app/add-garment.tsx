@@ -8,6 +8,7 @@ import { newImageId } from '../utils/id'
 import { toast } from '../components/Toast'
 import { showAlert } from '../utils/alert'
 import { base64ToBytes, pngToWebp } from '../utils/image'
+import { uploadUserImage } from '../utils/storage'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -220,29 +221,17 @@ export default function AddGarment() {
   }
 
   async function uploadImage(draft: GarmentDraft) {
-    const filename = newImageId()
-
     if (draft.processedBase64) {
       // Bakgrundsfri bild – omkoda från PNG till WebP (behåller transparens
       // men blir mycket mindre) innan uppladdning.
       const opt = await pngToWebp(draft.processedBase64)
-      const filePath = `public/${filename}.${opt.ext}`
-      const bytes = base64ToBytes(opt.base64)
-      const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: opt.contentType, upsert: true })
-      if (error) throw error
-      const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-      return urlData.publicUrl
+      return uploadUserImage(base64ToBytes(opt.base64), opt.ext, opt.contentType)
     }
 
     // Fallback: originalfotot
-    const filePath = `public/${filename}.jpg`
     const response = await fetch(draft.uri)
     const arrayBuffer = await response.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
-    const { error } = await supabase.storage.from('garments').upload(filePath, uint8Array, { contentType: 'image/jpeg', upsert: true })
-    if (error) throw error
-    const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-    return urlData.publicUrl
+    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
   }
 
   async function saveAll() {

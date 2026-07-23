@@ -20,6 +20,7 @@ import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
+import { uploadUserImage } from '../utils/storage'
 
 // WebView finns bara i native-apparna – på webben visar vi en hänvisning.
 // Kräv modulen först när den faktiskt används så webbygget inte kraschar.
@@ -206,15 +207,10 @@ export default function ImportPurchases() {
             ])
             try {
               const ext = uploadType.includes('png') ? 'png' : 'jpg'
-              const filePath = `public/${newImageId()}.${ext}`
               const binaryStr = atob(uploadBase64)
               const bytes = new Uint8Array(binaryStr.length)
               for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-              const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: uploadType, upsert: true })
-              if (!error) {
-                const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-                imageUrl = urlData.publicUrl
-              }
+              imageUrl = await uploadUserImage(bytes, ext, uploadType)
             } catch { /* bild är bonus – plagget läggs in ändå */ }
           }
         }
