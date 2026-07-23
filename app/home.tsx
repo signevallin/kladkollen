@@ -21,7 +21,7 @@ import {
 } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
-import { OUTFIT_CONTEXTS } from '../utils/constants'
+import { OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheGet, cacheSet } from '../utils/cache'
 import OutfitShareCard from '../components/OutfitShareCard'
 import SignedImage from '../components/SignedImage'
@@ -61,6 +61,7 @@ export default function Home() {
   const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
   const [musicGenres, setMusicGenres] = useState<string>('')
   const [coldSensitivity, setColdSensitivity] = useState(3)
+  const [styleRuleKeys, setStyleRuleKeys] = useState<string[]>([])
   const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
@@ -99,13 +100,14 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules').eq('id', user.id).single()
       if (profile?.name) setUserName(profile.name)
       else setUserName(user.email?.split('@')[0] || '')
       if (profile?.avatar_url) setUserAvatar(profile.avatar_url)
       setContextNotes(profile?.outfit_context_notes || {})
       setMusicGenres(profile?.music_genres || '')
       if (profile?.cold_sensitivity != null) setColdSensitivity(profile.cold_sensitivity)
+      setStyleRuleKeys(profile?.style_rules ? profile.style_rules.split(', ').filter(Boolean) : [])
     }
   }
 
@@ -393,6 +395,7 @@ export default function Home() {
           recentOutfits: recentOutfitsStr,
           contextNote: contextNotes[ctx.label] || '',
           musicGenres,
+          styleRules: STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n'),
           previousItems: attempts === 1 ? previousItems : '',
           retry: attempts > 1,
         })

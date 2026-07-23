@@ -24,6 +24,7 @@ export default async function handler(request: Request): Promise<Response> {
     const contextNote = clip(body.contextNote, 400)
     const musicGenres = clip(body.musicGenres, 200)
     const recentOutfits = clip(body.recentOutfits, 1500)
+    const styleRules = clip(body.styleRules, 1200)
     const previousItems = clip(body.previousItems, 400)
     const retry = body.retry === true
 
@@ -77,6 +78,7 @@ E. LÄDER & ACCESSOARER ska samspela: matcha bälte till den dominerande neutral
 F. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stolt över.
    Om två plagg inte passar färgmässigt, välj hellre ett neutralt alternativ – eller
    hoppa över en valfri accessoar helt om den inte lyfter looken.
+${styleRules ? `\nANVÄNDARENS EGNA STILREGLER – följ dessa NOGA, de väger tungt:\n${styleRules}` : ''}
 
 Föreslå också EN låt som matchar outfitens känsla och kontexten. Välj en riktig,
 känd låt som går att hitta på Apple Music.

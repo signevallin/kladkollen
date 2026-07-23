@@ -21,7 +21,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
-import { MUSIC_GENRES, OUTFIT_CONTEXTS } from '../utils/constants'
+import { MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheClear } from '../utils/cache'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
@@ -92,6 +92,7 @@ export default function Profile() {
   // Kommentar per tillfälle + musikgenrer (används av outfit-AI:n)
   const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
   const [musicGenres, setMusicGenres] = useState<string[]>([])
+  const [styleRules, setStyleRules] = useState<string[]>([])
 
   // Färganalys
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysis | null>(null)
@@ -131,6 +132,7 @@ export default function Profile() {
         if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
         if (data.outfit_context_notes) setContextNotes(data.outfit_context_notes)
         if (data.music_genres) setMusicGenres(data.music_genres.split(', ').filter(Boolean))
+        if (data.style_rules) setStyleRules(data.style_rules.split(', ').filter(Boolean))
       }
     }
   }
@@ -238,6 +240,7 @@ export default function Profile() {
         livsstil: livsstil.join(', '),
         outfit_context_notes: contextNotes,
         music_genres: musicGenres.join(', '),
+        style_rules: styleRules.join(', '),
       })
       if (error) throw error
       showAlert('Sparat!')
@@ -436,6 +439,21 @@ export default function Profile() {
                 />
               </View>
             ))}
+
+            {/* Stilregler – AI:n följer dessa vid outfit-generering */}
+            <Text style={styles.label}>Vilka stilregler vill du applicera?</Text>
+            <Text style={styles.hint}>Välj en eller flera – AI:n följer dem när den sätter ihop en outfit.</Text>
+            <View style={styles.pills}>
+              {STYLE_RULES.map(r => (
+                <TouchableOpacity
+                  key={r.key}
+                  style={[styles.pill, styleRules.includes(r.key) && styles.pillActive]}
+                  onPress={() => setStyleRules(prev => prev.includes(r.key) ? prev.filter(x => x !== r.key) : [...prev, r.key])}
+                >
+                  <Text style={[styles.pillText, styleRules.includes(r.key) && styles.pillTextActive]}>{r.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             {/* Musikgenrer – AI:n väljer låtar ur dessa */}
             <Text style={styles.label}>Musikgenrer</Text>

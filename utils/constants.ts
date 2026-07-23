@@ -50,6 +50,19 @@ export const SEASONS = ['Vår', 'Sommar', 'Höst', 'Vinter', 'Alla årstider']
 // Passform på plagget.
 export const FITS = ['Skinny', 'Slim', 'Regular', 'Relaxed', 'Oversize']
 
+// Stilregler användaren kan välja att applicera. label visas i profilen,
+// rule är instruktionen som skickas till AI:n vid outfit-generering.
+export const STYLE_RULES: { key: string; label: string; rule: string }[] = [
+  { key: 'sandwich', label: 'Sandwich-modellen', rule: 'Sandwich-modellen: upprepa en färg både högt och lågt i looken (t.ex. skor + överdel eller accessoar i samma ton) så outfiten ramas in och balanseras.' },
+  { key: 'brown_blue', label: 'Bruna accessoarer till blått', rule: 'Matcha gärna bruna accessoarer (bälte/skor/väska) till blåa plagg – brunt + blått är en klassisk kombination.' },
+  { key: 'leather_match', label: 'Inte bruna skor + svart väska', rule: 'Blanda ALDRIG brunt och svart läder i samma look (t.ex. bruna skor + svart väska) – håll lädertonerna enhetliga.' },
+  { key: 'denim_denim', label: 'Denim på denim', rule: 'Denim på denim är tillåtet och uppmuntras – bryt gärna av med olika tvättar/nyanser.' },
+  { key: 'proportions', label: 'Balansera proportioner', rule: 'Balansera silhuetten: tight/åtsittande nederdel + volym på överdelen, ELLER voluminös nederdel + tight överdel. Undvik tight+tight och volym+volym.' },
+  { key: 'metals', label: 'Matcha metaller', rule: 'Håll metaller enhetliga – blanda inte guld och silver i smycken och detaljer.' },
+  { key: 'one_statement', label: 'Max en statementfärg', rule: 'Använd högst EN stark statementfärg, resten neutraler i samma palett.' },
+  { key: 'tonal', label: 'Ton-i-ton', rule: 'Sträva efter en ton-i-ton-look – olika nyanser av samma färgfamilj.' },
+]
+
 // Tillfällen som outfit-genereringen kan utgå från. label visas i appen,
 // logic är grundbeskrivningen som skickas till AI:n. Delas mellan hemskärmen
 // (väljaren) och profilen (kommentar per tillfälle) så de aldrig glider isär.
