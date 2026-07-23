@@ -3,7 +3,7 @@ import { Poppins_600SemiBold, Poppins_700Bold, useFonts } from '@expo-google-fon
 import * as Notifications from 'expo-notifications'
 import { Stack, router, usePathname } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
@@ -49,11 +49,23 @@ function RootLayout() {
 
   // Registrera för push när användaren är inloggad, och skicka den vidare
   // till rätt vy när en notis trycks på.
+  const coldStartHandled = useRef(false)
   useEffect(() => {
     if (!hasSession) return
     registerForPush()
     // Schemalägg om Smart Push (kalenderbaserad morgonnotis) för nästa morgon.
     scheduleSmartPush()
+
+    // Kallstart: öppnades appen genom att trycka på en notis (från helt stängt
+    // läge) hämtar vi den och navigerar till rätt vy – en gång.
+    if (!coldStartHandled.current) {
+      coldStartHandled.current = true
+      Notifications.getLastNotificationResponseAsync().then(res => {
+        const route = (res?.notification.request.content.data as any)?.route
+        if (typeof route === 'string' && route.startsWith('/')) router.push(route as any)
+      }).catch(() => {})
+    }
+
     const sub = Notifications.addNotificationResponseReceivedListener(res => {
       const route = (res.notification.request.content.data as any)?.route
       if (typeof route === 'string' && route.startsWith('/')) router.push(route as any)

@@ -74,7 +74,8 @@
         {
           "calendarPermission": "Klädkollen läser din kalender för att föreslå en outfit som passar dagens planer."
         }
-      ]
+      ],
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true,
