@@ -27,6 +27,7 @@ import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
+import { useSettings } from '../utils/settings'
 import { pickImageSmart } from '../utils/imagePicker'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -65,6 +66,7 @@ type GarmentDraft = {
 
 export default function AddGarment() {
   const t = useTheme()
+  const { currency, toBaseSEK } = useSettings()
   const styles = makeStyles(t)
   const [step, setStep] = useState<'pick' | 'review'>('pick')
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])
@@ -269,7 +271,7 @@ export default function AddGarment() {
           size: draft.size.trim() || null,
           fit: draft.fit || null,
           brand: draft.brand.trim() || null,
-          price: parsePrice(draft.price),
+          price: toBaseSEK(parsePrice(draft.price)),
           image_url: imageUrl,
         }])
       }
@@ -495,7 +497,7 @@ export default function AddGarment() {
                   </View>
 
                   {/* Price */}
-                  <Text style={styles.cardLabel}>PRIS I KR (VALFRITT)</Text>
+                  <Text style={styles.cardLabel}>PRIS I {currency} (VALFRITT)</Text>
                   <TextInput
                     style={styles.sizeInput}
                     placeholder="t.ex. 299"
