@@ -19,6 +19,7 @@ import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
+import { uploadUserImage } from '../utils/storage'
 
 // Domänen där import-adresserna tas emot. Ligger på Elairis (företaget) så den
 // överlever en framtida namnändring av appen. Byt om du använder en annan subdomän.
@@ -129,15 +130,10 @@ export default function ImportEmail() {
             } catch { /* misslyckad borttagning → originalbilden */ }
             try {
               const ext = uploadType.includes('png') ? 'png' : 'jpg'
-              const filePath = `public/${newImageId()}.${ext}`
               const binaryStr = atob(uploadBase64)
               const bytes = new Uint8Array(binaryStr.length)
               for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-              const { error } = await supabase.storage.from('garments').upload(filePath, bytes, { contentType: uploadType, upsert: true })
-              if (!error) {
-                const { data: urlData } = supabase.storage.from('garments').getPublicUrl(filePath)
-                imageUrl = urlData.publicUrl
-              }
+              imageUrl = await uploadUserImage(bytes, ext, uploadType)
             } catch { /* bild är bonus */ }
           }
         }
