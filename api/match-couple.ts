@@ -20,13 +20,20 @@ export default async function handler(request: Request): Promise<Response> {
     const contextLabel = clip(body.contextLabel, 40)
     const contextLogic = clip(body.contextLogic, 200)
     const weatherSummary = clip(body.weatherSummary, 300)
+    const weatherRules = clip(body.weatherRules, 600)
+    const styleRules = clip(body.styleRules, 1200)
+    const avoid = clip(body.avoid, 400)
+    const contextNote = clip(body.contextNote, 400)
+    const season = clip(body.season, 20)
 
     if (!listA || !listB) return json({ error: 'Bådas garderober behövs' }, 400)
 
     const prompt = `Du är en personlig stylist för ett PAR som ska gå bort TILLSAMMANS. Sätt ihop TVÅ outfits – en till var och en – som harmoniserar men INTE är identiska (inte matchande uniformer).
 
 Tillfälle: ${contextLabel || 'Fest/date'}${contextLogic ? ` – ${contextLogic}` : ''}
+${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
+${contextNote ? `Användarens egen önskan för "${contextLabel}": ${contextNote} (väg in det).` : ''}
 
 ${nameA}s garderob:
 ${listA}
@@ -46,6 +53,9 @@ PARREGLER:
 - De två looksen ska kännas ihop: samma formalitetsnivå och en GEMENSAM färgtråd (en delad accent- eller neutralton), men spegla varsin person.
 - Undvik att båda bär exakt samma starka statementfärg om det blir "matchande".
 - Använd EXAKT samma plaggnamn som i garderoberna.
+${weatherRules ? `\nVÄDERREGLER (gäller BÅDA):\n${weatherRules}` : ''}
+${styleRules ? `\nSTILREGLER (gäller BÅDA, väger tungt):\n${styleRules}` : ''}
+${avoid ? `\nUNDVIK (respektera för båda): ${avoid}` : ''}
 
 Svara ENDAST med JSON, inga backticks:
 {"vibe":"1 mening om den gemensamma känslan","outfits":[{"person":"${nameA}","items":["exakt plaggnamn","..."],"borrowed":["ev. plagg lånat från partnern"]},{"person":"${nameB}","items":["..."],"borrowed":[]}],"tip":"kort parstyling-tips (1 mening)"}`
