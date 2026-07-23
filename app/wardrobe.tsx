@@ -1166,12 +1166,6 @@ export default function Wardrobe() {
                       <Text style={styles.archMetaText}>{item.location}</Text>
                     </View>
                   ) : null}
-                  {!item.sold && reasonFor(item.archive_reason) ? (
-                    <View style={styles.archMetaRow}>
-                      <Ionicons name={reasonFor(item.archive_reason)!.icon as any} size={13} color={t.textSecondary} />
-                      <Text style={styles.archMetaText}>{reasonFor(item.archive_reason)!.label}</Text>
-                    </View>
-                  ) : null}
                   {item.sold && <Text style={styles.soldTag}>Såld</Text>}
                 </View>
                 {!item.sold && (
@@ -1348,7 +1342,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   saleImage: { width: 60, height: 60, borderRadius: 12, backgroundColor: 'transparent' },
   saleImageEmpty: { width: 60, height: 60, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   archImageWrap: { position: 'relative' },
-  reasonBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.bg },
+  reasonBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   archMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   archMetaText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
   saleInfo: { flex: 1 },
