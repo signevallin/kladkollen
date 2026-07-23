@@ -1,10 +1,11 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons } from '@expo/vector-icons'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import {
-  Dimensions,
+  ActivityIndicator,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -20,6 +21,8 @@ import { supabase } from '../supabase'
 import { CATEGORIES as CATEGORY_LIST, COLOR_NAMES, SEASONS as SEASON_LIST } from '../utils/constants'
 import { cacheGet, cacheSet } from '../utils/cache'
 import { showAlert, showConfirm } from '../utils/alert'
+import { apiPost } from '../utils/api'
+import { geocodeDestination, fetchTripWeather } from '../utils/trip'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
@@ -28,14 +31,16 @@ const STYLE_TAGS = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Spor
 const WEEKDAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön']
 const MONTHS = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December']
 
+const TRIP_KEY = 'kladkollen_trip'
+const TRIP_CHECK_KEY = 'kladkollen_trip_checked'
+
 export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { tab, create } = useLocalSearchParams()
-  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'kollage'>(
-    create ? 'outfits' : tab === 'kollage' ? 'kollage' : tab === 'outfits' ? 'outfits' : 'kalender'
+  const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'resa'>(
+    create ? 'outfits' : tab === 'resa' ? 'resa' : tab === 'outfits' ? 'outfits' : 'kalender'
   )
-  const [collages, setCollages] = useState<any[]>(() => cacheGet('myoutfit.collages') ?? [])
 
   // Outfit state
   const [outfits, setOutfits] = useState<any[]>(() => cacheGet('myoutfit.outfits') ?? [])
@@ -66,27 +71,36 @@ export default function MyOutfits() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [dayDetailDate, setDayDetailDate] = useState<string | null>(null)
 
+  // Resa (reseplanerare) state
+  const [tripDestination, setTripDestination] = useState('')
+  const [tripMonth, setTripMonth] = useState(new Date())
+  const [tripStartDate, setTripStartDate] = useState<string | null>(null)
+  const [tripEndDate, setTripEndDate] = useState<string | null>(null)
+  const [tripLoading, setTripLoading] = useState(false)
+  const [tripResult, setTripResult] = useState<any | null>(null)
+  const [tripChecked, setTripChecked] = useState<Record<string, boolean>>({})
+
   useFocusEffect(
     useCallback(() => {
       fetchOutfits()
       fetchGarments()
       fetchWishlist()
       fetchCalendarEntries()
-      fetchCollages()
     }, [])
   )
 
-  async function fetchCollages() {
-    const { data } = await supabase.from('collages').select('*').order('updated_at', { ascending: false })
-    if (data) { setCollages(data); cacheSet('myoutfit.collages', data) }
-  }
-
-  async function deleteCollage(id: string) {
-    showConfirm('Ta bort kollage', 'Vill du ta bort kollaget?', async () => {
-      await supabase.from('collages').delete().eq('id', id)
-      fetchCollages()
-    }, 'Ta bort', true)
-  }
+  // Ladda ev. sparad reseplan (och avprickning) en gång så den överlever
+  // flikbyten och appstarter.
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(TRIP_KEY)
+        if (raw) setTripResult(JSON.parse(raw))
+        const chk = await AsyncStorage.getItem(TRIP_CHECK_KEY)
+        if (chk) setTripChecked(JSON.parse(chk))
+      } catch { /* ignorera */ }
+    })()
+  }, [])
 
   async function fetchOutfits() {
     // Bara aktivt sparade outfits visas – outfits som bara fått ett betyg
@@ -177,21 +191,21 @@ export default function MyOutfits() {
   }
 
   // Calendar helpers
-  function getCalendarDays() {
-    const year = currentMonth.getFullYear()
-    const month = currentMonth.getMonth()
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
+  function getCalendarDays(month: Date = currentMonth) {
+    const year = month.getFullYear()
+    const m = month.getMonth()
+    const firstDay = new Date(year, m, 1)
+    const lastDay = new Date(year, m + 1, 0)
     // Monday-first: 0=Mon ... 6=Sun
     let startDow = firstDay.getDay() - 1
     if (startDow < 0) startDow = 6
     const days: (Date | null)[] = []
     for (let i = 0; i < startDow; i++) days.push(null)
-    for (let d = 1; d <= lastDay.getDate(); d++) days.push(new Date(year, month, d))
+    for (let d = 1; d <= lastDay.getDate(); d++) days.push(new Date(year, m, d))
     return days
   }
 
-   
+
 function dateStr(date: Date) {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
@@ -283,6 +297,122 @@ function isPast(date: Date) {
     // Lägg outfiten på dagens datum i kalendern (och räkna plaggen som använda).
     await assignOutfitToDay(outfit, today)
     showAlert('Outfit registrerad!', 'Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.')
+  }
+
+  // ── Reseplanerare ──────────────────────────────────────────────────────────
+
+  // Matchar ett AI-plaggnamn mot rätt plagg i garderoben (för bilder):
+  // exakt → plaggnamnet innehåller AI-namnet → AI-namnet innehåller plaggnamnet.
+  function matchGarment(name: string) {
+    const target = (name || '').trim().toLowerCase()
+    if (!target) return null
+    let m = garments.find(g => (g.name || '').trim().toLowerCase() === target)
+    if (!m) m = garments.find(g => (g.name || '').toLowerCase().includes(target))
+    if (!m) {
+      m = garments
+        .filter(g => g.name && target.includes(g.name.toLowerCase()))
+        .sort((a, b) => b.name.length - a.name.length)[0]
+    }
+    return m || null
+  }
+
+  // Bygger en kategorigrupperad lista av garderoben som AI:n kan packa ur.
+  function buildTripGarmentList(list: any[]) {
+    const byCat: Record<string, string[]> = {}
+    for (const g of list) {
+      const cat = g.category || 'Övrigt'
+      const parts = [g.subcategory, g.color, Array.isArray(g.season) ? g.season.join('/') : g.season].filter(Boolean).join(', ')
+      const line = parts ? `${g.name} (${parts})` : g.name
+      ;(byCat[cat] ||= []).push(line)
+    }
+    return Object.entries(byCat)
+      .map(([cat, items]) => `${cat.toUpperCase()}:\n${items.map(i => '- ' + i).join('\n')}`)
+      .join('\n\n')
+  }
+
+  function handleTripDayPress(day: Date) {
+    const ds = dateStr(day)
+    if (!tripStartDate || (tripStartDate && tripEndDate)) {
+      setTripStartDate(ds); setTripEndDate(null)
+    } else if (ds < tripStartDate) {
+      setTripStartDate(ds); setTripEndDate(null)
+    } else {
+      setTripEndDate(ds)
+    }
+  }
+
+  function tripDayCount() {
+    if (!tripStartDate || !tripEndDate) return 0
+    const s = new Date(tripStartDate + 'T12:00:00')
+    const e = new Date(tripEndDate + 'T12:00:00')
+    return Math.round((e.getTime() - s.getTime()) / 86400000) + 1
+  }
+
+  async function generateTrip() {
+    if (!tripDestination.trim()) { showAlert('Skriv in en destination'); return }
+    if (!tripStartDate || !tripEndDate) { showAlert('Välj resans datum', 'Tryck på startdatum och sedan slutdatum i kalendern.'); return }
+    if (garments.length === 0) { showAlert('Tom garderob', 'Lägg till några plagg först så kan jag packa åt dig.'); return }
+
+    setTripLoading(true)
+    try {
+      const geo = await geocodeDestination(tripDestination)
+      if (!geo) {
+        showAlert('Hittade inte destinationen', 'Prova en annan stavning eller en större stad i närheten.')
+        return
+      }
+      const weather = await fetchTripWeather(geo.latitude, geo.longitude, tripStartDate, tripEndDate)
+      const groupedList = buildTripGarmentList(garments)
+      const start = new Date(tripStartDate + 'T12:00:00')
+      const end = new Date(tripEndDate + 'T12:00:00')
+      const days = tripDayCount()
+      const dateLabel = `${start.toLocaleDateString('sv-SE', { day: 'numeric', month: 'long' })} – ${end.toLocaleDateString('sv-SE', { day: 'numeric', month: 'long' })}`
+      const monthLabel = start.getMonth() === end.getMonth() ? MONTHS[start.getMonth()] : `${MONTHS[start.getMonth()]}/${MONTHS[end.getMonth()]}`
+      const destinationLabel = geo.country ? `${geo.name}, ${geo.country}` : geo.name
+
+      const parsed = await apiPost('/api/pack-trip', {
+        destination: destinationLabel,
+        dateLabel,
+        monthLabel,
+        days,
+        weatherSummary: weather.summary,
+        groupedList,
+      })
+
+      const result = {
+        climateNote: parsed.climateNote || weather.summary || '',
+        packingList: Array.isArray(parsed.packingList) ? parsed.packingList : [],
+        outfits: Array.isArray(parsed.outfits) ? parsed.outfits : [],
+        extras: Array.isArray(parsed.extras) ? parsed.extras : [],
+        destinationLabel,
+        dateLabel,
+        days,
+      }
+      setTripResult(result)
+      setTripChecked({})
+      await AsyncStorage.setItem(TRIP_KEY, JSON.stringify(result)).catch(() => {})
+      await AsyncStorage.removeItem(TRIP_CHECK_KEY).catch(() => {})
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setTripLoading(false)
+    }
+  }
+
+  function toggleTripCheck(name: string) {
+    setTripChecked(prev => {
+      const next = { ...prev, [name]: !prev[name] }
+      AsyncStorage.setItem(TRIP_CHECK_KEY, JSON.stringify(next)).catch(() => {})
+      return next
+    })
+  }
+
+  async function resetTrip() {
+    setTripResult(null)
+    setTripChecked({})
+    setTripStartDate(null)
+    setTripEndDate(null)
+    setTripDestination('')
+    await AsyncStorage.multiRemove([TRIP_KEY, TRIP_CHECK_KEY]).catch(() => {})
   }
 
   const wishlistAsGarments = wishlist.map(w => ({ ...w, isWishlist: true, times_worn: 0, season: null, color: null }))
@@ -508,26 +638,21 @@ function isPast(date: Date) {
       <View style={styles.topArea}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Mina outfits</Text>
-          {activeTab === 'kollage' && (
-            <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/collage')} accessibilityLabel="Nytt kollage" accessibilityRole="button">
-              <Text style={styles.iconBtnText}>＋</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         <View style={styles.tabRow}>
-          {(['kalender', 'outfits', 'kollage'] as const).map(tab => (
-            <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'kalender' ? 'Kalender' : tab === 'outfits' ? 'Outfits' : 'Kollage'}
+          {(['kalender', 'outfits', 'resa'] as const).map(tb => (
+            <TouchableOpacity key={tb} style={[styles.tab, activeTab === tb && styles.tabActive]} onPress={() => setActiveTab(tb)}>
+              <Text style={[styles.tabText, activeTab === tb && styles.tabTextActive]}>
+                {tb === 'kalender' ? 'Kalender' : tb === 'outfits' ? 'Outfits' : 'Resa'}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      {/* ── Scrollable content for kalender / outfits ── */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll}>
+      {/* ── Scrollable content ── */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
         {/* KALENDER */}
         {activeTab === 'kalender' && (
@@ -657,52 +782,147 @@ function isPast(date: Date) {
           </>
         )}
 
-        {/* KOLLAGE */}
-        {activeTab === 'kollage' && (
+        {/* RESA */}
+        {activeTab === 'resa' && (
           <>
-            {collages.length === 0 ? (
-              <View style={styles.empty}>
-                <Text style={styles.emptyText}>Inga kollage än!{'\n'}Skapa moodboards med dina egna plagg</Text>
-                <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/collage')}>
-                  <Text style={styles.goBtnText}>Skapa kollage</Text>
+            {!tripResult ? (
+              <View>
+                <Text style={styles.tripIntro}>Vart och när ska du resa? Jag kollar upp vädret på plats och sätter ihop vad du ska packa – med outfits och en packlista ur din egen garderob.</Text>
+
+                <Text style={styles.label}>Destination</Text>
+                <TextInput
+                  style={styles.nameInput}
+                  placeholder="t.ex. Barcelona"
+                  placeholderTextColor={t.placeholder}
+                  value={tripDestination}
+                  onChangeText={setTripDestination}
+                  autoCapitalize="words"
+                />
+
+                <Text style={styles.label}>Datum</Text>
+                <View style={styles.tripCalCard}>
+                  <View style={styles.monthNav}>
+                    <TouchableOpacity onPress={() => setTripMonth(new Date(tripMonth.getFullYear(), tripMonth.getMonth() - 1, 1))}>
+                      <Text style={styles.monthNavArrow}>‹</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.monthTitle}>{MONTHS[tripMonth.getMonth()]} {tripMonth.getFullYear()}</Text>
+                    <TouchableOpacity onPress={() => setTripMonth(new Date(tripMonth.getFullYear(), tripMonth.getMonth() + 1, 1))}>
+                      <Text style={styles.monthNavArrow}>›</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.weekdayRow}>
+                    {WEEKDAYS.map(d => <Text key={d} style={styles.weekdayLabel}>{d}</Text>)}
+                  </View>
+                  <View style={styles.daysGrid}>
+                    {getCalendarDays(tripMonth).map((day, index) => {
+                      if (!day) return <View key={`te-${index}`} style={styles.tripDayCell} />
+                      const ds = dateStr(day)
+                      const past = isPast(day)
+                      const isStart = ds === tripStartDate
+                      const isEnd = ds === tripEndDate
+                      const endpoint = isStart || isEnd
+                      const inRange = !!tripStartDate && !!tripEndDate && ds > tripStartDate && ds < tripEndDate
+                      return (
+                        <TouchableOpacity
+                          key={ds}
+                          disabled={past}
+                          style={[styles.tripDayCell, inRange && styles.tripDayInRange, endpoint && styles.tripDayEndpoint]}
+                          onPress={() => handleTripDayPress(day)}
+                        >
+                          <Text style={[styles.tripDayNum, past && styles.tripDayNumPast, endpoint && styles.tripDayNumEndpoint]}>
+                            {day.getDate()}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>
+                </View>
+
+                {tripStartDate && (
+                  <Text style={styles.tripDatesLabel}>
+                    {tripEndDate
+                      ? `${new Date(tripStartDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })} – ${new Date(tripEndDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}  ·  ${tripDayCount()} dagar`
+                      : 'Startdatum valt – tryck på slutdatum'}
+                  </Text>
+                )}
+
+                <TouchableOpacity style={[styles.tripGenBtn, tripLoading && { opacity: 0.7 }]} onPress={generateTrip} disabled={tripLoading}>
+                  {tripLoading
+                    ? <ActivityIndicator color={t.onPrimary} />
+                    : <Text style={styles.tripGenBtnText}>Planera resan</Text>}
                 </TouchableOpacity>
+                {tripLoading && <Text style={styles.tripLoadingHint}>Kollar vädret och packar väskan…</Text>}
               </View>
             ) : (
-              collages.map((c: any) => {
-                const previewW = Dimensions.get('window').width - 48
-                const factor = c.canvas_width ? previewW / c.canvas_width : 0.25
-                const previewH = Math.min((c.canvas_height || 400) * factor, 240)
-                return (
-                  <TouchableOpacity
-                    key={c.id}
-                    style={styles.collageCard}
-                    onPress={() => router.push(`/collage?id=${c.id}`)}
-                    onLongPress={() => deleteCollage(c.id)}
-                  >
-                    <View style={styles.outfitCardHeader}>
-                      <Text style={styles.outfitName}>{c.name}</Text>
-                      <Text style={styles.outfitDate}>{new Date(c.updated_at || c.created_at).toLocaleDateString('sv-SE')}</Text>
-                    </View>
-                    <View style={[styles.collagePreview, { height: previewH }]} pointerEvents="none">
-                      {(c.items || []).map((it: any, i: number) => (
-                        <View
-                          key={it.key || i}
-                          style={{
-                            position: 'absolute',
-                            left: (it.x || 0) * factor,
-                            top: (it.y || 0) * factor,
-                            width: (it.size || 140) * factor,
-                            height: (it.size || 140) * factor,
-                          }}
-                        >
-                          <SignedImage path={it.image_url} flat style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+              <View>
+                <View style={styles.tripHeaderCard}>
+                  <Text style={styles.tripDest}>{tripResult.destinationLabel}</Text>
+                  <Text style={styles.tripDates}>{tripResult.dateLabel} · {tripResult.days} dagar</Text>
+                  {!!tripResult.climateNote && <Text style={styles.tripClimate}>{tripResult.climateNote}</Text>}
+                </View>
+
+                {tripResult.outfits.length > 0 && (
+                  <>
+                    <Text style={styles.tripSectionTitle}>Outfits att ta med</Text>
+                    {tripResult.outfits.map((o: any, i: number) => (
+                      <View key={i} style={styles.outfitCard}>
+                        <Text style={styles.outfitName}>{o.name}</Text>
+                        <View style={styles.outfitImages}>
+                          {(o.items || []).map((name: string, j: number) => {
+                            const m = matchGarment(name)
+                            return m?.image_url
+                              ? <SignedImage key={j} path={m.image_url} style={styles.outfitImage} />
+                              : <View key={j} style={styles.outfitImageEmpty} />
+                          })}
                         </View>
-                      ))}
+                        <Text style={styles.outfitGarments}>{(o.items || []).join(' · ')}</Text>
+                      </View>
+                    ))}
+                  </>
+                )}
+
+                <Text style={styles.tripSectionTitle}>Packlista</Text>
+                <View style={styles.packCard}>
+                  {tripResult.packingList.map((name: string, i: number) => {
+                    const m = matchGarment(name)
+                    const checked = !!tripChecked[name]
+                    return (
+                      <TouchableOpacity key={i} style={styles.packRow} onPress={() => toggleTripCheck(name)}>
+                        <View style={[styles.packCheck, checked && styles.packCheckOn]}>
+                          {checked && <Text style={styles.packCheckMark}>✓</Text>}
+                        </View>
+                        {m?.image_url
+                          ? <SignedImage path={m.image_url} style={styles.packThumb} />
+                          : <View style={styles.packThumbEmpty} />}
+                        <Text style={[styles.packName, checked && styles.packNameChecked]}>{name}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+
+                {tripResult.extras.length > 0 && (
+                  <>
+                    <Text style={styles.tripSectionTitle}>Glöm inte</Text>
+                    <View style={styles.packCard}>
+                      {tripResult.extras.map((name: string, i: number) => {
+                        const checked = !!tripChecked[name]
+                        return (
+                          <TouchableOpacity key={i} style={styles.packRow} onPress={() => toggleTripCheck(name)}>
+                            <View style={[styles.packCheck, checked && styles.packCheckOn]}>
+                              {checked && <Text style={styles.packCheckMark}>✓</Text>}
+                            </View>
+                            <Text style={[styles.packName, checked && styles.packNameChecked]}>{name}</Text>
+                          </TouchableOpacity>
+                        )
+                      })}
                     </View>
-                    <Text style={styles.holdToDelete}>Tryck för att redigera · Håll inne för att ta bort</Text>
-                  </TouchableOpacity>
-                )
-              })
+                  </>
+                )}
+
+                <TouchableOpacity style={styles.tripResetBtn} onPress={resetTrip}>
+                  <Text style={styles.tripResetBtnText}>Planera en ny resa</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </>
         )}
@@ -845,8 +1065,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   goBtn: { backgroundColor: t.primary, borderRadius: 14, padding: 14, paddingHorizontal: 24 },
   goBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 14 },
   outfitCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: t.border, gap: 10 },
-  collageCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: t.border, gap: 10 },
-  collagePreview: { backgroundColor: 'rgba(248,234,222,0.6)', borderRadius: 14, overflow: 'hidden', position: 'relative' },
   outfitCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   outfitCardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   outfitName: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, flexShrink: 1 },
@@ -857,4 +1075,34 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitImageEmpty: { width: 70, height: 70, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   outfitGarments: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic' },
   holdToDelete: { fontFamily: 'Lora_400Regular', fontSize: 9, color: t.textFaint, textAlign: 'center' },
+
+  // Resa (reseplanerare)
+  tripIntro: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 16 },
+  tripCalCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
+  tripDayCell: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
+  tripDayInRange: { backgroundColor: '#DDE6ED' },
+  tripDayEndpoint: { backgroundColor: t.primary, borderRadius: 8 },
+  tripDayNum: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textPrimary },
+  tripDayNumPast: { color: t.textFaint },
+  tripDayNumEndpoint: { color: t.onPrimary, fontWeight: '700' },
+  tripDatesLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, textAlign: 'center', marginBottom: 16 },
+  tripGenBtn: { backgroundColor: t.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
+  tripGenBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
+  tripLoadingHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, textAlign: 'center', marginTop: 10, fontStyle: 'italic' },
+  tripHeaderCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: t.border, marginBottom: 8 },
+  tripDest: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: t.textPrimary },
+  tripDates: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textSecondary, marginTop: 2 },
+  tripClimate: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 20, marginTop: 10 },
+  tripSectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary, marginTop: 20, marginBottom: 12 },
+  packCard: { backgroundColor: t.surfaceMuted, borderRadius: 18, padding: 8, borderWidth: 1, borderColor: t.border },
+  packRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, paddingHorizontal: 8 },
+  packCheck: { width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+  packCheckOn: { backgroundColor: t.primary, borderColor: t.primary },
+  packCheckMark: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 13 },
+  packThumb: { width: 40, height: 40, borderRadius: 8 },
+  packThumbEmpty: { width: 40, height: 40, borderRadius: 8, backgroundColor: t.surface },
+  packName: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary, flex: 1 },
+  packNameChecked: { color: t.textFaint, textDecorationLine: 'line-through' },
+  tripResetBtn: { backgroundColor: t.surfaceMuted, borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 24, borderWidth: 1, borderColor: t.border },
+  tripResetBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 15 },
 })
