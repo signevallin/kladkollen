@@ -87,6 +87,7 @@ export default function MyOutfits() {
   const [tripLoading, setTripLoading] = useState(false)
   const [tripResult, setTripResult] = useState<any | null>(null)
   const [tripChecked, setTripChecked] = useState<Record<string, boolean>>({})
+  const [scheduleOutfit, setScheduleOutfit] = useState<any | null>(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -426,6 +427,8 @@ function isPast(date: Date) {
         destinationLabel,
         dateLabel,
         days,
+        startDate: tripStartDate,
+        endDate: tripEndDate,
       }
       setTripResult(result)
       setTripChecked({})
@@ -444,6 +447,42 @@ function isPast(date: Date) {
       AsyncStorage.setItem(TRIP_CHECK_KEY, JSON.stringify(next)).catch(() => {})
       return next
     })
+  }
+
+  // Dagarna resan sträcker sig över (för att lägga en reseoutfit i kalendern).
+  // Faller tillbaka på idag + framåt om en äldre sparad resa saknar datum.
+  function tripDays(): string[] {
+    const out: string[] = []
+    const start = tripResult?.startDate
+    const end = tripResult?.endDate
+    if (start && end) {
+      let d = new Date(start + 'T12:00:00')
+      const e = new Date(end + 'T12:00:00')
+      while (d <= e) { out.push(dateStr(d)); d = new Date(d.getTime() + 86400000) }
+    } else {
+      let d = new Date()
+      for (let i = 0; i < (tripResult?.days || 1); i++) { out.push(dateStr(d)); d = new Date(d.getTime() + 86400000) }
+    }
+    return out
+  }
+
+  // Sparar en reseoutfit som en riktig outfit och lägger den på vald dag i kalendern.
+  async function scheduleTripOutfit(tripOutfit: any, date: string) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const items: string[] = tripOutfit.items || []
+    const matched = items.map(n => matchGarment(n)).filter(Boolean) as any[]
+    const garmentIds = matched.map(g => g.id).filter(Boolean)
+    const imageUrls = matched.map(g => g.image_url).filter(Boolean)
+    const name = tripOutfit.name || 'Reseoutfit'
+    const { data: inserted, error } = await supabase.from('outfits').insert([{
+      user_id: user.id, name, garment_ids: garmentIds, garment_names: items, image_urls: imageUrls, saved: true,
+    }]).select().single()
+    if (error || !inserted) { showAlert('Något gick fel', error?.message || 'Kunde inte spara outfiten.'); return }
+    await assignOutfitToDay(inserted, date)
+    setScheduleOutfit(null)
+    fetchOutfits()
+    showAlert('Inlagd i kalendern!', `${name} ligger nu på ${new Date(date + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })}.`)
   }
 
   async function resetTrip() {
@@ -670,6 +709,30 @@ function isPast(date: Date) {
                 )}
               </>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Välj vilken resedag outfiten ska läggas på i kalendern */}
+      <Modal visible={!!scheduleOutfit} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lägg "{scheduleOutfit?.name}" på en dag</Text>
+              <TouchableOpacity onPress={() => setScheduleOutfit(null)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {tripDays().map(d => (
+                <TouchableOpacity key={d} style={styles.dayPickRow} onPress={() => scheduleTripOutfit(scheduleOutfit, d)}>
+                  <Ionicons name="calendar-outline" size={18} color={t.textSecondary} />
+                  <Text style={styles.dayPickText}>
+                    {new Date(d + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -925,6 +988,10 @@ function isPast(date: Date) {
                           })}
                         </View>
                         <Text style={styles.outfitGarments}>{(o.items || []).join(' · ')}</Text>
+                        <TouchableOpacity style={styles.tripCalBtn} onPress={() => setScheduleOutfit(o)}>
+                          <Ionicons name="calendar-outline" size={16} color={t.primary} />
+                          <Text style={styles.tripCalBtnText}>Lägg i kalender</Text>
+                        </TouchableOpacity>
                       </View>
                     ))}
                   </>
@@ -1168,6 +1235,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   packNameChecked: { color: t.textFaint, textDecorationLine: 'line-through' },
   tripResetBtn: { backgroundColor: t.surfaceMuted, borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 24, borderWidth: 1, borderColor: t.border },
   tripResetBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 15 },
+  tripCalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4, paddingVertical: 10, borderRadius: 12, backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary },
+  tripCalBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 14 },
+  dayPickRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+  dayPickText: { fontFamily: 'Lora_500Medium', fontSize: 15, color: t.textPrimary, textTransform: 'capitalize' },
 
   // Delning
   shareCardHidden: { position: 'absolute', left: -9999, top: 0 },
