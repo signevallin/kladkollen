@@ -37,6 +37,9 @@ const RECENT_SONGS_KEY = 'kladkollen_recent_songs'
 // Minne av de senaste genererade outfitsen (lokalt), så AI:n inte upprepar
 // samma kombination flera dagar i rad – även om man inte sparar dem.
 const RECENT_OUTFITS_KEY = 'kladkollen_recent_outfits'
+// Minne av enskilda plagg som nyligen använts, så samma plagg (t.ex. en viss
+// skjorta) inte återkommer flera dagar i rad även om outfiten i övrigt skiljer sig.
+const RECENT_GARMENTS_KEY = 'kladkollen_recent_garments'
 
 export default function Home() {
   const t = useTheme()
@@ -344,7 +347,13 @@ export default function Home() {
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
 
       const intensityStr = INTENSITY_LABELS[intensity - 1]
-      const avoidStr = recentGarments.length > 0 ? `Undvik om möjligt: ${[...new Set(recentGarments)].slice(0, 6).join(', ')}.` : ''
+
+      // Nyligen använda enskilda plagg (lokalt minne) + plagg ur sparade outfits.
+      const recentGarmentsLocal: string[] = JSON.parse((await AsyncStorage.getItem(RECENT_GARMENTS_KEY)) || '[]')
+      const avoidGarments = [...new Set([...recentGarmentsLocal, ...recentGarments])].slice(0, 10)
+      const avoidStr = avoidGarments.length > 0
+        ? `Undvik om möjligt att återanvända dessa nyligen burna plagg – variera, låt inte samma plagg (särskilt nederdel/överdel) återkomma flera dagar i rad: ${avoidGarments.join(', ')}.`
+        : ''
 
       // Nyligen föreslagna låtar (sparas lokalt) så AI:n slipper upprepa sig.
       const recentSongs: string[] = JSON.parse((await AsyncStorage.getItem(RECENT_SONGS_KEY)) || '[]')
@@ -412,12 +421,15 @@ export default function Home() {
 
       setOutfit({ ...parsed, itemsWithImages })
 
-      // Minns kombinationen så nästa generering blir annorlunda.
+      // Minns kombinationen + de enskilda plaggen så nästa generering varierar.
       try {
-        const comboStr = (parsed.items || []).join(', ')
+        const items: string[] = parsed.items || []
+        const comboStr = items.join(', ')
         if (comboStr) {
           const nextOutfits = [comboStr, ...recentOutfitsLocal.filter(s => s !== comboStr)].slice(0, 10)
           await AsyncStorage.setItem(RECENT_OUTFITS_KEY, JSON.stringify(nextOutfits))
+          const nextGarments = [...items, ...recentGarmentsLocal.filter(g => !items.includes(g))].slice(0, 15)
+          await AsyncStorage.setItem(RECENT_GARMENTS_KEY, JSON.stringify(nextGarments))
         }
       } catch { /* ignorera */ }
 
