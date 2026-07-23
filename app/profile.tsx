@@ -622,6 +622,15 @@ export default function Profile() {
               </>
             ),
           })}
+          {renderRow('musik', 'Musik', {
+            icon: 'music-note', value: musicGenres.length ? `${musicGenres.length} valda` : undefined,
+            body: (
+              <>
+                <Text style={styles.hint}>Outfitens låtförslag hämtas ur dina genrer.</Text>
+                {pillGroup(MUSIC_GENRES as unknown as string[], musicGenres, toggle(setMusicGenres))}
+              </>
+            ),
+          })}
         </View>
 
         {/* ── Min stil ── */}
@@ -685,10 +694,6 @@ export default function Profile() {
                     />
                   </View>
                 ))}
-
-                <Text style={styles.subLabel}>Musikgenrer</Text>
-                <Text style={styles.hint}>Outfitens låtförslag hämtas ur dina genrer.</Text>
-                {pillGroup(MUSIC_GENRES as unknown as string[], musicGenres, toggle(setMusicGenres))}
               </>
             ),
           })}
