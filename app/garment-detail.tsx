@@ -23,6 +23,7 @@ import SignedImage from '../components/SignedImage'
 import { router } from 'expo-router'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
+import { toast } from '../components/Toast'
 import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
 import { fetchLocations, type Location } from '../utils/locations'
@@ -342,6 +343,17 @@ export default function GarmentDetail() {
     }
   }
 
+  async function sellGarment() {
+    try {
+      const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', id)
+      if (error) throw error
+      toast('Plagget ligger nu i säljlistan')
+      back()
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    }
+  }
+
   // Väljer arkiveringsanledning och flyttar plagget till arkiv-platsen.
   function pickArchiveReason(reasonKey: string) {
     const archiveLoc = locations.find(l => l.is_archive)
@@ -610,6 +622,12 @@ export default function GarmentDetail() {
 
         <Text style={styles.autosaveHint}>Ändringar sparas automatiskt</Text>
 
+        {!isWishlistItem && !sold && (
+          <TouchableOpacity style={styles.sellButton} onPress={sellGarment}>
+            <Text style={styles.sellButtonText}>Lägg i säljlistan</Text>
+          </TouchableOpacity>
+        )}
+
         {!isWishlistItem && (
           <TouchableOpacity style={styles.archiveButton} onPress={toggleArchive}>
             <Text style={styles.archiveButtonText}>
@@ -675,6 +693,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   saveStatus: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, fontStyle: 'italic' },
   saveStatusError: { color: t.danger },
   autosaveHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', textAlign: 'center', marginTop: 8, marginBottom: 12 },
+  sellButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 12 },
+  sellButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
   archiveButton: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border, marginBottom: 12 },
   archiveButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 15 },
   deleteButton: { backgroundColor: 'transparent', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border },
