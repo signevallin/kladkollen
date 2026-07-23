@@ -22,6 +22,7 @@ import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
 import { MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheClear } from '../utils/cache'
+import { loadPartner, type Partner } from '../utils/household'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
 
@@ -87,6 +88,7 @@ export default function Profile() {
   const [coldSensitivity, setColdSensitivity] = useState(3)
   const [avoidNote, setAvoidNote] = useState('')
   const [lifeMode, setLifeMode] = useState('single')
+  const [partner, setPartner] = useState<Partner | null>(null)
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
@@ -115,6 +117,7 @@ export default function Profile() {
   const [contrastLevel, setContrastLevel] = useState('')
 
   useEffect(() => { loadProfile() }, [])
+  useEffect(() => { loadPartner().then(({ partner }) => setPartner(partner)) }, [])
 
   async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -556,6 +559,25 @@ export default function Profile() {
         </TouchableOpacity>
         {!!name && <Text style={styles.avatarName}>{name}</Text>}
 
+        {partner && (
+          <>
+            <Text style={styles.sectionTitle}>Mitt hushåll</Text>
+            <View style={styles.householdRow}>
+              <TouchableOpacity
+                style={styles.householdMember}
+                onPress={() => router.push(`/partner-closet?user=${partner.id}&name=${encodeURIComponent(partner.name)}` as any)}
+                accessibilityLabel={`Öppna ${partner.name}s garderob`}
+                accessibilityRole="button"
+              >
+                {partner.avatar_url
+                  ? <SignedImage path={partner.avatar_url} style={styles.householdAvatar} resizeMode="cover" />
+                  : <View style={styles.householdAvatarPlaceholder}><MaterialIcons name="person" size={28} color={t.textSecondary} /></View>}
+                <Text style={styles.householdName} numberOfLines={1}>{partner.name}</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+
         {/* ── Min information ── */}
         <Text style={styles.sectionTitle}>Min information</Text>
         <View style={styles.listCard}>
@@ -802,6 +824,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.border },
   avatarBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: t.primary, borderRadius: 12, width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   avatarName: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textPrimary, textAlign: 'center', marginBottom: 20 },
+  householdRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
+  householdMember: { alignItems: 'center', width: 76 },
+  householdAvatar: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: t.primary },
+  householdAvatarPlaceholder: { width: 64, height: 64, borderRadius: 32, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.border },
+  householdName: { fontFamily: 'Lora_500Medium', fontSize: 12, color: t.textSecondary, marginTop: 6, textAlign: 'center' },
 
   sectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase', marginTop: 22, marginBottom: 10, marginLeft: 4 },
   listCard: { backgroundColor: t.surface, borderRadius: 18, borderWidth: 1, borderColor: t.border, overflow: 'hidden' },
