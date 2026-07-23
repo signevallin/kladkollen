@@ -17,6 +17,7 @@ export default async function handler(request: Request): Promise<Response> {
     const days = Math.max(1, Math.min(60, Number(body.days) || 1))
     const weatherSummary = clip(body.weatherSummary, 300)
     const groupedList = clip(body.groupedList, 8000)
+    const vibe = clip(body.vibe, 200)
 
     if (!destination) return json({ error: 'Destination saknas' }, 400)
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -33,9 +34,14 @@ export default async function handler(request: Request): Promise<Response> {
       ? `Resan är längre än 4 dagar (${days} dagar) → ÅTERANVÄND plaggen. Bygg en kapsel där samma nederdelar och överdelar återkommer i flera olika outfits. Packa INTE ett nytt unikt plagg för varje dag – variera i stället genom att kombinera om ett fåtal plagg på nya sätt.`
       : `Håll packningen liten – återanvänd gärna nederdelar/skor mellan outfits.`
 
+    const vibeLine = vibe
+      ? `KÄNSLA: Resan ska ha känslan "${vibe}". Låt den genomsyra BÅDE outfitsen och packlistan – välj plagg som förstärker den känslan och undvik sådant som bryter den.`
+      : ''
+
     const prompt = `Du är en personlig stylist och reseexpert. Användaren ska resa till ${destination} under ${dateLabel} (${days} dagar) och behöver hjälp att packa RÄTT plagg ur sin egen garderob.
 
 ${weatherLine}
+${vibeLine}
 
 GARDEROB (välj ENDAST plagg härifrån, exakt som de heter):
 ${groupedList}

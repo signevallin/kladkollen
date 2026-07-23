@@ -81,6 +81,7 @@ export default function MyOutfits() {
 
   // Resa (reseplanerare) state
   const [tripDestination, setTripDestination] = useState('')
+  const [tripVibe, setTripVibe] = useState('')
   const [tripMonth, setTripMonth] = useState(new Date())
   const [tripStartDate, setTripStartDate] = useState<string | null>(null)
   const [tripEndDate, setTripEndDate] = useState<string | null>(null)
@@ -417,6 +418,7 @@ function isPast(date: Date) {
         days,
         weatherSummary: weather.summary,
         groupedList,
+        vibe: tripVibe.trim(),
       })
 
       const result = {
@@ -491,6 +493,7 @@ function isPast(date: Date) {
     setTripStartDate(null)
     setTripEndDate(null)
     setTripDestination('')
+    setTripVibe('')
     await AsyncStorage.multiRemove([TRIP_KEY, TRIP_CHECK_KEY]).catch(() => {})
   }
 
@@ -957,6 +960,15 @@ function isPast(date: Date) {
                       : 'Startdatum valt – tryck på slutdatum'}
                   </Text>
                 )}
+
+                <Text style={styles.label}>Känsla (valfritt)</Text>
+                <TextInput
+                  style={styles.nameInput}
+                  placeholder='t.ex. "avslappnad strandsemester", "elegant stadshelg"'
+                  placeholderTextColor={t.placeholder}
+                  value={tripVibe}
+                  onChangeText={setTripVibe}
+                />
 
                 <TouchableOpacity style={[styles.tripGenBtn, tripLoading && { opacity: 0.7 }]} onPress={generateTrip} disabled={tripLoading}>
                   {tripLoading
