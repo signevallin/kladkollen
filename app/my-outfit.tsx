@@ -641,16 +641,14 @@ function isPast(date: Date) {
                       <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString('sv-SE')}</Text>
                     </View>
                   </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={styles.outfitImages}>
-                      {(outfit.image_urls || []).map((url: string, i: number) => (
-                        <SignedImage key={i} path={url} style={styles.outfitImage} />
-                      ))}
-                      {(outfit.garment_names || []).filter((_: any, i: number) => !outfit.image_urls?.[i]).map((_: string, i: number) => (
-                        <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
-                      ))}
-                    </View>
-                  </ScrollView>
+                  <View style={styles.outfitImages}>
+                    {(outfit.image_urls || []).map((url: string, i: number) => (
+                      <SignedImage key={i} path={url} style={styles.outfitImage} />
+                    ))}
+                    {(outfit.garment_names || []).filter((_: any, i: number) => !outfit.image_urls?.[i]).map((_: string, i: number) => (
+                      <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
+                    ))}
+                  </View>
                   {outfit.garment_names && <Text style={styles.outfitGarments}>{outfit.garment_names.join(' · ')}</Text>}
                   <Text style={styles.holdToDelete}>Håll inne för att ta bort · Tryck för att registrera som använd</Text>
                 </TouchableOpacity>
@@ -854,7 +852,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitName: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, flexShrink: 1 },
   editLink: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.primary },
   outfitDate: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic' },
-  outfitImages: { flexDirection: 'row', gap: 8 },
+  outfitImages: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   outfitImage: { width: 70, height: 70, borderRadius: 12 },
   outfitImageEmpty: { width: 70, height: 70, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   outfitGarments: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic' },
