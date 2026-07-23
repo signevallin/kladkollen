@@ -16,6 +16,7 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { normalizeBrand } from '../utils/brands'
+import { showAlert } from '../utils/alert'
 import { CATEGORIES, COLOR_GROUPS, COLOR_HEX } from '../utils/constants'
 
 // Donut-diagram över garderobens färger. Ritar varje färg som ett segment
@@ -256,8 +257,8 @@ export default function Stats() {
 
   async function markForSale(item: any) {
     const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
-    if (error) Alert.alert('Något gick fel', error.message)
-    else { Alert.alert('Lagt till i säljlistan!', `${item.name} finns nu under Sälj-fliken i din garderob.`); fetchAll() }
+    if (error) showAlert('Något gick fel', error.message)
+    else { showAlert('Lagt till i säljlistan!', `${item.name} finns nu under Sälj-fliken i din garderob.`); fetchAll() }
   }
 
   const mostWornAll = garments.filter(g => g.times_worn > 0)

@@ -1,11 +1,14 @@
 import { Alert, Platform } from 'react-native'
+import { toast } from '../components/Toast'
 
+// Titlar som signalerar ett fel/varning snarare än en bekräftelse – används
+// för att välja rätt utseende (röd ruta + varningsikon) på toasten.
+const ERROR_HINT = /(fel|kunde inte|misslyck|ogiltig|saknas|stöds inte|för många|hittade inte|tom |välj |skriv in|minst)/i
+
+// Enkla informations-/bekräftelserutor visas numera som den temaanpassade
+// toasten (samma överallt) istället för systemets grå Alert-ruta.
 export function showAlert(title: string, message?: string) {
-  if (Platform.OS === 'web') {
-    window.alert(message ? `${title}\n${message}` : title)
-  } else {
-    Alert.alert(title, message)
-  }
+  toast(title, message, ERROR_HINT.test(title) ? 'error' : 'success')
 }
 
 export function showConfirm(

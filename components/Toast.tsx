@@ -5,14 +5,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 
-type ToastData = { id: number; title: string; subtitle?: string }
+type ToastVariant = 'success' | 'error'
+type ToastData = { id: number; title: string; subtitle?: string; variant: ToastVariant }
 
 // Enkel imperativ toast: anropa toast(...) var som helst, <ToastHost/> (som
 // ligger i root-layouten) visar en snygg temaanpassad ruta som tonar bort själv.
 let emit: ((d: ToastData) => void) | null = null
 let counter = 0
-export function toast(title: string, subtitle?: string) {
-  emit?.({ id: ++counter, title, subtitle })
+export function toast(title: string, subtitle?: string, variant: ToastVariant = 'success') {
+  emit?.({ id: ++counter, title, subtitle, variant })
 }
 
 export function ToastHost() {
@@ -43,15 +44,16 @@ export function ToastHost() {
 
   if (!data) return null
   const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [-140, 0] })
+  const isError = data.variant === 'error'
 
   return (
     <Animated.View
       pointerEvents="box-none"
       style={[styles.wrap, { top: insets.top + 8, opacity: anim, transform: [{ translateY }] }]}
     >
-      <TouchableOpacity activeOpacity={0.92} onPress={dismiss} style={styles.card}>
+      <TouchableOpacity activeOpacity={0.92} onPress={dismiss} style={[styles.card, isError && styles.cardError]}>
         <View style={styles.iconWrap}>
-          <Ionicons name="checkmark" size={20} color={t.onPrimary} />
+          <Ionicons name={isError ? 'alert' : 'checkmark'} size={20} color={t.onPrimary} />
         </View>
         <View style={styles.textCol}>
           <Text style={styles.title}>{data.title}</Text>
@@ -71,6 +73,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 6 },
     elevation: 8,
   },
+  cardError: { backgroundColor: t.danger },
   iconWrap: {
     width: 34, height: 34, borderRadius: 17,
     backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center',
