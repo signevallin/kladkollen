@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useLocalSearchParams } from 'expo-router'
@@ -98,7 +99,14 @@ export default function PartnerCloset() {
       : <View style={styles.grid}>
           {list.map(g => (
             <View key={g.id} style={styles.gCard}>
-              {g.image_url ? <SignedImage path={g.image_url} style={styles.gImg} /> : <View style={styles.gImgEmpty} />}
+              <View>
+                {g.image_url ? <SignedImage path={g.image_url} style={styles.gImg} /> : <View style={styles.gImgEmpty} />}
+                {g.lendable && (
+                  <View style={styles.lendBadge}>
+                    <Ionicons name="swap-horizontal" size={12} color={t.onPrimary} />
+                  </View>
+                )}
+              </View>
               <Text style={styles.gName} numberOfLines={1}>{g.name}</Text>
             </View>
           ))}
@@ -242,6 +250,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   gCard: { width: '30%', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 8, borderWidth: 1, borderColor: t.border },
+  lendBadge: { position: 'absolute', top: -4, right: -4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   gImg: { width: '100%', height: 80, borderRadius: 10, marginBottom: 4 },
   gImgEmpty: { width: '100%', height: 80, borderRadius: 10, backgroundColor: t.surface, marginBottom: 4 },
   gName: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary, textAlign: 'center' },

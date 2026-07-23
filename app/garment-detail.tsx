@@ -33,6 +33,7 @@ import { base64ToBytes, pngToWebp } from '../utils/image'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { useSettings } from '../utils/settings'
 import { resolveImageUrl, uploadUserImage } from '../utils/storage'
+import { loadPartner } from '../utils/household'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -69,6 +70,8 @@ export default function GarmentDetail() {
   const [newImage, setNewImage] = useState<string | null>(null)
   const [size, setSize] = useState('')
   const [fit, setFit] = useState('')
+  const [lendable, setLendable] = useState(false)
+  const [hasPartner, setHasPartner] = useState(false)
   const [location, setLocation] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
@@ -91,6 +94,7 @@ export default function GarmentDetail() {
     if (isWishlistItem) fetchWishlistItem()
     else fetchGarment()
   }, [])
+  useEffect(() => { loadPartner().then(({ partner }) => setHasPartner(!!partner)) }, [])
 
   async function fetchWishlistItem() {
     const { data } = await supabase.from('wishlist').select('*').eq('id', wishlistId).single()
@@ -113,7 +117,7 @@ export default function GarmentDetail() {
       setName(data.name); setCategory(data.category); setSubcategory(data.subcategory || ''); setColor(data.color || '')
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
-      setSize(data.size || ''); setFit(data.fit || ''); setLocation(data.location || '')
+      setSize(data.size || ''); setFit(data.fit || ''); setLocation(data.location || ''); setLendable(!!data.lendable)
       setBrand(data.brand || ''); setPrice(data.price != null ? String(fromBaseSEK(data.price)) : '')
       setArchived(!!data.archived); setSold(!!data.sold)
       setArchiveReason(data.archive_reason || null)
@@ -151,6 +155,7 @@ export default function GarmentDetail() {
           color,
           size: size.trim() || null,
           fit: fit || null,
+          lendable,
           location: location.trim() || null,
           brand: brand.trim() || null,
           price: toBaseSEK(parsePrice(price)),
@@ -555,6 +560,18 @@ export default function GarmentDetail() {
               ))}
             </View>
 
+            {hasPartner && (
+              <TouchableOpacity style={styles.lendRow} onPress={() => setLendable(v => !v)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>Får lånas av partner</Text>
+                  <Text style={styles.lendHint}>Syns med en lån-markering i din partners vy och kan användas i Matcha-outfits.</Text>
+                </View>
+                <View style={[styles.toggle, lendable && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, lendable && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
+            )}
+
             <View style={styles.labelRow}>
               <Text style={styles.label}>Var finns plagget?</Text>
               <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -661,6 +678,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   reasonLabel: { fontFamily: 'Lora_500Medium', fontSize: 16, color: t.textPrimary },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  lendRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8, marginBottom: 8 },
+  lendHint: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic', marginTop: 2, marginRight: 8 },
+  toggle: { width: 48, height: 28, borderRadius: 14, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, padding: 2, justifyContent: 'center' },
+  toggleOn: { backgroundColor: t.primary, borderColor: t.primary },
+  toggleKnob: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.textSecondary },
+  toggleKnobOn: { alignSelf: 'flex-end', backgroundColor: t.onPrimary },
   manageLink: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 12, textDecorationLine: 'underline' },
   input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginBottom: 16 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
