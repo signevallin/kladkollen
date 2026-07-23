@@ -662,9 +662,21 @@ export default function Home() {
         const garment = garments.find(g => g.id === gId)
         if (garment) await supabase.from('garments').update({ times_worn: (garment.times_worn || 0) + 1, last_worn: today }).eq('id', gId)
       }
+      // Lägg även sambons look på HENS kalender – ni går ju bort tillsammans.
+      const par = coupleOutfit.outfits[1]
+      if (partner && par) {
+        const { error: pErr } = await supabase.rpc('wear_partner_outfit', {
+          target: partner.id,
+          p_name: `Med ${userName || 'partner'} – ${CONTEXTS[selectedContext].label}`,
+          p_garment_names: par.itemsWithImages.map((i: any) => i.name),
+          p_image_urls: par.itemsWithImages.map((i: any) => i.image_url).filter(Boolean),
+          p_date: today,
+        })
+        if (pErr) throw pErr
+      }
       setCoupleWorn(true)
       if (!coupleSaved) setCoupleSaved(true)
-      showAlert('Vald för idag!', 'Din outfit ligger nu i kalendern och plaggen räknas som använda.')
+      showAlert('Vald för idag!', `Er look ligger nu i både din och ${partner?.name}s kalender.`)
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
