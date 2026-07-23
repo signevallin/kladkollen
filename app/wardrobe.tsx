@@ -909,7 +909,7 @@ export default function Wardrobe() {
             }
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.item} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
-                <View>
+                <View style={styles.itemImageWrap}>
                   {item.image_url
                     ? <SignedImage path={item.image_url} style={styles.itemImage} />
                     : null
@@ -1244,6 +1244,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   flatList: { flex: 1 },
   grid: { paddingHorizontal: 16, paddingBottom: 100, gap: 10 },
   item: { width: '31%', margin: '1%', alignItems: 'center', backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 8, borderWidth: 1, borderColor: t.border },
+  itemImageWrap: { width: '100%' },
   itemImage: { width: '100%', height: 90, borderRadius: 10, marginBottom: 6, resizeMode: 'contain', backgroundColor: 'transparent' },
   itemEmoji: { fontFamily: 'Lora_400Regular', fontSize: 32, marginBottom: 6 },
   itemName: { fontFamily: 'Lora_500Medium', fontSize: 12, color: t.textPrimary, textAlign: 'center' },
