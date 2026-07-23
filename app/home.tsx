@@ -69,7 +69,13 @@ export default function Home() {
   const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
-  const [partnerName, setPartnerName] = useState<string | null>(null)
+  const [partner, setPartner] = useState<{ id: string; name: string } | null>(null)
+  const [coupleOutfit, setCoupleOutfit] = useState<any | null>(null)
+  const [coupleLoading, setCoupleLoading] = useState(false)
+  const [coupleSaving, setCoupleSaving] = useState(false)
+  const [coupleSaved, setCoupleSaved] = useState(false)
+  const [coupleWearing, setCoupleWearing] = useState(false)
+  const [coupleWorn, setCoupleWorn] = useState(false)
 
   const shareCardRef = useRef<View>(null)
 
@@ -85,7 +91,7 @@ export default function Home() {
       // ändrat i profilen slår igenom direkt när man kommer tillbaka hit.
       loadUser()
       fetchAll()
-      loadPartner().then(({ partner }) => setPartnerName(partner?.name || null))
+      loadPartner().then(({ partner }) => setPartner(partner))
     }, [])
   )
 
@@ -508,6 +514,164 @@ export default function Home() {
     }
   }
 
+  // ── Par-generering (samboläge) ──────────────────────────────────────────
+  function matchItemsToPool(names: string[], pool: any[]) {
+    const used = new Set<string>()
+    const find = (name: string) => {
+      const target = (name || '').trim().toLowerCase()
+      const free = (g: any) => !g.id || !used.has(g.id)
+      let m = pool.find(g => free(g) && (g.name || '').trim().toLowerCase() === target)
+      if (!m) m = pool.find(g => free(g) && (g.name || '').toLowerCase().includes(target))
+      if (!m) m = pool.filter(g => free(g) && g.name && target.includes(g.name.toLowerCase())).sort((a, b) => b.name.length - a.name.length)[0]
+      if (m?.id) used.add(m.id)
+      return m
+    }
+    return (names || []).map((n: string) => {
+      const m = find(n)
+      return { name: n, image_url: m?.image_url || null, id: m?.id || null }
+    })
+  }
+
+  // Bygger listan för en person: egna plagg + den ANDRAS lånbara (märkta [LÅN]).
+  function coupleList(own: any[], borrowedLendable: any[]) {
+    const all = [...own.map(g => ({ g, lent: false })), ...borrowedLendable.map(g => ({ g, lent: true }))]
+    const byCat: Record<string, string[]> = {}
+    for (const { g, lent } of all) {
+      const cat = g.category || 'Övrigt'
+      const parts = [g.subcategory, g.color].filter(Boolean).join(', ')
+      ;(byCat[cat] ||= []).push(`${g.name}${parts ? ` (${parts})` : ''}${lent ? ' [LÅN]' : ''}`)
+    }
+    return Object.entries(byCat).map(([c, items]) => `${c.toUpperCase()}:\n${items.map(i => '- ' + i).join('\n')}`).join('\n\n')
+  }
+
+  async function generateCouple() {
+    if (!partner || coupleLoading) return
+    setCoupleLoading(true); setCoupleOutfit(null); setCoupleSaved(false); setCoupleWorn(false)
+    try {
+      const ctx = CONTEXTS[selectedContext]
+      const currentWeather = weather ?? { temp: 10, description: 'okänt', rain: false }
+      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
+      const season = getCurrentSeason()
+
+      const { data: theirs } = await supabase.rpc('partner_garments', { target: partner.id })
+      const myActive = garments.filter(g => !g.archived && !g.for_sale)
+      const parActive = (theirs || []).filter((g: any) => !g.archived && !g.for_sale)
+      if (myActive.length === 0 || parActive.length === 0) {
+        showAlert('För få plagg', 'Ni behöver båda ha plagg i garderoben.')
+        return
+      }
+      // Filtrera bort off-season-plagg (löser t.ex. vantar mitt i sommaren),
+      // men fall tillbaka till hela garderoben om säsongsurvalet inte räcker.
+      const seasonalOrFull = (pool: any[]) => {
+        const s = pool.filter(g => seasonAppropriate(g, season))
+        const ok = s.some(g => g.category === 'Skor')
+          && s.some(g => ['Byxor', 'Shorts', 'Kjolar', 'Klänningar'].includes(g.category))
+          && s.some(g => ['Toppar', 'Tröjor', 'Klänningar'].includes(g.category))
+        return ok ? s : pool
+      }
+      const mySeason = seasonalOrFull(myActive)
+      const parSeason = seasonalOrFull(parActive)
+      const myLendable = mySeason.filter(g => g.lendable)
+      const parLendable = parSeason.filter(g => g.lendable)
+
+      const styleRules = STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n')
+
+      const parsed = await apiPost('/api/match-couple', {
+        nameA: userName || 'Jag', nameB: partner.name,
+        // Min outfit: mina plagg + partnerns lånbara. Partnerns: sina + mina lånbara.
+        listA: coupleList(mySeason, parLendable),
+        listB: coupleList(parSeason, myLendable),
+        contextLabel: ctx.label, contextLogic: ctx.logic,
+        weatherSummary: weatherCtx.summary, weatherRules: weatherCtx.rules,
+        styleRules, avoid: avoidNote.trim(),
+        contextNote: (contextNotes[ctx.label] || '').trim(),
+        season,
+      })
+      const myPool = [...mySeason, ...parLendable]
+      const parPool = [...parSeason, ...myLendable]
+      const outfits = (parsed.outfits || []).map((o: any, idx: number) => ({
+        ...o,
+        itemsWithImages: matchItemsToPool(o.items || [], idx === 0 ? myPool : parPool),
+      }))
+      setCoupleOutfit({ ...parsed, outfits })
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setCoupleLoading(false)
+    }
+  }
+
+  async function saveCoupleOutfit() {
+    if (!coupleOutfit || !partner) return
+    setCoupleSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const label = CONTEXTS[selectedContext].label
+      const mine = coupleOutfit.outfits[0]
+      const par = coupleOutfit.outfits[1]
+      if (mine) {
+        const { error } = await supabase.from('outfits').insert([{
+          user_id: user?.id,
+          name: `Med ${partner.name} – ${label}`,
+          garment_ids: mine.itemsWithImages.map((i: any) => i.id).filter(Boolean),
+          garment_names: mine.itemsWithImages.map((i: any) => i.name),
+          image_urls: mine.itemsWithImages.map((i: any) => i.image_url).filter(Boolean),
+          saved: true,
+        }])
+        if (error) throw error
+      }
+      if (par) {
+        const { error } = await supabase.rpc('save_partner_outfit', {
+          target: partner.id,
+          p_name: `Med ${userName || 'partner'} – ${label}`,
+          p_garment_names: par.itemsWithImages.map((i: any) => i.name),
+          p_image_urls: par.itemsWithImages.map((i: any) => i.image_url).filter(Boolean),
+        })
+        if (error) throw error
+      }
+      setCoupleSaved(true)
+      showAlert('Sparat!', `Outfitsen finns nu i både ditt och ${partner.name}s konto.`)
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setCoupleSaving(false)
+    }
+  }
+
+  async function wearCoupleToday() {
+    if (!coupleOutfit || coupleWearing) return
+    setCoupleWearing(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const mine = coupleOutfit.outfits[0]
+      const garmentIds = mine.itemsWithImages.map((i: any) => i.id).filter(Boolean)
+      const { data: outfitData, error } = await supabase.from('outfits').insert([{
+        user_id: user?.id,
+        name: `Med ${partner?.name} – ${CONTEXTS[selectedContext].label}`,
+        garment_ids: garmentIds,
+        garment_names: mine.itemsWithImages.map((i: any) => i.name),
+        image_urls: mine.itemsWithImages.map((i: any) => i.image_url).filter(Boolean),
+        mood: CONTEXTS[selectedContext].label,
+        context: CONTEXTS[selectedContext].label.toLowerCase(),
+        saved: true,
+      }]).select('id').single()
+      if (error) throw error
+      const today = new Date().toISOString().split('T')[0]
+      await supabase.from('outfit_calendar').upsert({ user_id: user?.id, outfit_id: outfitData.id, date: today }, { onConflict: 'user_id,date' })
+      for (const gId of garmentIds) {
+        const garment = garments.find(g => g.id === gId)
+        if (garment) await supabase.from('garments').update({ times_worn: (garment.times_worn || 0) + 1, last_worn: today }).eq('id', gId)
+      }
+      setCoupleWorn(true)
+      if (!coupleSaved) setCoupleSaved(true)
+      showAlert('Vald för idag!', 'Din outfit ligger nu i kalendern och plaggen räknas som använda.')
+    } catch (e: any) {
+      showAlert('Något gick fel', e.message)
+    } finally {
+      setCoupleWearing(false)
+    }
+  }
+
   async function saveOutfit() {
     if (!outfit) return
     setSaving(true)
@@ -740,11 +904,12 @@ export default function Home() {
           }
         </TouchableOpacity>
 
-        {/* Par-generering – bara i samboläge */}
-        {partnerName && (
-          <TouchableOpacity style={styles.coupleBtn} onPress={() => router.push('/couple-match')}>
-            <Ionicons name="sparkles-outline" size={18} color={t.primary} />
-            <Text style={styles.coupleBtnText}>Generera outfits för mig och {partnerName}</Text>
+        {/* Par-generering – bara i samboläge. Använder samma valda kontext/väder. */}
+        {partner && (
+          <TouchableOpacity style={styles.coupleBtn} onPress={generateCouple} disabled={coupleLoading || loading}>
+            {coupleLoading
+              ? <ActivityIndicator color={t.primary} />
+              : <Text style={styles.coupleBtnText}>Generera outfits för mig och {partner.name}</Text>}
           </TouchableOpacity>
         )}
 
@@ -848,6 +1013,57 @@ export default function Home() {
               }
             </TouchableOpacity>
           </Animated.View>
+        )}
+
+        {/* Par-resultat (två outfits) */}
+        {coupleOutfit && !coupleLoading && (
+          <View style={styles.outfitCard}>
+            {!!coupleOutfit.vibe && <Text style={styles.coupleVibe}>{coupleOutfit.vibe}</Text>}
+            {(coupleOutfit.outfits || []).map((o: any, oi: number) => (
+              <View key={oi} style={styles.couplePersonBlock}>
+                <Text style={styles.couplePersonTitle}>{o.person || (oi === 0 ? (userName || 'Jag') : partner?.name)}</Text>
+                <View style={styles.outfitImages}>
+                  {o.itemsWithImages.map((item: any, i: number) => (
+                    <View key={i} style={styles.outfitItemWrap}>
+                      {item.image_url
+                        ? <SignedImage path={item.image_url} style={styles.outfitImage} />
+                        : <View style={styles.outfitImageEmpty} />}
+                      <Text style={styles.outfitItemName} numberOfLines={2}>{item.name}</Text>
+                    </View>
+                  ))}
+                </View>
+                {(o.borrowed || []).length > 0 && (
+                  <Text style={styles.coupleBorrowed}>🔄 Lånar: {o.borrowed.join(', ')}</Text>
+                )}
+              </View>
+            ))}
+            {!!coupleOutfit.tip && (
+              <View style={styles.messageBox}><Text style={styles.messageText}>{coupleOutfit.tip}</Text></View>
+            )}
+            <View style={styles.outfitActions}>
+              <TouchableOpacity
+                style={[styles.saveBtn, coupleSaved && styles.saveBtnDone]}
+                onPress={saveCoupleOutfit}
+                disabled={coupleSaving || coupleSaved}
+              >
+                {coupleSaving
+                  ? <ActivityIndicator color={t.onPrimary} size="small" />
+                  : <Text style={styles.saveBtnText}>{coupleSaved ? '✓ Sparad' : 'Spara båda'}</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.newBtn} onPress={generateCouple}>
+                <Ionicons name="refresh" size={22} color={t.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={[styles.wearTodayBtn, coupleWorn && styles.wearTodayBtnDone]}
+              onPress={wearCoupleToday}
+              disabled={coupleWearing || coupleWorn}
+            >
+              {coupleWearing
+                ? <ActivityIndicator color={t.onPrimary} size="small" />
+                : <Text style={[styles.wearTodayBtnText, coupleWorn && styles.wearTodayBtnTextDone]}>{coupleWorn ? '✓ Vald för idag' : 'Vill ha på mig idag'}</Text>}
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Stats */}
@@ -983,6 +1199,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   generateBtnText: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, letterSpacing: 0.5 },
   coupleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 28, backgroundColor: t.surface, borderRadius: 16, paddingVertical: 15, borderWidth: 1, borderColor: t.primary, marginBottom: 28 },
   coupleBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 14 },
+  coupleVibe: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary, lineHeight: 21, textAlign: 'center', marginBottom: 4 },
+  couplePersonBlock: { gap: 10, paddingBottom: 14, marginBottom: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+  couplePersonTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary },
+  coupleBorrowed: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.primaryActive },
 
   // Outfit card
   outfitCard: { marginHorizontal: 28, backgroundColor: t.surfaceMuted, borderRadius: 22, padding: 20, marginBottom: 28, borderWidth: 1, borderColor: t.border, gap: 16 },
