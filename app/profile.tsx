@@ -831,7 +831,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   householdName: { fontFamily: 'Lora_500Medium', fontSize: 12, color: t.textSecondary, marginTop: 6, textAlign: 'center' },
 
   sectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase', marginTop: 22, marginBottom: 10, marginLeft: 4 },
-  listCard: { backgroundColor: t.surface, borderRadius: 18, borderWidth: 1, borderColor: t.border, overflow: 'hidden' },
+  listCard: { backgroundColor: t.surfaceMuted, borderRadius: 18, borderWidth: 1, borderColor: t.border, overflow: 'hidden' },
   rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 15, paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
   rowLabel: { flex: 1, fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   rowValue: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, maxWidth: 150, textAlign: 'right' },
