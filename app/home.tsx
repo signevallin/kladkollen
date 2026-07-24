@@ -1045,7 +1045,10 @@ export default function Home() {
                   ))}
                 </View>
                 {(o.borrowed || []).length > 0 && (
-                  <Text style={styles.coupleBorrowed}>🔄 Lånar: {o.borrowed.join(', ')}</Text>
+                  <View style={styles.coupleBorrowedRow}>
+                    <Ionicons name="swap-horizontal" size={14} color={t.primaryActive} />
+                    <Text style={styles.coupleBorrowed}>Lånar: {o.borrowed.join(', ')}</Text>
+                  </View>
                 )}
               </View>
             ))}
@@ -1214,6 +1217,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   coupleVibe: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary, lineHeight: 21, textAlign: 'center', marginBottom: 4 },
   couplePersonBlock: { gap: 10, paddingBottom: 14, marginBottom: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
   couplePersonTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary },
+  coupleBorrowedRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   coupleBorrowed: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.primaryActive },
 
   // Outfit card
