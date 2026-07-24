@@ -592,8 +592,10 @@ export default function Home() {
           && s.some(g => ['Toppar', 'Tröjor', 'Klänningar'].includes(g.category))
         return ok ? s : pool
       }
-      const mySeason = seasonalOrFull(myActive)
+      let mySeason = seasonalOrFull(myActive)
       const parSeason = seasonalOrFull(parActive)
+      // Ev. valt utgångsplagg (mitt) tvingas in i min pool även om off-season.
+      if (baseGarment && !mySeason.some(g => g.id === baseGarment.id)) mySeason = [baseGarment, ...mySeason]
       const myLendable = mySeason.filter(g => g.lendable)
       const parLendable = parSeason.filter(g => g.lendable)
 
@@ -609,6 +611,9 @@ export default function Home() {
         styleRules, avoid: avoidNote.trim(),
         contextNote: (contextNotes[ctx.label] || '').trim(),
         season,
+        baseA: baseGarment
+          ? `${baseGarment.name}${[baseGarment.subcategory, baseGarment.color].filter(Boolean).length ? ` (${[baseGarment.subcategory, baseGarment.color].filter(Boolean).join(', ')})` : ''}`
+          : '',
       })
       const myPool = [...mySeason, ...parLendable]
       const parPool = [...parSeason, ...myLendable]

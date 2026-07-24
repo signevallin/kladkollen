@@ -25,6 +25,7 @@ export default async function handler(request: Request): Promise<Response> {
     const avoid = clip(body.avoid, 400)
     const contextNote = clip(body.contextNote, 400)
     const season = clip(body.season, 20)
+    const baseA = clip(body.baseA, 120)
 
     if (!listA || !listB) return json({ error: 'Bådas garderober behövs' }, 400)
 
@@ -42,7 +43,7 @@ TILLGÄNGLIGT FÖR ${nameB} (välj ${nameB}s outfit ENDAST härifrån):
 ${listB}
 
 VIKTIGT: Varje persons outfit får ENDAST innehålla plagg ur den personens EGEN lista ovan. Plagg markerade [LÅN] är partnerns plagg som lånats in i den här personens lista – de FÅR användas, och ska då anges i "borrowed". Ta ALDRIG ett plagg som inte står i personens egen lista.
-
+${baseA ? `\nUTGÅNGSPLAGG FÖR ${nameA} (MÅSTE VARA MED): Bygg ${nameA}s outfit KRING plagget "${baseA}". Det ska ingå i ${nameA}s "items" exakt som det heter i listan, och resten av ${nameA}s look väljs för att matcha och lyfta just det plagget. Lägg inte till ett annat plagg av samma typ. ${nameB}s outfit koordineras sedan mot ${nameA}s.\n` : ''}
 OBLIGATORISKA REGLER FÖR VARJE OUTFIT:
 1. SKOR: exakt ett par.
 2. NEDERDEL: byxor/kjol/shorts – SÅVIDA du inte väljer klänning.
