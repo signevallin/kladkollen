@@ -107,7 +107,14 @@ export default function MyOutfits() {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(TRIP_KEY)
-        if (raw) setTripResult(JSON.parse(raw))
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          setTripResult(parsed)
+          // Spegla ev. lokalt sparad resa (t.ex. planerad före denna spegling
+          // fanns) till databasen så en sambo kan se den i läsläge.
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) supabase.from('trips').upsert({ user_id: user.id, data: parsed, updated_at: new Date().toISOString() }).then(() => {}, () => {})
+        }
         const chk = await AsyncStorage.getItem(TRIP_CHECK_KEY)
         if (chk) setTripChecked(JSON.parse(chk))
       } catch { /* ignorera */ }
