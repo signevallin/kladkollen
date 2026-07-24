@@ -65,6 +65,7 @@ export default function MyOutfits() {
   const [activeStyle, setActiveStyle] = useState('Alla')
   const [filteredGarments, setFilteredGarments] = useState<any[]>(() => cacheGet('myoutfit.garments') ?? [])
   const [activeStyleFilter, setActiveStyleFilter] = useState('Alla')
+  const [showOnlyLiked, setShowOnlyLiked] = useState(false)
   const [showWishlistItems, setShowWishlistItems] = useState(true)
 
   // Delning av en sparad outfit (samma dela-kort som på hemskärmen).
@@ -247,7 +248,11 @@ function isPast(date: Date) {
   const today = new Date()
 
   // Outfit functions
-  const filteredOutfits = activeStyleFilter === 'Alla' ? outfits : outfits.filter(o => o.style === activeStyleFilter)
+  const filteredOutfits = outfits.filter(o => {
+    if (activeStyleFilter !== 'Alla' && o.style !== activeStyleFilter) return false
+    if (showOnlyLiked && !partnerLikedIds.has(o.id)) return false
+    return true
+  })
 
   function toggleGarment(garment: any) {
     setSelectedGarments(prev => {
@@ -852,6 +857,15 @@ function isPast(date: Date) {
           <>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, paddingHorizontal: 4 }}>
               <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 4 }}>
+                {partnerLikedIds.size > 0 && (
+                  <TouchableOpacity
+                    style={[styles.pill, styles.likedPill, showOnlyLiked && styles.pillActive]}
+                    onPress={() => setShowOnlyLiked(v => !v)}
+                  >
+                    <Ionicons name="heart" size={13} color={showOnlyLiked ? t.onPrimary : t.danger} />
+                    <Text style={[styles.pillText, showOnlyLiked && styles.pillTextActive]}>Gillade av partner</Text>
+                  </TouchableOpacity>
+                )}
                 {['Alla', ...STYLE_TAGS].map(s => (
                   <TouchableOpacity key={s} style={[styles.pill, activeStyleFilter === s && styles.pillActive]} onPress={() => setActiveStyleFilter(s)}>
                     <Text style={[styles.pillText, activeStyleFilter === s && styles.pillTextActive]}>{s}</Text>
@@ -1216,6 +1230,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dropdownPillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12 },
   dropdownPillTextActive: { color: t.onPrimary },
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  likedPill: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   pillActive: { backgroundColor: t.primary, borderColor: t.primary },
   pillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
   pillTextActive: { color: t.onPrimary },
