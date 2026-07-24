@@ -650,6 +650,22 @@ export default function Profile() {
               </>
             ),
           })}
+          {renderRow('livssituation', 'Livssituation', {
+            icon: 'favorite-border', value: lifeMode === 'couple' ? 'Partner' : 'Singel',
+            body: (
+              <>
+                <Text style={styles.hint}>Anpassar appen efter var i livet du är. Fler lägen kommer.</Text>
+                <View style={styles.pills}>
+                  {([['single', 'Singel'], ['couple', 'Partner']] as const).map(([v, lbl]) => (
+                    <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => setLifeMode(v)}>
+                      <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{lbl}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            ),
+          })}
+          {lifeMode === 'couple' && renderRow('partner', 'Min partner', { icon: 'people-outline', onPress: () => router.push('/partner') })}
         </View>
 
         {/* ── Min stil ── */}
@@ -745,22 +761,6 @@ export default function Profile() {
         {/* ── Inställningar ── */}
         <Text style={styles.sectionTitle}>Inställningar</Text>
         <View style={styles.listCard}>
-          {renderRow('livssituation', 'Livssituation', {
-            icon: 'favorite-border', value: lifeMode === 'couple' ? 'Sambo' : 'Singel',
-            body: (
-              <>
-                <Text style={styles.hint}>Anpassar appen efter var i livet du är. Fler lägen kommer.</Text>
-                <View style={styles.pills}>
-                  {([['single', 'Singel'], ['couple', 'Sambo']] as const).map(([v, lbl]) => (
-                    <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => setLifeMode(v)}>
-                      <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{lbl}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            ),
-          })}
-          {lifeMode === 'couple' && renderRow('partner', 'Min partner', { icon: 'people-outline', onPress: () => router.push('/partner') })}
           {renderRow('valuta', 'Valuta', {
             icon: 'attach-money', value: currency,
             body: (
