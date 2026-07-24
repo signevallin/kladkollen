@@ -30,6 +30,7 @@ import { parsePrice } from '../utils/brands'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { useSettings } from '../utils/settings'
 import { pickImageSmart } from '../utils/imagePicker'
+import { fetchLocations, type Location } from '../utils/locations'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -61,6 +62,7 @@ type GarmentDraft = {
   fit: string
   brand: string
   price: string
+  location: string
   analyzing: boolean
   removingBg: boolean
 }
@@ -74,6 +76,7 @@ export default function AddGarment() {
   const [saving, setSaving] = useState(false)
   const [bgError, setBgError] = useState<string | null>(null)
   const [ownBrands, setOwnBrands] = useState<string[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
 
   const { start } = useLocalSearchParams()
 
@@ -81,6 +84,7 @@ export default function AddGarment() {
     supabase.from('garments').select('brand').then(({ data }) => {
       if (data) setOwnBrands([...new Set(data.map((g: any) => g.brand).filter(Boolean))] as string[])
     })
+    fetchLocations().then(setLocations).catch(() => {})
   }, [])
 
   // Kommer man in via "Välj foton" i valrutan – öppna bildväljaren automatiskt.
@@ -137,6 +141,7 @@ export default function AddGarment() {
       fit: '',
       brand: '',
       price: '',
+      location: '',
       analyzing: true,
       removingBg: true,
     }))
@@ -261,6 +266,7 @@ export default function AddGarment() {
           fit: draft.fit || null,
           brand: draft.brand.trim() || null,
           price: toBaseSEK(parsePrice(draft.price)),
+          location: draft.location || null,
           image_url: imageUrl,
         }])
       }
@@ -495,6 +501,26 @@ export default function AddGarment() {
                     onChangeText={v => updateDraft(draft.id, 'price', v)}
                     keyboardType="numeric"
                   />
+
+                  {/* Var finns plagget? */}
+                  {locations.length > 0 && (
+                    <>
+                      <Text style={styles.cardLabel}>VAR FINNS PLAGGET? (VALFRITT)</Text>
+                      <View style={styles.pillRow}>
+                        {locations.map(l => (
+                          <TouchableOpacity
+                            key={l.id}
+                            style={[styles.pill, draft.location === l.name && styles.pillActive]}
+                            onPress={() => updateDraft(draft.id, 'location', draft.location === l.name ? '' : l.name)}
+                          >
+                            <Text style={[styles.pillText, draft.location === l.name && styles.pillTextActive]}>
+                              {l.name}{l.is_archive ? ' (arkiv)' : ''}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </>
+                  )}
                 </>
               )}
             </View>

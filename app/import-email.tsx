@@ -20,6 +20,7 @@ import { goBack } from '../utils/nav'
 import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
 import { uploadUserImage } from '../utils/storage'
+import { fetchLocations, type Location } from '../utils/locations'
 
 // Domänen där import-adresserna tas emot. Ligger på Elairis (företaget) så den
 // överlever en framtida namnändring av appen. Byt om du använder en annan subdomän.
@@ -47,6 +48,10 @@ export default function ImportEmail() {
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
   const [addProgress, setAddProgress] = useState('')
+  const [locations, setLocations] = useState<Location[]>([])
+  const [importLocation, setImportLocation] = useState('')
+
+  useEffect(() => { fetchLocations().then(setLocations).catch(() => {}) }, [])
 
   // Kända id:n så vi kan förbocka nya rader utan att röra befintliga val.
   const knownIds = useRef<Set<string>>(new Set())
@@ -146,6 +151,7 @@ export default function ImportEmail() {
           season: p.season || 'Alla årstider',
           brand: p.brand || null,
           price: parsePrice(p.price),
+          location: importLocation || null,
           image_url: imageUrl,
         }])
       }
@@ -228,6 +234,27 @@ export default function ImportEmail() {
                     </TouchableOpacity>
                   </TouchableOpacity>
                 ))}
+
+                {locations.length > 0 && (
+                  <>
+                    <Text style={styles.locationLabel}>Var finns plaggen? (valfritt)</Text>
+                    <View style={styles.locationPills}>
+                      {locations.map(l => (
+                        <TouchableOpacity
+                          key={l.id}
+                          style={[styles.locationPill, importLocation === l.name && styles.locationPillActive]}
+                          onPress={() => setImportLocation(importLocation === l.name ? '' : l.name)}
+                          disabled={adding}
+                        >
+                          <Text style={[styles.locationPillText, importLocation === l.name && styles.locationPillTextActive]}>
+                            {l.name}{l.is_archive ? ' (arkiv)' : ''}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
+
                 <TouchableOpacity
                   style={[styles.primaryBtn, (selected.size === 0 || adding) && styles.primaryBtnDisabled]}
                   onPress={addSelected}
@@ -306,4 +333,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   primaryBtnDisabled: { opacity: 0.5 },
   primaryBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
   btnRow: { flexDirection: 'row', alignItems: 'center' },
+  locationLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary, letterSpacing: 0.5, marginTop: 18, marginBottom: 10 },
+  locationPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  locationPill: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  locationPillActive: { backgroundColor: t.primary, borderColor: t.primary },
+  locationPillText: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textSecondary },
+  locationPillTextActive: { color: t.onPrimary },
 })

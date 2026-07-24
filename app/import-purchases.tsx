@@ -1,7 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useLocalSearchParams } from 'expo-router'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Image,
@@ -21,6 +21,7 @@ import { goBack } from '../utils/nav'
 import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
 import { uploadUserImage } from '../utils/storage'
+import { fetchLocations, type Location } from '../utils/locations'
 
 // WebView finns bara i native-apparna – på webben visar vi en hänvisning.
 // Kräv modulen först när den faktiskt används så webbygget inte kraschar.
@@ -116,6 +117,12 @@ export default function ImportPurchases() {
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [adding, setAdding] = useState(false)
   const [addProgress, setAddProgress] = useState('')
+  const [locations, setLocations] = useState<Location[]>([])
+  const [importLocation, setImportLocation] = useState('')
+
+  useEffect(() => {
+    if (!toWishlist) fetchLocations().then(setLocations).catch(() => {})
+  }, [toWishlist])
 
   function startImport() {
     if (parsing) return
@@ -235,6 +242,7 @@ export default function ImportPurchases() {
             image_url: imageUrl,
             brand: item.brand || null,
             price: parsePrice(item.price),
+            location: importLocation || null,
           }])
         }
       }
@@ -337,6 +345,27 @@ export default function ImportPurchases() {
               </View>
             </TouchableOpacity>
           ))}
+
+          {!toWishlist && locations.length > 0 && (
+            <>
+              <Text style={styles.locationLabel}>Var finns plaggen? (valfritt)</Text>
+              <View style={styles.locationPills}>
+                {locations.map(l => (
+                  <TouchableOpacity
+                    key={l.id}
+                    style={[styles.locationPill, importLocation === l.name && styles.locationPillActive]}
+                    onPress={() => setImportLocation(importLocation === l.name ? '' : l.name)}
+                    disabled={adding}
+                  >
+                    <Text style={[styles.locationPillText, importLocation === l.name && styles.locationPillTextActive]}>
+                      {l.name}{l.is_archive ? ' (arkiv)' : ''}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+
           <TouchableOpacity
             style={[styles.primaryBtn, (selected.size === 0 || adding) && styles.primaryBtnDisabled]}
             onPress={addSelected}
@@ -428,4 +457,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   primaryBtnDisabled: { opacity: 0.5 },
   primaryBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
   btnRow: { flexDirection: 'row', alignItems: 'center' },
+  locationLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary, letterSpacing: 0.5, marginTop: 18, marginBottom: 10 },
+  locationPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  locationPill: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  locationPillActive: { backgroundColor: t.primary, borderColor: t.primary },
+  locationPillText: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textSecondary },
+  locationPillTextActive: { color: t.onPrimary },
 })
