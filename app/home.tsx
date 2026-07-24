@@ -76,6 +76,8 @@ export default function Home() {
   const [coupleSaved, setCoupleSaved] = useState(false)
   const [coupleWearing, setCoupleWearing] = useState(false)
   const [coupleWorn, setCoupleWorn] = useState(false)
+  // Vilket plagg i par-outfiten som byts ut: person (0 = jag, 1 = partner) + index.
+  const [coupleSwap, setCoupleSwap] = useState<{ person: number; index: number } | null>(null)
 
   const shareCardRef = useRef<View>(null)
 
@@ -593,7 +595,18 @@ export default function Home() {
         ...o,
         itemsWithImages: matchItemsToPool(o.items || [], idx === 0 ? myPool : parPool),
       }))
-      setCoupleOutfit({ ...parsed, outfits })
+      // Spara personernas plagg-pooler så man kan byta ut plagg efteråt, samt
+      // vilka id:n som är inlånade (den andras lånbara) för att hålla "Lånar"
+      // korrekt även efter manuella byten.
+      const lentIds = [
+        new Set(parLendable.map((g: any) => g.id)),
+        new Set(myLendable.map((g: any) => g.id)),
+      ]
+      const withBorrowed = outfits.map((o: any, oi: number) => ({
+        ...o,
+        borrowed: o.itemsWithImages.filter((i: any) => i.id && lentIds[oi].has(i.id)).map((i: any) => i.name),
+      }))
+      setCoupleOutfit({ ...parsed, outfits: withBorrowed, pools: [myPool, parPool], lentIds })
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
@@ -838,6 +851,53 @@ export default function Home() {
     !g.archived && g.id !== swapItem?.id && (swapCategory ? g.category === swapCategory : true)
   )
 
+  // ── Byt ut plagg i en par-outfit (samma logik som ovan, per person) ──────
+  // Räknar om "Lånar"-listan utifrån vilka plagg som är inlånade (den andras lånbara).
+  function withRecomputedBorrowed(o: any, lentSet: Set<string> | undefined) {
+    if (!lentSet) return o
+    return { ...o, borrowed: o.itemsWithImages.filter((i: any) => i.id && lentSet.has(i.id)).map((i: any) => i.name) }
+  }
+
+  function replaceCoupleItem(person: number, index: number, garment: any) {
+    setCoupleOutfit((prev: any) => {
+      if (!prev) return prev
+      const outfits = prev.outfits.map((o: any, oi: number) => {
+        if (oi !== person) return o
+        const items = [...o.itemsWithImages]
+        items[index] = { name: garment.name, image_url: garment.image_url || null, id: garment.id }
+        return withRecomputedBorrowed({ ...o, itemsWithImages: items }, prev.lentIds?.[oi])
+      })
+      return { ...prev, outfits }
+    })
+    setCoupleSaved(false); setCoupleWorn(false)
+    setCoupleSwap(null)
+  }
+
+  function removeCoupleItem(person: number, index: number) {
+    setCoupleOutfit((prev: any) => {
+      if (!prev) return prev
+      const outfits = prev.outfits.map((o: any, oi: number) =>
+        oi !== person ? o : withRecomputedBorrowed({ ...o, itemsWithImages: o.itemsWithImages.filter((_: any, i: number) => i !== index) }, prev.lentIds?.[oi])
+      )
+      return { ...prev, outfits }
+    })
+    setCoupleSaved(false); setCoupleWorn(false)
+    setCoupleSwap(null)
+  }
+
+  const coupleSwapPool: any[] = coupleSwap ? (coupleOutfit?.pools?.[coupleSwap.person] || []) : []
+  const coupleSwapItem = coupleSwap ? coupleOutfit?.outfits?.[coupleSwap.person]?.itemsWithImages?.[coupleSwap.index] : null
+  const coupleSwapCategory = coupleSwapItem ? coupleSwapPool.find(g => g.id === coupleSwapItem.id)?.category : null
+  // Plagg som redan används i personens outfit exkluderas så man inte får dubbletter.
+  const coupleUsedIds = new Set(
+    (coupleSwap ? coupleOutfit?.outfits?.[coupleSwap.person]?.itemsWithImages || [] : [])
+      .map((i: any) => i.id).filter(Boolean)
+  )
+  const coupleSwapAlternatives = coupleSwapPool.filter(g =>
+    !g.archived && g.id !== coupleSwapItem?.id && !coupleUsedIds.has(g.id) &&
+    (coupleSwapCategory ? g.category === coupleSwapCategory : true)
+  )
+
   const activeCtx = CONTEXTS[selectedContext]
 
   return (
@@ -1036,12 +1096,20 @@ export default function Home() {
                 <Text style={styles.couplePersonTitle}>{o.person || (oi === 0 ? (userName || 'Jag') : partner?.name)}</Text>
                 <View style={styles.outfitImages}>
                   {o.itemsWithImages.map((item: any, i: number) => (
-                    <View key={i} style={styles.outfitItemWrap}>
+                    <TouchableOpacity
+                      key={i}
+                      style={styles.outfitItemWrap}
+                      onPress={() => setCoupleSwap({ person: oi, index: i })}
+                      activeOpacity={0.7}
+                      accessibilityLabel={`Byt ut ${item.name}`}
+                      accessibilityRole="button"
+                    >
                       {item.image_url
                         ? <SignedImage path={item.image_url} style={styles.outfitImage} />
                         : <View style={styles.outfitImageEmpty} />}
+                      <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
                       <Text style={styles.outfitItemName} numberOfLines={2}>{item.name}</Text>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
                 {(o.borrowed || []).length > 0 && (
@@ -1133,6 +1201,56 @@ export default function Home() {
                   <TouchableOpacity
                     style={styles.swapAlt}
                     onPress={() => swapIndex !== null && replaceItem(swapIndex, g)}
+                  >
+                    {g.image_url
+                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
+                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
+                    }
+                    <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Byt ut plagg i par-outfiten */}
+      <Modal visible={coupleSwap !== null} animationType="slide" transparent onRequestClose={() => setCoupleSwap(null)}>
+        <View style={styles.swapOverlay}>
+          <View style={styles.swapSheet}>
+            <View style={styles.swapHeader}>
+              <Text style={styles.swapTitle}>Byt ut{coupleSwapItem ? ` ${coupleSwapItem.name}` : ''}</Text>
+              <TouchableOpacity
+                onPress={() => setCoupleSwap(null)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Stäng"
+                accessibilityRole="button"
+              >
+                <Text style={styles.swapClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.swapRemoveBtn}
+              onPress={() => coupleSwap && removeCoupleItem(coupleSwap.person, coupleSwap.index)}
+            >
+              <Text style={styles.swapRemoveText}>Ta bort ur outfiten</Text>
+            </TouchableOpacity>
+
+            {coupleSwapAlternatives.length === 0 ? (
+              <View style={styles.swapEmpty}>
+                <Text style={styles.swapEmptyText}>Inga andra plagg i samma kategori</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={coupleSwapAlternatives}
+                numColumns={3}
+                keyExtractor={g => g.id}
+                renderItem={({ item: g }) => (
+                  <TouchableOpacity
+                    style={styles.swapAlt}
+                    onPress={() => coupleSwap && replaceCoupleItem(coupleSwap.person, coupleSwap.index, g)}
                   >
                     {g.image_url
                       ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
