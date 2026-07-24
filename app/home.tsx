@@ -16,6 +16,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native'
@@ -78,6 +79,10 @@ export default function Home() {
   const [coupleWorn, setCoupleWorn] = useState(false)
   // Vilket plagg i par-outfiten som byts ut: person (0 = jag, 1 = partner) + index.
   const [coupleSwap, setCoupleSwap] = useState<{ person: number; index: number } | null>(null)
+  // Valfritt utgångsplagg – bygg outfiten kring ett specifikt plagg.
+  const [baseGarment, setBaseGarment] = useState<any | null>(null)
+  const [showBasePicker, setShowBasePicker] = useState(false)
+  const [baseSearch, setBaseSearch] = useState('')
 
   const shareCardRef = useRef<View>(null)
 
@@ -369,7 +374,9 @@ export default function Home() {
         seasonalPool.some(g => SHOE_CATS.includes(g.category)) &&
         seasonalPool.some(g => BOTTOM_OR_DRESS.includes(g.category)) &&
         seasonalPool.some(g => TOP_OR_DRESS.includes(g.category))
-      const pool = poolCanFormOutfit ? seasonalPool : activeGarments
+      let pool = poolCanFormOutfit ? seasonalPool : activeGarments
+      // Utgångsplagget måste alltid finnas i poolen även om det är off-season.
+      if (baseGarment && !pool.some(g => g.id === baseGarment.id)) pool = [baseGarment, ...pool]
 
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
 
@@ -422,10 +429,18 @@ export default function Home() {
           styleRules: STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n'),
           previousItems: attempts === 1 ? previousItems : '',
           retry: attempts > 1,
+          baseGarment: baseGarment
+            ? `${baseGarment.name}${[baseGarment.subcategory, baseGarment.color].filter(Boolean).length ? ` (${[baseGarment.subcategory, baseGarment.color].filter(Boolean).join(', ')})` : ''}`
+            : '',
         })
 
         const { valid } = validateOutfit(parsed.items, pool, weatherCtx.requiresOuterwear)
-        if (valid) break
+        // Om ett utgångsplagg valts måste det finnas med i förslaget.
+        const baseIncluded = !baseGarment || (parsed.items || []).some((n: string) => {
+          const a = (n || '').trim().toLowerCase(), b = (baseGarment.name || '').trim().toLowerCase()
+          return !!b && (a === b || a.includes(b) || b.includes(a))
+        })
+        if (valid && baseIncluded) break
       }
 
       if (!parsed?.items?.length) throw new Error('AI:n gav inget giltigt förslag – försök igen.')
@@ -964,6 +979,42 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
+        {/* Valfritt utgångsplagg – generera outfit KRING ett plagg */}
+        <View style={styles.section}>
+          {baseGarment ? (
+            <View style={styles.optionRow}>
+              <View style={styles.optionLeft}>
+                {baseGarment.image_url
+                  ? <SignedImage path={baseGarment.image_url} style={styles.baseThumb} resizeMode="contain" />
+                  : <View style={[styles.baseThumb, styles.baseThumbEmpty]} />}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.optionText}>Utgår från plagg</Text>
+                  <Text style={styles.optionSub} numberOfLines={1}>{baseGarment.name}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => setBaseGarment(null)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Ta bort utgångsplagg"
+                accessibilityRole="button"
+              >
+                <Ionicons name="close-circle" size={24} color={t.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
+              <View style={styles.optionLeft}>
+                <Text style={styles.optionIcon}>👕</Text>
+                <View>
+                  <Text style={styles.optionText}>Utgå från ett plagg</Text>
+                  <Text style={styles.optionSub}>Valfritt – bygg outfiten kring ett plagg</Text>
+                </View>
+              </View>
+              <Ionicons name="add-circle-outline" size={24} color={t.primary} />
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Generate button */}
         <TouchableOpacity
           style={styles.generateBtn}
@@ -1165,6 +1216,65 @@ export default function Home() {
         </View>
 
       </ScrollView>
+
+      {/* Välj utgångsplagg att bygga outfiten kring */}
+      <Modal visible={showBasePicker} animationType="slide" transparent onRequestClose={() => { setShowBasePicker(false); setBaseSearch('') }}>
+        <View style={styles.swapOverlay}>
+          <View style={styles.swapSheet}>
+            <View style={styles.swapHeader}>
+              <Text style={styles.swapTitle}>Utgå från ett plagg</Text>
+              <TouchableOpacity
+                onPress={() => { setShowBasePicker(false); setBaseSearch('') }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Stäng"
+                accessibilityRole="button"
+              >
+                <Text style={styles.swapClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.baseSearchInput}
+              placeholder="Sök plagg eller färg..."
+              placeholderTextColor={t.textSecondary}
+              value={baseSearch}
+              onChangeText={setBaseSearch}
+            />
+
+            {(() => {
+              const q = baseSearch.trim().toLowerCase()
+              const items = garments.filter(g =>
+                !g.archived && !g.for_sale &&
+                (!q || g.name?.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q))
+              )
+              return items.length === 0 ? (
+                <View style={styles.swapEmpty}>
+                  <Text style={styles.swapEmptyText}>Inga plagg hittades</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={items}
+                  numColumns={3}
+                  keyExtractor={g => g.id}
+                  renderItem={({ item: g }) => (
+                    <TouchableOpacity
+                      style={styles.swapAlt}
+                      onPress={() => { setBaseGarment(g); setShowBasePicker(false); setBaseSearch('') }}
+                    >
+                      {g.image_url
+                        ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
+                        : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
+                      }
+                      <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )
+            })()}
+          </View>
+        </View>
+      </Modal>
+
       {/* Byt ut plagg i outfiten */}
       <Modal visible={swapIndex !== null} animationType="slide" transparent onRequestClose={() => setSwapIndex(null)}>
         <View style={styles.swapOverlay}>
@@ -1348,6 +1458,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitImages: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: 10, rowGap: 14, paddingHorizontal: 4 },
   outfitItemWrap: { alignItems: 'center', gap: 4, width: 80 },
   outfitImage: { width: 80, height: 80, borderRadius: 14 },
+  baseThumb: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface },
+  baseThumbEmpty: { borderWidth: 1, borderColor: t.border },
+  baseSearchInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: t.textPrimary, fontSize: 15, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
   swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   swapBadgeText: { color: t.onPrimary, fontSize: 12, fontFamily: 'Poppins_700Bold' },
 

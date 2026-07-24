@@ -27,6 +27,7 @@ export default async function handler(request: Request): Promise<Response> {
     const recentOutfits = clip(body.recentOutfits, 1500)
     const styleRules = clip(body.styleRules, 1200)
     const previousItems = clip(body.previousItems, 400)
+    const baseGarment = clip(body.baseGarment, 120)
     const retry = body.retry === true
 
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -57,7 +58,7 @@ ${retryInstruction}
 GARDEROB (välj ENDAST plagg från listan nedan, exakt som de heter):
 
 ${groupedList}
-
+${baseGarment ? `\nUTGÅNGSPLAGG (MÅSTE VARA MED): Bygg hela outfiten KRING plagget "${baseGarment}". Det plagget SKA ingå i "items" exakt som det heter i listan, och resten av looken ska väljas för att matcha och lyfta just det plagget (färg, stil, formalitet). Lägg INTE till ett annat plagg av samma typ/roll som utgångsplagget.\n` : ''}
 OBLIGATORISKA REGLER – följ dessa EXAKT:
 1. SKOR: Du MÅSTE välja ett par skor. Outfit utan skor är ogiltig.
 2. NEDERDEL: Du MÅSTE välja byxor eller kjol – SÅVIDA du inte väljer klänning.
