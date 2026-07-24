@@ -118,7 +118,7 @@ export default function Partner() {
           <Text style={styles.backButtonText}>← Tillbaka</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Min partner</Text>
-        <Text style={styles.intro}>Koppla ihop ert konto så kan ni dela på funktioner för sambos – önskelistor, koordinering inför event och mer.</Text>
+        <Text style={styles.intro}>Koppla ihop ert konto så kan ni dela på funktioner för partners – önskelistor, koordinering inför event och mer.</Text>
 
         {loading ? (
           <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
