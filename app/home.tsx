@@ -1311,25 +1311,23 @@ export default function Home() {
                   </View>
 
                   {baseFilterOpen && (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.baseOptionsScroll} keyboardShouldPersistTaps="handled">
-                      <View style={styles.baseOptionsRow}>
-                        {optionsFor(baseFilterOpen).map(opt => {
-                          const active = valueFor(baseFilterOpen) === opt
-                          return (
-                            <TouchableOpacity
-                              key={opt}
-                              style={[styles.baseOption, active && styles.baseOptionActive]}
-                              onPress={() => setValue(baseFilterOpen, opt)}
-                            >
-                              {baseFilterOpen === 'color' && COLOR_HEX[opt] && (
-                                <View style={[styles.baseColorDot, { backgroundColor: COLOR_HEX[opt] }]} />
-                              )}
-                              <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{opt}</Text>
-                            </TouchableOpacity>
-                          )
-                        })}
-                      </View>
-                    </ScrollView>
+                    <View style={styles.baseOptionsRow}>
+                      {optionsFor(baseFilterOpen).map(opt => {
+                        const active = valueFor(baseFilterOpen) === opt
+                        return (
+                          <TouchableOpacity
+                            key={opt}
+                            style={[styles.baseOption, active && styles.baseOptionActive]}
+                            onPress={() => setValue(baseFilterOpen, opt)}
+                          >
+                            {baseFilterOpen === 'color' && COLOR_HEX[opt] && (
+                              <View style={[styles.baseColorDot, { backgroundColor: COLOR_HEX[opt] }]} />
+                            )}
+                            <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{opt}</Text>
+                          </TouchableOpacity>
+                        )
+                      })}
+                    </View>
                   )}
                 </>
               )
@@ -1567,8 +1565,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseChipTextActive: { color: t.onPrimary },
   baseChipClear: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20 },
   baseChipClearText: { fontFamily: 'Lora_500Medium', color: t.primary, fontSize: 12 },
-  baseOptionsScroll: { flexGrow: 0, marginBottom: 12 },
-  baseOptionsRow: { flexDirection: 'row', gap: 8 },
+  baseOptionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   baseOption: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 7, paddingHorizontal: 12, borderRadius: 18, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   baseOptionActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
   baseOptionText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12 },
