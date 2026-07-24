@@ -927,7 +927,6 @@ function isPast(date: Date) {
                       <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
                     ))}
                   </View>
-                  {outfit.garment_names && <Text style={styles.outfitGarments}>{outfit.garment_names.join(' · ')}</Text>}
                   <Text style={styles.holdToDelete}>Håll inne för att ta bort · Tryck för att registrera som använd</Text>
                 </TouchableOpacity>
               ))
