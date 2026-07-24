@@ -22,7 +22,7 @@ import {
 } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../components/BottomNav'
-import { OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
+import { CATEGORIES, COLOR_HEX, COLOR_NAMES, OUTFIT_CONTEXTS, SEASONS, STYLE_RULES, SUBCATEGORIES } from '../utils/constants'
 import { cacheGet, cacheSet } from '../utils/cache'
 import { useSettings } from '../utils/settings'
 import { loadPartner } from '../utils/household'
@@ -83,6 +83,12 @@ export default function Home() {
   const [baseGarment, setBaseGarment] = useState<any | null>(null)
   const [showBasePicker, setShowBasePicker] = useState(false)
   const [baseSearch, setBaseSearch] = useState('')
+  // Filter i plagg-väljaren (enkelval, 'Alla' = inget filter).
+  const [baseCat, setBaseCat] = useState('Alla')
+  const [baseType, setBaseType] = useState('Alla')
+  const [baseColor, setBaseColor] = useState('Alla')
+  const [baseSeason, setBaseSeason] = useState('Alla')
+  const [baseFilterOpen, setBaseFilterOpen] = useState<string | null>(null)
 
   const shareCardRef = useRef<View>(null)
 
@@ -913,6 +919,11 @@ export default function Home() {
     (coupleSwapCategory ? g.category === coupleSwapCategory : true)
   )
 
+  function closeBasePicker() {
+    setShowBasePicker(false); setBaseSearch(''); setBaseFilterOpen(null)
+    setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla')
+  }
+
   const activeCtx = CONTEXTS[selectedContext]
 
   return (
@@ -1004,7 +1015,7 @@ export default function Home() {
           ) : (
             <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
               <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>👕</Text>
+                <Ionicons name="shirt-outline" size={22} color={t.primary} />
                 <View>
                   <Text style={styles.optionText}>Utgå från ett plagg</Text>
                   <Text style={styles.optionSub}>Valfritt – bygg outfiten kring ett plagg</Text>
@@ -1218,13 +1229,13 @@ export default function Home() {
       </ScrollView>
 
       {/* Välj utgångsplagg att bygga outfiten kring */}
-      <Modal visible={showBasePicker} animationType="slide" transparent onRequestClose={() => { setShowBasePicker(false); setBaseSearch('') }}>
+      <Modal visible={showBasePicker} animationType="slide" transparent onRequestClose={closeBasePicker}>
         <View style={styles.swapOverlay}>
           <View style={styles.swapSheet}>
             <View style={styles.swapHeader}>
               <Text style={styles.swapTitle}>Utgå från ett plagg</Text>
               <TouchableOpacity
-                onPress={() => { setShowBasePicker(false); setBaseSearch('') }}
+                onPress={closeBasePicker}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityLabel="Stäng"
                 accessibilityRole="button"
@@ -1241,25 +1252,108 @@ export default function Home() {
               onChangeText={setBaseSearch}
             />
 
+            {/* Filter: kategori, typ, färg, säsong */}
+            {(() => {
+              const typeOptions = baseCat !== 'Alla' && SUBCATEGORIES[baseCat]
+                ? SUBCATEGORIES[baseCat]
+                : Array.from(new Set(garments.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))
+              const chips = [
+                { key: 'category', label: 'Kategori', value: baseCat },
+                { key: 'type', label: 'Typ', value: baseType },
+                { key: 'color', label: 'Färg', value: baseColor },
+                { key: 'season', label: 'Säsong', value: baseSeason },
+              ]
+              const optionsFor = (key: string): string[] =>
+                key === 'category' ? ['Alla', ...CATEGORIES]
+                  : key === 'type' ? ['Alla', ...typeOptions]
+                  : key === 'color' ? ['Alla', ...COLOR_NAMES]
+                  : ['Alla', ...SEASONS]
+              const valueFor = (key: string) =>
+                key === 'category' ? baseCat : key === 'type' ? baseType : key === 'color' ? baseColor : baseSeason
+              const setValue = (key: string, v: string) => {
+                if (key === 'category') { setBaseCat(v); setBaseType('Alla') }
+                else if (key === 'type') setBaseType(v)
+                else if (key === 'color') setBaseColor(v)
+                else setBaseSeason(v)
+                setBaseFilterOpen(null)
+              }
+              const anyActive = baseCat !== 'Alla' || baseType !== 'Alla' || baseColor !== 'Alla' || baseSeason !== 'Alla'
+              return (
+                <>
+                  <View style={styles.baseFilterRow}>
+                    {chips.map(c => {
+                      const on = c.value !== 'Alla'
+                      return (
+                        <TouchableOpacity
+                          key={c.key}
+                          style={[styles.baseChip, (on || baseFilterOpen === c.key) && styles.baseChipActive]}
+                          onPress={() => setBaseFilterOpen(baseFilterOpen === c.key ? null : c.key)}
+                        >
+                          <Text style={[styles.baseChipText, (on || baseFilterOpen === c.key) && styles.baseChipTextActive]} numberOfLines={1}>
+                            {on ? c.value : c.label} ▾
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                    {anyActive && (
+                      <TouchableOpacity
+                        style={styles.baseChipClear}
+                        onPress={() => { setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla'); setBaseFilterOpen(null) }}
+                      >
+                        <Text style={styles.baseChipClearText}>Rensa</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {baseFilterOpen && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.baseOptionsScroll} keyboardShouldPersistTaps="handled">
+                      <View style={styles.baseOptionsRow}>
+                        {optionsFor(baseFilterOpen).map(opt => {
+                          const active = valueFor(baseFilterOpen) === opt
+                          return (
+                            <TouchableOpacity
+                              key={opt}
+                              style={[styles.baseOption, active && styles.baseOptionActive]}
+                              onPress={() => setValue(baseFilterOpen, opt)}
+                            >
+                              {baseFilterOpen === 'color' && COLOR_HEX[opt] && (
+                                <View style={[styles.baseColorDot, { backgroundColor: COLOR_HEX[opt] }]} />
+                              )}
+                              <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{opt}</Text>
+                            </TouchableOpacity>
+                          )
+                        })}
+                      </View>
+                    </ScrollView>
+                  )}
+                </>
+              )
+            })()}
+
             {(() => {
               const q = baseSearch.trim().toLowerCase()
               const items = garments.filter(g =>
                 !g.archived && !g.for_sale &&
-                (!q || g.name?.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q))
+                (!q || g.name?.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)) &&
+                (baseCat === 'Alla' || g.category === baseCat) &&
+                (baseType === 'Alla' || g.subcategory === baseType) &&
+                (baseColor === 'Alla' || g.color === baseColor) &&
+                (baseSeason === 'Alla' || g.season?.includes(baseSeason))
               )
               return items.length === 0 ? (
                 <View style={styles.swapEmpty}>
-                  <Text style={styles.swapEmptyText}>Inga plagg hittades</Text>
+                  <Text style={styles.swapEmptyText}>Inga plagg matchar filtren</Text>
                 </View>
               ) : (
                 <FlatList
                   data={items}
                   numColumns={3}
                   keyExtractor={g => g.id}
+                  keyboardShouldPersistTaps="handled"
                   renderItem={({ item: g }) => (
                     <TouchableOpacity
                       style={styles.swapAlt}
-                      onPress={() => { setBaseGarment(g); setShowBasePicker(false); setBaseSearch('') }}
+                      onPress={() => { setBaseGarment(g); closeBasePicker() }}
                     >
                       {g.image_url
                         ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
@@ -1461,6 +1555,20 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseThumb: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface },
   baseThumbEmpty: { borderWidth: 1, borderColor: t.border },
   baseSearchInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: t.textPrimary, fontSize: 15, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
+  baseFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  baseChip: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  baseChipActive: { backgroundColor: t.primary, borderColor: t.primary },
+  baseChipText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
+  baseChipTextActive: { color: t.onPrimary },
+  baseChipClear: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20 },
+  baseChipClearText: { fontFamily: 'Lora_500Medium', color: t.primary, fontSize: 12 },
+  baseOptionsScroll: { flexGrow: 0, marginBottom: 12 },
+  baseOptionsRow: { flexDirection: 'row', gap: 8 },
+  baseOption: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 7, paddingHorizontal: 12, borderRadius: 18, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  baseOptionActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
+  baseOptionText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12 },
+  baseOptionTextActive: { color: t.onPrimary },
+  baseColorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
   swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   swapBadgeText: { color: t.onPrimary, fontSize: 12, fontFamily: 'Poppins_700Bold' },
 
