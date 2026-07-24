@@ -555,6 +555,26 @@ export default function Home() {
     })
   }
 
+  // Skyddsnät: ta bort dubbletter av "en-per-look"-roller (t.ex. två par skor)
+  // som AI:n ibland råkar välja. Accessoarer/smycken/väskor lämnas orörda.
+  function dedupOutfitItems(items: any[], pool: any[]) {
+    const catById = new Map(pool.filter(g => g.id).map(g => [g.id, g.category]))
+    const ROLE: Record<string, string> = {
+      'Skor': 'shoes',
+      'Byxor': 'bottom', 'Shorts': 'bottom', 'Kjolar': 'bottom',
+      'Klänningar': 'dress',
+    }
+    const seen = new Set<string>()
+    return items.filter(it => {
+      const cat = it.id ? catById.get(it.id) : null
+      const role = cat ? ROLE[cat] : null
+      if (!role) return true // överdelar (lager ok), accessoarer m.m. – behåll
+      if (seen.has(role)) return false
+      seen.add(role)
+      return true
+    })
+  }
+
   // Bygger listan för en person: egna plagg + den ANDRAS lånbara (märkta [LÅN]).
   function coupleList(own: any[], borrowedLendable: any[]) {
     const all = [...own.map(g => ({ g, lent: false })), ...borrowedLendable.map(g => ({ g, lent: true }))]
@@ -617,10 +637,10 @@ export default function Home() {
       })
       const myPool = [...mySeason, ...parLendable]
       const parPool = [...parSeason, ...myLendable]
-      const outfits = (parsed.outfits || []).map((o: any, idx: number) => ({
-        ...o,
-        itemsWithImages: matchItemsToPool(o.items || [], idx === 0 ? myPool : parPool),
-      }))
+      const outfits = (parsed.outfits || []).map((o: any, idx: number) => {
+        const pool = idx === 0 ? myPool : parPool
+        return { ...o, itemsWithImages: dedupOutfitItems(matchItemsToPool(o.items || [], pool), pool) }
+      })
       // Spara personernas plagg-pooler så man kan byta ut plagg efteråt, samt
       // vilka id:n som är inlånade (den andras lånbara) för att hålla "Lånar"
       // korrekt även efter manuella byten.

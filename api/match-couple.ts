@@ -45,10 +45,10 @@ ${listB}
 VIKTIGT: Varje persons outfit får ENDAST innehålla plagg ur den personens EGEN lista ovan. Plagg markerade [LÅN] är partnerns plagg som lånats in i den här personens lista – de FÅR användas, och ska då anges i "borrowed". Ta ALDRIG ett plagg som inte står i personens egen lista.
 ${baseA ? `\nUTGÅNGSPLAGG FÖR ${nameA} (MÅSTE VARA MED): Bygg ${nameA}s outfit KRING plagget "${baseA}". Det ska ingå i ${nameA}s "items" exakt som det heter i listan, och resten av ${nameA}s look väljs för att matcha och lyfta just det plagget. Lägg inte till ett annat plagg av samma typ. ${nameB}s outfit koordineras sedan mot ${nameA}s.\n` : ''}
 OBLIGATORISKA REGLER FÖR VARJE OUTFIT:
-1. SKOR: exakt ett par.
+1. SKOR: EXAKT ETT par skor per person. ALDRIG två par (t.ex. inte både loafers och sneakers). Detta är absolut.
 2. NEDERDEL: byxor/kjol/shorts – SÅVIDA du inte väljer klänning.
 3. ÖVERDEL: exakt en – SÅVIDA du inte väljer klänning (då ingen separat över/underdel).
-4. Aldrig två överdelar, två nederdelar eller två par skor.
+4. INGA DUBBLETTER: aldrig två plagg av samma typ/roll – inte två par skor, två överdelar, två nederdelar, två klänningar. Kontrollera detta innan du svarar.
 
 PARREGLER:
 - De två looksen ska kännas ihop: samma formalitetsnivå och en GEMENSAM färgtråd (en delad accent- eller neutralton), men spegla varsin person.
