@@ -63,8 +63,12 @@ OBLIGATORISKA REGLER – följ dessa EXAKT:
 2. NEDERDEL: Du MÅSTE välja byxor eller kjol – SÅVIDA du inte väljer klänning.
 3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning.
 4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
-${weatherRules ? '5. VÄDER: ' + weatherRules : ''}
-${season ? `6. ÅRSTID: Det är ${season}. Välj plagg som passar årstiden – inga tunga vinterplagg på sommaren eller tunna sommarplagg på vintern.` : ''}
+5. INGA DUBBLETTER: Välj ALDRIG två plagg av samma typ eller roll – t.ex. inte
+   två skjortor, två toppar, två tröjor, två par byxor eller två par skor. Exakt
+   EN överdel och EN nederdel. (Ett medvetet lager, t.ex. en skjorta UNDER en
+   stickad tröja, är ok – men aldrig två av exakt samma plaggtyp.)
+${weatherRules ? '6. VÄDER: ' + weatherRules : ''}
+${season ? `7. ÅRSTID: Det är ${season}. Välj plagg som passar årstiden – inga tunga vinterplagg på sommaren eller tunna sommarplagg på vintern.` : ''}
 
 STILREGLER – lika viktiga, det här avgör om looken är snygg:
 A. FÄRGHARMONI ÄR AVGÖRANDE. Bygg looken kring EN sammanhållen färgpalett.
