@@ -64,10 +64,13 @@ export default function Wardrobe() {
   const [wishlist, setWishlist] = useState<any[]>(() => cacheGet('wardrobe.wishlist') ?? [])
   const [outfitCounts, setOutfitCounts] = useState<Record<string, number>>({})
   const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState('Alla')
-  const [activeSeason, setActiveSeason] = useState('Alla')
-  const [activeColor, setActiveColor] = useState('Alla')
-  const [activeType, setActiveType] = useState('Alla')
+  // Multi-select: tom mängd = "Alla" (inget filter). Man kan välja flera värden
+  // per filter (t.ex. både Svart och Vit), och listan visar plagg som matchar
+  // NÅGOT av de valda värdena inom varje filter.
+  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set())
+  const [activeSeasons, setActiveSeasons] = useState<Set<string>>(new Set())
+  const [activeColors, setActiveColors] = useState<Set<string>>(new Set())
+  const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set())
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
@@ -286,10 +289,10 @@ export default function Wardrobe() {
   // både senaste datan (efter ändringar/omhämtning) och valda filter.
   const filtered = useMemo(() => {
     let result = garments
-    if (activeCategory !== 'Alla') result = result.filter(g => g.category === activeCategory)
-    if (activeSeason !== 'Alla') result = result.filter(g => g.season?.includes(activeSeason))
-    if (activeColor !== 'Alla') result = result.filter(g => g.color === activeColor)
-    if (activeType !== 'Alla') result = result.filter(g => g.subcategory === activeType)
+    if (activeCategories.size) result = result.filter(g => activeCategories.has(g.category))
+    if (activeSeasons.size) result = result.filter(g => g.season && [...activeSeasons].some(s => g.season.includes(s)))
+    if (activeColors.size) result = result.filter(g => activeColors.has(g.color))
+    if (activeTypes.size) result = result.filter(g => activeTypes.has(g.subcategory))
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(g =>
@@ -310,7 +313,7 @@ export default function Wardrobe() {
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     }
     return sorted
-  }, [garments, activeCategory, activeSeason, activeColor, activeType, search, sortBy])
+  }, [garments, activeCategories, activeSeasons, activeColors, activeTypes, search, sortBy])
 
   // Typ-alternativ (subkategorier) som faktiskt finns i garderoben, för filtret.
   const typeOptions = useMemo(() => {
@@ -355,13 +358,23 @@ export default function Wardrobe() {
   }
 
   function handleSearch(text: string) { setSearch(text) }
-  function handleCategory(cat: string) { setActiveCategory(cat); setOpenDropdown(null) }
-  function handleSeason(s: string) { setActiveSeason(s); setOpenDropdown(null) }
-  function handleColor(c: string) { setActiveColor(c); setOpenDropdown(null) }
-  function handleType(ty: string) { setActiveType(ty); setOpenDropdown(null) }
+  // Multi-select: "Alla" nollställer mängden, annars växlar valet av/på.
+  // Dropdownen hålls öppen så man kan bocka i flera värden.
+  function toggleInSet(setter: React.Dispatch<React.SetStateAction<Set<string>>>, value: string) {
+    if (value === 'Alla') { setter(new Set()); return }
+    setter(prev => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value); else next.add(value)
+      return next
+    })
+  }
+  function handleCategory(cat: string) { toggleInSet(setActiveCategories, cat) }
+  function handleSeason(s: string) { toggleInSet(setActiveSeasons, s) }
+  function handleColor(c: string) { toggleInSet(setActiveColors, c) }
+  function handleType(ty: string) { toggleInSet(setActiveTypes, ty) }
   function handleSort(key: string) { setSortBy(key); setOpenDropdown(null) }
   function clearFilters() {
-    setActiveCategory('Alla'); setActiveSeason('Alla'); setActiveColor('Alla'); setActiveType('Alla')
+    setActiveCategories(new Set()); setActiveSeasons(new Set()); setActiveColors(new Set()); setActiveTypes(new Set())
     setSearch(''); setSortBy('recent'); setShowSearch(false); setOpenDropdown(null)
   }
 
@@ -373,10 +386,14 @@ export default function Wardrobe() {
         try {
           const p = JSON.parse(raw)
           if (p.sortBy) setSortBy(p.sortBy)
-          if (p.activeCategory) setActiveCategory(p.activeCategory)
-          if (p.activeColor) setActiveColor(p.activeColor)
-          if (p.activeSeason) setActiveSeason(p.activeSeason)
-          if (p.activeType) setActiveType(p.activeType)
+          // Nytt format: arrayer. Gammalt format: en enskild sträng ("Alla" = inget).
+          const toSet = (arr: any, legacy: any) =>
+            Array.isArray(arr) ? new Set<string>(arr)
+              : (legacy && legacy !== 'Alla' ? new Set<string>([legacy]) : new Set<string>())
+          setActiveCategories(toSet(p.activeCategories, p.activeCategory))
+          setActiveColors(toSet(p.activeColors, p.activeColor))
+          setActiveSeasons(toSet(p.activeSeasons, p.activeSeason))
+          setActiveTypes(toSet(p.activeTypes, p.activeType))
         } catch { /* strunt i det */ }
       }
       setPrefsLoaded(true)
@@ -384,8 +401,14 @@ export default function Wardrobe() {
   }, [])
   useEffect(() => {
     if (!prefsLoaded) return
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ sortBy, activeCategory, activeColor, activeSeason, activeType }))
-  }, [prefsLoaded, sortBy, activeCategory, activeColor, activeSeason, activeType])
+    AsyncStorage.setItem(PREFS_KEY, JSON.stringify({
+      sortBy,
+      activeCategories: [...activeCategories],
+      activeColors: [...activeColors],
+      activeSeasons: [...activeSeasons],
+      activeTypes: [...activeTypes],
+    }))
+  }, [prefsLoaded, sortBy, activeCategories, activeColors, activeSeasons, activeTypes])
 
   async function markAsSold(item: any) {
     showConfirm('Markera som såld', `Är "${item.name}" såld?`, async () => {
@@ -452,7 +475,11 @@ export default function Wardrobe() {
     showAlert('Grattis!', `${item.name} finns nu i garderoben.`)
   }
 
-  const hasActiveFilters = activeCategory !== 'Alla' || activeSeason !== 'Alla' || activeColor !== 'Alla' || activeType !== 'Alla' || search !== ''
+  const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || search !== ''
+  // Etikett för filter-chippen: inget val → filternamnet, ett val → värdet,
+  // flera val → "Filternamn (antal)".
+  const filterChipValue = (label: string, set: Set<string>) =>
+    set.size === 0 ? label : set.size === 1 ? [...set][0] : `${label} (${set.size})`
 
   function generateCapsule() {
     if (garments.length === 0) { showAlert('Garderoben är tom', 'Lägg till plagg först!'); return }
@@ -836,10 +863,10 @@ export default function Wardrobe() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRowContent}>
             {[
               { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
-              { key: 'category', label: 'Kategori', value: activeCategory, on: activeCategory !== 'Alla' },
-              { key: 'type', label: 'Typ', value: activeType, on: activeType !== 'Alla' },
-              { key: 'color', label: 'Färg', value: activeColor, on: activeColor !== 'Alla' },
-              { key: 'season', label: 'Säsong', value: activeSeason, on: activeSeason !== 'Alla' },
+              { key: 'category', label: 'Kategori', value: filterChipValue('Kategori', activeCategories), on: activeCategories.size > 0 },
+              { key: 'type', label: 'Typ', value: filterChipValue('Typ', activeTypes), on: activeTypes.size > 0 },
+              { key: 'color', label: 'Färg', value: filterChipValue('Färg', activeColors), on: activeColors.size > 0 },
+              { key: 'season', label: 'Säsong', value: filterChipValue('Säsong', activeSeasons), on: activeSeasons.size > 0 },
             ].map(f => (
               <TouchableOpacity
                 key={f.key}
@@ -873,7 +900,8 @@ export default function Wardrobe() {
                         </TouchableOpacity>
                       ))
                     : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'type' ? typeOptions : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
-                        const isActive = openDropdown === 'category' ? activeCategory === item : openDropdown === 'type' ? activeType === item : openDropdown === 'season' ? activeSeason === item : activeColor === item
+                        const currentSet = openDropdown === 'category' ? activeCategories : openDropdown === 'type' ? activeTypes : openDropdown === 'season' ? activeSeasons : activeColors
+                        const isActive = item === 'Alla' ? currentSet.size === 0 : currentSet.has(item)
                         return (
                           <TouchableOpacity
                             key={item}
