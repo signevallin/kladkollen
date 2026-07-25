@@ -7,13 +7,17 @@ import type { Theme } from '../theme/theme'
 // varifrån man öppnar det (hemskärmen, garderoben, ...). Tidigare gick plus →
 // "Lägg till plagg" från hemskärmen rakt in i den helsides-vyn i stället.
 export default function AddGarmentChooser({
-  visible, onClose,
+  visible, onClose, person, personName,
 }: {
   visible: boolean
   onClose: () => void
+  person?: string
+  personName?: string
 }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  // I barn-läge förväljs barnet så fotoflödet taggar plaggen direkt.
+  const personQs = person ? `&person=${person}&personName=${encodeURIComponent(personName || '')}` : ''
 
   function goto(path: string) {
     onClose()
@@ -30,7 +34,7 @@ export default function AddGarmentChooser({
               <Text style={styles.modalClose}>✕</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/add-garment?start=photos')}>
+          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/add-garment?start=photos${personQs}`)}>
             <Text style={styles.choiceTitle}>Välj foton</Text>
             <Text style={styles.choiceHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden</Text>
           </TouchableOpacity>

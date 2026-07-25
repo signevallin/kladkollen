@@ -1,7 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { goBack } from '../utils/nav'
 import { useCallback, useState } from 'react'
 import {
   Alert,
@@ -103,6 +104,9 @@ export default function Stats() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { formatPrice } = useSettings()
+  // Barn-läge: statistik för ett visst barn (öppnas från barnets garderob).
+  const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
+  const isPerson = !!person
   const [activeTab, setActiveTab] = useState<'stil' | 'garderob'>('garderob')
 
   // Garderob
@@ -127,9 +131,9 @@ export default function Stats() {
   }
 
   async function fetchGarmentStats() {
-    const { data } = await supabase
-      .from('garments').select('*').eq('archived', false).is('person_id', null)
-      .order('times_worn', { ascending: false })
+    let q = supabase.from('garments').select('*').eq('archived', false)
+    q = isPerson ? q.eq('person_id', person) : q.is('person_id', null)
+    const { data } = await q.order('times_worn', { ascending: false })
     if (data) {
       setGarments(data)
       setTotalWorn(data.reduce((s, g) => s + (g.times_worn || 0), 0))
@@ -353,21 +357,31 @@ export default function Stats() {
     <SafeAreaView style={styles.container}>
 
       <View style={styles.header}>
-        <Text style={styles.title}>Statistik</Text>
-        <View style={styles.tabRow}>
-          {(['garderob', 'stil'] as const).map(tab => (
-            <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'stil' ? 'Min stil' : 'Min garderob'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {isPerson ? (
+          <TouchableOpacity style={styles.backRow} onPress={() => goBack(`/wardrobe?person=${person}&personName=${encodeURIComponent(personName || '')}`)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <MaterialIcons name="arrow-back" size={22} color={t.textSecondary} />
+            <Text style={styles.backText}>Tillbaka</Text>
+          </TouchableOpacity>
+        ) : null}
+        <Text style={styles.title}>{isPerson ? `${personName || 'Barnet'}s statistik` : 'Statistik'}</Text>
+        {/* "Min stil" (humör/betyg) är per person – bara garderobsstatistik i barn-läge. */}
+        {!isPerson && (
+          <View style={styles.tabRow}>
+            {(['garderob', 'stil'] as const).map(tab => (
+              <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                  {tab === 'stil' ? 'Min stil' : 'Min garderob'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
 
-        {/* AI-analys av hela garderoben */}
+        {/* AI-analys av hela garderoben (bara för min egen – inte per barn) */}
+        {!isPerson && (
         <TouchableOpacity style={styles.analysisCta} onPress={() => router.push('/wardrobe-analysis')}>
           <View style={styles.analysisCtaIcon}>
             <MaterialIcons name="auto-awesome" size={20} color={t.onPrimary} />
@@ -378,6 +392,7 @@ export default function Stats() {
           </View>
           <MaterialIcons name="chevron-right" size={22} color={t.textSecondary} />
         </TouchableOpacity>
+        )}
 
         {/* ── MIN STIL ── */}
         {activeTab === 'stil' && (
@@ -775,6 +790,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
 
   header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12 },
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 },
+  backText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 14 },
   tabRow: { flexDirection: 'row', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 4, gap: 4 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center' },

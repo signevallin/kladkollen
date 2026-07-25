@@ -161,7 +161,7 @@ export default function Family() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.childInfo}
-                onPress={() => router.push(`/child-closet?child=${child.id}&name=${encodeURIComponent(child.name)}`)}
+                onPress={() => router.push(`/wardrobe?person=${child.id}&personName=${encodeURIComponent(child.name)}`)}
                 activeOpacity={0.8}
                 accessibilityLabel={`Öppna ${child.name}s garderob`}
               >
