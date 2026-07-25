@@ -163,16 +163,24 @@ export default function Profile() {
     })
     if (!result.canceled) {
       const uri = result.assets[0].uri
-      setAvatar(uri)
-      await uploadAvatar(uri)
+      const prev = avatar
+      setAvatar(uri) // visa direkt medan uppladdningen sker
+      try {
+        const url = await uploadAvatar(uri)
+        setAvatar(url)
+      } catch {
+        // Viktigt: spara ALDRIG en lokal file://-sökväg som avatar – då syns
+        // bilden bara på den egna telefonen. Återställ och be användaren igen.
+        setAvatar(prev)
+        showAlert('Kunde inte ladda upp bilden', 'Försök igen om en stund.')
+      }
     }
   }
 
-  async function uploadAvatar(uri: string) {
+  async function uploadAvatar(uri: string): Promise<string> {
     const response = await fetch(uri)
     const arrayBuffer = await response.arrayBuffer()
-    const url = await uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
-    setAvatar(url)
+    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
   }
 
   async function pickColorImage() {
@@ -229,10 +237,23 @@ export default function Profile() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      // Säkerställ att avatar_url är en riktig uppladdad URL, aldrig en lokal
+      // file://-sökväg (som bara syns på den egna telefonen). Försök ladda upp
+      // om den fortfarande är lokal, annars spara ingen ny bild.
+      let avatarToSave = avatar
+      if (avatarToSave && /^(file|blob|data):/i.test(avatarToSave)) {
+        try {
+          avatarToSave = await uploadAvatar(avatarToSave)
+          setAvatar(avatarToSave)
+        } catch {
+          avatarToSave = null
+          showAlert('Profilbilden kunde inte laddas upp', 'Profilen sparas utan ny bild – lägg till bilden igen.')
+        }
+      }
       const { error } = await supabase.from('profiles').upsert({
         id: user.id,
         name,
-        avatar_url: avatar,
+        avatar_url: avatarToSave,
         gender: gender || null,
         birthday: birthday || null,
         avoid_note: avoidNote || null,
