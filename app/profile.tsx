@@ -682,7 +682,7 @@ export default function Profile() {
               <>
                 <Text style={styles.hint}>Anpassar appen efter var i livet du är. Fler lägen kommer.</Text>
                 <View style={styles.pills}>
-                  {([['single', 'Singel'], ['couple', 'Partner']] as const).map(([v, lbl]) => (
+                  {([['single', 'Singel'], ['couple', 'Partner'], ['family', 'Familj']] as const).map(([v, lbl]) => (
                     <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => setLifeMode(v)}>
                       <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{lbl}</Text>
                     </TouchableOpacity>
@@ -691,7 +691,8 @@ export default function Profile() {
               </>
             ),
           })}
-          {lifeMode === 'couple' && renderRow('partner', 'Min partner', { icon: 'people-outline', onPress: () => router.push('/partner') })}
+          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', onPress: () => router.push('/partner') })}
+          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', onPress: () => router.push('/family') })}
         </View>
 
         {/* ── Min stil ── */}
