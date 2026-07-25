@@ -698,7 +698,7 @@ export default function Profile() {
             ),
           })}
           {renderRow('livssituation', 'Livssituation', {
-            icon: 'favorite-border', value: lifeMode === 'couple' ? 'Partner' : 'Singel',
+            icon: 'favorite-border', value: lifeMode === 'family' ? 'Familj' : lifeMode === 'couple' ? 'Partner' : 'Singel',
             body: (
               <>
                 <Text style={styles.hint}>Anpassar appen efter var i livet du är. Fler lägen kommer.</Text>
