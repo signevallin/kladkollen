@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import {
   ActivityIndicator,
   Image,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -287,7 +288,7 @@ export default function Profile() {
     showConfirm('Logga ut', 'Är du säker?', async () => {
       cacheClear()
       await supabase.auth.signOut()
-      if (typeof window !== 'undefined') {
+      if (Platform.OS === 'web') {
         window.location.href = '/login'
       } else {
         router.replace('/login')
@@ -304,7 +305,7 @@ export default function Profile() {
           await apiPost('/api/delete-account', {})
           cacheClear()
           await supabase.auth.signOut()
-          if (typeof window !== 'undefined') {
+          if (Platform.OS === 'web') {
             window.location.href = '/'
           } else {
             router.replace('/login')
