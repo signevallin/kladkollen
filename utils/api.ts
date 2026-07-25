@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { captureError } from './sentry'
 
 // Bas-URL för API:t. Tom sträng = samma origin (webben).
 // Sätt EXPO_PUBLIC_API_URL till t.ex. https://kladkollen.vercel.app för native-byggen.
@@ -19,10 +20,14 @@ export async function apiPost<T = any>(path: string, body: unknown): Promise<T> 
   try {
     data = await res.json()
   } catch {
-    throw new Error(`Servern svarade oväntat (${res.status})`)
+    const err = new Error(`Servern svarade oväntat (${res.status})`)
+    captureError(err, { path, status: res.status })
+    throw err
   }
   if (!res.ok || data?.error) {
-    throw new Error(data?.error || `Serverfel (${res.status})`)
+    const err = new Error(data?.error || `Serverfel (${res.status})`)
+    captureError(err, { path, status: res.status })
+    throw err
   }
   return data as T
 }

@@ -25,6 +25,7 @@ import { CATEGORIES as CATEGORY_LIST, COLOR_NAMES, SEASONS as SEASON_LIST } from
 import { cacheGet, cacheSet } from '../utils/cache'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
+import { captureError } from '../utils/sentry'
 import { geocodeDestination, fetchTripWeather } from '../utils/trip'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
@@ -197,6 +198,7 @@ export default function MyOutfits() {
       await adjustGarmentWear(outfit.garment_ids || [], 1, date)
       ok = true
     } catch (e: any) {
+      captureError(e, { where: 'assignOutfitToDay' })
       showAlert('Kunde inte spara', 'Något gick fel – kontrollera din uppkoppling och försök igen.')
     } finally {
       // Läs alltid om från databasen så UI:t speglar det faktiska läget.
@@ -225,6 +227,7 @@ export default function MyOutfits() {
       const { error } = await supabase.from('outfit_calendar').delete().eq('user_id', user.id).eq('date', date)
       if (error) throw error
     } catch (e: any) {
+      captureError(e, { where: 'removeOutfitFromDate' })
       showAlert('Kunde inte ta bort', 'Något gick fel – kontrollera din uppkoppling och försök igen.')
     } finally {
       setDayDetailDate(null)
