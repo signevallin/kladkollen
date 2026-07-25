@@ -89,6 +89,10 @@ export default function Home() {
   const [baseColor, setBaseColor] = useState('Alla')
   const [baseSeason, setBaseSeason] = useState('Alla')
   const [baseFilterOpen, setBaseFilterOpen] = useState<string | null>(null)
+  // Lägg till ytterligare plagg i en genererad outfit. person=null → singel-
+  // outfiten, person=0/1 → par-outfitens person. Max 3 tillagda plagg.
+  const [addTarget, setAddTarget] = useState<{ person: number | null } | null>(null)
+  const MAX_ADDED = 3
 
   const shareCardRef = useRef<View>(null)
 
@@ -944,12 +948,170 @@ export default function Home() {
     (coupleSwapCategory ? g.category === coupleSwapCategory : true)
   )
 
-  function closeBasePicker() {
-    setShowBasePicker(false); setBaseSearch(''); setBaseFilterOpen(null)
+  function resetPickerFilters() {
+    setBaseSearch(''); setBaseFilterOpen(null)
     setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla')
   }
+  function closeBasePicker() { setShowBasePicker(false); resetPickerFilters() }
+  function openAddPicker(person: number | null) { resetPickerFilters(); setAddTarget({ person }) }
+  function closeAddPicker() { setAddTarget(null); resetPickerFilters() }
+
+  // Lägger till valt plagg i rätt outfit (singel eller en av par-personerna).
+  function addItemToOutfit(g: any) {
+    const newItem = { name: g.name, image_url: g.image_url || null, id: g.id, added: true }
+    if (!addTarget) return
+    if (addTarget.person === null) {
+      setOutfit((prev: any) => prev ? { ...prev, itemsWithImages: [...prev.itemsWithImages, newItem] } : prev)
+      resetSavedState()
+    } else {
+      const person = addTarget.person
+      setCoupleOutfit((prev: any) => {
+        if (!prev) return prev
+        const outfits = prev.outfits.map((o: any, oi: number) =>
+          oi !== person ? o : withRecomputedBorrowed({ ...o, itemsWithImages: [...o.itemsWithImages, newItem] }, prev.lentIds?.[oi])
+        )
+        return { ...prev, outfits }
+      })
+      setCoupleSaved(false); setCoupleWorn(false)
+    }
+    closeAddPicker()
+  }
+
+  // Antal manuellt tillagda plagg (för att kunna begränsa till MAX_ADDED).
+  const singleAddedCount = (outfit?.itemsWithImages || []).filter((i: any) => i.added).length
+  const activeGarmentsForPicker = garments.filter(g => !g.archived && !g.for_sale)
 
   const activeCtx = CONTEXTS[selectedContext]
+
+  // Återanvändbar plagg-väljare (samma UI för utgångsplagg och "lägg till plagg").
+  function renderGarmentPicker(cfg: { visible: boolean; title: string; pool: any[]; onSelect: (g: any) => void; onClose: () => void }) {
+    const typeOptions = baseCat !== 'Alla' && SUBCATEGORIES[baseCat]
+      ? SUBCATEGORIES[baseCat]
+      : Array.from(new Set(cfg.pool.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))
+    const chips = [
+      { key: 'category', label: 'Kategori', value: baseCat },
+      { key: 'type', label: 'Typ', value: baseType },
+      { key: 'color', label: 'Färg', value: baseColor },
+      { key: 'season', label: 'Säsong', value: baseSeason },
+    ]
+    const optionsFor = (key: string): string[] =>
+      key === 'category' ? ['Alla', ...CATEGORIES]
+        : key === 'type' ? ['Alla', ...typeOptions]
+        : key === 'color' ? ['Alla', ...COLOR_NAMES]
+        : ['Alla', ...SEASONS]
+    const valueFor = (key: string) =>
+      key === 'category' ? baseCat : key === 'type' ? baseType : key === 'color' ? baseColor : baseSeason
+    const setValue = (key: string, v: string) => {
+      if (key === 'category') { setBaseCat(v); setBaseType('Alla') }
+      else if (key === 'type') setBaseType(v)
+      else if (key === 'color') setBaseColor(v)
+      else setBaseSeason(v)
+      setBaseFilterOpen(null)
+    }
+    const anyActive = baseCat !== 'Alla' || baseType !== 'Alla' || baseColor !== 'Alla' || baseSeason !== 'Alla'
+    const q = baseSearch.trim().toLowerCase()
+    const items = cfg.pool.filter(g =>
+      !g.archived && !g.for_sale &&
+      (!q || g.name?.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)) &&
+      (baseCat === 'Alla' || g.category === baseCat) &&
+      (baseType === 'Alla' || g.subcategory === baseType) &&
+      (baseColor === 'Alla' || g.color === baseColor) &&
+      (baseSeason === 'Alla' || g.season?.includes(baseSeason))
+    )
+    return (
+      <Modal visible={cfg.visible} animationType="slide" transparent onRequestClose={cfg.onClose}>
+        <View style={styles.swapOverlay}>
+          <View style={styles.swapSheet}>
+            <View style={styles.swapHeader}>
+              <Text style={styles.swapTitle}>{cfg.title}</Text>
+              <TouchableOpacity onPress={cfg.onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityLabel="Stäng" accessibilityRole="button">
+                <Text style={styles.swapClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.baseSearchInput}
+              placeholder="Sök plagg eller färg..."
+              placeholderTextColor={t.textSecondary}
+              value={baseSearch}
+              onChangeText={setBaseSearch}
+            />
+
+            <View style={styles.baseFilterRow}>
+              {chips.map(c => {
+                const on = c.value !== 'Alla'
+                return (
+                  <TouchableOpacity
+                    key={c.key}
+                    style={[styles.baseChip, (on || baseFilterOpen === c.key) && styles.baseChipActive]}
+                    onPress={() => setBaseFilterOpen(baseFilterOpen === c.key ? null : c.key)}
+                  >
+                    <Text style={[styles.baseChipText, (on || baseFilterOpen === c.key) && styles.baseChipTextActive]} numberOfLines={1}>
+                      {on ? c.value : c.label} ▾
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+              {anyActive && (
+                <TouchableOpacity
+                  style={styles.baseChipClear}
+                  onPress={() => { setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla'); setBaseFilterOpen(null) }}
+                >
+                  <Text style={styles.baseChipClearText}>Rensa</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {baseFilterOpen && (
+              <View style={styles.baseOptionsRow}>
+                {optionsFor(baseFilterOpen).map(opt => {
+                  const active = valueFor(baseFilterOpen) === opt
+                  return (
+                    <TouchableOpacity
+                      key={opt}
+                      style={[styles.baseOption, active && styles.baseOptionActive]}
+                      onPress={() => setValue(baseFilterOpen, opt)}
+                    >
+                      {baseFilterOpen === 'color' && COLOR_HEX[opt] && (
+                        <View style={[styles.baseColorDot, { backgroundColor: COLOR_HEX[opt] }]} />
+                      )}
+                      <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{opt}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            )}
+
+            {items.length === 0 ? (
+              <View style={styles.swapEmpty}>
+                <Text style={styles.swapEmptyText}>Inga plagg matchar filtren</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={items}
+                numColumns={3}
+                keyExtractor={g => g.id}
+                keyboardShouldPersistTaps="handled"
+                renderItem={({ item: g }) => (
+                  <TouchableOpacity style={styles.swapAlt} onPress={() => { cfg.onSelect(g); cfg.onClose() }}>
+                    {g.image_url
+                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
+                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
+                    }
+                    <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+    )
+  }
+
+  const addPickerPool: any[] = addTarget
+    ? (addTarget.person === null ? activeGarmentsForPicker : (coupleOutfit?.pools?.[addTarget.person] || []))
+    : []
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1104,6 +1266,18 @@ export default function Home() {
                   <Text style={styles.outfitItemName} numberOfLines={2}>{item.name}</Text>
                 </TouchableOpacity>
               ))}
+              {singleAddedCount < MAX_ADDED && (
+                <TouchableOpacity
+                  style={styles.outfitItemWrap}
+                  onPress={() => openAddPicker(null)}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Lägg till plagg"
+                  accessibilityRole="button"
+                >
+                  <View style={styles.addItemCircle}><Ionicons name="add" size={30} color={t.onPrimary} /></View>
+                  <Text style={styles.outfitItemName} numberOfLines={1}>Lägg till</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {outfit.song && <SongCard song={outfit.song} />}
@@ -1198,6 +1372,18 @@ export default function Home() {
                       <Text style={styles.outfitItemName} numberOfLines={2}>{item.name}</Text>
                     </TouchableOpacity>
                   ))}
+                  {o.itemsWithImages.filter((i: any) => i.added).length < MAX_ADDED && (
+                    <TouchableOpacity
+                      style={styles.outfitItemWrap}
+                      onPress={() => openAddPicker(oi)}
+                      activeOpacity={0.7}
+                      accessibilityLabel="Lägg till plagg"
+                      accessibilityRole="button"
+                    >
+                      <View style={styles.addItemCircle}><Ionicons name="add" size={30} color={t.onPrimary} /></View>
+                      <Text style={styles.outfitItemName} numberOfLines={1}>Lägg till</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
                 {(o.borrowed || []).length > 0 && (
                   <View style={styles.coupleBorrowedRow}>
@@ -1254,143 +1440,22 @@ export default function Home() {
       </ScrollView>
 
       {/* Välj utgångsplagg att bygga outfiten kring */}
-      <Modal visible={showBasePicker} animationType="slide" transparent onRequestClose={closeBasePicker}>
-        <View style={styles.swapOverlay}>
-          <View style={styles.swapSheet}>
-            <View style={styles.swapHeader}>
-              <Text style={styles.swapTitle}>Utgå från ett plagg</Text>
-              <TouchableOpacity
-                onPress={closeBasePicker}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel="Stäng"
-                accessibilityRole="button"
-              >
-                <Text style={styles.swapClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
+      {renderGarmentPicker({
+        visible: showBasePicker,
+        title: 'Utgå från ett plagg',
+        pool: activeGarmentsForPicker,
+        onSelect: (g) => setBaseGarment(g),
+        onClose: closeBasePicker,
+      })}
 
-            <TextInput
-              style={styles.baseSearchInput}
-              placeholder="Sök plagg eller färg..."
-              placeholderTextColor={t.textSecondary}
-              value={baseSearch}
-              onChangeText={setBaseSearch}
-            />
-
-            {/* Filter: kategori, typ, färg, säsong */}
-            {(() => {
-              const typeOptions = baseCat !== 'Alla' && SUBCATEGORIES[baseCat]
-                ? SUBCATEGORIES[baseCat]
-                : Array.from(new Set(garments.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))
-              const chips = [
-                { key: 'category', label: 'Kategori', value: baseCat },
-                { key: 'type', label: 'Typ', value: baseType },
-                { key: 'color', label: 'Färg', value: baseColor },
-                { key: 'season', label: 'Säsong', value: baseSeason },
-              ]
-              const optionsFor = (key: string): string[] =>
-                key === 'category' ? ['Alla', ...CATEGORIES]
-                  : key === 'type' ? ['Alla', ...typeOptions]
-                  : key === 'color' ? ['Alla', ...COLOR_NAMES]
-                  : ['Alla', ...SEASONS]
-              const valueFor = (key: string) =>
-                key === 'category' ? baseCat : key === 'type' ? baseType : key === 'color' ? baseColor : baseSeason
-              const setValue = (key: string, v: string) => {
-                if (key === 'category') { setBaseCat(v); setBaseType('Alla') }
-                else if (key === 'type') setBaseType(v)
-                else if (key === 'color') setBaseColor(v)
-                else setBaseSeason(v)
-                setBaseFilterOpen(null)
-              }
-              const anyActive = baseCat !== 'Alla' || baseType !== 'Alla' || baseColor !== 'Alla' || baseSeason !== 'Alla'
-              return (
-                <>
-                  <View style={styles.baseFilterRow}>
-                    {chips.map(c => {
-                      const on = c.value !== 'Alla'
-                      return (
-                        <TouchableOpacity
-                          key={c.key}
-                          style={[styles.baseChip, (on || baseFilterOpen === c.key) && styles.baseChipActive]}
-                          onPress={() => setBaseFilterOpen(baseFilterOpen === c.key ? null : c.key)}
-                        >
-                          <Text style={[styles.baseChipText, (on || baseFilterOpen === c.key) && styles.baseChipTextActive]} numberOfLines={1}>
-                            {on ? c.value : c.label} ▾
-                          </Text>
-                        </TouchableOpacity>
-                      )
-                    })}
-                    {anyActive && (
-                      <TouchableOpacity
-                        style={styles.baseChipClear}
-                        onPress={() => { setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla'); setBaseFilterOpen(null) }}
-                      >
-                        <Text style={styles.baseChipClearText}>Rensa</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  {baseFilterOpen && (
-                    <View style={styles.baseOptionsRow}>
-                      {optionsFor(baseFilterOpen).map(opt => {
-                        const active = valueFor(baseFilterOpen) === opt
-                        return (
-                          <TouchableOpacity
-                            key={opt}
-                            style={[styles.baseOption, active && styles.baseOptionActive]}
-                            onPress={() => setValue(baseFilterOpen, opt)}
-                          >
-                            {baseFilterOpen === 'color' && COLOR_HEX[opt] && (
-                              <View style={[styles.baseColorDot, { backgroundColor: COLOR_HEX[opt] }]} />
-                            )}
-                            <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{opt}</Text>
-                          </TouchableOpacity>
-                        )
-                      })}
-                    </View>
-                  )}
-                </>
-              )
-            })()}
-
-            {(() => {
-              const q = baseSearch.trim().toLowerCase()
-              const items = garments.filter(g =>
-                !g.archived && !g.for_sale &&
-                (!q || g.name?.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)) &&
-                (baseCat === 'Alla' || g.category === baseCat) &&
-                (baseType === 'Alla' || g.subcategory === baseType) &&
-                (baseColor === 'Alla' || g.color === baseColor) &&
-                (baseSeason === 'Alla' || g.season?.includes(baseSeason))
-              )
-              return items.length === 0 ? (
-                <View style={styles.swapEmpty}>
-                  <Text style={styles.swapEmptyText}>Inga plagg matchar filtren</Text>
-                </View>
-              ) : (
-                <FlatList
-                  data={items}
-                  numColumns={3}
-                  keyExtractor={g => g.id}
-                  keyboardShouldPersistTaps="handled"
-                  renderItem={({ item: g }) => (
-                    <TouchableOpacity
-                      style={styles.swapAlt}
-                      onPress={() => { setBaseGarment(g); closeBasePicker() }}
-                    >
-                      {g.image_url
-                        ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
-                        : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
-                      }
-                      <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
-                    </TouchableOpacity>
-                  )}
-                />
-              )
-            })()}
-          </View>
-        </View>
-      </Modal>
+      {/* Lägg till ytterligare plagg i en genererad outfit */}
+      {renderGarmentPicker({
+        visible: addTarget !== null,
+        title: 'Lägg till plagg',
+        pool: addPickerPool,
+        onSelect: addItemToOutfit,
+        onClose: closeAddPicker,
+      })}
 
       {/* Byt ut plagg i outfiten */}
       <Modal visible={swapIndex !== null} animationType="slide" transparent onRequestClose={() => setSwapIndex(null)}>
@@ -1592,6 +1657,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseOptionTextActive: { color: t.onPrimary },
   baseColorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
   swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  addItemCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   swapBadgeText: { color: t.onPrimary, fontSize: 12, fontFamily: 'Poppins_700Bold' },
 
   // Byt-ut-modal
