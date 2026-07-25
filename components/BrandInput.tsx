@@ -21,7 +21,7 @@ export default function BrandInput({
   const showList = suggestions.length > 0 && !(suggestions.length === 1 && suggestions[0].toLowerCase() === value.toLowerCase())
 
   return (
-    <View>
+    <View style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -47,6 +47,8 @@ export default function BrandInput({
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
+  // Samma bottenmarginal som övriga fält så mellanrummet till nästa rubrik matchar.
+  container: { marginBottom: 16 },
   input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border },
   suggestBox: { backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, marginTop: 4, overflow: 'hidden' },
   suggestItem: { paddingVertical: 11, paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
