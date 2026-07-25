@@ -17,6 +17,7 @@ import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { DEFAULT_PREFS, registerForPush, type NotifPrefs } from '../utils/push'
 import { getSmartPushTime, isSmartPushEnabled, setSmartPushEnabled, setSmartPushTime } from '../utils/smartPush'
+import { isSizeReminderPushEnabled, setSizeReminderPushEnabled } from '../utils/sizeReminderPush'
 
 const TIME_PRESETS = [
   { hour: 6, minute: 0 }, { hour: 6, minute: 30 }, { hour: 7, minute: 0 },
@@ -39,6 +40,7 @@ export default function NotificationsSettings() {
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS)
   const [smart, setSmart] = useState(false)
   const [smartTime, setSmartTime] = useState({ hour: 7, minute: 30 })
+  const [sizeReminder, setSizeReminder] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { load() }, [])
@@ -46,6 +48,7 @@ export default function NotificationsSettings() {
   async function load() {
     setSmart(await isSmartPushEnabled())
     setSmartTime(await getSmartPushTime())
+    setSizeReminder(await isSizeReminderPushEnabled())
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
     const { data } = await supabase.from('profiles').select('notif_enabled, notif_prefs').eq('id', user.id).single()
@@ -68,6 +71,15 @@ export default function NotificationsSettings() {
   function chooseTime(hour: number, minute: number) {
     setSmartTime({ hour, minute })
     setSmartPushTime(hour, minute)
+  }
+
+  async function toggleSizeReminder(v: boolean) {
+    setSizeReminder(v)
+    const ok = await setSizeReminderPushEnabled(v)
+    if (v && !ok) {
+      setSizeReminder(false)
+      showAlert('Kunde inte slå på påminnelsen', 'Tillåt notiser för Klädkollen i telefonens inställningar.')
+    }
   }
 
   async function persist(nextEnabled: boolean, nextPrefs: NotifPrefs) {
@@ -167,6 +179,17 @@ export default function NotificationsSettings() {
             </View>
           </View>
         )}
+
+        <Text style={styles.sectionHeading}>Familj</Text>
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>Storlekspåminnelser</Text>
+            <Text style={styles.rowDesc}>
+              En veckodigest när sparade barnkläder är redo att tas fram – rätt storlek i rätt säsong, med plats ("kartong 3, vinden"). Beräknas på din telefon.
+            </Text>
+          </View>
+          <Toggle value={sizeReminder} onValueChange={toggleSizeReminder} />
+        </View>
 
         <Text style={styles.footnote}>
           Väderbaserade notiser använder din senast kända plats. Vi hämtar aldrig platsen i bakgrunden bara för notiser.
