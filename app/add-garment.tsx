@@ -31,6 +31,8 @@ import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } fro
 import { useSettings } from '../utils/settings'
 import { pickImageSmart } from '../utils/imagePicker'
 import { fetchLocations, type Location } from '../utils/locations'
+import { loadPeople, type Person } from '../utils/people'
+import { EU_CHILD_SIZES } from '../utils/childSize'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -63,8 +65,17 @@ type GarmentDraft = {
   brand: string
   price: string
   location: string
+  // Familjeläge (batch-per-låda): ärvs från batch-kontexten men kan justeras.
+  personId: string | null
+  sizeCm: number | null
+  familyStatus: 'in_use' | 'stored' | 'outgrown'
   analyzing: boolean
   removingBg: boolean
+}
+
+type FamilyStatus = 'in_use' | 'stored' | 'outgrown'
+const FAMILY_STATUS_LABELS: Record<FamilyStatus, string> = {
+  in_use: 'Används', stored: 'Sparad i låda', outgrown: 'Urvuxen',
 }
 
 export default function AddGarment() {
@@ -78,6 +89,15 @@ export default function AddGarment() {
   const [ownBrands, setOwnBrands] = useState<string[]>([])
   const [locations, setLocations] = useState<Location[]>([])
 
+  // Batch-per-låda (spec §5b): sätt kontext EN gång för hela sessionen, så varje
+  // fotat plagg ärver storlek/plats/status/barn i stället för att skrivas in per plagg.
+  const [children, setChildren] = useState<Person[]>([])
+  const [batchMode, setBatchMode] = useState(false)
+  const [batchPersonId, setBatchPersonId] = useState<string | null>(null)
+  const [batchSizeCm, setBatchSizeCm] = useState<number | null>(null)
+  const [batchStatus, setBatchStatus] = useState<FamilyStatus>('stored')
+  const [batchLocation, setBatchLocation] = useState('')
+
   const { start } = useLocalSearchParams()
 
   useEffect(() => {
@@ -85,6 +105,7 @@ export default function AddGarment() {
       if (data) setOwnBrands([...new Set(data.map((g: any) => g.brand).filter(Boolean))] as string[])
     })
     fetchLocations().then(setLocations).catch(() => {})
+    loadPeople().then(ppl => setChildren(ppl.filter(p => p.type === 'child'))).catch(() => {})
   }, [])
 
   // Kommer man in via "Välj foton" i valrutan – öppna bildväljaren automatiskt.
@@ -141,7 +162,11 @@ export default function AddGarment() {
       fit: '',
       brand: '',
       price: '',
-      location: '',
+      // Ärv batch-kontexten (om lådläge är på) så inget behöver skrivas per plagg.
+      location: batchMode ? batchLocation : '',
+      personId: batchMode ? batchPersonId : null,
+      sizeCm: batchMode ? batchSizeCm : null,
+      familyStatus: batchMode ? batchStatus : 'in_use',
       analyzing: true,
       removingBg: true,
     }))
@@ -268,6 +293,10 @@ export default function AddGarment() {
           price: toBaseSEK(parsePrice(draft.price)),
           location: draft.location || null,
           image_url: imageUrl,
+          person_id: draft.personId,
+          household_id: draft.personId ? (children.find(c => c.id === draft.personId)?.household_id ?? null) : null,
+          size_cm: draft.personId ? draft.sizeCm : null,
+          status: draft.personId ? draft.familyStatus : null,
         }])
       }
       toast(`${ready.length} ${ready.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
@@ -307,6 +336,81 @@ export default function AddGarment() {
             <Text style={styles.backButtonText}>← Tillbaka</Text>
           </TouchableOpacity>
           <Text style={styles.title}>Lägg till plagg</Text>
+
+          {children.length > 0 && (
+            <View style={styles.batchCard}>
+              <TouchableOpacity style={styles.batchHeader} onPress={() => setBatchMode(v => !v)} activeOpacity={0.8}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.batchTitle}>Lägg in en hel låda</Text>
+                  <Text style={styles.batchHint}>Sätt barn, storlek, status och plats en gång – varje foto ärver det. Perfekt för sparade lådor.</Text>
+                </View>
+                <View style={[styles.toggle, batchMode && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, batchMode && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
+
+              {batchMode && (
+                <View style={styles.batchBody}>
+                  <Text style={styles.cardLabel}>BARN</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.pillRow}>
+                      {children.map(c => {
+                        const on = batchPersonId === c.id
+                        return (
+                          <TouchableOpacity key={c.id} style={[styles.pill, on && styles.pillActive]}
+                            onPress={() => {
+                              setBatchPersonId(on ? null : c.id)
+                              if (!on && batchSizeCm == null) setBatchSizeCm(c.current_size_cm ?? null)
+                            }}>
+                            <Text style={[styles.pillText, on && styles.pillTextActive]}>{c.name}</Text>
+                          </TouchableOpacity>
+                        )
+                      })}
+                    </View>
+                  </ScrollView>
+
+                  <Text style={styles.cardLabel}>STORLEK</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={styles.pillRow}>
+                      {EU_CHILD_SIZES.map(s => (
+                        <TouchableOpacity key={s} style={[styles.pill, batchSizeCm === s && styles.pillActive]}
+                          onPress={() => setBatchSizeCm(batchSizeCm === s ? null : s)}>
+                          <Text style={[styles.pillText, batchSizeCm === s && styles.pillTextActive]}>{s}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
+
+                  <Text style={styles.cardLabel}>STATUS</Text>
+                  <View style={styles.pillRow}>
+                    {(Object.keys(FAMILY_STATUS_LABELS) as FamilyStatus[]).map(v => (
+                      <TouchableOpacity key={v} style={[styles.pill, batchStatus === v && styles.pillActive]}
+                        onPress={() => setBatchStatus(v)}>
+                        <Text style={[styles.pillText, batchStatus === v && styles.pillTextActive]}>{FAMILY_STATUS_LABELS[v]}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {locations.length > 0 && (
+                    <>
+                      <Text style={styles.cardLabel}>PLATS</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View style={styles.pillRow}>
+                          {locations.map(l => (
+                            <TouchableOpacity key={l.id} style={[styles.pill, batchLocation === l.name && styles.pillActive]}
+                              onPress={() => setBatchLocation(batchLocation === l.name ? '' : l.name)}>
+                              <Text style={[styles.pillText, batchLocation === l.name && styles.pillTextActive]}>{l.name}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </ScrollView>
+                    </>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+
           <TouchableOpacity style={styles.pickBtn} onPress={() => pickImages()}>
             <Text style={styles.pickBtnTitle}>Välj foton</Text>
             <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt</Text>
@@ -386,6 +490,14 @@ export default function AddGarment() {
 
               {!isProcessing && (
                 <>
+                  {draft.personId && (
+                    <View style={styles.familyChip}>
+                      <Text style={styles.familyChipText}>
+                        👶 {children.find(c => c.id === draft.personId)?.name ?? 'Barn'}
+                        {draft.sizeCm ? ` · stl ${draft.sizeCm}` : ''} · {FAMILY_STATUS_LABELS[draft.familyStatus]}
+                      </Text>
+                    </View>
+                  )}
                   {/* Brand */}
                   <Text style={styles.cardLabel}>MÄRKE (VALFRITT)</Text>
                   <BrandInput value={draft.brand} onChange={v => updateDraft(draft.id, 'brand', v)} ownBrands={ownBrands} />
@@ -570,6 +682,18 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   autoPickBtn: { backgroundColor: t.primary, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8 },
   autoPickBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.onPrimary },
   autoPickCancel: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, textDecorationLine: 'underline' },
+
+  batchCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, borderWidth: 1, borderColor: t.border, padding: 16, marginBottom: 16 },
+  batchHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  batchTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
+  batchHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginTop: 2, lineHeight: 18 },
+  batchBody: { gap: 8, marginTop: 14 },
+  toggle: { width: 46, height: 28, borderRadius: 14, backgroundColor: t.border, padding: 3, justifyContent: 'center' },
+  toggleOn: { backgroundColor: t.primary },
+  toggleKnob: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.surface },
+  toggleKnobOn: { alignSelf: 'flex-end' },
+  familyChip: { alignSelf: 'flex-start', backgroundColor: t.surfaceMuted, borderRadius: 10, paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10, borderWidth: 1, borderColor: t.border },
+  familyChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textPrimary },
 
   progressRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
