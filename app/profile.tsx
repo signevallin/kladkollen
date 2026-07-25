@@ -1,9 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons'
 import { useTheme, useThemeControl } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { goBack } from '../utils/nav'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import {
   ActivityIndicator,
   Image,
@@ -117,7 +117,11 @@ export default function Profile() {
   const [contrastLevel, setContrastLevel] = useState('')
 
   useEffect(() => { loadProfile() }, [])
-  useEffect(() => { loadPartner().then(({ partner }) => setPartner(partner)) }, [])
+  // Läs om partnern varje gång sidan får fokus, så "Mitt hushåll" uppdateras
+  // direkt efter att man kopplat ihop/isär på partner-sidan.
+  useFocusEffect(
+    useCallback(() => { loadPartner().then(({ partner }) => setPartner(partner)) }, [])
+  )
 
   async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser()
