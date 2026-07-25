@@ -41,9 +41,14 @@ export default function Partner() {
     const { data: mem } = await supabase.from('household_members').select('user_id, role')
     if (mem && mem.length > 0) {
       const ids = mem.map((m: any) => m.user_id)
-      const { data: profs } = await supabase.from('profiles').select('id, name, avatar_url').in('id', ids)
+      // Läs varje medlems profil via household-vaktad RPC (oberoende av profiles-RLS).
+      const profs = await Promise.all(ids.map(async (id: string) => {
+        const { data } = await supabase.rpc('partner_profile', { target: id })
+        const p = Array.isArray(data) ? data[0] : data
+        return p || { id, name: null, avatar_url: null }
+      }))
       const byId: Record<string, any> = {}
-      ;(profs || []).forEach((p: any) => { byId[p.id] = p })
+      profs.forEach((p: any) => { if (p?.id) byId[p.id] = p })
       setMembers(mem.map((m: any) => ({
         user_id: m.user_id,
         role: m.role,

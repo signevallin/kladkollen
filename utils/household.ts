@@ -11,9 +11,12 @@ export async function loadPartner(): Promise<{ myId: string | null; partner: Par
   if (!mem || mem.length < 2) return { myId: user.id, partner: null }
   const partnerId = mem.map((m: any) => m.user_id).find((id: string) => id !== user.id)
   if (!partnerId) return { myId: user.id, partner: null }
-  const { data: prof } = await supabase.from('profiles').select('id, name, avatar_url').eq('id', partnerId).single()
+  // Läs partnerns profil via household-vaktad RPC (oberoende av profiles-RLS),
+  // så namn + avatar alltid kan hämtas för en hushållsmedlem.
+  const { data: prof } = await supabase.rpc('partner_profile', { target: partnerId })
+  const p = Array.isArray(prof) ? prof[0] : prof
   return {
     myId: user.id,
-    partner: { id: partnerId, name: prof?.name || 'Partner', avatar_url: prof?.avatar_url || null },
+    partner: { id: partnerId, name: p?.name || 'Partner', avatar_url: p?.avatar_url || null },
   }
 }
