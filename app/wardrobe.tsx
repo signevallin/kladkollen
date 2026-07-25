@@ -132,13 +132,16 @@ export default function Wardrobe() {
   async function fetchGarments() {
     const { data } = await supabase.from('garments').select('*')
     if (data) {
+      // Barnens plagg (person_id satt) ligger i respektive barns garderob, inte
+      // i förälderns – så min garderob visar bara mina egna plagg.
+      const mine = data.filter(g => !g.person_id)
       // Garderoben visar bara plagg som varken är arkiverade eller till salu,
       // så ett plagg försvinner ur garderoben när det läggs på säljlistan.
       // Till salu: alla plagg som är till salu (även arkiverade). Arkivet visar
       // bara arkiverade plagg som INTE är till salu, så inget hamnar dubbelt.
-      const active = data.filter(g => !g.archived && !g.for_sale)
-      const sale = data.filter(g => g.for_sale)
-      const arch = data.filter(g => g.archived && !g.for_sale)
+      const active = mine.filter(g => !g.archived && !g.for_sale)
+      const sale = mine.filter(g => g.for_sale)
+      const arch = mine.filter(g => g.archived && !g.for_sale)
       setGarments(active); cacheSet('wardrobe.garments', active)
       setForSale(sale); cacheSet('wardrobe.forSale', sale)
       setArchived(arch); cacheSet('wardrobe.archived', arch)

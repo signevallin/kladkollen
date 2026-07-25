@@ -140,7 +140,7 @@ export default function MyOutfits() {
   }
 
   async function fetchGarments() {
-    const { data } = await supabase.from('garments').select('*').eq('archived', false)
+    const { data } = await supabase.from('garments').select('*').eq('archived', false).is('person_id', null)
     if (data) { setGarments(data); setFilteredGarments(data); cacheSet('myoutfit.garments', data) }
   }
 

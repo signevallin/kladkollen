@@ -58,7 +58,7 @@ export default function WardrobeAnalysis() {
   async function load() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data: g } = await supabase.from('garments').select('name, category, subcategory, color').eq('archived', false)
+    const { data: g } = await supabase.from('garments').select('name, category, subcategory, color').eq('archived', false).is('person_id', null)
     if (g) setGarments(g)
     const { data: p } = await supabase.from('profiles').select('color_analysis, style_prefs, stil_profil, style_rules, color_prefs').eq('id', user.id).single()
     if (p) {
