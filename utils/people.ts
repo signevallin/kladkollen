@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import type { ReminderGarment } from './sizeReminders'
 
 export type Person = {
   id: string
@@ -73,4 +74,14 @@ export async function setChildSize(id: string, sizeCm: number): Promise<void> {
 export async function deletePerson(id: string): Promise<void> {
   const { error } = await supabase.from('people').delete().eq('id', id)
   if (error) throw error
+}
+
+// Plagg med angiven barnstorlek (underlag för storlekspåminnelserna).
+export async function loadSizedGarments(): Promise<ReminderGarment[]> {
+  const { data, error } = await supabase
+    .from('garments')
+    .select('id, name, image_url, location, season, size_cm, status, person_id')
+    .not('size_cm', 'is', null)
+  if (error) throw error
+  return (data ?? []) as ReminderGarment[]
 }
