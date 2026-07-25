@@ -717,10 +717,8 @@ export default function Home() {
       if (error) throw error
       const today = new Date().toISOString().split('T')[0]
       await supabase.from('outfit_calendar').upsert({ user_id: user?.id, outfit_id: outfitData.id, date: today }, { onConflict: 'user_id,date' })
-      for (const gId of garmentIds) {
-        const garment = garments.find(g => g.id === gId)
-        if (garment) await supabase.from('garments').update({ times_worn: (garment.times_worn || 0) + 1, last_worn: today }).eq('id', gId)
-      }
+      // Räkna plaggen som använda idag – atomiskt via RPC (ingen läs+skriv-loop).
+      if (garmentIds.length) await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
       // Lägg även sambons look på HENS kalender – ni går ju bort tillsammans.
       const par = coupleOutfit.outfits[1]
       if (partner && par) {
@@ -808,15 +806,8 @@ export default function Home() {
       if (calError) throw calError
 
       const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
-      for (const gId of garmentIds) {
-        const garment = garments.find(g => g.id === gId)
-        if (garment) {
-          await supabase.from('garments').update({
-            times_worn: (garment.times_worn || 0) + 1,
-            last_worn: today,
-          }).eq('id', gId)
-        }
-      }
+      // Räkna plaggen som använda idag – atomiskt via RPC (ingen läs+skriv-loop).
+      if (garmentIds.length) await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
 
       setWornToday(true)
       showAlert('Outfit vald för idag!', 'Den syns nu i din kalender och plaggen räknas som använda.')

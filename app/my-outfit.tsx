@@ -160,38 +160,50 @@ export default function MyOutfits() {
     }
   }
 
-  // Justerar plaggens användningsräkning (+1/-1). Vid +1 sätts last_worn till
-  // datumet om det är senare än det befintliga.
+  // Justerar plaggens användningsräkning (+1/-1) ATOMISKT via en RPC. Vid +1
+  // sätts last_worn till datumet om det är senare än det befintliga. Kastar vid
+  // fel så anroparen kan visa ett meddelande (ingen tyst misslyckad skrivning).
   async function adjustGarmentWear(garmentIds: string[], delta: 1 | -1, wearDate?: string) {
-    for (const gid of garmentIds) {
-      const { data } = await supabase.from('garments').select('times_worn, last_worn').eq('id', gid).single()
-      const update: any = { times_worn: Math.max(0, (data?.times_worn || 0) + delta) }
-      if (delta > 0 && wearDate && (!data?.last_worn || wearDate > data.last_worn)) update.last_worn = wearDate
-      await supabase.from('garments').update(update).eq('id', gid)
-    }
+    if (!garmentIds?.length) return
+    const { error } = await supabase.rpc('adjust_garment_wear', {
+      p_ids: garmentIds,
+      p_delta: delta,
+      p_date: wearDate ?? null,
+    })
+    if (error) throw error
   }
 
   // Lägger en outfit på ett datum i kalendern och räknar plaggen som använda
   // den dagen. Delas av kalendern och "registrera som använd" i Outfits-listan.
-  async function assignOutfitToDay(outfit: any, date: string) {
+  async function assignOutfitToDay(outfit: any, date: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) return false
     const prevEntry = calendarEntries[date]
     // Samma outfit igen → ingen förändring.
-    if (prevEntry?.outfit_id === outfit.id) return
-    // Byter man ut en tidigare outfit på dagen: räkna ner den först.
-    if (prevEntry?.outfits?.garment_ids?.length) {
-      await adjustGarmentWear(prevEntry.outfits.garment_ids, -1)
+    if (prevEntry?.outfit_id === outfit.id) return true
+    let ok = false
+    try {
+      // Byter man ut en tidigare outfit på dagen: räkna ner den först.
+      if (prevEntry?.outfits?.garment_ids?.length) {
+        await adjustGarmentWear(prevEntry.outfits.garment_ids, -1)
+      }
+      const { error } = await supabase.from('outfit_calendar').upsert({
+        user_id: user.id,
+        outfit_id: outfit.id,
+        date,
+      }, { onConflict: 'user_id,date' })
+      if (error) throw error
+      // Att lägga en outfit på en dag räknas som att plaggen använts den dagen.
+      await adjustGarmentWear(outfit.garment_ids || [], 1, date)
+      ok = true
+    } catch (e: any) {
+      showAlert('Kunde inte spara', 'Något gick fel – kontrollera din uppkoppling och försök igen.')
+    } finally {
+      // Läs alltid om från databasen så UI:t speglar det faktiska läget.
+      fetchCalendarEntries()
+      fetchGarments()
     }
-    await supabase.from('outfit_calendar').upsert({
-      user_id: user.id,
-      outfit_id: outfit.id,
-      date,
-    }, { onConflict: 'user_id,date' })
-    // Att lägga en outfit på en dag räknas som att plaggen använts den dagen.
-    await adjustGarmentWear(outfit.garment_ids || [], 1, date)
-    fetchCalendarEntries()
-    fetchGarments()
+    return ok
   }
 
   async function assignOutfitToDate(outfit: any) {
@@ -204,15 +216,21 @@ export default function MyOutfits() {
   async function removeOutfitFromDate(date: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    // Räkna ner plaggen som var kopplade till dagen.
-    const entry = calendarEntries[date]
-    if (entry?.outfits?.garment_ids?.length) {
-      await adjustGarmentWear(entry.outfits.garment_ids, -1)
+    try {
+      // Räkna ner plaggen som var kopplade till dagen.
+      const entry = calendarEntries[date]
+      if (entry?.outfits?.garment_ids?.length) {
+        await adjustGarmentWear(entry.outfits.garment_ids, -1)
+      }
+      const { error } = await supabase.from('outfit_calendar').delete().eq('user_id', user.id).eq('date', date)
+      if (error) throw error
+    } catch (e: any) {
+      showAlert('Kunde inte ta bort', 'Något gick fel – kontrollera din uppkoppling och försök igen.')
+    } finally {
+      setDayDetailDate(null)
+      fetchCalendarEntries()
+      fetchGarments()
     }
-    await supabase.from('outfit_calendar').delete().eq('user_id', user.id).eq('date', date)
-    setDayDetailDate(null)
-    fetchCalendarEntries()
-    fetchGarments()
   }
 
   // Calendar helpers
@@ -324,8 +342,8 @@ function isPast(date: Date) {
   async function wearOutfit(outfit: any) {
     const today = new Date().toISOString().split('T')[0]
     // Lägg outfiten på dagens datum i kalendern (och räkna plaggen som använda).
-    await assignOutfitToDay(outfit, today)
-    showAlert('Outfit registrerad!', 'Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.')
+    const ok = await assignOutfitToDay(outfit, today)
+    if (ok) showAlert('Outfit registrerad!', 'Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.')
   }
 
   // Delar en sparad outfit som en bild – samma varumärkta dela-kort som på
