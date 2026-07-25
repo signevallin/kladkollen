@@ -844,7 +844,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: t.primary },
   avatarPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: t.border },
   avatarBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: t.primary, borderRadius: 12, width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  avatarName: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textPrimary, textAlign: 'center', marginBottom: 20 },
+  avatarName: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textPrimary, textAlign: 'center', marginBottom: 4 },
   householdRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   householdMember: { alignItems: 'center', width: 76 },
   householdAvatar: { width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: t.primary },
