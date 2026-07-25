@@ -4,7 +4,6 @@ import * as Notifications from 'expo-notifications'
 import * as TaskManager from 'expo-task-manager'
 import { Platform } from 'react-native'
 import { ensureCalendarPermission, planForDay } from './calendar'
-import { scheduleSizeReminderPush } from './sizeReminderPush'
 
 // "Smart Push": läser telefonens kalender och schemalägger en morgonnotis med
 // en outfit som passar dagens planer (samt en eftermiddagspåminnelse om man
@@ -27,8 +26,6 @@ const BG_TASK = 'smartpush-refresh'
 TaskManager.defineTask(BG_TASK, async () => {
   try {
     await scheduleSmartPush()
-    // Passa på att uppdatera veckans storleks-digest medan OS:et ändå väckt oss.
-    await scheduleSizeReminderPush()
     return BackgroundTask.BackgroundTaskResult.Success
   } catch {
     return BackgroundTask.BackgroundTaskResult.Failed

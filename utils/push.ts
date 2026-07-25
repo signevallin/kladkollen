@@ -10,10 +10,11 @@ export type NotifPrefs = {
   ootd: boolean
   logreminder: boolean
   seasonal: boolean
+  sizereminder: boolean
 }
 
 export const DEFAULT_PREFS: NotifPrefs = {
-  weather: true, rediscovery: true, ootd: true, logreminder: true, seasonal: true,
+  weather: true, rediscovery: true, ootd: true, logreminder: true, seasonal: true, sizereminder: true,
 }
 
 // Visar notiser även när appen är i förgrunden.
