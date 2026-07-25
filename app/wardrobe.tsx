@@ -32,6 +32,8 @@ import { pickImageSmart } from '../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
 import { parsePrice } from '../utils/brands'
 import { useSettings } from '../utils/settings'
+import { affiliateUrl } from '../utils/affiliate'
+import * as WebBrowser from 'expo-web-browser'
 import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, COLOR_OPTIONS, SEASONS as SEASON_LIST, SUBCATEGORIES } from '../utils/constants'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
@@ -106,6 +108,7 @@ export default function Wardrobe() {
   const [wishColor, setWishColor] = useState('')
   const [wishSeasons, setWishSeasons] = useState<string[]>([])
   const [wishImage, setWishImage] = useState<string | null>(null)
+  const [wishLink, setWishLink] = useState('')
   const [savingWish, setSavingWish] = useState(false)
   const [showAddChooser, setShowAddChooser] = useState(false)
   const [showWishChooser, setShowWishChooser] = useState(false)
@@ -221,6 +224,7 @@ export default function Wardrobe() {
       if (data.error) throw new Error(data.error)
       setWishName(data.name || '')
       setWishImage(data.imageUrl || null)
+      setWishLink(url) // spara produktlänken så vi kan visa en Köp-knapp
       setShowWishUrl(false)
       setShowWishChooser(false)
       setWishUrl('')
@@ -253,6 +257,7 @@ export default function Wardrobe() {
         color: wishColor || null,
         season: wishSeasons.join(', ') || null,
         image_url: imageUrl,
+        url: wishLink.trim() || null,
         sort_order: wishlist.length,
       }])
       if (error) throw error
@@ -267,7 +272,14 @@ export default function Wardrobe() {
 
   function closeWishModal() {
     setShowAddWish(false)
-    setWishName(''); setWishBrand(''); setWishPrice(''); setWishCategory(''); setWishSubcategory(''); setWishColor(''); setWishSeasons([]); setWishImage(null)
+    setWishName(''); setWishBrand(''); setWishPrice(''); setWishCategory(''); setWishSubcategory(''); setWishColor(''); setWishSeasons([]); setWishImage(null); setWishLink('')
+  }
+
+  // Öppnar produktlänken (affiliate-spårad om konfigurerat) i in-app-webbläsaren.
+  async function openWishLink(item: any) {
+    const link = affiliateUrl(item.url)
+    if (!link) return
+    try { await WebBrowser.openBrowserAsync(link) } catch { /* ignorera */ }
   }
 
   // --- Sale ---
@@ -722,6 +734,18 @@ export default function Wardrobe() {
                 keyboardType="numeric"
               />
 
+              <Text style={styles.modalLabel}>Produktlänk (valfritt)</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="https://..."
+                placeholderTextColor={t.placeholder}
+                value={wishLink}
+                onChangeText={setWishLink}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+              />
+
               <TouchableOpacity style={styles.modalSaveBtn} onPress={addWishItem} disabled={savingWish}>
                 <Text style={styles.modalSaveBtnText}>{savingWish ? 'Sparar...' : 'Lägg till'}</Text>
               </TouchableOpacity>
@@ -1042,6 +1066,17 @@ export default function Wardrobe() {
                       )}
                     </View>
                     <View style={styles.wishActions}>
+                      {item.url ? (
+                        <TouchableOpacity
+                          style={styles.buyBtn}
+                          onPress={() => openWishLink(item)}
+                          accessibilityLabel={`Köp ${item.name}`}
+                          accessibilityRole="button"
+                        >
+                          <Ionicons name="bag-handle-outline" size={13} color={t.onPrimary} />
+                          <Text style={styles.buyBtnText}>Köp</Text>
+                        </TouchableOpacity>
+                      ) : null}
                       <TouchableOpacity
                         style={styles.boughtBtn}
                         onPress={() => markWishBought(item)}
@@ -1368,9 +1403,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishColorDot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: t.border },
   outfitBadge: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: t.surfaceMuted, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: t.border },
   outfitBadgeText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
-  wishActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  boughtBtn: { backgroundColor: t.primary, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12, alignItems: 'center' },
-  boughtBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
+  wishActions: { flexDirection: 'column', alignItems: 'flex-end', gap: 6 },
+  buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 },
+  buyBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },
+  boughtBtn: { backgroundColor: t.surfaceMuted, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12, alignItems: 'center', borderWidth: 1, borderColor: t.border },
+  boughtBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 12 },
   deleteBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   deleteBtnText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
 
