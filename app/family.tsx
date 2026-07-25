@@ -1,7 +1,8 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { MaterialIcons } from '@expo/vector-icons'
-import { useState } from 'react'
+import { router } from 'expo-router'
+import { useMemo, useState } from 'react'
 import {
   SafeAreaView,
   ScrollView,
@@ -20,12 +21,19 @@ import { addChild, deletePerson, loadPeople, setChildSize, type Person } from '.
 import {
   EU_CHILD_SIZES, formatAge, nextSize, prevSize, suggestedSizeCm,
 } from '../utils/childSize'
+import { computeSizeReminders, type SizeReminder } from '../utils/sizeReminders'
+import { loadSizedGarments } from '../utils/people'
 
 export default function Family() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { data, loading, error, refetch } = useQuery(loadChildren, [], { cacheKey: 'people.children' })
   const children = data ?? []
+  const { data: sizedGarments } = useQuery(loadSizedGarments, [], { cacheKey: 'family.sizedGarments' })
+  const reminders = useMemo(
+    () => computeSizeReminders(sizedGarments ?? [], children, new Date()),
+    [sizedGarments, children],
+  )
 
   const [showAdd, setShowAdd] = useState(false)
   const [name, setName] = useState('')
@@ -77,6 +85,35 @@ export default function Family() {
         </TouchableOpacity>
         <Text style={styles.title}>Familj</Text>
         <Text style={styles.subtitle}>Lägg till barnen i hushållet och håll koll på storlekarna. Då kan appen påminna när sparade kläder börjar passa.</Text>
+
+        {reminders.length > 0 && (
+          <View style={styles.remindersSection}>
+            <Text style={styles.sectionTitle}>Redo att ta fram</Text>
+            {reminders.slice(0, 12).map(r => (
+              <TouchableOpacity
+                key={`${r.garmentId}-${r.childId}`}
+                style={styles.reminderRow}
+                onPress={() => router.push(`/garment-detail?id=${r.garmentId}`)}
+                activeOpacity={0.8}
+              >
+                {r.imageUrl
+                  ? <SignedImage path={r.imageUrl} style={styles.reminderThumb} />
+                  : <View style={styles.reminderThumbEmpty}><MaterialIcons name="checkroom" size={20} color={t.textSecondary} /></View>}
+                <View style={styles.reminderInfo}>
+                  <Text style={styles.reminderName} numberOfLines={1}>{r.garmentName}</Text>
+                  <Text style={styles.reminderMeta} numberOfLines={1}>
+                    {r.childName} · stl {r.sizeCm}{r.location ? ` · ${r.location}` : ''}
+                  </Text>
+                </View>
+                <View style={[styles.reminderBadge, r.state === 'ready' && styles.reminderBadgeReady]}>
+                  <Text style={[styles.reminderBadgeText, r.state === 'ready' && styles.reminderBadgeTextReady]}>
+                    {reminderLabel(r)}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         <QueryState loading={loading} error={error} onRetry={refetch} isEmpty={children.length === 0}
           emptyText="Inga barn tillagda än. Lägg till ditt första barn nedan.">
@@ -172,6 +209,13 @@ async function loadChildren(): Promise<Person[]> {
   return people.filter(p => p.type === 'child')
 }
 
+function reminderLabel(r: SizeReminder): string {
+  if (r.state === 'ready') return 'Redo nu'
+  if (r.state === 'waiting_season') return `Till ${(r.season || 'säsong').toLowerCase()}`
+  const m = Math.round(r.monthsToFit)
+  return m <= 1 ? 'Snart' : `Om ~${m} mån`
+}
+
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   scroll: { padding: 24, paddingBottom: 60 },
@@ -179,6 +223,19 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   backButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 8 },
   subtitle: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 20 },
+
+  remindersSection: { marginBottom: 24 },
+  sectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase', marginBottom: 10, marginLeft: 4 },
+  reminderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: t.border },
+  reminderThumb: { width: 44, height: 44, borderRadius: 8 },
+  reminderThumbEmpty: { width: 44, height: 44, borderRadius: 8, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
+  reminderInfo: { flex: 1 },
+  reminderName: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },
+  reminderMeta: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginTop: 2 },
+  reminderBadge: { backgroundColor: t.bg, borderRadius: 10, paddingVertical: 5, paddingHorizontal: 10, borderWidth: 1, borderColor: t.border },
+  reminderBadgeReady: { backgroundColor: t.primary, borderColor: t.primary },
+  reminderBadgeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: t.textSecondary },
+  reminderBadgeTextReady: { color: t.onPrimary },
 
   childRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: t.border },
   childAvatar: { width: 48, height: 48, borderRadius: 24 },
