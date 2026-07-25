@@ -24,6 +24,7 @@ import { pickImageSmart } from '../utils/imagePicker'
 import { MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheClear } from '../utils/cache'
 import { loadPartner, type Partner } from '../utils/household'
+import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
 
@@ -90,6 +91,7 @@ export default function Profile() {
   const [avoidNote, setAvoidNote] = useState('')
   const [lifeMode, setLifeMode] = useState('single')
   const [partner, setPartner] = useState<Partner | null>(null)
+  const [householdChildren, setHouseholdChildren] = useState<Person[]>([])
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
@@ -121,7 +123,10 @@ export default function Profile() {
   // Läs om partnern varje gång sidan får fokus, så "Mitt hushåll" uppdateras
   // direkt efter att man kopplat ihop/isär på partner-sidan.
   useFocusEffect(
-    useCallback(() => { loadPartner().then(({ partner }) => setPartner(partner)) }, [])
+    useCallback(() => {
+      loadPartner().then(({ partner }) => setPartner(partner))
+      loadPeople().then(ppl => setHouseholdChildren(ppl.filter(p => p.type === 'child'))).catch(() => {})
+    }, [])
   )
 
   async function loadProfile() {
@@ -585,21 +590,37 @@ export default function Profile() {
         </TouchableOpacity>
         {!!name && <Text style={styles.avatarName}>{name}</Text>}
 
-        {partner && (
+        {(partner || householdChildren.length > 0) && (
           <>
             <Text style={styles.sectionTitle}>Mitt hushåll</Text>
             <View style={styles.householdRow}>
-              <TouchableOpacity
-                style={styles.householdMember}
-                onPress={() => router.push(`/partner-closet?user=${partner.id}&name=${encodeURIComponent(partner.name)}` as any)}
-                accessibilityLabel={`Öppna ${partner.name}s garderob`}
-                accessibilityRole="button"
-              >
-                {partner.avatar_url
-                  ? <SignedImage path={partner.avatar_url} style={styles.householdAvatar} resizeMode="cover" />
-                  : <View style={styles.householdAvatarPlaceholder}><MaterialIcons name="person" size={28} color={t.textSecondary} /></View>}
-                <Text style={styles.householdName} numberOfLines={1}>{partner.name}</Text>
-              </TouchableOpacity>
+              {partner && (
+                <TouchableOpacity
+                  style={styles.householdMember}
+                  onPress={() => router.push(`/partner-closet?user=${partner.id}&name=${encodeURIComponent(partner.name)}` as any)}
+                  accessibilityLabel={`Öppna ${partner.name}s garderob`}
+                  accessibilityRole="button"
+                >
+                  {partner.avatar_url
+                    ? <SignedImage path={partner.avatar_url} style={styles.householdAvatar} resizeMode="cover" />
+                    : <View style={styles.householdAvatarPlaceholder}><MaterialIcons name="person" size={28} color={t.textSecondary} /></View>}
+                  <Text style={styles.householdName} numberOfLines={1}>{partner.name}</Text>
+                </TouchableOpacity>
+              )}
+              {householdChildren.map(child => (
+                <TouchableOpacity
+                  key={child.id}
+                  style={styles.householdMember}
+                  onPress={() => router.push(`/child-closet?child=${child.id}&name=${encodeURIComponent(child.name)}` as any)}
+                  accessibilityLabel={`Öppna ${child.name}s garderob`}
+                  accessibilityRole="button"
+                >
+                  {child.avatar_url
+                    ? <SignedImage path={child.avatar_url} style={styles.householdAvatar} resizeMode="cover" />
+                    : <View style={styles.householdAvatarPlaceholder}><MaterialIcons name="child-care" size={26} color={t.textSecondary} /></View>}
+                  <Text style={styles.householdName} numberOfLines={1}>{child.name}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </>
         )}
