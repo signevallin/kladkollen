@@ -699,7 +699,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   colorSelected: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12, fontStyle: 'italic', marginBottom: 16 },
   wornSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: t.border },
   wornInfo: { gap: 2 },
-  wornCount: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textSecondary },
+  wornCount: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textSecondary },
   wornLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
   wornButton: { backgroundColor: t.primary, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
   wornButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 13 },
