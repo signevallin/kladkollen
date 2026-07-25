@@ -611,7 +611,7 @@ export default function Profile() {
                 <TouchableOpacity
                   key={child.id}
                   style={styles.householdMember}
-                  onPress={() => router.push(`/child-closet?child=${child.id}&name=${encodeURIComponent(child.name)}` as any)}
+                  onPress={() => router.push(`/wardrobe?person=${child.id}&personName=${encodeURIComponent(child.name)}` as any)}
                   accessibilityLabel={`Öppna ${child.name}s garderob`}
                   accessibilityRole="button"
                 >

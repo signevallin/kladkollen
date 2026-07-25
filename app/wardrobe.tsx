@@ -4,7 +4,8 @@ import type { Theme } from '../theme/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { goBack } from '../utils/nav'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   FlatList,
@@ -58,6 +59,10 @@ export default function Wardrobe() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { formatPrice, currency, toBaseSEK } = useSettings()
+  // Barn-läge: öppnas med ?person=<id> från Mitt hushåll → visar barnets
+  // garderob (samma vy, filter, arkiv, sälj) i stället för mina egna plagg.
+  const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
+  const isPerson = !!person
   // Seedas från cachen så garderoben ritas direkt vid flikbyte, medan en
   // uppdatering hämtas i bakgrunden.
   const [garments, setGarments] = useState<any[]>(() => cacheGet('wardrobe.garments') ?? [])
@@ -129,12 +134,17 @@ export default function Wardrobe() {
     }, [])
   )
 
+  // Köp-fliken finns inte i barn-läge – hamna aldrig på den.
+  useEffect(() => {
+    if (isPerson && activeTab === 'köp') setActiveTab('nuvarande')
+  }, [isPerson, activeTab])
+
   async function fetchGarments() {
     const { data } = await supabase.from('garments').select('*')
     if (data) {
-      // Barnens plagg (person_id satt) ligger i respektive barns garderob, inte
-      // i förälderns – så min garderob visar bara mina egna plagg.
-      const mine = data.filter(g => !g.person_id)
+      // Barn-läge: visa bara det barnets plagg. Annars mina egna (person_id null);
+      // barnens plagg ligger i respektive barns garderob.
+      const mine = isPerson ? data.filter(g => g.person_id === person) : data.filter(g => !g.person_id)
       // Garderoben visar bara plagg som varken är arkiverade eller till salu,
       // så ett plagg försvinner ur garderoben när det läggs på säljlistan.
       // Till salu: alla plagg som är till salu (även arkiverade). Arkivet visar
@@ -579,7 +589,7 @@ export default function Wardrobe() {
     <SafeAreaView style={styles.container}>
 
       {/* Garderob: välj hur man lägger till plagg (delad valruta med hemskärmen) */}
-      <AddGarmentChooser visible={showAddChooser} onClose={() => setShowAddChooser(false)} />
+      <AddGarmentChooser visible={showAddChooser} onClose={() => setShowAddChooser(false)} person={isPerson ? person : undefined} personName={isPerson ? personName : undefined} />
 
       {/* Köp: välj hur man lägger till */}
       <Modal visible={showWishChooser} animationType="slide" transparent>
@@ -812,7 +822,14 @@ export default function Wardrobe() {
       </Modal>
 
       <View style={styles.header}>
-        <Text style={styles.title}>Min garderob</Text>
+        <View style={styles.headerTitleWrap}>
+          {isPerson && (
+            <TouchableOpacity onPress={() => goBack('/profile')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Tillbaka">
+              <MaterialIcons name="arrow-back" size={24} color={t.textPrimary} />
+            </TouchableOpacity>
+          )}
+          <Text style={styles.title} numberOfLines={1}>{isPerson ? `${personName || 'Barnet'}s garderob` : 'Min garderob'}</Text>
+        </View>
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
@@ -846,7 +863,7 @@ export default function Wardrobe() {
           )}
           <TouchableOpacity
             style={styles.iconBtn}
-            onPress={() => router.push('/stats')}
+            onPress={() => router.push(isPerson ? `/stats?person=${person}&personName=${encodeURIComponent(personName || '')}` : '/stats')}
             accessibilityLabel="Statistik"
             accessibilityRole="button"
           >
@@ -858,7 +875,8 @@ export default function Wardrobe() {
       <View style={styles.tabRow}>
         {[
           { id: 'nuvarande', label: `Garderob${garments.length > 0 ? ` (${garments.length})` : ''}` },
-          { id: 'köp', label: `Köp${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` },
+          // Köplista är per person (mig), inte per barn – dölj den i barn-läge.
+          ...(isPerson ? [] : [{ id: 'köp', label: `Köp${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` }]),
           { id: 'sälj', label: `Sälj${forSale.length > 0 ? ` (${forSale.length})` : ''}` },
         ].map(({ id, label }) => (
           <TouchableOpacity
@@ -1284,6 +1302,7 @@ export default function Wardrobe() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
+  headerTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },

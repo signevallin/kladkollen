@@ -98,15 +98,27 @@ export default function AddGarment() {
   const [batchStatus, setBatchStatus] = useState<FamilyStatus>('stored')
   const [batchLocation, setBatchLocation] = useState('')
 
-  const { start } = useLocalSearchParams()
+  const { start, person: personParam } = useLocalSearchParams<{ start?: string; person?: string }>()
 
   useEffect(() => {
     supabase.from('garments').select('brand').then(({ data }) => {
       if (data) setOwnBrands([...new Set(data.map((g: any) => g.brand).filter(Boolean))] as string[])
     })
     fetchLocations().then(setLocations).catch(() => {})
-    loadPeople().then(ppl => setChildren(ppl.filter(p => p.type === 'child'))).catch(() => {})
-  }, [])
+    loadPeople().then(ppl => {
+      const kids = ppl.filter(p => p.type === 'child')
+      setChildren(kids)
+      // Kom man hit från ett barns garderob: förvälj lådläget för det barnet.
+      if (personParam) {
+        const child = kids.find(k => k.id === personParam)
+        if (child) {
+          setBatchMode(true)
+          setBatchPersonId(child.id)
+          setBatchSizeCm(prev => prev ?? child.current_size_cm ?? null)
+        }
+      }
+    }).catch(() => {})
+  }, [personParam])
 
   // Kommer man in via "Välj foton" i valrutan – öppna bildväljaren automatiskt.
   // Vi väntar tills skärmen fått fokus OCH animationer/valrutan lagt sig, annars
