@@ -124,6 +124,12 @@ export default function AddGarment() {
   // Vi väntar tills skärmen fått fokus OCH animationer/valrutan lagt sig, annars
   // vägrar iOS presentera väljaren ovanpå en modal som håller på att stängas
   // (då fastnade man på en snurrande sida).
+  // Läs om platserna vid fokus så nyss skapade platser (via "Hantera platser")
+  // dyker upp direkt när man kommer tillbaka.
+  useFocusEffect(
+    useCallback(() => { fetchLocations().then(setLocations).catch(() => {}) }, []),
+  )
+
   const autoStarted = useRef(false)
   useFocusEffect(
     useCallback(() => {
@@ -403,20 +409,25 @@ export default function AddGarment() {
                     ))}
                   </View>
 
-                  {locations.length > 0 && (
-                    <>
-                      <Text style={styles.cardLabel}>PLATS</Text>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <View style={styles.pillRow}>
-                          {locations.map(l => (
-                            <TouchableOpacity key={l.id} style={[styles.pill, batchLocation === l.name && styles.pillActive]}
-                              onPress={() => setBatchLocation(batchLocation === l.name ? '' : l.name)}>
-                              <Text style={[styles.pillText, batchLocation === l.name && styles.pillTextActive]}>{l.name}</Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </ScrollView>
-                    </>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.cardLabel}>PLATS</Text>
+                    <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Text style={styles.manageLink}>Hantera platser</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {locations.length > 0 ? (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View style={styles.pillRow}>
+                        {locations.map(l => (
+                          <TouchableOpacity key={l.id} style={[styles.pill, batchLocation === l.name && styles.pillActive]}
+                            onPress={() => setBatchLocation(batchLocation === l.name ? '' : l.name)}>
+                            <Text style={[styles.pillText, batchLocation === l.name && styles.pillTextActive]}>{l.name}{l.is_archive ? ' (arkiv)' : ''}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  ) : (
+                    <Text style={styles.placeHint}>Inga platser än – tryck "Hantera platser" för att skapa en (t.ex. "Kartong 3, vinden").</Text>
                   )}
                 </View>
               )}
@@ -627,23 +638,28 @@ export default function AddGarment() {
                   />
 
                   {/* Var finns plagget? */}
-                  {locations.length > 0 && (
-                    <>
-                      <Text style={styles.cardLabel}>VAR FINNS PLAGGET? (VALFRITT)</Text>
-                      <View style={styles.pillRow}>
-                        {locations.map(l => (
-                          <TouchableOpacity
-                            key={l.id}
-                            style={[styles.pill, draft.location === l.name && styles.pillActive]}
-                            onPress={() => updateDraft(draft.id, 'location', draft.location === l.name ? '' : l.name)}
-                          >
-                            <Text style={[styles.pillText, draft.location === l.name && styles.pillTextActive]}>
-                              {l.name}{l.is_archive ? ' (arkiv)' : ''}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.cardLabel}>VAR FINNS PLAGGET? (VALFRITT)</Text>
+                    <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Text style={styles.manageLink}>Hantera platser</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {locations.length > 0 ? (
+                    <View style={styles.pillRow}>
+                      {locations.map(l => (
+                        <TouchableOpacity
+                          key={l.id}
+                          style={[styles.pill, draft.location === l.name && styles.pillActive]}
+                          onPress={() => updateDraft(draft.id, 'location', draft.location === l.name ? '' : l.name)}
+                        >
+                          <Text style={[styles.pillText, draft.location === l.name && styles.pillTextActive]}>
+                            {l.name}{l.is_archive ? ' (arkiv)' : ''}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.placeHint}>Inga platser än – tryck "Hantera platser" för att skapa en.</Text>
                   )}
                 </>
               )}
@@ -744,6 +760,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   removeBtnText: { fontFamily: 'Lora_400Regular', color: t.textFaint, fontSize: 18 },
 
   cardLabel: { fontFamily: 'Poppins_700Bold', color: t.textFaint, fontSize: 11, letterSpacing: 1.5 },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  manageLink: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 12 },
+  placeHint: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12, fontStyle: 'italic', lineHeight: 18 },
   sizeInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 10, padding: 10, color: t.textPrimary, fontSize: 14, borderWidth: 1, borderColor: t.border },
 
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
