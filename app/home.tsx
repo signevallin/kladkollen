@@ -985,7 +985,7 @@ export default function Home() {
   const activeCtx = CONTEXTS[selectedContext]
 
   // Återanvändbar plagg-väljare (samma UI för utgångsplagg och "lägg till plagg").
-  function renderGarmentPicker(cfg: { visible: boolean; title: string; pool: any[]; onSelect: (g: any) => void; onClose: () => void }) {
+  function renderGarmentPicker(cfg: { visible: boolean; title: string; pool: any[]; onSelect: (g: any) => void; onClose: () => void; accessoriesFirst?: boolean }) {
     const typeOptions = baseCat !== 'Alla' && SUBCATEGORIES[baseCat]
       ? SUBCATEGORIES[baseCat]
       : Array.from(new Set(cfg.pool.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))
@@ -1011,7 +1011,7 @@ export default function Home() {
     }
     const anyActive = baseCat !== 'Alla' || baseType !== 'Alla' || baseColor !== 'Alla' || baseSeason !== 'Alla'
     const q = baseSearch.trim().toLowerCase()
-    const items = cfg.pool.filter(g =>
+    let items = cfg.pool.filter(g =>
       !g.archived && !g.for_sale &&
       (!q || g.name?.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)) &&
       (baseCat === 'Alla' || g.category === baseCat) &&
@@ -1019,6 +1019,11 @@ export default function Home() {
       (baseColor === 'Alla' || g.color === baseColor) &&
       (baseSeason === 'Alla' || g.season?.includes(baseSeason))
     )
+    if (cfg.accessoriesFirst) {
+      // Smycken och accessoarer överst (vanligast att vilja lägga till).
+      const rank = (g: any) => g.category === 'Smycken' ? 0 : g.category === 'Accessoarer' ? 1 : 2
+      items = [...items].sort((a, b) => rank(a) - rank(b))
+    }
     return (
       <Modal visible={cfg.visible} animationType="slide" transparent onRequestClose={cfg.onClose}>
         <View style={styles.swapOverlay}>
@@ -1209,7 +1214,7 @@ export default function Home() {
                   <Text style={styles.optionSub}>Valfritt – bygg outfiten kring ett plagg</Text>
                 </View>
               </View>
-              <Ionicons name="add-circle-outline" size={24} color={t.primary} />
+              <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
             </TouchableOpacity>
           )}
         </View>
@@ -1275,7 +1280,9 @@ export default function Home() {
                   accessibilityLabel="Lägg till plagg"
                   accessibilityRole="button"
                 >
-                  <View style={styles.addItemCircle}><Ionicons name="add" size={30} color={t.onPrimary} /></View>
+                  <View style={styles.addItemBox}>
+                    <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
+                  </View>
                   <Text style={styles.outfitItemName} numberOfLines={1}>Lägg till</Text>
                 </TouchableOpacity>
               )}
@@ -1381,7 +1388,9 @@ export default function Home() {
                       accessibilityLabel="Lägg till plagg"
                       accessibilityRole="button"
                     >
-                      <View style={styles.addItemCircle}><Ionicons name="add" size={30} color={t.onPrimary} /></View>
+                      <View style={styles.addItemBox}>
+                        <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
+                      </View>
                       <Text style={styles.outfitItemName} numberOfLines={1}>Lägg till</Text>
                     </TouchableOpacity>
                   )}
@@ -1456,6 +1465,7 @@ export default function Home() {
         pool: addPickerPool,
         onSelect: addItemToOutfit,
         onClose: closeAddPicker,
+        accessoriesFirst: true,
       })}
 
       {/* Byt ut plagg i outfiten */}
@@ -1658,7 +1668,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseOptionTextActive: { color: t.onPrimary },
   baseColorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
   swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  addItemCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  addItemBox: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center' },
+  addItemCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   swapBadgeText: { color: t.onPrimary, fontSize: 12, fontFamily: 'Poppins_700Bold' },
 
   // Byt-ut-modal
