@@ -12,7 +12,11 @@ import { scheduleSmartPush } from '../utils/smartPush'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
 import { SettingsProvider } from '../utils/settings'
 import { ToastHost } from '../components/Toast'
+import { initSentry, wrapWithSentry } from '../utils/sentry'
 import '../global.css'
+
+// Starta kraschrapportering så tidigt som möjligt (no-op utan modul/DSN).
+initSentry()
 
 // Sidor som får besökas utan inloggning.
 const PUBLIC_ROUTES = ['/', '/login', '/privacy', '/terms', '/reset-password']
@@ -109,7 +113,7 @@ function RootLayout() {
   )
 }
 
-export default function Layout() {
+function Layout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
@@ -120,3 +124,6 @@ export default function Layout() {
     </SafeAreaProvider>
   )
 }
+
+// Wrappa roten så Sentry fångar renderingsfel/krascher (no-op utan modul/DSN).
+export default wrapWithSentry(Layout)
