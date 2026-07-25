@@ -26,6 +26,7 @@ import { cacheGet, cacheSet } from '../utils/cache'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { captureError } from '../utils/sentry'
+import { loadPartner } from '../utils/household'
 import { geocodeDestination, fetchTripWeather } from '../utils/trip'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
@@ -127,11 +128,14 @@ export default function MyOutfits() {
     // (feedback till AI:n) ska inte synas här.
     const { data } = await supabase.from('outfits').select('*').eq('saved', true).order('created_at', { ascending: false })
     if (data) { setOutfits(data); cacheSet('myoutfit.outfits', data) }
-    // Outfits som partnern gillat (likes på mina outfits av någon annan än jag).
-    const { data: { user } } = await supabase.auth.getUser()
+    // Outfits som partnern gillat. Räkna bara likes från den NUVARANDE partnern –
+    // efter en isärkoppling finns ingen partner, så inga hjärtan ligger kvar.
     const { data: likes } = await supabase.from('outfit_likes').select('outfit_id, user_id')
-    if (user && likes) {
-      setPartnerLikedIds(new Set(likes.filter((l: any) => l.user_id !== user.id).map((l: any) => l.outfit_id)))
+    const { partner } = await loadPartner()
+    if (partner && likes) {
+      setPartnerLikedIds(new Set(likes.filter((l: any) => l.user_id === partner.id).map((l: any) => l.outfit_id)))
+    } else {
+      setPartnerLikedIds(new Set())
     }
   }
 
