@@ -36,6 +36,14 @@ export default function Family() {
     () => computeSizeReminders(sizedGarments ?? [], children, new Date()),
     [sizedGarments, children],
   )
+  // Filtrera "redo att ta fram" på tillstånd (redo nu / snart / väntar på säsong).
+  const [reminderFilter, setReminderFilter] = useState<'all' | 'ready' | 'upcoming' | 'waiting_season'>('all')
+  const reminderCounts = useMemo(() => ({
+    ready: reminders.filter(r => r.state === 'ready').length,
+    upcoming: reminders.filter(r => r.state === 'upcoming').length,
+    waiting_season: reminders.filter(r => r.state === 'waiting_season').length,
+  }), [reminders])
+  const shownReminders = reminderFilter === 'all' ? reminders : reminders.filter(r => r.state === reminderFilter)
 
   const [showAdd, setShowAdd] = useState(false)
   const [name, setName] = useState('')
@@ -119,7 +127,24 @@ export default function Family() {
         {reminders.length > 0 && (
           <View style={styles.remindersSection}>
             <Text style={styles.sectionTitle}>Redo att ta fram</Text>
-            {reminders.slice(0, 12).map(r => (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+              {([
+                ['all', `Alla (${reminders.length})`],
+                ['ready', `Redo nu (${reminderCounts.ready})`],
+                ['upcoming', `Snart (${reminderCounts.upcoming})`],
+                ['waiting_season', `Väntar på säsong (${reminderCounts.waiting_season})`],
+              ] as const).map(([key, label]) => {
+                // Dölj tomma tillståndsfilter (utom Alla).
+                if (key !== 'all' && reminderCounts[key] === 0) return null
+                const on = reminderFilter === key
+                return (
+                  <TouchableOpacity key={key} style={[styles.filterChip, on && styles.filterChipActive]} onPress={() => setReminderFilter(key)}>
+                    <Text style={[styles.filterChipText, on && styles.filterChipTextActive]}>{label}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+            {shownReminders.slice(0, 20).map(r => (
               <TouchableOpacity
                 key={`${r.garmentId}-${r.childId}`}
                 style={styles.reminderRow}
@@ -274,6 +299,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   remindersSection: { marginBottom: 24 },
   sectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase', marginBottom: 10, marginLeft: 4 },
+  filterChips: { gap: 8, paddingBottom: 12, paddingRight: 4 },
+  filterChip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  filterChipActive: { backgroundColor: t.primary, borderColor: t.primary },
+  filterChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
+  filterChipTextActive: { color: t.onPrimary },
   reminderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: t.border },
   reminderThumb: { width: 44, height: 44, borderRadius: 8 },
   reminderThumbEmpty: { width: 44, height: 44, borderRadius: 8, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
