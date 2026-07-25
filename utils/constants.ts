@@ -3,18 +3,22 @@
 
 export const CATEGORIES = [
   'Toppar', 'Tröjor', 'Byxor', 'Shorts', 'Kjolar', 'Klänningar',
-  'Kavajer', 'Ytterkläder', 'Skor', 'Väskor', 'Accessoarer', 'Smycken',
+  'Kavajer', 'Ytterkläder', 'Sovkläder', 'Underkläder', 'Badkläder',
+  'Skor', 'Väskor', 'Accessoarer', 'Smycken',
 ]
 
 export const SUBCATEGORIES: Record<string, string[]> = {
   'Toppar': ['Linne', 'T-shirt', 'Piké', 'Långärmad topp', 'Body', 'Blus', 'Skjorta'],
   'Tröjor': ['Sweatshirt', 'Hoodie', 'Stickad tröja', 'Collegetröja', 'Kofta'],
-  'Byxor': ['Jeans', 'Chinos', 'Kostymbyxor', 'Leggings', 'Mjukisbyxor'],
+  'Byxor': ['Jeans', 'Chinos', 'Kostymbyxor', 'Leggings', 'Mjukisbyxor', 'Hängselbyxor'],
   'Shorts': ['Jeansshorts', 'Chinosshorts', 'Linneshorts', 'Träningsshorts', 'Skräddade shorts'],
   'Kjolar': ['Minikjol', 'Midikjol', 'Maxikjol', 'Plisserad kjol', 'Pennkjol'],
   'Klänningar': ['Miniklänning', 'Midiklänning', 'Maxiklänning', 'Festklänning', 'Vardagsklänning'],
   'Kavajer': ['Kavaj', 'Blazer', 'Kostymjacka'],
-  'Ytterkläder': ['Kappa', 'Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka'],
+  'Ytterkläder': ['Kappa', 'Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka', 'Täckoverall', 'Skaloverall', 'Regnställ', 'Regnbyxor', 'Fleecetröja'],
+  'Sovkläder': ['Pyjamas', 'Nattlinne', 'Pyjamasoverall', 'Sovsäck', 'Morgonrock'],
+  'Underkläder': ['Body', 'Trosor', 'Kalsonger', 'Linne', 'Strumpor', 'Strumpbyxor', 'Tights'],
+  'Badkläder': ['Baddräkt', 'Badbyxor', 'UV-tröja', 'Blöjbadbyxa'],
   'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor', 'Seglarskor', 'Gummistövlar', 'Stövlar', 'Tofflor'],
   'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
   'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Keps', 'Mössa', 'Solglasögon', 'Håraccessoarer'],
