@@ -119,15 +119,22 @@ export default function Family() {
           emptyText="Inga barn tillagda än. Lägg till ditt första barn nedan.">
           {children.map(child => (
             <View key={child.id} style={styles.childRow}>
-              {child.avatar_url
-                ? <SignedImage path={child.avatar_url} style={styles.childAvatar} />
-                : <View style={styles.childAvatarEmpty}><MaterialIcons name="child-care" size={24} color={t.textSecondary} /></View>}
-              <View style={styles.childInfo}>
-                <Text style={styles.childName}>{child.name}</Text>
-                <Text style={styles.childMeta}>
-                  {[formatAge(child.birthdate), child.gender].filter(Boolean).join(' · ') || 'Ingen ålder angiven'}
-                </Text>
-              </View>
+              <TouchableOpacity
+                style={styles.childTap}
+                onPress={() => router.push(`/child-closet?child=${child.id}&name=${encodeURIComponent(child.name)}`)}
+                activeOpacity={0.8}
+                accessibilityLabel={`Öppna ${child.name}s garderob`}
+              >
+                {child.avatar_url
+                  ? <SignedImage path={child.avatar_url} style={styles.childAvatar} />
+                  : <View style={styles.childAvatarEmpty}><MaterialIcons name="child-care" size={24} color={t.textSecondary} /></View>}
+                <View style={styles.childInfo}>
+                  <Text style={styles.childName}>{child.name}</Text>
+                  <Text style={styles.childMeta}>
+                    {[formatAge(child.birthdate), child.gender].filter(Boolean).join(' · ') || 'Ingen ålder angiven'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
               <View style={styles.sizeStepper}>
                 <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, -1)} accessibilityLabel="Mindre storlek">
                   <MaterialIcons name="remove" size={16} color={t.textPrimary} />
@@ -238,6 +245,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   reminderBadgeTextReady: { color: t.onPrimary },
 
   childRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: t.border },
+  childTap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   childAvatar: { width: 48, height: 48, borderRadius: 24 },
   childAvatarEmpty: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   childInfo: { flex: 1 },

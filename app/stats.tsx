@@ -128,7 +128,7 @@ export default function Stats() {
 
   async function fetchGarmentStats() {
     const { data } = await supabase
-      .from('garments').select('*').eq('archived', false)
+      .from('garments').select('*').eq('archived', false).is('person_id', null)
       .order('times_worn', { ascending: false })
     if (data) {
       setGarments(data)

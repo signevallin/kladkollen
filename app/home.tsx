@@ -143,7 +143,7 @@ export default function Home() {
   async function fetchAll() {
     // Bara kolumnerna hemskärmen faktiskt använder (outfit-generering + räknare) –
     // slipper dra hela plaggraden vid varje appstart.
-    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived')
+    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived').is('person_id', null)
     if (data) {
       setGarments(data); cacheSet('home.garments', data)
     }
