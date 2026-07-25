@@ -52,7 +52,6 @@ export default function Home() {
   const [weather, setWeather] = useState<any>(null)
   const [outfit, setOutfit] = useState<any>(null)
   const [garments, setGarments] = useState<any[]>(() => cacheGet('home.garments') ?? [])
-  const [stats, setStats] = useState(() => cacheGet<{ total: number; vintedTips: number }>('home.stats') ?? { total: 0, vintedTips: 0 })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -147,10 +146,6 @@ export default function Home() {
     const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived')
     if (data) {
       setGarments(data); cacheSet('home.garments', data)
-      const active = data.filter(g => !g.archived)
-      const vintedTips = active.filter(g => !g.times_worn || g.times_worn === 0).length
-      const nextStats = { total: active.length, vintedTips }
-      setStats(nextStats); cacheSet('home.stats', nextStats)
     }
     fetchWeather()
   }
@@ -1208,7 +1203,6 @@ export default function Home() {
           ) : (
             <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
               <View style={styles.optionLeft}>
-                <Ionicons name="shirt-outline" size={22} color={t.primary} />
                 <View>
                   <Text style={styles.optionText}>Utgå från ett plagg</Text>
                   <Text style={styles.optionSub}>Valfritt – bygg outfiten kring ett plagg</Text>
@@ -1431,21 +1425,6 @@ export default function Home() {
             </TouchableOpacity>
           </View>
         )}
-
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          <TouchableOpacity style={styles.statCard} onPress={() => router.push('/wardrobe')}>
-            <Text style={styles.statNum}>{stats.total}</Text>
-            <Text style={styles.statLabel}>PLAGG</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.statCard} onPress={() => router.push('/stats')}>
-            <Text style={styles.statNum}>{stats.vintedTips}</Text>
-            <Text style={styles.statLabel}>SÄLJ TIPS</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.statCard} onPress={() => router.push('/inspiration')}>
-            <Text style={styles.statLabel}>INSPO</Text>
-          </TouchableOpacity>
-        </View>
 
       </ScrollView>
 
@@ -1707,10 +1686,4 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wearTodayBtnDone: { backgroundColor: t.surfaceMuted, borderColor: t.border },
   wearTodayBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 14 },
   wearTodayBtnTextDone: { color: t.textSecondary },
-
-  // Stats
-  statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 28 },
-  statCard: { flex: 1, backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border },
-  statNum: { fontFamily: 'Poppins_700Bold', fontSize: 26, color: t.textSecondary },
-  statLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: t.textSecondary, letterSpacing: 1.5, marginTop: 2 },
 })
