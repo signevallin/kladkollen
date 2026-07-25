@@ -17,6 +17,7 @@ import {
 } from 'react-native'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
+import GoogleIcon from '../components/GoogleIcon'
 
 // Se till att en ev. öppnad auth-webbsession avslutas snyggt (OAuth-återhopp).
 WebBrowser.maybeCompleteAuthSession()
@@ -234,7 +235,7 @@ export default function Login() {
               {social === 'google'
                 ? <ActivityIndicator color={t.textPrimary} />
                 : <>
-                    <Ionicons name="logo-google" size={18} color="#EA4335" style={styles.socialIcon} />
+                    <View style={styles.socialIcon}><GoogleIcon size={18} /></View>
                     <Text style={styles.googleBtnText}>Fortsätt med Google</Text>
                   </>}
             </TouchableOpacity>
