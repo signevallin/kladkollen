@@ -817,6 +817,14 @@ export default function Wardrobe() {
               <MaterialIcons name="inventory-2" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => router.push('/stats')}
+            accessibilityLabel="Statistik"
+            accessibilityRole="button"
+          >
+            <MaterialIcons name="insights" size={20} color={t.onPrimary} />
+          </TouchableOpacity>
         </View>
       </View>
 
