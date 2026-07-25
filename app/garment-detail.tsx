@@ -34,6 +34,8 @@ import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } fro
 import { useSettings } from '../utils/settings'
 import { resolveImageUrl, uploadUserImage } from '../utils/storage'
 import { loadPartner } from '../utils/household'
+import { loadPeople, type Person } from '../utils/people'
+import { EU_CHILD_SIZES } from '../utils/childSize'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -75,6 +77,11 @@ export default function GarmentDetail() {
   const [location, setLocation] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
+  // Familjeläge: vem plagget tillhör + barnstorlek + hand-me-down-status.
+  const [children, setChildren] = useState<Person[]>([])
+  const [personId, setPersonId] = useState<string | null>(null)
+  const [sizeCm, setSizeCm] = useState<number | null>(null)
+  const [familyStatus, setFamilyStatus] = useState<'in_use' | 'stored' | 'outgrown'>('in_use')
   const [ownBrands, setOwnBrands] = useState<string[]>([])
   const [locations, setLocations] = useState<Location[]>([])
   const [archived, setArchived] = useState(false)
@@ -121,6 +128,9 @@ export default function GarmentDetail() {
       setBrand(data.brand || ''); setPrice(data.price != null ? String(fromBaseSEK(data.price)) : '')
       setArchived(!!data.archived); setSold(!!data.sold)
       setArchiveReason(data.archive_reason || null)
+      setPersonId(data.person_id || null)
+      setSizeCm(data.size_cm ?? null)
+      setFamilyStatus((data.status as any) || 'in_use')
       setLoaded(true)
     }
     // Egna märken för autocomplete
@@ -128,6 +138,8 @@ export default function GarmentDetail() {
     if (all) setOwnBrands([...new Set(all.map((g: any) => g.brand).filter(Boolean))] as string[])
     // Egna platser (för att välja plats + avgöra arkiv)
     setLocations(await fetchLocations())
+    // Barn i hushållet – styr om familje-sektionen visas.
+    try { setChildren((await loadPeople()).filter(p => p.type === 'child')) } catch { /* inget hushåll än */ }
   }
 
   async function saveFields() {
@@ -162,6 +174,10 @@ export default function GarmentDetail() {
           archived: archivedVal,
           archive_reason: archivedVal ? archiveReason : null,
           ...(archivedVal ? {} : { sold: false }),
+          person_id: personId,
+          household_id: personId ? (children.find(c => c.id === personId)?.household_id ?? null) : null,
+          size_cm: personId ? sizeCm : null,
+          status: personId ? familyStatus : null,
         }).eq('id', id)
         if (error) throw error
       }
@@ -600,6 +616,51 @@ export default function GarmentDetail() {
                     )
                   })}
                 </View>
+              </>
+            )}
+
+            {children.length > 0 && (
+              <>
+                <Text style={styles.label}>Tillhör (familj)</Text>
+                <View style={styles.pills}>
+                  {children.map((c) => {
+                    const on = personId === c.id
+                    return (
+                      <TouchableOpacity
+                        key={c.id}
+                        style={[styles.pill, on && styles.pillActive]}
+                        onPress={() => {
+                          setPersonId(on ? null : c.id)
+                          if (!on && sizeCm == null) setSizeCm(c.current_size_cm ?? null)
+                        }}
+                      >
+                        <Text style={[styles.pillText, on && styles.pillTextActive]}>{c.name}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+
+                {personId && (
+                  <>
+                    <Text style={styles.label}>Barnstorlek</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
+                      {EU_CHILD_SIZES.map((s) => (
+                        <TouchableOpacity key={s} style={[styles.pill, sizeCm === s && styles.pillActive]} onPress={() => setSizeCm(sizeCm === s ? null : s)}>
+                          <Text style={[styles.pillText, sizeCm === s && styles.pillTextActive]}>{s}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+
+                    <Text style={styles.label}>Status</Text>
+                    <View style={styles.pills}>
+                      {([['in_use', 'Används'], ['stored', 'Sparad i låda'], ['outgrown', 'Urvuxen']] as const).map(([v, lbl]) => (
+                        <TouchableOpacity key={v} style={[styles.pill, familyStatus === v && styles.pillActive]} onPress={() => setFamilyStatus(v)}>
+                          <Text style={[styles.pillText, familyStatus === v && styles.pillTextActive]}>{lbl}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
               </>
             )}
 
