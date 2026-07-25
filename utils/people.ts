@@ -31,6 +31,7 @@ type NewChild = {
   birthdate?: string | null
   gender?: string | null
   current_size_cm?: number | null
+  avatar_url?: string | null
 }
 
 // Lägger till ett barn. Ser först till att ett hushåll finns (skapar ett
@@ -48,6 +49,7 @@ export async function addChild(child: NewChild): Promise<Person> {
       gender: child.gender || null,
       current_size_cm: child.current_size_cm ?? null,
       size_updated_at: child.current_size_cm != null ? new Date().toISOString() : null,
+      avatar_url: child.avatar_url || null,
     })
     .select('*')
     .single()

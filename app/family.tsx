@@ -17,7 +17,9 @@ import QueryState from '../components/QueryState'
 import { showConfirm, showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useQuery } from '../utils/useQuery'
-import { addChild, deletePerson, loadPeople, setChildSize, type Person } from '../utils/people'
+import { addChild, deletePerson, loadPeople, setChildSize, updatePerson, type Person } from '../utils/people'
+import { pickImageSmart } from '../utils/imagePicker'
+import { uploadUserImage } from '../utils/storage'
 import {
   EU_CHILD_SIZES, formatAge, nextSize, prevSize, suggestedSizeCm,
 } from '../utils/childSize'
@@ -41,6 +43,7 @@ export default function Family() {
   const [gender, setGender] = useState<string | null>(null)
   const [sizeCm, setSizeCm] = useState<number | null>(null)
   const [sizeTouched, setSizeTouched] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   // Förslag på storlek utifrån ålder – tills användaren väljer manuellt.
@@ -48,14 +51,14 @@ export default function Family() {
   const effectiveSize = sizeTouched ? sizeCm : (sizeCm ?? suggested)
 
   function resetForm() {
-    setName(''); setBirthdate(''); setGender(null); setSizeCm(null); setSizeTouched(false); setShowAdd(false)
+    setName(''); setBirthdate(''); setGender(null); setSizeCm(null); setSizeTouched(false); setAvatarUrl(null); setShowAdd(false)
   }
 
   async function saveChild() {
     if (!name.trim()) { showAlert('Skriv ett namn'); return }
     setSaving(true)
     try {
-      await addChild({ name, birthdate, gender, current_size_cm: effectiveSize ?? null })
+      await addChild({ name, birthdate, gender, current_size_cm: effectiveSize ?? null, avatar_url: avatarUrl })
       resetForm()
       refetch()
     } catch (e: any) {
@@ -63,6 +66,33 @@ export default function Family() {
     } finally {
       setSaving(false)
     }
+  }
+
+  // Bilduppladdning: aldrig spara en lokal file://-sökväg (syns bara på egna
+  // telefonen) – ladda upp och spara storage-sökvägen.
+  async function uploadImage(uri: string): Promise<string> {
+    const response = await fetch(uri)
+    const arrayBuffer = await response.arrayBuffer()
+    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+  }
+
+  async function pickFormAvatar() {
+    const result = await pickImageSmart({ mediaTypes: ['images'] as any, allowsEditing: true, aspect: [1, 1], quality: 0.8 })
+    if (result.canceled) return
+    const uri = result.assets[0].uri
+    setAvatarUrl(uri) // visa direkt
+    try { setAvatarUrl(await uploadImage(uri)) }
+    catch { setAvatarUrl(null); showAlert('Kunde inte ladda upp bilden', 'Försök igen.') }
+  }
+
+  async function changePhoto(child: Person) {
+    const result = await pickImageSmart({ mediaTypes: ['images'] as any, allowsEditing: true, aspect: [1, 1], quality: 0.8 })
+    if (result.canceled) return
+    try {
+      const url = await uploadImage(result.assets[0].uri)
+      await updatePerson(child.id, { avatar_url: url })
+      refetch()
+    } catch { showAlert('Kunde inte ladda upp bilden', 'Försök igen.') }
   }
 
   async function bump(child: Person, dir: 1 | -1) {
@@ -120,20 +150,25 @@ export default function Family() {
           {children.map(child => (
             <View key={child.id} style={styles.childRow}>
               <TouchableOpacity
-                style={styles.childTap}
+                onPress={() => changePhoto(child)}
+                activeOpacity={0.8}
+                accessibilityLabel={`Byt bild på ${child.name}`}
+              >
+                {child.avatar_url
+                  ? <SignedImage path={child.avatar_url} style={styles.childAvatar} resizeMode="cover" />
+                  : <View style={styles.childAvatarEmpty}><MaterialIcons name="child-care" size={24} color={t.textSecondary} /></View>}
+                <View style={styles.childAvatarBadge}><MaterialIcons name="photo-camera" size={11} color={t.onPrimary} /></View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.childInfo}
                 onPress={() => router.push(`/child-closet?child=${child.id}&name=${encodeURIComponent(child.name)}`)}
                 activeOpacity={0.8}
                 accessibilityLabel={`Öppna ${child.name}s garderob`}
               >
-                {child.avatar_url
-                  ? <SignedImage path={child.avatar_url} style={styles.childAvatar} />
-                  : <View style={styles.childAvatarEmpty}><MaterialIcons name="child-care" size={24} color={t.textSecondary} /></View>}
-                <View style={styles.childInfo}>
-                  <Text style={styles.childName}>{child.name}</Text>
-                  <Text style={styles.childMeta}>
-                    {[formatAge(child.birthdate), child.gender].filter(Boolean).join(' · ') || 'Ingen ålder angiven'}
-                  </Text>
-                </View>
+                <Text style={styles.childName}>{child.name}</Text>
+                <Text style={styles.childMeta}>
+                  {[formatAge(child.birthdate), child.gender].filter(Boolean).join(' · ') || 'Ingen ålder angiven'}
+                </Text>
               </TouchableOpacity>
               <View style={styles.sizeStepper}>
                 <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, -1)} accessibilityLabel="Mindre storlek">
@@ -157,6 +192,12 @@ export default function Family() {
         {showAdd ? (
           <View style={styles.addBox}>
             <Text style={styles.addLabel}>Nytt barn</Text>
+
+            <TouchableOpacity style={styles.formAvatarWrap} onPress={pickFormAvatar} accessibilityLabel="Välj bild">
+              {avatarUrl
+                ? <SignedImage path={avatarUrl} style={styles.formAvatar} resizeMode="cover" />
+                : <View style={styles.formAvatarEmpty}><MaterialIcons name="add-a-photo" size={22} color={t.textSecondary} /></View>}
+            </TouchableOpacity>
 
             <Text style={styles.fieldLabel}>Namn</Text>
             <TextInput style={styles.input} placeholder="t.ex. Alva" placeholderTextColor={t.placeholder}
@@ -245,9 +286,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   reminderBadgeTextReady: { color: t.onPrimary },
 
   childRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: t.border },
-  childTap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   childAvatar: { width: 48, height: 48, borderRadius: 24 },
   childAvatarEmpty: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
+  childAvatarBadge: { position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.surfaceMuted },
+  formAvatarWrap: { alignSelf: 'center', marginBottom: 16 },
+  formAvatar: { width: 72, height: 72, borderRadius: 36 },
+  formAvatarEmpty: { width: 72, height: 72, borderRadius: 36, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, borderStyle: 'dashed' },
   childInfo: { flex: 1 },
   childName: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   childMeta: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 2 },
