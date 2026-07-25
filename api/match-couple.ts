@@ -48,7 +48,7 @@ OBLIGATORISKA REGLER FÖR VARJE OUTFIT:
 1. SKOR: EXAKT ETT par skor per person. ALDRIG två par (t.ex. inte både loafers och sneakers). Detta är absolut.
 2. NEDERDEL: byxor/kjol/shorts – SÅVIDA du inte väljer klänning.
 3. ÖVERDEL: exakt en – SÅVIDA du inte väljer klänning (då ingen separat över/underdel).
-4. INGA DUBBLETTER: aldrig två plagg av samma typ/roll – inte två par skor, två överdelar, två nederdelar, två klänningar. Kontrollera detta innan du svarar.
+4. INGA DUBBLETTER: aldrig två plagg av samma kategori. Två skjortor räknas som TVÅ överdelar och är FÖRBJUDET – välj bara EN överdel (en topp/skjorta). Lager är ok endast om det är OLIKA kategorier (t.ex. en skjorta + en stickad tröja/kofta), aldrig två plagg av samma slag. Inte heller två par skor, två nederdelar eller två klänningar. Kontrollera detta innan du svarar.
 
 PARREGLER:
 - De två looksen ska kännas ihop: samma formalitetsnivå och en GEMENSAM färgtråd (en delad accent- eller neutralton), men spegla varsin person.

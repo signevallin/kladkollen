@@ -475,10 +475,13 @@ export default function Home() {
         if (m?.id) usedIds.add(m.id)
         return m
       }
-      const itemsWithImages = parsed.items.map((name: string) => {
-        const match = findMatch(name)
-        return { name, image_url: match?.image_url || null, id: match?.id || null }
-      })
+      const itemsWithImages = dedupOutfitItems(
+        parsed.items.map((name: string) => {
+          const match = findMatch(name)
+          return { name, image_url: match?.image_url || null, id: match?.id || null }
+        }),
+        pool,
+      )
 
       setOutfit({ ...parsed, itemsWithImages })
 
@@ -563,18 +566,16 @@ export default function Home() {
   // som AI:n ibland råkar välja. Accessoarer/smycken/väskor lämnas orörda.
   function dedupOutfitItems(items: any[], pool: any[]) {
     const catById = new Map(pool.filter(g => g.id).map(g => [g.id, g.category]))
-    const ROLE: Record<string, string> = {
-      'Skor': 'shoes',
-      'Byxor': 'bottom', 'Shorts': 'bottom', 'Kjolar': 'bottom',
-      'Klänningar': 'dress',
-    }
+    // Högst ETT plagg per kärnkategori. Lager är olika kategorier (t.ex. Toppar +
+    // Tröjor), så två av SAMMA kategori (t.ex. två skjortor = två Toppar) tas bort.
+    // Accessoarer, väskor och smycken får förekomma flera gånger.
+    const SINGLE = new Set(['Skor', 'Byxor', 'Shorts', 'Kjolar', 'Klänningar', 'Toppar', 'Tröjor', 'Kavajer', 'Ytterkläder'])
     const seen = new Set<string>()
     return items.filter(it => {
       const cat = it.id ? catById.get(it.id) : null
-      const role = cat ? ROLE[cat] : null
-      if (!role) return true // överdelar (lager ok), accessoarer m.m. – behåll
-      if (seen.has(role)) return false
-      seen.add(role)
+      if (!cat || !SINGLE.has(cat)) return true // accessoarer m.m. – behåll alla
+      if (seen.has(cat)) return false
+      seen.add(cat)
       return true
     })
   }
