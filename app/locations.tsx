@@ -1,6 +1,6 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   SafeAreaView,
   ScrollView,
@@ -14,16 +14,18 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
+import { useQuery } from '../utils/useQuery'
+import QueryState from '../components/QueryState'
 
 export default function Locations() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const [locations, setLocations] = useState<Location[]>([])
+  const { data, loading, error, refetch } = useQuery(fetchLocations, [], { cacheKey: 'locations' })
+  const locations = data ?? []
   const [newName, setNewName] = useState('')
   const [newArchive, setNewArchive] = useState(false)
 
-  useEffect(() => { load() }, [])
-  async function load() { setLocations(await fetchLocations()) }
+  const load = refetch
 
   async function addLocation() {
     const name = newName.trim()
@@ -62,20 +64,22 @@ export default function Locations() {
         <Text style={styles.title}>Egna platser</Text>
         <Text style={styles.subtitle}>Bestäm var dina plagg kan förvaras. Markera en plats som Arkiv om plagg där ska räknas som arkiverade (t.ex. källaren).</Text>
 
-        {locations.map(loc => (
-          <View key={loc.id} style={styles.row}>
-            <Text style={styles.rowName}>{loc.name}</Text>
-            <TouchableOpacity
-              style={[styles.archiveToggle, loc.is_archive && styles.archiveToggleOn]}
-              onPress={() => toggleArchive(loc)}
-            >
-              <Text style={[styles.archiveToggleText, loc.is_archive && styles.archiveToggleTextOn]}>Arkiv</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => removeLocation(loc)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.remove}>✕</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+        <QueryState loading={loading} error={error} onRetry={refetch} isEmpty={locations.length === 0} emptyText="Inga platser än.">
+          {locations.map(loc => (
+            <View key={loc.id} style={styles.row}>
+              <Text style={styles.rowName}>{loc.name}</Text>
+              <TouchableOpacity
+                style={[styles.archiveToggle, loc.is_archive && styles.archiveToggleOn]}
+                onPress={() => toggleArchive(loc)}
+              >
+                <Text style={[styles.archiveToggleText, loc.is_archive && styles.archiveToggleTextOn]}>Arkiv</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => removeLocation(loc)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.remove}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </QueryState>
 
         <View style={styles.addBox}>
           <Text style={styles.addLabel}>Lägg till plats</Text>
