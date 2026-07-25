@@ -9,7 +9,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
 import { registerForPush } from '../utils/push'
 import { scheduleSmartPush } from '../utils/smartPush'
-import { scheduleSizeReminderPush } from '../utils/sizeReminderPush'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
 import { SettingsProvider } from '../utils/settings'
 import { ToastHost } from '../components/Toast'
@@ -61,8 +60,6 @@ function RootLayout() {
     registerForPush()
     // Schemalägg om Smart Push (kalenderbaserad morgonnotis) för nästa morgon.
     scheduleSmartPush()
-    // Uppdatera veckans storleks-digest (familjeläget) för nästa körning.
-    scheduleSizeReminderPush()
 
     // Kallstart: öppnades appen genom att trycka på en notis (från helt stängt
     // läge) hämtar vi den och navigerar till rätt vy – en gång.
