@@ -78,6 +78,8 @@ export default function Wardrobe() {
   const [activeSeasons, setActiveSeasons] = useState<Set<string>>(new Set())
   const [activeColors, setActiveColors] = useState<Set<string>>(new Set())
   const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set())
+  // Barnstorlek (bara relevant i barn-läge) – lagras som strängar av size_cm.
+  const [activeSizes, setActiveSizes] = useState<Set<string>>(new Set())
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
@@ -93,6 +95,7 @@ export default function Wardrobe() {
   const [archSeason, setArchSeason] = useState('Alla')
   const [archPlace, setArchPlace] = useState('Alla')
   const [archReason, setArchReason] = useState('Alla')
+  const [archSize, setArchSize] = useState('Alla')
   const [archSort, setArchSort] = useState('recent')
   const [archDropdown, setArchDropdown] = useState<string | null>(null)
 
@@ -318,6 +321,7 @@ export default function Wardrobe() {
     if (activeSeasons.size) result = result.filter(g => g.season && [...activeSeasons].some(s => g.season.includes(s)))
     if (activeColors.size) result = result.filter(g => activeColors.has(g.color))
     if (activeTypes.size) result = result.filter(g => activeTypes.has(g.subcategory))
+    if (activeSizes.size) result = result.filter(g => g.size_cm != null && activeSizes.has(String(g.size_cm)))
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(g =>
@@ -338,7 +342,7 @@ export default function Wardrobe() {
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     }
     return sorted
-  }, [garments, activeCategories, activeSeasons, activeColors, activeTypes, search, sortBy])
+  }, [garments, activeCategories, activeSeasons, activeColors, activeTypes, activeSizes, search, sortBy])
 
   // Typ-alternativ (subkategorier) som faktiskt finns i garderoben, för filtret.
   const typeOptions = useMemo(() => {
@@ -347,12 +351,22 @@ export default function Wardrobe() {
     return ['Alla', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'sv'))]
   }, [garments])
 
+  // Barnstorlekar som faktiskt finns i den här (barn)garderoben, stigande.
+  const sizeOptions = useMemo(() => {
+    const set = new Set<number>()
+    garments.forEach(g => { if (g.size_cm != null) set.add(g.size_cm) })
+    return ['Alla', ...Array.from(set).sort((a, b) => a - b).map(String)]
+  }, [garments])
+
   // Arkivets typ- och platsalternativ (utifrån vad som faktiskt finns i arkivet).
   const archTypeOptions = useMemo(() =>
     ['Alla', ...Array.from(new Set(archived.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))],
     [archived])
   const archPlaceOptions = useMemo(() =>
     ['Alla', ...Array.from(new Set(archived.map(g => g.location).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))],
+    [archived])
+  const archSizeOptions = useMemo(() =>
+    ['Alla', ...Array.from(new Set(archived.map(g => g.size_cm).filter(v => v != null))).sort((a, b) => a - b).map(String)],
     [archived])
 
   const filteredArchive = useMemo(() => {
@@ -363,6 +377,7 @@ export default function Wardrobe() {
     if (archSeason !== 'Alla') r = r.filter(g => g.season?.includes(archSeason))
     if (archPlace !== 'Alla') r = r.filter(g => g.location === archPlace)
     if (archReason !== 'Alla') r = r.filter(g => (g.archive_reason || '') === archReason)
+    if (archSize !== 'Alla') r = r.filter(g => String(g.size_cm) === archSize)
     const sorted = [...r]
     switch (archSort) {
       case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name, 'sv')); break
@@ -375,11 +390,11 @@ export default function Wardrobe() {
       default: sorted.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     }
     return sorted
-  }, [archived, archCat, archType, archColor, archSeason, archPlace, archReason, archSort])
+  }, [archived, archCat, archType, archColor, archSeason, archPlace, archReason, archSize, archSort])
 
-  const archHasFilters = archCat !== 'Alla' || archType !== 'Alla' || archColor !== 'Alla' || archSeason !== 'Alla' || archPlace !== 'Alla' || archReason !== 'Alla'
+  const archHasFilters = archCat !== 'Alla' || archType !== 'Alla' || archColor !== 'Alla' || archSeason !== 'Alla' || archPlace !== 'Alla' || archReason !== 'Alla' || archSize !== 'Alla'
   function clearArchiveFilters() {
-    setArchCat('Alla'); setArchType('Alla'); setArchColor('Alla'); setArchSeason('Alla'); setArchPlace('Alla'); setArchReason('Alla'); setArchSort('recent'); setArchDropdown(null)
+    setArchCat('Alla'); setArchType('Alla'); setArchColor('Alla'); setArchSeason('Alla'); setArchPlace('Alla'); setArchReason('Alla'); setArchSize('Alla'); setArchSort('recent'); setArchDropdown(null)
   }
 
   function handleSearch(text: string) { setSearch(text) }
@@ -397,9 +412,10 @@ export default function Wardrobe() {
   function handleSeason(s: string) { toggleInSet(setActiveSeasons, s) }
   function handleColor(c: string) { toggleInSet(setActiveColors, c) }
   function handleType(ty: string) { toggleInSet(setActiveTypes, ty) }
+  function handleSize(s: string) { toggleInSet(setActiveSizes, s) }
   function handleSort(key: string) { setSortBy(key); setOpenDropdown(null) }
   function clearFilters() {
-    setActiveCategories(new Set()); setActiveSeasons(new Set()); setActiveColors(new Set()); setActiveTypes(new Set())
+    setActiveCategories(new Set()); setActiveSeasons(new Set()); setActiveColors(new Set()); setActiveTypes(new Set()); setActiveSizes(new Set())
     setSearch(''); setSortBy('recent'); setShowSearch(false); setOpenDropdown(null)
   }
 
@@ -500,7 +516,7 @@ export default function Wardrobe() {
     showAlert('Grattis!', `${item.name} finns nu i garderoben.`)
   }
 
-  const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || search !== ''
+  const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || activeSizes.size > 0 || search !== ''
   // Etikett för filter-chippen: inget val → filternamnet, ett val → värdet,
   // flera val → "Filternamn (antal)".
   const filterChipValue = (label: string, set: Set<string>) =>
@@ -918,6 +934,7 @@ export default function Wardrobe() {
               { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
               { key: 'category', label: 'Kategori', value: filterChipValue('Kategori', activeCategories), on: activeCategories.size > 0 },
               { key: 'type', label: 'Typ', value: filterChipValue('Typ', activeTypes), on: activeTypes.size > 0 },
+              ...(isPerson ? [{ key: 'size', label: 'Storlek', value: filterChipValue('Storlek', activeSizes), on: activeSizes.size > 0 }] : []),
               { key: 'color', label: 'Färg', value: filterChipValue('Färg', activeColors), on: activeColors.size > 0 },
               { key: 'season', label: 'Säsong', value: filterChipValue('Säsong', activeSeasons), on: activeSeasons.size > 0 },
             ].map(f => (
@@ -952,14 +969,14 @@ export default function Wardrobe() {
                           <Text style={[styles.dropdownPillText, sortBy === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
                         </TouchableOpacity>
                       ))
-                    : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'type' ? typeOptions : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
-                        const currentSet = openDropdown === 'category' ? activeCategories : openDropdown === 'type' ? activeTypes : openDropdown === 'season' ? activeSeasons : activeColors
+                    : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'type' ? typeOptions : openDropdown === 'size' ? sizeOptions : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
+                        const currentSet = openDropdown === 'category' ? activeCategories : openDropdown === 'type' ? activeTypes : openDropdown === 'size' ? activeSizes : openDropdown === 'season' ? activeSeasons : activeColors
                         const isActive = item === 'Alla' ? currentSet.size === 0 : currentSet.has(item)
                         return (
                           <TouchableOpacity
                             key={item}
                             style={[styles.dropdownPill, isActive && styles.dropdownPillActive]}
-                            onPress={() => openDropdown === 'category' ? handleCategory(item) : openDropdown === 'type' ? handleType(item) : openDropdown === 'season' ? handleSeason(item) : handleColor(item)}
+                            onPress={() => openDropdown === 'category' ? handleCategory(item) : openDropdown === 'type' ? handleType(item) : openDropdown === 'size' ? handleSize(item) : openDropdown === 'season' ? handleSeason(item) : handleColor(item)}
                           >
                             {openDropdown === 'color' && COLOR_HEX[item] && (
                               <View style={[styles.pillColorDot, { backgroundColor: COLOR_HEX[item] }]} />
@@ -1181,6 +1198,7 @@ export default function Wardrobe() {
                   { key: 'sort', label: 'Sortera', value: SORT_LABEL[archSort], on: archSort !== 'recent' },
                   { key: 'category', label: 'Kategori', value: archCat, on: archCat !== 'Alla' },
                   { key: 'type', label: 'Typ', value: archType, on: archType !== 'Alla' },
+                  ...(isPerson ? [{ key: 'size', label: 'Storlek', value: archSize, on: archSize !== 'Alla' }] : []),
                   { key: 'color', label: 'Färg', value: archColor, on: archColor !== 'Alla' },
                   { key: 'season', label: 'Säsong', value: archSeason, on: archSeason !== 'Alla' },
                 ].map(f => (
@@ -1207,13 +1225,14 @@ export default function Wardrobe() {
                               <Text style={[styles.dropdownPillText, archSort === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
                             </TouchableOpacity>
                           ))
-                        : (archDropdown === 'category' ? CATEGORIES : archDropdown === 'type' ? archTypeOptions : archDropdown === 'season' ? SEASONS : archDropdown === 'place' ? archPlaceOptions : archDropdown === 'reason' ? ['Alla', ...ARCHIVE_REASONS.map(r => r.key)] : COLORS).map(item => {
-                            const isActive = archDropdown === 'category' ? archCat === item : archDropdown === 'type' ? archType === item : archDropdown === 'season' ? archSeason === item : archDropdown === 'place' ? archPlace === item : archDropdown === 'reason' ? archReason === item : archColor === item
+                        : (archDropdown === 'category' ? CATEGORIES : archDropdown === 'type' ? archTypeOptions : archDropdown === 'size' ? archSizeOptions : archDropdown === 'season' ? SEASONS : archDropdown === 'place' ? archPlaceOptions : archDropdown === 'reason' ? ['Alla', ...ARCHIVE_REASONS.map(r => r.key)] : COLORS).map(item => {
+                            const isActive = archDropdown === 'category' ? archCat === item : archDropdown === 'type' ? archType === item : archDropdown === 'size' ? archSize === item : archDropdown === 'season' ? archSeason === item : archDropdown === 'place' ? archPlace === item : archDropdown === 'reason' ? archReason === item : archColor === item
                             const reasonMeta = archDropdown === 'reason' && item !== 'Alla' ? reasonFor(item) : undefined
                             return (
                               <TouchableOpacity key={item} style={[styles.dropdownPill, isActive && styles.dropdownPillActive]} onPress={() => {
                                 if (archDropdown === 'category') setArchCat(item)
                                 else if (archDropdown === 'type') setArchType(item)
+                                else if (archDropdown === 'size') setArchSize(item)
                                 else if (archDropdown === 'season') setArchSeason(item)
                                 else if (archDropdown === 'place') setArchPlace(item)
                                 else if (archDropdown === 'reason') setArchReason(item)
