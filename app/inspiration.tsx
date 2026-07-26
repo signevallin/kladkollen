@@ -20,6 +20,10 @@ import {
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
+import DayToNightShareCard from '../components/DayToNightShareCard'
+import { captureRef } from 'react-native-view-shot'
+import * as Sharing from 'expo-sharing'
+import { toast } from '../components/Toast'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert, showConfirm } from '../utils/alert'
@@ -52,6 +56,11 @@ export default function Inspiration() {
   const [dtnKey, setDtnKey] = useState<string | null>(null)
   const [dtnLoading, setDtnLoading] = useState(false)
   const [dtnResult, setDtnResult] = useState<any>(null)
+  const [dtnSharing, setDtnSharing] = useState(false)
+  const [dtnShareTarget, setDtnShareTarget] = useState<any>(null)
+  const [dtnShowDates, setDtnShowDates] = useState(false)
+  const [dtnSaving, setDtnSaving] = useState(false)
+  const dtnShareRef = useRef<View>(null)
 
   // AI-analys state
   const [inspoImage, setInspoImage] = useState<string | null>(null)
@@ -340,6 +349,86 @@ export default function Inspiration() {
       showAlert('Kunde inte skapa looken', e.message || 'Försök igen.')
     } finally {
       setDtnLoading(false)
+    }
+  }
+
+  function dtnNextDates(n: number): string[] {
+    const out: string[] = []
+    const base = new Date()
+    for (let i = 0; i < n; i++) {
+      const x = new Date(base); x.setDate(base.getDate() + i)
+      out.push(x.toISOString().slice(0, 10))
+    }
+    return out
+  }
+
+  function dtnDateLabel(dateStr: string): string {
+    const today = new Date().toISOString().slice(0, 10)
+    const tmw = new Date(); tmw.setDate(tmw.getDate() + 1)
+    if (dateStr === today) return 'Idag'
+    if (dateStr === tmw.toISOString().slice(0, 10)) return 'Imorgon'
+    const d = new Date(dateStr + 'T12:00:00')
+    const WD = ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör']
+    return `${WD[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`
+  }
+
+  async function shareDayToNight() {
+    if (dtnSharing || !dtnResult) return
+    setDtnSharing(true)
+    const tr = DTN_TRANSITIONS.find(x => x.key === dtnKey)
+    setDtnShareTarget({
+      fromLabel: tr?.fromLabel || 'Dag', toLabel: tr?.toLabel || 'Fest',
+      dayName: dtnResult.dayName, dayItems: dtnResult.dayImages,
+      eveningName: dtnResult.eveningName, eveningItems: dtnResult.eveningImages,
+    })
+    try {
+      await new Promise(r => setTimeout(r, 350)) // låt dela-vyn rita klart
+      const uri = await captureRef(dtnShareRef, { format: 'png', quality: 1 })
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Dela din dag-till-fest' })
+      } else {
+        showAlert('Delning stöds inte här', 'Öppna appen på telefonen för att dela.')
+      }
+    } catch (e: any) {
+      if (e?.message && !/cancel/i.test(e.message)) showAlert('Kunde inte dela', e.message)
+    } finally {
+      setDtnSharing(false); setDtnShareTarget(null)
+    }
+  }
+
+  async function saveDayToNightToCalendar(dateStr: string) {
+    if (dtnSaving || !dtnResult) return
+    setDtnSaving(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const tr = DTN_TRANSITIONS.find(x => x.key === dtnKey)
+      const mk = (name: string, imgs: any[], context: string) => ({
+        user_id: user.id,
+        name,
+        garment_ids: imgs.map((i: any) => i.id).filter(Boolean),
+        garment_names: imgs.map((i: any) => i.name),
+        image_urls: imgs.map((i: any) => i.image_url).filter(Boolean),
+        context: (context || '').toLowerCase(),
+        saved: true,
+      })
+      // Spara båda looken som outfits …
+      await supabase.from('outfits').insert([mk(`${tr?.fromLabel} (dag)`, dtnResult.dayImages, tr?.fromLabel || '')])
+      const { data: evng, error } = await supabase.from('outfits')
+        .insert([mk(`${tr?.fromLabel} → ${tr?.toLabel}`, dtnResult.eveningImages, tr?.toLabel || '')])
+        .select('id').single()
+      if (error) throw error
+      // … och lägg kvällslooken (festen) på valt datum i kalendern.
+      const { error: calErr } = await supabase.from('outfit_calendar').upsert(
+        { user_id: user.id, outfit_id: evng.id, date: dateStr },
+        { onConflict: 'user_id,date' })
+      if (calErr) throw calErr
+      setDtnShowDates(false)
+      toast('Sparat!', `Kvällslooken ligger på ${dtnDateLabel(dateStr).toLowerCase()}. Båda looken finns i Outfits.`)
+    } catch (e: any) {
+      showAlert('Kunde inte spara', e.message || 'Försök igen.')
+    } finally {
+      setDtnSaving(false)
     }
   }
 
@@ -730,11 +819,42 @@ export default function Inspiration() {
                 {dtnResult.tip ? (
                   <View style={styles.dtnTipBox}><Text style={styles.dtnTipText}>{dtnResult.tip}</Text></View>
                 ) : null}
+
+                <View style={styles.dtnActions}>
+                  <TouchableOpacity style={styles.dtnActionBtn} onPress={shareDayToNight} disabled={dtnSharing}>
+                    <Text style={styles.dtnActionText}>{dtnSharing ? 'Delar…' : 'Dela'}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.dtnActionBtn, styles.dtnActionBtnPrimary]} onPress={() => setDtnShowDates(v => !v)}>
+                    <Text style={[styles.dtnActionText, styles.dtnActionTextPrimary]}>Spara till kalender</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {dtnShowDates && (
+                  <>
+                    <Text style={styles.dtnKeep}>Välj dag:</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dtnDateChips}>
+                      {dtnNextDates(14).map(d => (
+                        <TouchableOpacity key={d} style={styles.dtnDateChip} disabled={dtnSaving} onPress={() => saveDayToNightToCalendar(d)}>
+                          <Text style={styles.dtnDateChipText}>{dtnDateLabel(d)}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </>
+                )}
               </>
             )}
           </>
         )}
       </ScrollView>
+
+      {/* Dold dela-vy som fångas som bild */}
+      {dtnShareTarget && (
+        <View style={styles.hiddenShare} pointerEvents="none">
+          <View ref={dtnShareRef} collapsable={false}>
+            <DayToNightShareCard {...dtnShareTarget} />
+          </View>
+        </View>
+      )}
       <BottomNav />
     </SafeAreaView>
   )
@@ -797,6 +917,15 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dtnKeep: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', marginTop: 4 },
   dtnTipBox: { backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 20 },
   dtnTipText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary, lineHeight: 21 },
+  dtnActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
+  dtnActionBtn: { flex: 1, paddingVertical: 13, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  dtnActionBtnPrimary: { backgroundColor: t.primary, borderColor: t.primary },
+  dtnActionText: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },
+  dtnActionTextPrimary: { color: t.onPrimary },
+  dtnDateChips: { gap: 8, paddingVertical: 4, paddingRight: 8 },
+  dtnDateChip: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  dtnDateChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
+  hiddenShare: { position: 'absolute', left: -9999, top: 0 },
   missingSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.surfaceMuted, gap: 10 },
   missingSectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   missingIcon: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
