@@ -98,7 +98,7 @@ export default function AddGarment() {
   const [batchStatus, setBatchStatus] = useState<FamilyStatus>('stored')
   const [batchLocation, setBatchLocation] = useState('')
 
-  const { start, person: personParam } = useLocalSearchParams<{ start?: string; person?: string }>()
+  const { start, person: personParam, personName } = useLocalSearchParams<{ start?: string; person?: string; personName?: string }>()
 
   useEffect(() => {
     supabase.from('garments').select('brand').then(({ data }) => {
@@ -298,6 +298,9 @@ export default function AddGarment() {
       if (!user) throw new Error('Inte inloggad')
       for (const draft of ready) {
         const imageUrl = await uploadImage(draft)
+        // Kom man in från ett barns garderob (?person=) ska plagget hamna där,
+        // även om lådläget inte hann sättas innan bildväljaren öppnades.
+        const pid = draft.personId ?? (personParam ? String(personParam) : null)
         await supabase.from('garments').insert([{
           user_id: user.id,
           name: draft.name,
@@ -311,14 +314,14 @@ export default function AddGarment() {
           price: toBaseSEK(parsePrice(draft.price)),
           location: draft.location || null,
           image_url: imageUrl,
-          person_id: draft.personId,
-          household_id: draft.personId ? (children.find(c => c.id === draft.personId)?.household_id ?? null) : null,
-          size_cm: draft.personId ? draft.sizeCm : null,
-          status: draft.personId ? draft.familyStatus : null,
+          person_id: pid,
+          household_id: pid ? (children.find(c => c.id === pid)?.household_id ?? null) : null,
+          size_cm: pid ? draft.sizeCm : null,
+          status: pid ? draft.familyStatus : null,
         }])
       }
       toast(`${ready.length} ${ready.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
-      goBack('/wardrobe')
+      goBack(personParam ? `/wardrobe?person=${personParam}&personName=${encodeURIComponent(personName || '')}` : '/wardrobe')
     } catch (e: any) {
       showAlert('Något gick fel', e.message)
     } finally {
