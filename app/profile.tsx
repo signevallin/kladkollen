@@ -21,7 +21,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
-import { MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
+import { COLOR_OPTIONS, MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheClear } from '../utils/cache'
 import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
@@ -38,7 +38,6 @@ const COLD_LEVELS = [
   { v: 5, label: 'Fryser lätt' },
 ]
 const GENDERS = ['Kvinna', 'Man', 'Annat', 'Vill ej ange']
-const FAVORITE_COLORS = ['Svart', 'Vit', 'Beige', 'Brun', 'Röd', 'Rosa', 'Blå', 'Grön', 'Guld']
 const STIL_PROFIL = ['Minimal', 'Casual', 'Elegant', 'Sport', 'Bohemisk', 'Streetwear']
 const COLOR_PROFILES = ['Varm', 'Kall', 'Neutral']
 const LIFESTYLE = ['Kontor', 'Hybridjobb', 'Fritid', 'Träning']
@@ -797,7 +796,23 @@ export default function Profile() {
           })}
           {renderRow('favfarg', 'Favoritfärger', {
             icon: 'palette', value: colorPrefs.length ? `${colorPrefs.length} valda` : undefined,
-            body: pillGroup(FAVORITE_COLORS, colorPrefs, toggle(setColorPrefs)),
+            body: (
+              <View style={styles.colorGrid}>
+                {COLOR_OPTIONS.map(c => {
+                  const on = colorPrefs.includes(c.name)
+                  return (
+                    <TouchableOpacity
+                      key={c.name}
+                      style={[styles.colorDot, { backgroundColor: c.hex }, on && styles.colorDotActive]}
+                      onPress={() => toggle(setColorPrefs)(c.name)}
+                      accessibilityLabel={c.name}
+                    >
+                      {on && <Text style={styles.colorCheck}>✓</Text>}
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            ),
           })}
           {renderRow('undvik', 'Undvika?', {
             icon: 'block', value: avoidNote ? '✓' : undefined,
@@ -970,6 +985,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   paletteGroup: { gap: 8 },
   paletteGroupLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary, letterSpacing: 0.5 },
+  colorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  colorDot: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  colorDotActive: { borderColor: t.primary, transform: [{ scale: 1.15 }] },
+  colorCheck: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   swatchRow: { flexDirection: 'row', gap: 10, paddingVertical: 4 },
   swatchWrap: { alignItems: 'center', gap: 4, width: 56 },
   swatch: { width: 48, height: 48, borderRadius: 12 },
