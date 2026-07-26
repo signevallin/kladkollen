@@ -800,7 +800,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tabTextActive: { color: t.onPrimary },
 
   scroll: { padding: 24, paddingTop: 16, paddingBottom: 100 },
-  analysisCta: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: t.primary, marginBottom: 20 },
+  analysisCta: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: t.border, marginBottom: 20 },
   analysisCtaIcon: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   analysisCtaTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   analysisCtaSub: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginTop: 2 },
