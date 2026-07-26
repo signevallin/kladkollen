@@ -1320,9 +1320,11 @@ export default function Wardrobe() {
 
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
-  headerTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  // Titeln på egen rad + knappraden höger under, så titeln aldrig kapas (även
+  // långa barnnamn som "Alexandras garderob" får plats med fyra knappar).
+  header: { padding: 24, paddingBottom: 12 },
+  headerTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerButtons: { flexDirection: 'row', gap: 8, marginTop: 14, alignSelf: 'flex-end' },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.onPrimary },
@@ -1331,7 +1333,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tabActive: { backgroundColor: t.primary, borderColor: t.primary },
   tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 13 },
   tabTextActive: { color: t.onPrimary, fontWeight: '600' },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
+  title: { flex: 1, fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
   searchContainer: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: t.border },
   searchInput: { flex: 1, fontFamily: 'Lora_400Regular', paddingVertical: 12, color: t.textPrimary, fontSize: 14 },
   searchClear: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, paddingLeft: 8 },
