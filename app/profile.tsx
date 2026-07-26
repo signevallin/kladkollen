@@ -3,7 +3,7 @@ import { useTheme, useThemeControl } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { router, useFocusEffect } from 'expo-router'
 import { goBack } from '../utils/nav'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ActivityIndicator,
   Image,
@@ -92,6 +92,10 @@ export default function Profile() {
   const [lifeMode, setLifeMode] = useState('single')
   const [partner, setPartner] = useState<Partner | null>(null)
   const [householdChildren, setHouseholdChildren] = useState<Person[]>([])
+  // Autospar: sparar tyst en stund efter senaste ändringen (ingen spara-knapp att glömma).
+  const [profileLoaded, setProfileLoaded] = useState(false)
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
 
@@ -129,6 +133,17 @@ export default function Profile() {
     }, [])
   )
 
+  // Autospar: 700 ms efter senaste ändringen skrivs profilen tyst.
+  useEffect(() => {
+    if (!profileLoaded) return
+    setSaveState('saving')
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => { persistProfile() }, 700)
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileLoaded, name, avatar, gender, birthday, avoidNote, lifeMode, stylePrefs, colorPrefs,
+      currentSeason, coldSensitivity, stilProfil, fargsatt, livsstil, contextNotes, musicGenres, styleRules])
+
   async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
@@ -159,6 +174,44 @@ export default function Profile() {
         if (data.style_rules) setStyleRules(data.style_rules.split(', ').filter(Boolean))
       }
     }
+    // Först nu får autospar-effekten börja skriva (annars sparar den tomma
+    // defaultvärden över riktig data direkt vid montering).
+    setProfileLoaded(true)
+  }
+
+  // Sparar profilen tyst (utan alert/navigering) – används av autospar.
+  async function persistProfile() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const row: any = {
+      id: user.id,
+      name,
+      gender: gender || null,
+      birthday: birthday || null,
+      avoid_note: avoidNote || null,
+      life_mode: lifeMode,
+      style_prefs: stylePrefs.join(', '),
+      color_prefs: colorPrefs.join(', '),
+      current_season: currentSeason,
+      cold_sensitivity: coldSensitivity,
+      stil_profil: stilProfil.join(', '),
+      fargsatt,
+      livsstil: livsstil.join(', '),
+      outfit_context_notes: contextNotes,
+      music_genres: musicGenres.join(', '),
+      style_rules: styleRules.join(', '),
+    }
+    // Ladda upp ev. lokal bild till en riktig URL; misslyckas det, rör vi inte
+    // avatar_url (så vi aldrig sparar en lokal file://-sökväg eller nollar den).
+    let avatarToSave = avatar
+    if (avatarToSave && /^(file|blob|data):/i.test(avatarToSave)) {
+      try { avatarToSave = await uploadAvatar(avatarToSave); setAvatar(avatarToSave); row.avatar_url = avatarToSave }
+      catch { /* hoppa över bilden denna gång */ }
+    } else {
+      row.avatar_url = avatarToSave
+    }
+    const { error } = await supabase.from('profiles').upsert(row)
+    setSaveState(error ? 'idle' : 'saved')
   }
 
   const toggle = (setter: React.Dispatch<React.SetStateAction<string[]>>) => (v: string) =>
@@ -242,51 +295,13 @@ export default function Profile() {
     }
   }
 
+  // Spara-knappen behövs inte längre för att spara (autospar sköter det) – den
+  // säkerställer bara en sista skrivning och tar dig tillbaka.
   async function saveProfile() {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
     setLoading(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      // Säkerställ att avatar_url är en riktig uppladdad URL, aldrig en lokal
-      // file://-sökväg (som bara syns på den egna telefonen). Försök ladda upp
-      // om den fortfarande är lokal, annars spara ingen ny bild.
-      let avatarToSave = avatar
-      if (avatarToSave && /^(file|blob|data):/i.test(avatarToSave)) {
-        try {
-          avatarToSave = await uploadAvatar(avatarToSave)
-          setAvatar(avatarToSave)
-        } catch {
-          avatarToSave = null
-          showAlert('Profilbilden kunde inte laddas upp', 'Profilen sparas utan ny bild – lägg till bilden igen.')
-        }
-      }
-      const { error } = await supabase.from('profiles').upsert({
-        id: user.id,
-        name,
-        avatar_url: avatarToSave,
-        gender: gender || null,
-        birthday: birthday || null,
-        avoid_note: avoidNote || null,
-        life_mode: lifeMode,
-        style_prefs: stylePrefs.join(', '),
-        color_prefs: colorPrefs.join(', '),
-        current_season: currentSeason,
-        cold_sensitivity: coldSensitivity,
-        stil_profil: stilProfil.join(', '),
-        fargsatt,
-        livsstil: livsstil.join(', '),
-        outfit_context_notes: contextNotes,
-        music_genres: musicGenres.join(', '),
-        style_rules: styleRules.join(', '),
-      })
-      if (error) throw error
-      showAlert('Profil sparad!')
-      goBack('/home')
-    } catch (error: any) {
-      showAlert('Något gick fel', error.message)
-    } finally {
-      setLoading(false)
-    }
+    try { await persistProfile() } finally { setLoading(false) }
+    goBack('/home')
   }
 
   async function signOut() {
@@ -853,8 +868,11 @@ export default function Profile() {
           })}
         </View>
 
+        <Text style={styles.autosaveHint}>
+          {saveState === 'saving' ? 'Sparar…' : saveState === 'saved' ? 'Ändringar sparas automatiskt ✓' : 'Ändringar sparas automatiskt'}
+        </Text>
         <TouchableOpacity style={styles.saveButton} onPress={saveProfile} disabled={loading}>
-          <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Spara profil'}</Text>
+          <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Klar'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -895,7 +913,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   pillActive: { backgroundColor: t.primary, borderColor: t.primary },
   pillText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13 },
   pillTextActive: { color: t.onPrimary },
-  saveButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 24 },
+  autosaveHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', textAlign: 'center', marginTop: 24 },
+  saveButton: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
   saveButtonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
 
   contextNoteGroup: { marginBottom: 12 },
