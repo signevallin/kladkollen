@@ -458,7 +458,7 @@ export default function GarmentDetail() {
               accessibilityLabel="Beskär bild"
               accessibilityRole="button"
             >
-              <Ionicons name="cut-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>Beskär bild</Text>
+              <Ionicons name="crop-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>Beskär bild</Text>
             </TouchableOpacity>
           </View>
         )}
