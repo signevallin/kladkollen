@@ -20,7 +20,6 @@ import {
 } from 'react-native'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
-import CapsuleView from '../components/CapsuleView'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert, showConfirm } from '../utils/alert'
@@ -31,10 +30,28 @@ import { pickImageSmart } from '../utils/imagePicker'
 const SCREEN_WIDTH = Dimensions.get('window').width
 const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
 
+// "Dag till fest"-förvandlingar: bygg en look för dag-kontexten och byt några
+// plagg för att nå kvällskontexten.
+const JOBB_LOGIC = 'professionellt, snyggt, välskräddat, stilrent, passar arbetsplatsen'
+const SKOLA_LOGIC = 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual'
+const DATE_LOGIC = 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch'
+const AW_LOGIC = 'afterwork – avslappnat men uppklätt för drinkar efter jobbet, lite läckrare och mer social känsla än en vanlig arbetsdag'
+const DTN_TRANSITIONS = [
+  { key: 'jobb-date', label: 'Jobb → Date', fromLabel: 'Jobb', fromLogic: JOBB_LOGIC, toLabel: 'Date', toLogic: DATE_LOGIC },
+  { key: 'jobb-aw', label: 'Jobb → AW', fromLabel: 'Jobb', fromLogic: JOBB_LOGIC, toLabel: 'AW', toLogic: AW_LOGIC },
+  { key: 'skola-date', label: 'Skola → Date', fromLabel: 'Skola', fromLogic: SKOLA_LOGIC, toLabel: 'Date', toLogic: DATE_LOGIC },
+  { key: 'skola-aw', label: 'Skola → AW', fromLabel: 'Skola', fromLogic: SKOLA_LOGIC, toLabel: 'AW', toLogic: AW_LOGIC },
+] as const
+
 export default function Inspiration() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const [activeTab, setActiveTab] = useState<'analys' | 'moodboard' | 'capsule'>('analys')
+  const [activeTab, setActiveTab] = useState<'analys' | 'moodboard' | 'dagtillfest'>('analys')
+
+  // Dag till fest state
+  const [dtnKey, setDtnKey] = useState<string | null>(null)
+  const [dtnLoading, setDtnLoading] = useState(false)
+  const [dtnResult, setDtnResult] = useState<any>(null)
 
   // AI-analys state
   const [inspoImage, setInspoImage] = useState<string | null>(null)
@@ -282,6 +299,50 @@ export default function Inspiration() {
     }).join('\n')
   }
 
+  async function runDayToNight(transition: typeof DTN_TRANSITIONS[number]) {
+    setDtnKey(transition.key)
+    setDtnLoading(true)
+    setDtnResult(null)
+    try {
+      const { data: currentGarments } = await supabase
+        .from('garments')
+        .select('id, name, category, subcategory, color, season, archived, for_sale, image_url')
+        .is('person_id', null)
+      const pool = (currentGarments || []).filter((g: any) => !g.archived && !g.for_sale)
+      if (pool.length < 4) {
+        showAlert('För få plagg', 'Lägg till fler plagg i garderoben så kan jag bygga en dag-till-fest-look.')
+        return
+      }
+      const parsed = await apiPost('/api/day-to-night', {
+        fromLabel: transition.fromLabel,
+        fromLogic: transition.fromLogic,
+        toLabel: transition.toLabel,
+        toLogic: transition.toLogic,
+        groupedList: buildGarmentList(pool),
+      })
+      if (parsed.error) throw new Error(parsed.error)
+      const swapOut = new Set((parsed.swaps || []).map((s: any) => (s.out || '').toLowerCase()))
+      const swapIn = new Set((parsed.swaps || []).map((s: any) => (s.in || '').toLowerCase()))
+      setDtnResult({
+        ...parsed,
+        dayImages: matchItemsToPool(parsed.dayItems || [], pool),
+        eveningImages: matchItemsToPool(parsed.eveningItems || [], pool),
+        // Plaggen som stannar = finns i båda looken och inte är del av ett byte.
+        keep: (parsed.dayItems || []).filter((n: string) =>
+          (parsed.eveningItems || []).some((e: string) => e.toLowerCase() === n.toLowerCase())
+          && !swapOut.has(n.toLowerCase()) && !swapIn.has(n.toLowerCase())),
+        swapImages: (parsed.swaps || []).map((s: any) => ({
+          out: matchItemsToPool([s.out], pool)[0],
+          in: matchItemsToPool([s.in], pool)[0],
+        })),
+      })
+    } catch (e: any) {
+      showAlert('Kunde inte skapa looken', e.message || 'Försök igen.')
+    } finally {
+      setDtnLoading(false)
+    }
+  }
+
   async function analyzeCouple() {
     if (!inspoBase64) { showAlert('Välj en inspirationsbild först!'); return }
     if (!partner) return
@@ -409,14 +470,14 @@ export default function Inspiration() {
 
         {/* Tabs */}
         <View style={styles.tabRow}>
-          {(['analys', 'moodboard', 'capsule'] as const).map(tab => (
+          {(['analys', 'moodboard', 'dagtillfest'] as const).map(tab => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'analys' ? 'AI-analys' : tab === 'moodboard' ? 'Moodboard' : 'Capsule'}
+                {tab === 'analys' ? 'AI-analys' : tab === 'moodboard' ? 'Moodboard' : 'Dag till fest'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -603,7 +664,76 @@ export default function Inspiration() {
           </>
         )}
 
-        {activeTab === 'capsule' && <CapsuleView />}
+        {activeTab === 'dagtillfest' && (
+          <>
+            <Text style={styles.dtnIntro}>Samma outfit – från dag till kväll. Välj en förvandling så visar jag vilka få plagg du byter ut.</Text>
+            <View style={styles.dtnChips}>
+              {DTN_TRANSITIONS.map(tr => (
+                <TouchableOpacity
+                  key={tr.key}
+                  style={[styles.dtnChip, dtnKey === tr.key && styles.dtnChipActive]}
+                  onPress={() => runDayToNight(tr)}
+                  disabled={dtnLoading}
+                >
+                  <Text style={[styles.dtnChipText, dtnKey === tr.key && styles.dtnChipTextActive]}>{tr.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {dtnLoading && <ActivityIndicator color={t.primary} style={{ marginTop: 32 }} />}
+
+            {dtnResult && !dtnLoading && (
+              <>
+                {/* DAG */}
+                <Text style={styles.dtnHeading}>DAG</Text>
+                <Text style={styles.outfitName}>{dtnResult.dayName}</Text>
+                <View style={styles.outfitItems}>
+                  {dtnResult.dayImages.map((item: any, i: number) => (
+                    <View key={`d${i}`} style={styles.outfitItem}>
+                      {item.image_url ? <SignedImage path={item.image_url} style={styles.outfitItemImage} /> : <View style={styles.outfitItemEmptyBox} />}
+                      <Text style={styles.outfitItemName}>{item.name}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* BYT UT */}
+                <Text style={styles.dtnHeading}>BYT UT</Text>
+                {dtnResult.swapImages.map((s: any, i: number) => (
+                  <View key={`s${i}`} style={styles.swapRow}>
+                    <View style={styles.swapItem}>
+                      {s.out?.image_url ? <SignedImage path={s.out.image_url} style={styles.swapImage} /> : <View style={styles.swapImageEmpty} />}
+                      <Text style={styles.swapName} numberOfLines={1}>{s.out?.name}</Text>
+                    </View>
+                    <Text style={styles.swapArrow}>→</Text>
+                    <View style={styles.swapItem}>
+                      {s.in?.image_url ? <SignedImage path={s.in.image_url} style={styles.swapImage} /> : <View style={styles.swapImageEmpty} />}
+                      <Text style={styles.swapName} numberOfLines={1}>{s.in?.name}</Text>
+                    </View>
+                  </View>
+                ))}
+                {dtnResult.keep?.length > 0 && (
+                  <Text style={styles.dtnKeep}>Behåll: {dtnResult.keep.join(' · ')}</Text>
+                )}
+
+                {/* KVÄLL */}
+                <Text style={styles.dtnHeading}>KVÄLL</Text>
+                <Text style={styles.outfitName}>{dtnResult.eveningName}</Text>
+                <View style={styles.outfitItems}>
+                  {dtnResult.eveningImages.map((item: any, i: number) => (
+                    <View key={`e${i}`} style={styles.outfitItem}>
+                      {item.image_url ? <SignedImage path={item.image_url} style={styles.outfitItemImage} /> : <View style={styles.outfitItemEmptyBox} />}
+                      <Text style={styles.outfitItemName}>{item.name}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {dtnResult.tip ? (
+                  <View style={styles.dtnTipBox}><Text style={styles.dtnTipText}>{dtnResult.tip}</Text></View>
+                ) : null}
+              </>
+            )}
+          </>
+        )}
       </ScrollView>
       <BottomNav />
     </SafeAreaView>
@@ -650,6 +780,23 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitItemEmptyBox: { width: 64, height: 64, borderRadius: 12, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   outfitItemEmoji: { fontFamily: 'Lora_400Regular', fontSize: 28 },
   outfitItemName: { fontFamily: 'Lora_400Regular', fontSize: 9, color: t.textSecondary, textAlign: 'center' },
+
+  dtnIntro: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 16 },
+  dtnChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  dtnChip: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  dtnChipActive: { backgroundColor: t.primary, borderColor: t.primary },
+  dtnChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary },
+  dtnChipTextActive: { color: t.onPrimary },
+  dtnHeading: { fontFamily: 'Poppins_600SemiBold', fontSize: 9, color: t.textSecondary, letterSpacing: 2, marginTop: 24, marginBottom: 4 },
+  swapRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: t.border },
+  swapItem: { flex: 1, alignItems: 'center', gap: 4 },
+  swapImage: { width: 56, height: 56, borderRadius: 10 },
+  swapImageEmpty: { width: 56, height: 56, borderRadius: 10, backgroundColor: t.surface },
+  swapName: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textPrimary, textAlign: 'center' },
+  swapArrow: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.primary },
+  dtnKeep: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', marginTop: 4 },
+  dtnTipBox: { backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 20 },
+  dtnTipText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary, lineHeight: 21 },
   missingSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.surfaceMuted, gap: 10 },
   missingSectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   missingIcon: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
