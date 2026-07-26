@@ -308,10 +308,16 @@ export default function Inspiration() {
     }).join('\n')
   }
 
-  async function runDayToNight(transition: typeof DTN_TRANSITIONS[number]) {
+  async function runDayToNight(transition: typeof DTN_TRANSITIONS[number], opts?: { vary?: boolean }) {
+    // Vill man ha en ny variant (samma förvandling igen) – tala om för AI:n
+    // vilka plagg den valde sist så den ger en annan kombination.
+    const avoidItems = opts?.vary && dtnResult
+      ? [...(dtnResult.dayItems || []), ...(dtnResult.eveningItems || [])].join(', ')
+      : ''
     setDtnKey(transition.key)
     setDtnLoading(true)
     setDtnResult(null)
+    setDtnShowDates(false)
     try {
       const { data: currentGarments } = await supabase
         .from('garments')
@@ -328,6 +334,7 @@ export default function Inspiration() {
         toLabel: transition.toLabel,
         toLogic: transition.toLogic,
         groupedList: buildGarmentList(pool),
+        avoidItems,
       })
       if (parsed.error) throw new Error(parsed.error)
       const swapOut = new Set((parsed.swaps || []).map((s: any) => (s.out || '').toLowerCase()))
@@ -761,7 +768,7 @@ export default function Inspiration() {
                 <TouchableOpacity
                   key={tr.key}
                   style={[styles.dtnChip, dtnKey === tr.key && styles.dtnChipActive]}
-                  onPress={() => runDayToNight(tr)}
+                  onPress={() => runDayToNight(tr, { vary: dtnKey === tr.key })}
                   disabled={dtnLoading}
                 >
                   <Text style={[styles.dtnChipText, dtnKey === tr.key && styles.dtnChipTextActive]}>{tr.label}</Text>
@@ -819,6 +826,14 @@ export default function Inspiration() {
                 {dtnResult.tip ? (
                   <View style={styles.dtnTipBox}><Text style={styles.dtnTipText}>{dtnResult.tip}</Text></View>
                 ) : null}
+
+                <TouchableOpacity
+                  style={styles.dtnShuffle}
+                  onPress={() => { const tr = DTN_TRANSITIONS.find(x => x.key === dtnKey); if (tr) runDayToNight(tr, { vary: true }) }}
+                  disabled={dtnLoading}
+                >
+                  <Text style={styles.dtnShuffleText}>🔀 Blanda om</Text>
+                </TouchableOpacity>
 
                 <View style={styles.dtnActions}>
                   <TouchableOpacity style={styles.dtnActionBtn} onPress={shareDayToNight} disabled={dtnSharing}>
@@ -917,7 +932,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dtnKeep: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', marginTop: 4 },
   dtnTipBox: { backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 20 },
   dtnTipText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary, lineHeight: 21 },
-  dtnActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
+  dtnShuffle: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, marginTop: 20 },
+  dtnShuffleText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
+  dtnActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
   dtnActionBtn: { flex: 1, paddingVertical: 13, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   dtnActionBtnPrimary: { backgroundColor: t.primary, borderColor: t.primary },
   dtnActionText: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },

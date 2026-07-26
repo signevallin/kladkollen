@@ -38,7 +38,7 @@ Kvällslooken ska tydligt kännas mer ${toLabel.toLowerCase()} men vara samma pe
 
 GARDEROB (välj ENDAST plagg härifrån, exakt som de heter):
 ${groupedList}
-${avoidItems ? `\nUndvik gärna att bygga kring: ${avoidItems} (variera från förra förslaget).` : ''}
+${avoidItems ? `\nFÖRRA FÖRSLAGET använde: ${avoidItems}. Ge nu en TYDLIGT ANNORLUNDA förvandling – byt ut minst hälften av plaggen (gärna en annan nederdel/överdel och andra skor). Återanvänd bara ett plagg om garderoben saknar rimliga alternativ i rätt kategori.` : ''}
 
 REGLER:
 1. Både dag- och kvällslooken MÅSTE vara kompletta: skor + nederdel + överdel, ELLER klänning + skor.
