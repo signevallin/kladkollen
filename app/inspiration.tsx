@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import DayToNightShareCard from '../components/DayToNightShareCard'
@@ -832,7 +833,8 @@ export default function Inspiration() {
                   onPress={() => { const tr = DTN_TRANSITIONS.find(x => x.key === dtnKey); if (tr) runDayToNight(tr, { vary: true }) }}
                   disabled={dtnLoading}
                 >
-                  <Text style={styles.dtnShuffleText}>🔀 Blanda om</Text>
+                  <Ionicons name="shuffle" size={16} color={t.textPrimary} />
+                  <Text style={styles.dtnShuffleText}>Blanda om</Text>
                 </TouchableOpacity>
 
                 <View style={styles.dtnActions}>
@@ -932,7 +934,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dtnKeep: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', marginTop: 4 },
   dtnTipBox: { backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 20 },
   dtnTipText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary, lineHeight: 21 },
-  dtnShuffle: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, marginTop: 20 },
+  dtnShuffle: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, marginTop: 20 },
   dtnShuffleText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
   dtnActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
   dtnActionBtn: { flex: 1, paddingVertical: 13, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
