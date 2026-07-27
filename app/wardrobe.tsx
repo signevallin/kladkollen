@@ -849,16 +849,6 @@ export default function Wardrobe() {
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
-              style={[styles.iconBtn, showSearch && styles.iconBtnActive]}
-              onPress={() => { setShowSearch(s => !s); if (showSearch) setSearch('') }}
-              accessibilityLabel="Sök"
-              accessibilityRole="button"
-            >
-              <MaterialIcons name="search" size={22} color={t.onPrimary} />
-            </TouchableOpacity>
-          )}
-          {activeTab === 'nuvarande' && (
-            <TouchableOpacity
               style={[styles.iconBtn, (showFilterPanel || hasActiveFilters) && styles.iconBtnActive]}
               onPress={() => { setShowFilterPanel(s => !s); setOpenDropdown(null) }}
               accessibilityLabel="Filter och sortering"
@@ -908,27 +898,23 @@ export default function Wardrobe() {
       {/* NUVARANDE */}
       {activeTab === 'nuvarande' && !showArchive && (
         <>
-          {showSearch && (
-            <View style={styles.searchContainer}>
-              <MaterialIcons name="search" size={18} color={t.textSecondary} style={{ marginRight: 8 }} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Sök plagg eller färg..."
-                placeholderTextColor={t.placeholder}
-                value={search}
-                onChangeText={handleSearch}
-                autoFocus
-              />
-              {search.length > 0 && (
-                <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Text style={styles.searchClear}>✕</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-
           {showFilterPanel && (
           <>
+          <View style={styles.searchContainer}>
+            <MaterialIcons name="search" size={18} color={t.textSecondary} style={{ marginRight: 8 }} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Sök plagg eller färg..."
+              placeholderTextColor={t.placeholder}
+              value={search}
+              onChangeText={handleSearch}
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.searchClear}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRowContent}>
             {[
               { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
@@ -1320,11 +1306,9 @@ export default function Wardrobe() {
 
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
-  // Titeln på egen rad + knappraden höger under, så titeln aldrig kapas (även
-  // långa barnnamn som "Alexandras garderob" får plats med fyra knappar).
-  header: { padding: 24, paddingBottom: 12 },
-  headerTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  headerButtons: { flexDirection: 'row', gap: 8, marginTop: 14, alignSelf: 'flex-end' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
+  headerTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.onPrimary },
@@ -1333,7 +1317,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tabActive: { backgroundColor: t.primary, borderColor: t.primary },
   tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 13 },
   tabTextActive: { color: t.onPrimary, fontWeight: '600' },
-  title: { flex: 1, fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
   searchContainer: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: t.border },
   searchInput: { flex: 1, fontFamily: 'Lora_400Regular', paddingVertical: 12, color: t.textPrimary, fontSize: 14 },
   searchClear: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, paddingLeft: 8 },
