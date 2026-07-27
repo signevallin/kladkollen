@@ -68,8 +68,9 @@ export default function Home() {
   const [styleRuleKeys, setStyleRuleKeys] = useState<string[]>([])
   const [avoidNote, setAvoidNote] = useState('')
   const [sharing, setSharing] = useState(false)
-  const [userName, setUserName] = useState('')
-  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  // Seedas från cachen så hälsning + profilbild syns direkt vid flikbyte.
+  const [userName, setUserName] = useState<string>(() => cacheGet('home.userName') ?? '')
+  const [userAvatar, setUserAvatar] = useState<string | null>(() => cacheGet('home.userAvatar') ?? null)
   // Seedas från cachen så partner-knappen syns direkt vid flikbyte (annars
   // blinkar den in först efter att loadPartner hämtat klart).
   const [partner, setPartner] = useState<{ id: string; name: string } | null>(() => cacheGet('household.partner') ?? null)
@@ -132,9 +133,9 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note').eq('id', user.id).single()
-      if (profile?.name) setUserName(profile.name)
-      else setUserName(user.email?.split('@')[0] || '')
-      if (profile?.avatar_url) setUserAvatar(profile.avatar_url)
+      const name = profile?.name || user.email?.split('@')[0] || ''
+      setUserName(name); cacheSet('home.userName', name)
+      setUserAvatar(profile?.avatar_url || null); cacheSet('home.userAvatar', profile?.avatar_url || null)
       setContextNotes(profile?.outfit_context_notes || {})
       setMusicGenres(profile?.music_genres || '')
       if (profile?.cold_sensitivity != null) setColdSensitivity(profile.cold_sensitivity)
