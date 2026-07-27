@@ -1178,7 +1178,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   calendarLegend: { flexDirection: 'row', gap: 16, justifyContent: 'center', marginTop: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendDotWorn: { backgroundColor: t.primaryActive },
+  // Måste matcha dagcellernas verkliga fyllning (dayCellWorn/Planned/Today).
+  legendDotWorn: { backgroundColor: t.primaryActive + '33', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
   legendDotPlanned: { backgroundColor: '#DDE6ED', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
   legendDotToday: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: t.primary },
   legendText: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint },
