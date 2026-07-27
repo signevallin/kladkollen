@@ -69,7 +69,9 @@ export default function Home() {
   const [sharing, setSharing] = useState(false)
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
-  const [partner, setPartner] = useState<{ id: string; name: string } | null>(null)
+  // Seedas från cachen så partner-knappen syns direkt vid flikbyte (annars
+  // blinkar den in först efter att loadPartner hämtat klart).
+  const [partner, setPartner] = useState<{ id: string; name: string } | null>(() => cacheGet('household.partner') ?? null)
   const [coupleOutfit, setCoupleOutfit] = useState<any | null>(null)
   const [coupleLoading, setCoupleLoading] = useState(false)
   const [coupleSaving, setCoupleSaving] = useState(false)
@@ -107,7 +109,7 @@ export default function Home() {
       // ändrat i profilen slår igenom direkt när man kommer tillbaka hit.
       loadUser()
       fetchAll()
-      loadPartner().then(({ partner }) => setPartner(partner))
+      loadPartner().then(({ partner }) => { setPartner(partner); cacheSet('household.partner', partner) })
     }, [])
   )
 

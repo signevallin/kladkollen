@@ -73,7 +73,8 @@ export default function Inspiration() {
   const [savingInspo, setSavingInspo] = useState(false)
 
   // Par-matchning (samboläge)
-  const [partner, setPartner] = useState<{ id: string; name: string } | null>(null)
+  // Seedas från cachen så matcha-knappen syns direkt vid flikbyte.
+  const [partner, setPartner] = useState<{ id: string; name: string } | null>(() => cacheGet('household.partner') ?? null)
   const [myName, setMyName] = useState('Jag')
   const [myGender, setMyGender] = useState('')
   const [partnerGender, setPartnerGender] = useState('')
@@ -91,7 +92,7 @@ export default function Inspiration() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser()
       const { partner: p } = await loadPartner()
-      setPartner(p)
+      setPartner(p); cacheSet('household.partner', p)
       if (user) {
         const { data: me } = await supabase.from('profiles').select('name, gender').eq('id', user.id).single()
         if (me?.name) setMyName(me.name)
