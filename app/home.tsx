@@ -1261,7 +1261,7 @@ export default function Home() {
                     : <View style={styles.outfitImageEmpty} />
                   }
                   <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
-                  <Text style={styles.outfitItemName} numberOfLines={2}>{item.name}</Text>
+                  <Text style={styles.outfitItemName}>{item.name}</Text>
                 </TouchableOpacity>
               ))}
               {singleAddedCount < MAX_ADDED && (
@@ -1369,7 +1369,7 @@ export default function Home() {
                         ? <SignedImage path={item.image_url} style={styles.outfitImage} />
                         : <View style={styles.outfitImageEmpty} />}
                       <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
-                      <Text style={styles.outfitItemName} numberOfLines={2}>{item.name}</Text>
+                      <Text style={styles.outfitItemName}>{item.name}</Text>
                     </TouchableOpacity>
                   ))}
                   {o.itemsWithImages.filter((i: any) => i.added).length < MAX_ADDED && (
