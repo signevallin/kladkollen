@@ -49,7 +49,8 @@ export default function Home() {
   const styles = makeStyles(t)
   const { tempLabel } = useSettings()
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
-  const [weather, setWeather] = useState<any>(null)
+  // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
+  const [weather, setWeather] = useState<any>(() => cacheGet('home.weather') ?? null)
   const [outfit, setOutfit] = useState<any>(null)
   const [garments, setGarments] = useState<any[]>(() => cacheGet('home.garments') ?? [])
   const [loading, setLoading] = useState(false)
@@ -155,16 +156,19 @@ export default function Home() {
   async function fetchWeather() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') { setWeather({ temp: 10, emoji: '🌧️', description: 'Regn', rain: true }); return }
+      if (status !== 'granted') { if (!weather) setWeather({ temp: 10, emoji: '🌧️', description: 'Regn', rain: true }); return }
       const location = await Location.getCurrentPositionAsync({})
       const { latitude, longitude } = location.coords
       const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`)
       const data = await response.json()
       const temp = Math.round(data.current.temperature_2m)
       const code = data.current.weathercode
-      setWeather({ temp, emoji: getWeatherEmoji(code), description: getWeatherDescription(code), rain: code >= 51 && code <= 82 })
+      const w = { temp, emoji: getWeatherEmoji(code), description: getWeatherDescription(code), rain: code >= 51 && code <= 82 }
+      setWeather(w); cacheSet('home.weather', w)
     } catch {
-      setWeather({ temp: 10, emoji: '🌡️', description: 'Okänt', rain: false })
+      // Behåll senast kända väder (om det finns) i stället för att skriva över
+      // med en platshållare vid tillfälligt fel.
+      if (!weather) setWeather({ temp: 10, emoji: '🌡️', description: 'Okänt', rain: false })
     }
   }
 
