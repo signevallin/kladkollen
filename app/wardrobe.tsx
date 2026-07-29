@@ -163,6 +163,21 @@ export default function Wardrobe() {
     }
   }
 
+  // Bockar ett plagg i/ur tvätten. Plagg i tvätten stannar i garderoben (med en
+  // tvätt-badge) men föreslås inte i genererade outfits. Optimistisk uppdatering.
+  async function toggleLaundry(item: any) {
+    const next = !item.in_laundry
+    setGarments(prev => {
+      const nx = prev.map(g => g.id === item.id ? { ...g, in_laundry: next } : g)
+      cacheSet('wardrobe.garments', nx)
+      return nx
+    })
+    const { error } = await supabase.from('garments').update({ in_laundry: next }).eq('id', item.id)
+    if (error) {
+      setGarments(prev => prev.map(g => g.id === item.id ? { ...g, in_laundry: !next } : g))
+    }
+  }
+
   async function fetchWishlist() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -1003,6 +1018,15 @@ export default function Wardrobe() {
                       <Ionicons name="swap-horizontal" size={14} color={t.onPrimary} />
                     </View>
                   )}
+                  <TouchableOpacity
+                    style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
+                    onPress={() => toggleLaundry(item)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityLabel={item.in_laundry ? `Ta ${item.name} ur tvätten` : `Lägg ${item.name} i tvätten`}
+                    accessibilityRole="button"
+                  >
+                    <MaterialIcons name="local-laundry-service" size={14} color={item.in_laundry ? t.onPrimary : t.textSecondary} />
+                  </TouchableOpacity>
                 </View>
                 <Text style={styles.itemName}>{item.name}</Text>
                 {item.brand ? <Text style={styles.itemBrand} numberOfLines={1}>{item.brand}</Text> : null}
@@ -1447,6 +1471,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   archImageWrap: { position: 'relative' },
   reasonBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   lendBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  laundryBadge: { position: 'absolute', top: -6, left: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+  laundryBadgeOn: { backgroundColor: t.primary, borderColor: t.primary },
   archMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   archMetaText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
   saleInfo: { flex: 1 },
