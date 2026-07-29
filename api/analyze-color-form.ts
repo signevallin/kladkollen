@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -40,6 +40,8 @@ Ge konkreta färgkombinationer (hex) som signalerar: Auktoritet, Tillgänglighet
 
 STEG 4 – Säsongsanpassning:
 Beskriv hur paletten justeras för sommar (ljusare) och vinter (djupare kontrast).
+
+${langInstruction(body.lang)} OBS: Behåll JSON-NYCKLARNA exakt som nedan (översätt dem INTE) – språkvalet gäller bara värdena (t.ex. "undertone", "namn", "motivering", "sammanfattning").
 
 Svara ENDAST med JSON, inga backticks:
 {

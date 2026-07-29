@@ -1,4 +1,4 @@
-import { requireUser } from './_utils'
+import { langInstruction, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -23,10 +23,12 @@ export default async function handler(request: Request): Promise<Response> {
   if (auth instanceof Response) return auth
 
   try {
-    const { base64 } = await request.json() as { base64: string }
+    const { base64, lang } = await request.json() as { base64: string; lang?: string }
     if (!base64) {
       return new Response(JSON.stringify({ error: 'base64 saknas' }), { status: 400 })
     }
+    // Språkval: översätt bara värdena, aldrig JSON-nycklarna (klienten läser dem).
+    const prompt = `${PROMPT}\n\n${langInstruction(lang)} OBS: Behåll JSON-nycklarna EXAKT – språkvalet gäller bara värdena.`
 
     const key = process.env.ANTHROPIC_API_KEY
     if (!key) {
@@ -47,7 +49,7 @@ export default async function handler(request: Request): Promise<Response> {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-            { type: 'text', text: PROMPT },
+            { type: 'text', text: prompt },
           ],
         }],
       }),

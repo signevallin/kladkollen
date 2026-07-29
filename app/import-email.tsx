@@ -17,6 +17,7 @@ import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
+import { useSettings } from '../utils/settings'
 import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
 import { uploadUserImage } from '../utils/storage'
@@ -41,6 +42,7 @@ type Pending = {
 export default function ImportEmail() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const [token, setToken] = useState<string | null>(null)
   const [lastStatus, setLastStatus] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
@@ -86,7 +88,7 @@ export default function ImportEmail() {
   async function copyAddress() {
     if (!address) return
     await Clipboard.setStringAsync(address)
-    showAlert('Kopierat!', 'Import-adressen ligger nu i urklipp.')
+    showAlert(tr('Kopierat!'), tr('Import-adressen ligger nu i urklipp.'))
   }
 
   function toggle(id: string) {
@@ -157,10 +159,10 @@ export default function ImportEmail() {
       }
 
       await supabase.from('pending_imports').delete().in('id', chosen.map(p => p.id))
-      toast(`${chosen.length} ${chosen.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
+      toast(`${chosen.length} ${chosen.length === 1 ? tr('plagg tillagt') : tr('plagg tillagda')}!`, tr('Ligger nu i garderoben – med bild och bakgrunden borttagen.'))
       goBack('/wardrobe')
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setAdding(false)
       setAddProgress('')
@@ -176,9 +178,9 @@ export default function ImportEmail() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/wardrobe')}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Importera från mejl</Text>
+        <Text style={styles.title}>{tr('Importera från mejl')}</Text>
 
         {loading ? (
           <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
@@ -187,18 +189,18 @@ export default function ImportEmail() {
             {/* Väntande importer – högst upp så nya importer syns direkt */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>
-                {pending.length > 0 ? `${pending.length} plagg att granska` : 'Inga nya importer än'}
+                {pending.length > 0 ? `${pending.length} ${tr('plagg att granska')}` : tr('Inga nya importer än')}
               </Text>
               <TouchableOpacity onPress={load} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Text style={styles.refreshText}>Uppdatera</Text>
+                <Text style={styles.refreshText}>{tr('Uppdatera')}</Text>
               </TouchableOpacity>
             </View>
             {lastStatus && (
-              <Text style={styles.statusLine}>Senaste mejl: {lastStatus}</Text>
+              <Text style={styles.statusLine}>{tr('Senaste mejl:')} {lastStatus}</Text>
             )}
             {pending.length === 0 ? (
               <Text style={styles.emptyText}>
-                Vidarebefordra en orderbekräftelse eller ett kvitto till din import-adress nedan, så dyker plaggen upp här för granskning. Testa gärna med ett gammalt kvitto.
+                {tr('Vidarebefordra en orderbekräftelse eller ett kvitto till din import-adress nedan, så dyker plaggen upp här för granskning. Testa gärna med ett gammalt kvitto.')}
               </Text>
             ) : (
               <>
@@ -216,7 +218,7 @@ export default function ImportEmail() {
                     <View style={styles.itemInfo}>
                       <Text style={styles.itemName} numberOfLines={2}>{p.name}</Text>
                       <Text style={styles.itemMeta}>
-                        {[p.category, p.color, p.brand, p.price].filter(Boolean).join(' · ') || 'Okänd kategori'}
+                        {[tr(p.category || ''), tr(p.color || ''), p.brand, p.price].filter(Boolean).join(' · ') || tr('Okänd kategori')}
                       </Text>
                     </View>
                     <View style={[styles.checkbox, selected.has(p.id) && styles.checkboxOn]}>
@@ -226,7 +228,7 @@ export default function ImportEmail() {
                       onPress={() => dismiss(p.id)}
                       disabled={adding}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      accessibilityLabel={`Ta bort ${p.name}`}
+                      accessibilityLabel={`${tr('Ta bort')} ${p.name}`}
                       accessibilityRole="button"
                       style={styles.dismissBtn}
                     >
@@ -237,7 +239,7 @@ export default function ImportEmail() {
 
                 {locations.length > 0 && (
                   <>
-                    <Text style={styles.locationLabel}>Var finns plaggen? (valfritt)</Text>
+                    <Text style={styles.locationLabel}>{tr('Var finns plaggen? (valfritt)')}</Text>
                     <View style={styles.locationPills}>
                       {locations.map(l => (
                         <TouchableOpacity
@@ -247,7 +249,7 @@ export default function ImportEmail() {
                           disabled={adding}
                         >
                           <Text style={[styles.locationPillText, importLocation === l.name && styles.locationPillTextActive]}>
-                            {l.name}{l.is_archive ? ' (arkiv)' : ''}
+                            {l.name}{l.is_archive ? tr(' (arkiv)') : ''}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -262,7 +264,7 @@ export default function ImportEmail() {
                 >
                   {adding
                     ? <View style={styles.btnRow}><ActivityIndicator color={t.onPrimary} /><Text style={styles.primaryBtnText}>  {addProgress}</Text></View>
-                    : <Text style={styles.primaryBtnText}>Lägg till {selected.size} plagg i garderoben</Text>
+                    : <Text style={styles.primaryBtnText}>{tr('Lägg till')} {selected.size} {tr('plagg')} {tr('i garderoben')}</Text>
                   }
                 </TouchableOpacity>
               </>
@@ -270,20 +272,20 @@ export default function ImportEmail() {
 
             {/* Din import-adress */}
             <View style={styles.card}>
-              <Text style={styles.cardLabel}>DIN IMPORT-ADRESS</Text>
+              <Text style={styles.cardLabel}>{tr('DIN IMPORT-ADRESS')}</Text>
               <Text style={styles.address} selectable>{address || '—'}</Text>
               <TouchableOpacity style={styles.copyBtn} onPress={copyAddress}>
-                <Text style={styles.copyBtnText}>Kopiera adress</Text>
+                <Text style={styles.copyBtnText}>{tr('Kopiera adress')}</Text>
               </TouchableOpacity>
             </View>
 
             {/* Så importerar du ett kvitto */}
             <View style={styles.stepsCard}>
-              <Text style={styles.stepsTitle}>Så importerar du ett kvitto</Text>
-              <Text style={styles.step}>1. Öppna en orderbekräftelse eller ett kvitto i din mejl.</Text>
-              <Text style={styles.step}>2. Tryck på “Vidarebefordra” och skicka mejlet till din import-adress ovan.</Text>
-              <Text style={styles.step}>3. Inom någon minut dyker plaggen upp här för granskning.</Text>
-              <Text style={styles.stepNote}>Fungerar från vilken mejlapp som helst – ingen Gmail-inställning eller filter behövs.</Text>
+              <Text style={styles.stepsTitle}>{tr('Så importerar du ett kvitto')}</Text>
+              <Text style={styles.step}>{tr('1. Öppna en orderbekräftelse eller ett kvitto i din mejl.')}</Text>
+              <Text style={styles.step}>{tr('2. Tryck på “Vidarebefordra” och skicka mejlet till din import-adress ovan.')}</Text>
+              <Text style={styles.step}>{tr('3. Inom någon minut dyker plaggen upp här för granskning.')}</Text>
+              <Text style={styles.stepNote}>{tr('Fungerar från vilken mejlapp som helst – ingen Gmail-inställning eller filter behövs.')}</Text>
             </View>
           </>
         )}
