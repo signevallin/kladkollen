@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -57,6 +57,8 @@ PARREGLER:
 ${weatherRules ? `\nVÄDERREGLER (gäller BÅDA):\n${weatherRules}` : ''}
 ${styleRules ? `\nSTILREGLER (gäller BÅDA, väger tungt):\n${styleRules}` : ''}
 ${avoid ? `\nUNDVIK (respektera för båda): ${avoid}` : ''}
+
+${langInstruction(body.lang)} OBS: "items" och "borrowed" ska vara plaggens namn EXAKT som i garderoberna ovan (översätt dem INTE). Språkvalet gäller bara "vibe" och "tip".
 
 Svara ENDAST med JSON, inga backticks:
 {"vibe":"1 mening om den gemensamma känslan","outfits":[{"person":"${nameA}","items":["exakt plaggnamn","..."],"borrowed":["ev. plagg lånat från partnern"]},{"person":"${nameB}","items":["..."],"borrowed":[]}],"tip":"kort parstyling-tips (1 mening)"}`

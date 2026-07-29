@@ -27,6 +27,7 @@ import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
+import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 // Hur frusen användaren är – justerar hur AI:n tolkar temperaturen vid outfit-förslag.
@@ -77,7 +78,7 @@ export default function Profile() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
-  const { currency, setCurrency, tempUnit, setTempUnit } = useSettings()
+  const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, t: tr } = useSettings()
 
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)
@@ -234,7 +235,7 @@ export default function Profile() {
         // Viktigt: spara ALDRIG en lokal file://-sökväg som avatar – då syns
         // bilden bara på den egna telefonen. Återställ och be användaren igen.
         setAvatar(prev)
-        showAlert('Kunde inte ladda upp bilden', 'Försök igen om en stund.')
+        showAlert(tr('Kunde inte ladda upp bilden'), tr('Försök igen om en stund.'))
       }
     }
   }
@@ -260,11 +261,11 @@ export default function Profile() {
 
   async function analyzeColor() {
     if (inputMode === 'image' && !colorBase64) {
-      showAlert('Ladda upp en bild för att analysera din färgprofil')
+      showAlert(tr('Ladda upp en bild för att analysera din färgprofil'))
       return
     }
     if (inputMode === 'form' && (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel)) {
-      showAlert('Fyll i alla fält för att analysera din färgprofil')
+      showAlert(tr('Fyll i alla fält för att analysera din färgprofil'))
       return
     }
     setAnalyzingColor(true)
@@ -288,7 +289,7 @@ export default function Profile() {
         }).eq('id', user.id)
       }
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setAnalyzingColor(false)
     }
@@ -304,7 +305,7 @@ export default function Profile() {
   }
 
   async function signOut() {
-    showConfirm('Logga ut', 'Är du säker?', async () => {
+    showConfirm(tr('Logga ut'), tr('Är du säker?'), async () => {
       cacheClear()
       await supabase.auth.signOut()
       if (Platform.OS === 'web') {
@@ -312,13 +313,13 @@ export default function Profile() {
       } else {
         router.replace('/login')
       }
-    }, 'Logga ut', true)
+    }, tr('Logga ut'), true)
   }
 
   async function deleteAccount() {
     showConfirm(
-      'Radera konto',
-      'Detta raderar ditt konto och ALL din data permanent – plagg, outfits, bilder och profil. Det går inte att ångra. Är du helt säker?',
+      tr('Radera konto'),
+      tr('Detta raderar ditt konto och ALL din data permanent – plagg, outfits, bilder och profil. Det går inte att ångra. Är du helt säker?'),
       async () => {
         try {
           await apiPost('/api/delete-account', {})
@@ -330,10 +331,10 @@ export default function Profile() {
             router.replace('/login')
           }
         } catch (e: any) {
-          showAlert('Något gick fel', e.message)
+          showAlert(tr('Något gick fel'), e.message)
         }
       },
-      'Radera permanent',
+      tr('Radera permanent'),
       true
     )
   }
@@ -356,8 +357,8 @@ export default function Profile() {
           onPress={opts.onPress ? opts.onPress : () => setExpanded(isOpen ? null : rowKey)}
         >
           {opts.icon && <MaterialIcons name={opts.icon} size={20} color={t.textSecondary} style={{ width: 26 }} />}
-          <Text style={styles.rowLabel}>{label}</Text>
-          {!!opts.value && <Text style={styles.rowValue} numberOfLines={1}>{opts.value}</Text>}
+          <Text style={styles.rowLabel}>{tr(label)}</Text>
+          {!!opts.value && <Text style={styles.rowValue} numberOfLines={1}>{tr(opts.value)}</Text>}
           <MaterialIcons
             name={navigate ? 'chevron-right' : (isOpen ? 'expand-less' : 'expand-more')}
             size={22}
@@ -373,7 +374,7 @@ export default function Profile() {
     <View style={styles.pills}>
       {options.map(o => (
         <TouchableOpacity key={o} style={[styles.pill, selected.includes(o) && styles.pillActive]} onPress={() => onToggle(o)}>
-          <Text style={[styles.pillText, selected.includes(o) && styles.pillTextActive]}>{o}</Text>
+          <Text style={[styles.pillText, selected.includes(o) && styles.pillTextActive]}>{tr(o)}</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -587,15 +588,15 @@ export default function Profile() {
           style={styles.backButton}
           onPress={() => goBack('/home')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityLabel="Gå tillbaka"
+          accessibilityLabel={tr('Gå tillbaka')}
           accessibilityRole="button"
         >
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Min profil</Text>
+        <Text style={styles.title}>{tr('Min profil')}</Text>
 
-        <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel="Byt profilbild" accessibilityRole="button">
+        <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel={tr('Byt profilbild')} accessibilityRole="button">
           {avatar
             ? <SignedImage path={avatar} style={styles.avatar} resizeMode="cover" />
             : <View style={styles.avatarPlaceholder}><MaterialIcons name="person" size={44} color={t.textSecondary} /></View>
@@ -606,13 +607,13 @@ export default function Profile() {
 
         {(partner || householdChildren.length > 0) && (
           <>
-            <Text style={styles.sectionTitle}>Mitt hushåll</Text>
+            <Text style={styles.sectionTitle}>{tr('Mitt hushåll')}</Text>
             <View style={styles.householdRow}>
               {partner && (
                 <TouchableOpacity
                   style={styles.householdMember}
                   onPress={() => router.push(`/partner-closet?user=${partner.id}&name=${encodeURIComponent(partner.name)}` as any)}
-                  accessibilityLabel={`Öppna ${partner.name}s garderob`}
+                  accessibilityLabel={`${tr('Öppna garderob för')} ${partner.name}`}
                   accessibilityRole="button"
                 >
                   {partner.avatar_url
@@ -626,7 +627,7 @@ export default function Profile() {
                   key={child.id}
                   style={styles.householdMember}
                   onPress={() => router.push(`/wardrobe?person=${child.id}&personName=${encodeURIComponent(child.name)}` as any)}
-                  accessibilityLabel={`Öppna ${child.name}s garderob`}
+                  accessibilityLabel={`${tr('Öppna garderob för')} ${child.name}`}
                   accessibilityRole="button"
                 >
                   {child.avatar_url
@@ -640,12 +641,12 @@ export default function Profile() {
         )}
 
         {/* ── Min information ── */}
-        <Text style={styles.sectionTitle}>Min information</Text>
+        <Text style={styles.sectionTitle}>{tr('Min information')}</Text>
         <View style={styles.listCard}>
           {renderRow('namn', 'Namn', {
             icon: 'person-outline', value: name,
             body: (
-              <TextInput style={styles.input} placeholder="Ditt namn" placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
+              <TextInput style={styles.input} placeholder={tr('Ditt namn')} placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
             ),
           })}
           {renderRow('konto', 'Konto', {
@@ -654,10 +655,10 @@ export default function Profile() {
               <View>
                 <Text style={styles.accountEmail}>{email}</Text>
                 <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
-                  <Text style={styles.signOutText}>Logga ut</Text>
+                  <Text style={styles.signOutText}>{tr('Logga ut')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.deleteAccountButton} onPress={deleteAccount}>
-                  <Text style={styles.deleteAccountText}>Radera konto permanent</Text>
+                  <Text style={styles.deleteAccountText}>{tr('Radera konto permanent')}</Text>
                 </TouchableOpacity>
               </View>
             ),
@@ -668,7 +669,7 @@ export default function Profile() {
               <View style={styles.pills}>
                 {GENDERS.map(g => (
                   <TouchableOpacity key={g} style={[styles.pill, gender === g && styles.pillActive]} onPress={() => setGender(prev => prev === g ? '' : g)}>
-                    <Text style={[styles.pillText, gender === g && styles.pillTextActive]}>{g}</Text>
+                    <Text style={[styles.pillText, gender === g && styles.pillTextActive]}>{tr(g)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -679,7 +680,7 @@ export default function Profile() {
             body: (
               <TextInput
                 style={styles.input}
-                placeholder="ÅÅÅÅ-MM-DD"
+                placeholder={tr('ÅÅÅÅ-MM-DD')}
                 placeholderTextColor={t.placeholder}
                 value={birthday}
                 onChangeText={setBirthday}
@@ -731,7 +732,7 @@ export default function Profile() {
         </View>
 
         {/* ── Min stil ── */}
-        <Text style={styles.sectionTitle}>Min stil</Text>
+        <Text style={styles.sectionTitle}>{tr('Min stil')}</Text>
         <View style={styles.listCard}>
           {renderRow('stil', 'Stil', {
             icon: 'checkroom', value: stylePrefs.length ? `${stylePrefs.length} valda` : undefined,
@@ -783,7 +784,7 @@ export default function Profile() {
                     <Text style={styles.contextNoteLabel}>{ctx.label}</Text>
                     <TextInput
                       style={styles.contextNoteInput}
-                      placeholder={`T.ex. "gärna kjol", "aldrig klänning"...`}
+                      placeholder={tr('T.ex. "gärna kjol", "aldrig klänning"...')}
                       placeholderTextColor={t.placeholder}
                       value={contextNotes[ctx.label] || ''}
                       onChangeText={text => setContextNotes(prev => ({ ...prev, [ctx.label]: text }))}
@@ -821,7 +822,7 @@ export default function Profile() {
                 <Text style={styles.hint}>Skriv sådant AI:n ska undvika – färger, plagg eller stilar (t.ex. "aldrig gult", "inga korta kjolar").</Text>
                 <TextInput
                   style={[styles.input, { minHeight: 60 }]}
-                  placeholder="Det här vill jag undvika..."
+                  placeholder={tr('Det här vill jag undvika...')}
                   placeholderTextColor={t.placeholder}
                   value={avoidNote}
                   onChangeText={setAvoidNote}
@@ -837,7 +838,7 @@ export default function Profile() {
         </View>
 
         {/* ── Inställningar ── */}
-        <Text style={styles.sectionTitle}>Inställningar</Text>
+        <Text style={styles.sectionTitle}>{tr('Inställningar')}</Text>
         <View style={styles.listCard}>
           {renderRow('valuta', 'Valuta', {
             icon: 'attach-money', value: currency,
@@ -864,8 +865,16 @@ export default function Profile() {
             ),
           })}
           {renderRow('sprak', 'Språk', {
-            icon: 'language', value: 'Svenska',
-            body: <Text style={styles.hint}>Appen är på svenska. Fler språk kommer snart.</Text>,
+            icon: 'language', value: LANGS.find(l => l.code === lang)?.label ?? 'Svenska',
+            body: (
+              <View style={styles.pills}>
+                {LANGS.map(l => (
+                  <TouchableOpacity key={l.code} style={[styles.pill, lang === l.code && styles.pillActive]} onPress={() => setLang(l.code)}>
+                    <Text style={[styles.pillText, lang === l.code && styles.pillTextActive]}>{l.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ),
           })}
           {renderRow('platser', 'Egna platser', { icon: 'place', onPress: () => router.push('/locations') })}
           {renderRow('notiser', 'Notiser', { icon: 'notifications-none', onPress: () => router.push('/notifications') })}
@@ -875,7 +884,7 @@ export default function Profile() {
               <View style={styles.pills}>
                 {THEME_OPTIONS.map(opt => (
                   <TouchableOpacity key={opt.key} style={[styles.pill, preference === opt.key && styles.pillActive]} onPress={() => setPreference(opt.key)}>
-                    <Text style={[styles.pillText, preference === opt.key && styles.pillTextActive]}>{opt.label}</Text>
+                    <Text style={[styles.pillText, preference === opt.key && styles.pillTextActive]}>{tr(opt.label)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -884,10 +893,10 @@ export default function Profile() {
         </View>
 
         <Text style={styles.autosaveHint}>
-          {saveState === 'saving' ? 'Sparar…' : saveState === 'saved' ? 'Ändringar sparas automatiskt ✓' : 'Ändringar sparas automatiskt'}
+          {saveState === 'saving' ? tr('Sparar…') : saveState === 'saved' ? tr('Ändringar sparas automatiskt ✓') : tr('Ändringar sparas automatiskt')}
         </Text>
         <TouchableOpacity style={styles.saveButton} onPress={saveProfile} disabled={loading}>
-          <Text style={styles.saveButtonText}>{loading ? 'Sparar...' : 'Klar'}</Text>
+          <Text style={styles.saveButtonText}>{loading ? tr('Sparar...') : tr('Klar')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

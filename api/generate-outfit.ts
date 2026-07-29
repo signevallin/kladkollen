@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -96,6 +96,8 @@ LÅTREGLER:
 ${musicGenres ? `- Användaren lyssnar helst på: ${musicGenres}. Välj ENDAST en låt som hör hemma i någon av dessa genrer.` : '- Variera mellan olika genrer från gång till gång.'}
 ${previousSong ? `- Du föreslog ALLDELES NYSS "${previousSong}". Det är FÖRBJUDET att föreslå den låten igen OCH förbjudet att välja en annan låt av samma artist – välj en HELT annan artist och en helt annan låt.` : ''}
 ${avoidSongs ? `- FÖRBJUDET att föreslå någon av dessa nyligen använda låtar eller en annan låt av samma artister (välj en helt annan): ${avoidSongs}` : ''}
+
+${langInstruction(body.lang)} OBS: Fälten "items" ska ALLTID vara plaggens namn EXAKT som de står i garderobslistan ovan (översätt dem INTE) – språkvalet gäller bara den text du själv skapar: "outfitName", "message" och "song.reason".
 
 Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`

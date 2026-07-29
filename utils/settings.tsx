@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { translate, type Lang } from './i18n'
+import { setApiLang } from './api'
 
 // App-övergripande inställningar som påverkar hur siffror visas i hela appen:
 // valuta (priser) och temperaturenhet (väder). Sparas lokalt och läses via
@@ -29,6 +31,7 @@ const FALLBACK_RATES: Record<CurrencyCode, number> = {
 
 const CUR_KEY = 'kladkollen_currency'
 const TEMP_KEY = 'kladkollen_tempunit'
+const LANG_KEY = 'kladkollen_lang'
 const RATES_KEY = 'kladkollen_rates'
 const RATES_TTL = 12 * 60 * 60 * 1000 // 12 h
 
@@ -45,8 +48,12 @@ function formatWithCurrency(n: number, currency: CurrencyCode): string {
 type SettingsCtx = {
   currency: CurrencyCode
   tempUnit: TempUnit
+  lang: Lang
   setCurrency: (c: CurrencyCode) => void
   setTempUnit: (u: TempUnit) => void
+  setLang: (l: Lang) => void
+  /** Översätter en nyckel till valt språk (faller tillbaka på svenska). */
+  t: (key: string) => string
   /** Formaterar ett SEK-belopp i vald valuta (med omräkning). */
   formatPrice: (sek: number | null | undefined) => string
   /** Räknar om ett inmatat belopp (i vald valuta) till SEK för lagring. */
@@ -64,6 +71,7 @@ const Ctx = createContext<SettingsCtx | null>(null)
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>('SEK')
   const [tempUnit, setTempUnitState] = useState<TempUnit>('C')
+  const [lang, setLangState] = useState<Lang>('sv')
   const [rates, setRates] = useState<Record<CurrencyCode, number>>(FALLBACK_RATES)
 
   useEffect(() => {
@@ -73,6 +81,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         if (c) setCurrencyState(c as CurrencyCode)
         const u = await AsyncStorage.getItem(TEMP_KEY)
         if (u === 'F' || u === 'C') setTempUnitState(u)
+        const l = await AsyncStorage.getItem(LANG_KEY)
+        if (l === 'sv' || l === 'en') { setLangState(l); setApiLang(l) }
       } catch { /* behåll standard */ }
       loadRates()
     })()
@@ -107,6 +117,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setTempUnitState(u)
     AsyncStorage.setItem(TEMP_KEY, u).catch(() => {})
   }
+  function setLang(l: Lang) {
+    setLangState(l)
+    setApiLang(l)
+    AsyncStorage.setItem(LANG_KEY, l).catch(() => {})
+  }
 
   const rate = rates[currency] ?? 1
   const toUnit = (celsius: number) => tempUnit === 'F' ? Math.round(celsius * 9 / 5 + 32) : Math.round(celsius)
@@ -114,8 +129,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const value: SettingsCtx = {
     currency,
     tempUnit,
+    lang,
     setCurrency,
     setTempUnit,
+    setLang,
+    t: (key: string) => translate(lang, key),
     rate,
     formatPrice: (sek) => formatWithCurrency((Number(sek) || 0) * rate, currency),
     toBaseSEK: (amount) => (amount == null || amount === ('' as any)) ? null : Math.round((Number(amount) || 0) / rate),
