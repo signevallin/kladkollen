@@ -28,6 +28,7 @@ import { apiPost } from '../utils/api'
 import { captureError } from '../utils/sentry'
 import { loadPartner } from '../utils/household'
 import { geocodeDestination, fetchTripWeather } from '../utils/trip'
+import { useSettings } from '../utils/settings'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
@@ -42,6 +43,8 @@ const TRIP_CHECK_KEY = 'kladkollen_trip_checked'
 export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr, lang } = useSettings()
+  const locale = lang === 'en' ? 'en-GB' : 'sv-SE'
   const { tab, create } = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'resa'>(
     create ? 'outfits' : tab === 'resa' ? 'resa' : tab === 'outfits' ? 'outfits' : 'kalender'
@@ -203,7 +206,7 @@ export default function MyOutfits() {
       ok = true
     } catch (e: any) {
       captureError(e, { where: 'assignOutfitToDay' })
-      showAlert('Kunde inte spara', 'Något gick fel – kontrollera din uppkoppling och försök igen.')
+      showAlert(tr('Kunde inte spara'), tr('Något gick fel – kontrollera din uppkoppling och försök igen.'))
     } finally {
       // Läs alltid om från databasen så UI:t speglar det faktiska läget.
       fetchCalendarEntries()
@@ -232,7 +235,7 @@ export default function MyOutfits() {
       if (error) throw error
     } catch (e: any) {
       captureError(e, { where: 'removeOutfitFromDate' })
-      showAlert('Kunde inte ta bort', 'Något gick fel – kontrollera din uppkoppling och försök igen.')
+      showAlert(tr('Kunde inte ta bort'), tr('Något gick fel – kontrollera din uppkoppling och försök igen.'))
     } finally {
       setDayDetailDate(null)
       fetchCalendarEntries()
@@ -305,9 +308,9 @@ function isPast(date: Date) {
   }
 
   async function saveManualOutfit() {
-    if (selectedGarments.length === 0) { showAlert('Välj minst ett plagg!'); return }
+    if (selectedGarments.length === 0) { showAlert(tr('Välj minst ett plagg!')); return }
     const { data: { user } } = await supabase.auth.getUser()
-    const name = outfitName.trim() || `Outfit ${new Date().toLocaleDateString('sv-SE')}`
+    const name = outfitName.trim() || `Outfit ${new Date().toLocaleDateString(locale)}`
     const garmentIds = selectedGarments.filter(g => !g.isWishlist).map(g => g.id)
     const garmentNames = selectedGarments.map(g => g.name)
     const imageUrls = selectedGarments.map(g => g.image_url).filter(Boolean)
@@ -320,18 +323,18 @@ function isPast(date: Date) {
         }])).error
 
     if (error) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tr('Något gick fel'), error.message)
     } else {
-      showAlert(editingId ? 'Outfit uppdaterad!' : 'Outfit sparad!')
+      showAlert(editingId ? tr('Outfit uppdaterad!') : tr('Outfit sparad!'))
       setCreating(false); setSelectedGarments([]); setOutfitName(''); setEditingId(null); fetchOutfits()
     }
   }
 
   async function deleteOutfit(id: string) {
-    showConfirm('Ta bort outfit', 'Är du säker?', async () => {
+    showConfirm(tr('Ta bort outfit'), tr('Är du säker?'), async () => {
       await supabase.from('outfits').delete().eq('id', id)
       fetchOutfits()
-    }, 'Ta bort', true)
+    }, tr('Ta bort'), true)
   }
 
   function applyGarmentFilters(category: string, season: string, color: string) {
@@ -350,7 +353,7 @@ function isPast(date: Date) {
     const today = new Date().toISOString().split('T')[0]
     // Lägg outfiten på dagens datum i kalendern (och räkna plaggen som använda).
     const ok = await assignOutfitToDay(outfit, today)
-    if (ok) showAlert('Outfit registrerad!', 'Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.')
+    if (ok) showAlert(tr('Outfit registrerad!'), tr('Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.'))
   }
 
   // Delar en sparad outfit som en bild – samma varumärkta dela-kort som på
@@ -375,10 +378,10 @@ function isPast(date: Date) {
       } else if (typeof navigator !== 'undefined' && (navigator as any).share) {
         await (navigator as any).share({ title: 'Min outfit', text: outfit.name })
       } else {
-        showAlert('Delning stöds inte här', 'Öppna appen på din telefon för att dela din outfit.')
+        showAlert(tr('Delning stöds inte här'), tr('Öppna appen på din telefon för att dela din outfit.'))
       }
     } catch (e: any) {
-      if (e?.message && !/cancel/i.test(e.message)) showAlert('Kunde inte dela', e.message)
+      if (e?.message && !/cancel/i.test(e.message)) showAlert(tr('Kunde inte dela'), e.message)
     } finally {
       setSharing(false)
       setShareTarget(null)
@@ -435,15 +438,15 @@ function isPast(date: Date) {
   }
 
   async function generateTrip() {
-    if (!tripDestination.trim()) { showAlert('Skriv in en destination'); return }
-    if (!tripStartDate || !tripEndDate) { showAlert('Välj resans datum', 'Tryck på startdatum och sedan slutdatum i kalendern.'); return }
-    if (garments.length === 0) { showAlert('Tom garderob', 'Lägg till några plagg först så kan jag packa åt dig.'); return }
+    if (!tripDestination.trim()) { showAlert(tr('Skriv in en destination')); return }
+    if (!tripStartDate || !tripEndDate) { showAlert(tr('Välj resans datum'), tr('Tryck på startdatum och sedan slutdatum i kalendern.')); return }
+    if (garments.length === 0) { showAlert(tr('Tom garderob'), tr('Lägg till några plagg först så kan jag packa åt dig.')); return }
 
     setTripLoading(true)
     try {
       const geo = await geocodeDestination(tripDestination)
       if (!geo) {
-        showAlert('Hittade inte destinationen', 'Prova en annan stavning eller en större stad i närheten.')
+        showAlert(tr('Hittade inte destinationen'), tr('Prova en annan stavning eller en större stad i närheten.'))
         return
       }
       const weather = await fetchTripWeather(geo.latitude, geo.longitude, tripStartDate, tripEndDate)
@@ -451,7 +454,7 @@ function isPast(date: Date) {
       const start = new Date(tripStartDate + 'T12:00:00')
       const end = new Date(tripEndDate + 'T12:00:00')
       const days = tripDayCount()
-      const dateLabel = `${start.toLocaleDateString('sv-SE', { day: 'numeric', month: 'long' })} – ${end.toLocaleDateString('sv-SE', { day: 'numeric', month: 'long' })}`
+      const dateLabel = `${start.toLocaleDateString(locale, { day: 'numeric', month: 'long' })} – ${end.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}`
       const monthLabel = start.getMonth() === end.getMonth() ? MONTHS[start.getMonth()] : `${MONTHS[start.getMonth()]}/${MONTHS[end.getMonth()]}`
       const destinationLabel = geo.country ? `${geo.name}, ${geo.country}` : geo.name
 
@@ -484,7 +487,7 @@ function isPast(date: Date) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) supabase.from('trips').upsert({ user_id: user.id, data: result, updated_at: new Date().toISOString() }).then(() => {}, () => {})
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setTripLoading(false)
     }
@@ -527,11 +530,11 @@ function isPast(date: Date) {
     const { data: inserted, error } = await supabase.from('outfits').insert([{
       user_id: user.id, name, garment_ids: garmentIds, garment_names: items, image_urls: imageUrls, saved: true,
     }]).select().single()
-    if (error || !inserted) { showAlert('Något gick fel', error?.message || 'Kunde inte spara outfiten.'); return }
+    if (error || !inserted) { showAlert(tr('Något gick fel'), error?.message || tr('Kunde inte spara outfiten.')); return }
     await assignOutfitToDay(inserted, date)
     setScheduleOutfit(null)
     fetchOutfits()
-    showAlert('Inlagd i kalendern!', `${name} ligger nu på ${new Date(date + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })}.`)
+    showAlert(tr('Inlagd i kalendern!'), `${name} ${tr('ligger nu på')} ${new Date(date + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}.`)
   }
 
   async function resetTrip() {
@@ -562,7 +565,7 @@ function isPast(date: Date) {
             </TouchableOpacity>
             <Text style={styles.title}>{editingId ? 'Ändra outfit' : 'Skapa outfit'}</Text>
             <TouchableOpacity onPress={saveManualOutfit}>
-              <Text style={styles.saveText}>Spara</Text>
+              <Text style={styles.saveText}>{tr('Spara')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -576,7 +579,7 @@ function isPast(date: Date) {
                         ? <SignedImage path={g.image_url} style={[styles.selectedImage, g.isWishlist && styles.wishlistImageBorder]} />
                         : <View style={[styles.selectedImageEmpty, g.isWishlist && styles.wishlistImageEmptyBorder]}><Text style={{ fontSize: 20 }}>{g.isWishlist ? '' : ''}</Text></View>
                       }
-                      {g.isWishlist && <View style={styles.notOwnedBadgeTiny}><Text style={styles.notOwnedBadgeTinyText}>Äger ej</Text></View>}
+                      {g.isWishlist && <View style={styles.notOwnedBadgeTiny}><Text style={styles.notOwnedBadgeTinyText}>{tr('Äger ej')}</Text></View>}
                       <Text style={styles.selectedName} numberOfLines={1}>{g.name}</Text>
                     </View>
                   ))}
@@ -585,25 +588,25 @@ function isPast(date: Date) {
             </View>
           )}
 
-          <Text style={styles.label}>Namnge din outfit</Text>
-          <TextInput style={styles.nameInput} placeholder="t.ex. Fredagslook" placeholderTextColor={t.placeholder} value={outfitName} onChangeText={setOutfitName} />
+          <Text style={styles.label}>{tr('Namnge din outfit')}</Text>
+          <TextInput style={styles.nameInput} placeholder={tr('t.ex. Fredagslook')} placeholderTextColor={t.placeholder} value={outfitName} onChangeText={setOutfitName} />
 
-          <Text style={styles.label}>Stil</Text>
+          <Text style={styles.label}>{tr('Stil')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 4 }}>
               {['Alla', ...STYLE_TAGS].map(s => (
                 <TouchableOpacity key={s} style={[styles.pill, activeStyle === s && styles.pillActive]} onPress={() => setActiveStyle(s)}>
-                  <Text style={[styles.pillText, activeStyle === s && styles.pillTextActive]}>{s}</Text>
+                  <Text style={[styles.pillText, activeStyle === s && styles.pillTextActive]}>{tr(s)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
 
-          <Text style={styles.label}>Välj plagg från garderoben</Text>
+          <Text style={styles.label}>{tr('Välj plagg från garderoben')}</Text>
           <View style={styles.filterBar}>
-            {[{ key: 'category', label: 'Kategori', active: activeCategory }, { key: 'season', label: 'Säsong', active: activeSeason }, { key: 'color', label: 'Färg', active: activeColor }].map(f => (
+            {[{ key: 'category', label: tr('Kategori'), active: activeCategory }, { key: 'season', label: tr('Säsong'), active: activeSeason }, { key: 'color', label: tr('Färg'), active: activeColor }].map(f => (
               <TouchableOpacity key={f.key} style={[styles.filterBtn, f.active !== 'Alla' && styles.filterBtnActive]} onPress={() => setOpenDropdown(openDropdown === f.key ? null : f.key)}>
-                <Text style={[styles.filterBtnText, f.active !== 'Alla' && styles.filterBtnTextActive]}>{f.active !== 'Alla' ? f.active : f.label} ▾</Text>
+                <Text style={[styles.filterBtnText, f.active !== 'Alla' && styles.filterBtnTextActive]}>{f.active !== 'Alla' ? tr(f.active) : f.label} ▾</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -615,7 +618,7 @@ function isPast(date: Date) {
                     const isActive = openDropdown === 'category' ? activeCategory === item : openDropdown === 'season' ? activeSeason === item : activeColor === item
                     return (
                       <TouchableOpacity key={item} style={[styles.dropdownPill, isActive && styles.dropdownPillActive]} onPress={() => openDropdown === 'category' ? handleCategory(item) : openDropdown === 'season' ? handleSeason(item) : handleColor(item)}>
-                        <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{item}</Text>
+                        <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{tr(item)}</Text>
                       </TouchableOpacity>
                     )
                   })}
@@ -642,8 +645,8 @@ function isPast(date: Date) {
               <TouchableOpacity style={styles.wishlistToggle} onPress={() => setShowWishlistItems(!showWishlistItems)}>
                 <View style={styles.wishlistToggleLeft}>
                   <View>
-                    <Text style={styles.wishlistToggleTitle}>Köplista ({wishlist.length})</Text>
-                    <Text style={styles.wishlistToggleSub}>Plagg du planerar att köpa</Text>
+                    <Text style={styles.wishlistToggleTitle}>{tr('Köplista')} ({wishlist.length})</Text>
+                    <Text style={styles.wishlistToggleSub}>{tr('Plagg du planerar att köpa')}</Text>
                   </View>
                 </View>
                 <Text style={styles.wishlistToggleArrow}>{showWishlistItems ? '▲' : '▼'}</Text>
@@ -656,7 +659,7 @@ function isPast(date: Date) {
                       <TouchableOpacity key={g.id} style={[styles.garmentItem, styles.wishlistGarmentItem, selected && styles.garmentItemSelected]} onPress={() => toggleGarment(g)}>
                         {g.image_url ? <SignedImage path={g.image_url} style={[styles.garmentImage, { opacity: 0.85 }]} /> : <View style={[styles.garmentImageEmpty, styles.wishlistImageEmptyStyle]} />}
                         {selected && <View style={styles.checkmark}><Text style={styles.checkmarkText}>✓</Text></View>}
-                        <View style={styles.notOwnedBadge}><Text style={styles.notOwnedBadgeText}>Äger ej</Text></View>
+                        <View style={styles.notOwnedBadge}><Text style={styles.notOwnedBadgeText}>{tr('Äger ej')}</Text></View>
                         <Text style={styles.garmentName} numberOfLines={1}>{g.name}</Text>
                       </TouchableOpacity>
                     )
@@ -680,7 +683,7 @@ function isPast(date: Date) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Välj outfit{selectedDate ? ` – ${new Date(selectedDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'long' })}` : ''}
+                {tr('Välj outfit')}{selectedDate ? ` – ${new Date(selectedDate + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'long' })}` : ''}
               </Text>
               <TouchableOpacity onPress={() => { setShowOutfitPicker(false); setSelectedDate(null) }}>
                 <Text style={styles.modalClose}>✕</Text>
@@ -689,8 +692,8 @@ function isPast(date: Date) {
             <ScrollView showsVerticalScrollIndicator={false}>
               {outfits.length === 0 ? (
                 <View style={styles.emptyTab}>
-                  <Text style={styles.emptyTabText}>Inga outfits sparade ännu</Text>
-                  <Text style={styles.emptyTabHint}>Skapa en outfit i Outfits-fliken först</Text>
+                  <Text style={styles.emptyTabText}>{tr('Inga outfits sparade ännu')}</Text>
+                  <Text style={styles.emptyTabHint}>{tr('Skapa en outfit i Outfits-fliken först')}</Text>
                 </View>
               ) : (
                 outfits.map((outfit: any) => (
@@ -723,7 +726,7 @@ function isPast(date: Date) {
               <>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>
-                    {new Date(dayDetailDate + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    {new Date(dayDetailDate + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
                   </Text>
                   <TouchableOpacity onPress={() => setDayDetailDate(null)}>
                     <Text style={styles.modalClose}>✕</Text>
@@ -744,16 +747,16 @@ function isPast(date: Date) {
                     </ScrollView>
                     <View style={styles.dayDetailActions}>
                       <TouchableOpacity style={styles.dayDetailChangeBtn} onPress={() => { setDayDetailDate(null); setSelectedDate(dayDetailDate); setShowOutfitPicker(true) }}>
-                        <Text style={styles.dayDetailChangeBtnText}>Byt outfit</Text>
+                        <Text style={styles.dayDetailChangeBtnText}>{tr('Byt outfit')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={styles.dayDetailRemoveBtn} onPress={() => removeOutfitFromDate(dayDetailDate)}>
-                        <Text style={styles.dayDetailRemoveBtnText}>Ta bort</Text>
+                        <Text style={styles.dayDetailRemoveBtnText}>{tr('Ta bort')}</Text>
                       </TouchableOpacity>
                     </View>
                   </>
                 ) : (
                   <View style={styles.dayDetailEmpty}>
-                    <Text style={styles.dayDetailEmptyText}>Ingen outfit planerad</Text>
+                    <Text style={styles.dayDetailEmptyText}>{tr('Ingen outfit planerad')}</Text>
                     <TouchableOpacity style={styles.dayDetailAddBtn} onPress={() => { setDayDetailDate(null); setSelectedDate(dayDetailDate); setShowOutfitPicker(true) }}>
                       <Text style={styles.dayDetailAddBtnText}>＋ Välj outfit</Text>
                     </TouchableOpacity>
@@ -770,7 +773,7 @@ function isPast(date: Date) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lägg "{scheduleOutfit?.name}" på en dag</Text>
+              <Text style={styles.modalTitle}>{tr('Lägg outfit på en dag')}: {scheduleOutfit?.name}</Text>
               <TouchableOpacity onPress={() => setScheduleOutfit(null)}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
@@ -780,7 +783,7 @@ function isPast(date: Date) {
                 <TouchableOpacity key={d} style={styles.dayPickRow} onPress={() => scheduleTripOutfit(scheduleOutfit, d)}>
                   <Ionicons name="calendar-outline" size={18} color={t.textSecondary} />
                   <Text style={styles.dayPickText}>
-                    {new Date(d + 'T12:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    {new Date(d + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -792,14 +795,14 @@ function isPast(date: Date) {
       {/* ── Header + Tabs (always visible, outside ScrollView) ── */}
       <View style={styles.topArea}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>Mina outfits</Text>
+          <Text style={styles.title}>{tr('Mina outfits')}</Text>
         </View>
 
         <View style={styles.tabRow}>
           {(['kalender', 'outfits', 'resa'] as const).map(tb => (
             <TouchableOpacity key={tb} style={[styles.tab, activeTab === tb && styles.tabActive]} onPress={() => setActiveTab(tb)}>
               <Text style={[styles.tabText, activeTab === tb && styles.tabTextActive]}>
-                {tb === 'kalender' ? 'Kalender' : tb === 'outfits' ? 'Outfits' : 'Resa'}
+                {tb === 'kalender' ? tr('Kalender') : tb === 'outfits' ? tr('Outfits') : tr('Resa')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -817,7 +820,7 @@ function isPast(date: Date) {
               <TouchableOpacity onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}>
                 <Text style={styles.monthNavArrow}>‹</Text>
               </TouchableOpacity>
-              <Text style={styles.monthTitle}>{MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}</Text>
+              <Text style={styles.monthTitle}>{tr(MONTHS[currentMonth.getMonth()])} {currentMonth.getFullYear()}</Text>
               <TouchableOpacity onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}>
                 <Text style={styles.monthNavArrow}>›</Text>
               </TouchableOpacity>
@@ -825,7 +828,7 @@ function isPast(date: Date) {
 
             {/* Weekday headers */}
             <View style={styles.weekdayRow}>
-              {WEEKDAYS.map(d => <Text key={d} style={styles.weekdayLabel}>{d}</Text>)}
+              {WEEKDAYS.map(d => <Text key={d} style={styles.weekdayLabel}>{tr(d)}</Text>)}
             </View>
 
             {/* Days grid */}
@@ -870,15 +873,15 @@ function isPast(date: Date) {
             <View style={styles.calendarLegend}>
               <View style={styles.legendItem}>
                 <View style={[styles.legendDot, styles.legendDotWorn]} />
-                <Text style={styles.legendText}>Buren</Text>
+                <Text style={styles.legendText}>{tr('Buren')}</Text>
               </View>
               <View style={styles.legendItem}>
                 <View style={[styles.legendDot, styles.legendDotPlanned]} />
-                <Text style={styles.legendText}>Planerad</Text>
+                <Text style={styles.legendText}>{tr('Planerad')}</Text>
               </View>
               <View style={styles.legendItem}>
                 <View style={[styles.legendDot, styles.legendDotToday]} />
-                <Text style={styles.legendText}>Idag</Text>
+                <Text style={styles.legendText}>{tr('Idag')}</Text>
               </View>
             </View>
           </View>
@@ -895,12 +898,12 @@ function isPast(date: Date) {
                     onPress={() => setShowOnlyLiked(v => !v)}
                   >
                     <Ionicons name="heart" size={13} color={showOnlyLiked ? t.onPrimary : t.danger} />
-                    <Text style={[styles.pillText, showOnlyLiked && styles.pillTextActive]}>Gillade av partner</Text>
+                    <Text style={[styles.pillText, showOnlyLiked && styles.pillTextActive]}>{tr('Gillade av partner')}</Text>
                   </TouchableOpacity>
                 )}
                 {['Alla', ...STYLE_TAGS].map(s => (
                   <TouchableOpacity key={s} style={[styles.pill, activeStyleFilter === s && styles.pillActive]} onPress={() => setActiveStyleFilter(s)}>
-                    <Text style={[styles.pillText, activeStyleFilter === s && styles.pillTextActive]}>{s}</Text>
+                    <Text style={[styles.pillText, activeStyleFilter === s && styles.pillTextActive]}>{tr(s)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -908,9 +911,9 @@ function isPast(date: Date) {
 
             {outfits.length === 0 ? (
               <View style={styles.empty}>
-                <Text style={styles.emptyText}>Inga outfits sparade än!{'\n'}Skapa din första eller generera via AI</Text>
+                <Text style={styles.emptyText}>{tr('Inga outfits sparade än!')}{'\n'}{tr('Skapa din första eller generera via AI')}</Text>
                 <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/home')}>
-                  <Text style={styles.goBtnText}>Generera med AI</Text>
+                  <Text style={styles.goBtnText}>{tr('Generera med AI')}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -928,7 +931,7 @@ function isPast(date: Date) {
                         onPress={() => shareSavedOutfit(outfit)}
                         disabled={sharing}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        accessibilityLabel="Dela outfit"
+                        accessibilityLabel={tr('Dela outfit')}
                         accessibilityRole="button"
                       >
                         <Ionicons name="share-outline" size={20} color={t.primary} />
@@ -936,12 +939,12 @@ function isPast(date: Date) {
                       <TouchableOpacity
                         onPress={() => startEditOutfit(outfit)}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        accessibilityLabel="Ändra outfit"
+                        accessibilityLabel={tr('Ändra outfit')}
                         accessibilityRole="button"
                       >
                         <Ionicons name="create-outline" size={20} color={t.primary} />
                       </TouchableOpacity>
-                      <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString('sv-SE')}</Text>
+                      <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString(locale)}</Text>
                     </View>
                   </View>
                   <View style={styles.outfitImages}>
@@ -952,7 +955,7 @@ function isPast(date: Date) {
                       <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
                     ))}
                   </View>
-                  <Text style={styles.holdToDelete}>Håll inne för att ta bort · Tryck för att registrera som använd</Text>
+                  <Text style={styles.holdToDelete}>{tr('Håll inne för att ta bort · Tryck för att registrera som använd')}</Text>
                 </TouchableOpacity>
               ))
             )}
@@ -964,19 +967,19 @@ function isPast(date: Date) {
           <>
             {!tripResult ? (
               <View>
-                <Text style={styles.tripIntro}>Vart och när ska du resa? Jag kollar upp vädret på plats och sätter ihop vad du ska packa – med outfits och en packlista ur din egen garderob.</Text>
+                <Text style={styles.tripIntro}>{tr('Vart och när ska du resa? Jag kollar upp vädret på plats och sätter ihop vad du ska packa – med outfits och en packlista ur din egen garderob.')}</Text>
 
-                <Text style={styles.label}>Destination</Text>
+                <Text style={styles.label}>{tr('Destination')}</Text>
                 <TextInput
                   style={styles.nameInput}
-                  placeholder="t.ex. Barcelona"
+                  placeholder={tr('t.ex. Barcelona')}
                   placeholderTextColor={t.placeholder}
                   value={tripDestination}
                   onChangeText={setTripDestination}
                   autoCapitalize="words"
                 />
 
-                <Text style={styles.label}>Datum</Text>
+                <Text style={styles.label}>{tr('Datum')}</Text>
                 <View style={styles.tripCalCard}>
                   <View style={styles.monthNav}>
                     <TouchableOpacity onPress={() => setTripMonth(new Date(tripMonth.getFullYear(), tripMonth.getMonth() - 1, 1))}>
@@ -988,7 +991,7 @@ function isPast(date: Date) {
                     </TouchableOpacity>
                   </View>
                   <View style={styles.weekdayRow}>
-                    {WEEKDAYS.map(d => <Text key={d} style={styles.weekdayLabel}>{d}</Text>)}
+                    {WEEKDAYS.map(d => <Text key={d} style={styles.weekdayLabel}>{tr(d)}</Text>)}
                   </View>
                   <View style={styles.daysGrid}>
                     {getCalendarDays(tripMonth).map((day, index) => {
@@ -1018,15 +1021,15 @@ function isPast(date: Date) {
                 {tripStartDate && (
                   <Text style={styles.tripDatesLabel}>
                     {tripEndDate
-                      ? `${new Date(tripStartDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })} – ${new Date(tripEndDate + 'T12:00:00').toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}  ·  ${tripDayCount()} dagar`
+                      ? `${new Date(tripStartDate + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' })} – ${new Date(tripEndDate + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' })}  ·  ${tripDayCount()} ${tr('dagar')}`
                       : 'Startdatum valt – tryck på slutdatum'}
                   </Text>
                 )}
 
-                <Text style={styles.label}>Känsla (valfritt)</Text>
+                <Text style={styles.label}>{tr('Känsla (valfritt)')}</Text>
                 <TextInput
                   style={styles.nameInput}
-                  placeholder='t.ex. "avslappnad strandsemester", "elegant stadshelg"'
+                  placeholder={tr('t.ex. "avslappnad strandsemester", "elegant stadshelg"')}
                   placeholderTextColor={t.placeholder}
                   value={tripVibe}
                   onChangeText={setTripVibe}
@@ -1035,9 +1038,9 @@ function isPast(date: Date) {
                 <TouchableOpacity style={[styles.tripGenBtn, tripLoading && { opacity: 0.7 }]} onPress={generateTrip} disabled={tripLoading}>
                   {tripLoading
                     ? <ActivityIndicator color={t.onPrimary} />
-                    : <Text style={styles.tripGenBtnText}>Planera resan</Text>}
+                    : <Text style={styles.tripGenBtnText}>{tr('Planera resan')}</Text>}
                 </TouchableOpacity>
-                {tripLoading && <Text style={styles.tripLoadingHint}>Kollar vädret och packar väskan…</Text>}
+                {tripLoading && <Text style={styles.tripLoadingHint}>{tr('Kollar vädret och packar väskan…')}</Text>}
               </View>
             ) : (
               <View>
@@ -1049,7 +1052,7 @@ function isPast(date: Date) {
 
                 {tripResult.outfits.length > 0 && (
                   <>
-                    <Text style={styles.tripSectionTitle}>Outfits att ta med</Text>
+                    <Text style={styles.tripSectionTitle}>{tr('Outfits att ta med')}</Text>
                     {tripResult.outfits.map((o: any, i: number) => (
                       <View key={i} style={styles.outfitCard}>
                         <Text style={styles.outfitName}>{o.name}</Text>
@@ -1064,14 +1067,14 @@ function isPast(date: Date) {
                         <Text style={styles.outfitGarments}>{(o.items || []).join(' · ')}</Text>
                         <TouchableOpacity style={styles.tripCalBtn} onPress={() => setScheduleOutfit(o)}>
                           <Ionicons name="calendar-outline" size={16} color={t.primary} />
-                          <Text style={styles.tripCalBtnText}>Lägg i kalender</Text>
+                          <Text style={styles.tripCalBtnText}>{tr('Lägg i kalender')}</Text>
                         </TouchableOpacity>
                       </View>
                     ))}
                   </>
                 )}
 
-                <Text style={styles.tripSectionTitle}>Packlista</Text>
+                <Text style={styles.tripSectionTitle}>{tr('Packlista')}</Text>
                 <View style={styles.packCard}>
                   {tripResult.packingList.map((name: string, i: number) => {
                     const m = matchGarment(name)
@@ -1092,7 +1095,7 @@ function isPast(date: Date) {
 
                 {tripResult.extras.length > 0 && (
                   <>
-                    <Text style={styles.tripSectionTitle}>Glöm inte</Text>
+                    <Text style={styles.tripSectionTitle}>{tr('Glöm inte')}</Text>
                     <View style={styles.packCard}>
                       {tripResult.extras.map((name: string, i: number) => {
                         const checked = !!tripChecked[name]
@@ -1110,7 +1113,7 @@ function isPast(date: Date) {
                 )}
 
                 <TouchableOpacity style={styles.tripResetBtn} onPress={resetTrip}>
-                  <Text style={styles.tripResetBtnText}>Planera en ny resa</Text>
+                  <Text style={styles.tripResetBtnText}>{tr('Planera en ny resa')}</Text>
                 </TouchableOpacity>
               </View>
             )}

@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -63,6 +63,8 @@ VIKTIGT:
 - Använd EXAKT samma plaggnamn som i garderoben (för både packlista och outfits).
 - Anpassa TYDLIGT efter vädret: inga tjocka vinterplagg till en varm destination, och tvärtom.
 - Packlistan ska innehålla varje plagg som används i outfitsen, plus ev. extra basplagg.
+
+${langInstruction(body.lang)} OBS: "packingList" och "outfits[].items" ska vara plaggens namn EXAKT som i garderoben (översätt dem INTE). Språkvalet gäller "climateNote", "outfits[].name" och "extras".
 
 Svara ENDAST med JSON, inga backticks:
 {"climateNote": "1–2 meningar om vädret på plats och vad det betyder för packningen", "packingList": ["exakt plaggnamn", "..."], "outfits": [{"name": "outfitnamn", "items": ["exakt plaggnamn", "..."]}], "extras": ["Underkläder ×${days}", "Laddare", "..."]}`
