@@ -58,7 +58,7 @@ const COLOR_ORDER = COLORS.slice(1)
 export default function Wardrobe() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { formatPrice, currency, toBaseSEK } = useSettings()
+  const { formatPrice, currency, toBaseSEK, t: tr, lang } = useSettings()
   // Barn-läge: öppnas med ?person=<id> från Mitt hushåll → visar barnets
   // garderob (samma vy, filter, arkiv, sälj) i stället för mina egna plagg.
   const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
@@ -262,14 +262,14 @@ export default function Wardrobe() {
       setWishUrl('')
       setShowAddWish(true)
     } catch (e: any) {
-      showAlert('Kunde inte hämta länken', e.message || 'Försök med en annan länk.')
+      showAlert(tr('Kunde inte hämta länken'), e.message || tr('Försök med en annan länk.'))
     } finally {
       setFetchingUrl(false)
     }
   }
 
   async function addWishItem() {
-    if (!wishName.trim()) { showAlert('Fyll i ett namn!'); return }
+    if (!wishName.trim()) { showAlert(tr('Fyll i ett namn!')); return }
     setSavingWish(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -296,7 +296,7 @@ export default function Wardrobe() {
       closeWishModal()
       fetchWishlist()
     } catch (error: any) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tr('Något gick fel'), error.message)
     } finally {
       setSavingWish(false)
     }
@@ -317,7 +317,7 @@ export default function Wardrobe() {
   // --- Sale ---
   async function addToSale(item: any) {
     await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
-    showAlert(`${item.name} är nu till salu!`)
+    showAlert(`${item.name} ${tr('är nu till salu!')}`)
     setShowAddSale(false)
     setSaleSearch('')
     fetchGarments()
@@ -471,11 +471,11 @@ export default function Wardrobe() {
   }, [prefsLoaded, sortBy, activeCategories, activeColors, activeSeasons, activeTypes])
 
   async function markAsSold(item: any) {
-    showConfirm('Markera som såld', `Är "${item.name}" såld?`, async () => {
+    showConfirm(tr('Markera som såld'), `${item.name} – ${tr('såld?')}`, async () => {
       await supabase.from('garments').update({ sold: true, archived: true, for_sale: false }).eq('id', item.id)
       fetchGarments()
-      showAlert('Sålt!', `${item.name} har arkiverats.`)
-    }, 'Ja, arkivera', true)
+      showAlert(tr('Sålt!'), `${item.name} ${tr('har arkiverats.')}`)
+    }, tr('Ja, arkivera'), true)
   }
 
   // Tar bort ur säljlistan. Plagget återgår automatiskt dit det hörde hemma:
@@ -488,7 +488,7 @@ export default function Wardrobe() {
   async function unarchive(item: any) {
     await supabase.from('garments').update({ archived: false, sold: false }).eq('id', item.id)
     fetchGarments()
-    showAlert('Välkommen tillbaka!', `${item.name} är nu i garderoben igen.`)
+    showAlert(tr('Välkommen tillbaka!'), `${item.name} ${tr('är nu i garderoben igen.')}`)
   }
 
   // Lägger ett arkiverat plagg till salu men behåller arkiv-statusen, så det
@@ -496,7 +496,7 @@ export default function Wardrobe() {
   async function sellFromArchive(item: any) {
     await supabase.from('garments').update({ for_sale: true, sold: false }).eq('id', item.id)
     fetchGarments()
-    showAlert('Lagt till salu!', `${item.name} finns nu på säljlistan.`)
+    showAlert(tr('Lagt till salu!'), `${item.name} ${tr('finns nu på säljlistan.')}`)
   }
 
   async function moveWishItem(index: number, direction: 'up' | 'down') {
@@ -511,10 +511,10 @@ export default function Wardrobe() {
   }
 
   async function deleteWishItem(item: any) {
-    showConfirm('Ta bort', `Ta bort "${item.name}" från köplistan?`, async () => {
+    showConfirm(tr('Ta bort'), `${tr('Ta bort från köplistan?')} – ${item.name}`, async () => {
       await supabase.from('wishlist').delete().eq('id', item.id)
       fetchWishlist()
-    }, 'Ta bort', true)
+    }, tr('Ta bort'), true)
   }
 
   // Markera som köpt: skapa ett plagg i garderoben och ta bort från köplistan.
@@ -532,17 +532,17 @@ export default function Wardrobe() {
     await supabase.from('wishlist').delete().eq('id', item.id)
     fetchGarments()
     fetchWishlist()
-    showAlert('Grattis!', `${item.name} finns nu i garderoben.`)
+    showAlert(tr('Grattis!'), `${item.name} ${tr('finns nu i garderoben.')}`)
   }
 
   const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || activeSizes.size > 0 || laundryFilter !== 'all' || search !== ''
   // Etikett för filter-chippen: inget val → filternamnet, ett val → värdet,
   // flera val → "Filternamn (antal)".
   const filterChipValue = (label: string, set: Set<string>) =>
-    set.size === 0 ? label : set.size === 1 ? [...set][0] : `${label} (${set.size})`
+    set.size === 0 ? tr(label) : set.size === 1 ? tr([...set][0]) : `${tr(label)} (${set.size})`
 
   function generateCapsule() {
-    if (garments.length === 0) { showAlert('Garderoben är tom', 'Lägg till plagg först!'); return }
+    if (garments.length === 0) { showAlert(tr('Garderoben är tom'), tr('Lägg till plagg först!')); return }
     setGeneratingCapsule(true)
 
     const NEUTRAL_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun']
@@ -631,22 +631,22 @@ export default function Wardrobe() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lägg till på köplistan</Text>
+              <Text style={styles.modalTitle}>{tr('Lägg till på köplistan')}</Text>
               <TouchableOpacity onPress={() => setShowWishChooser(false)}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); closeWishModal(); setShowAddWish(true) }}>
-              <Text style={styles.wishChoiceTitle}>Välj foto</Text>
-              <Text style={styles.wishChoiceHint}>Ta eller välj en bild och fyll i detaljerna själv</Text>
+              <Text style={styles.wishChoiceTitle}>{tr('Välj foto')}</Text>
+              <Text style={styles.wishChoiceHint}>{tr('Ta eller välj en bild och fyll i detaljerna själv')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); router.push('/import-purchases?target=wishlist') }}>
-              <Text style={styles.wishChoiceTitle}>Importera via butiker</Text>
-              <Text style={styles.wishChoiceHint}>Bläddra i en butik och lägg köpta/önskade plagg på köplistan</Text>
+              <Text style={styles.wishChoiceTitle}>{tr('Importera via butiker')}</Text>
+              <Text style={styles.wishChoiceHint}>{tr('Bläddra i en butik och lägg köpta/önskade plagg på köplistan')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); setShowWishUrl(true) }}>
-              <Text style={styles.wishChoiceTitle}>Via URL</Text>
-              <Text style={styles.wishChoiceHint}>Klistra in en produktlänk – namn och bild hämtas automatiskt</Text>
+              <Text style={styles.wishChoiceTitle}>{tr('Via URL')}</Text>
+              <Text style={styles.wishChoiceHint}>{tr('Klistra in en produktlänk – namn och bild hämtas automatiskt')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -657,12 +657,12 @@ export default function Wardrobe() {
         <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lägg till via URL</Text>
+              <Text style={styles.modalTitle}>{tr('Lägg till via URL')}</Text>
               <TouchableOpacity onPress={() => { setShowWishUrl(false); setWishUrl('') }}>
                 <Text style={styles.modalClose}>✕</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.modalLabel}>Produktlänk</Text>
+            <Text style={styles.modalLabel}>{tr('Produktlänk')}</Text>
             <TextInput
               style={styles.modalInput}
               placeholder="https://..."
@@ -674,7 +674,7 @@ export default function Wardrobe() {
               keyboardType="url"
             />
             <TouchableOpacity style={[styles.modalSaveBtn, (!wishUrl.trim() || fetchingUrl) && { opacity: 0.5 }]} onPress={parseWishUrl} disabled={!wishUrl.trim() || fetchingUrl}>
-              <Text style={styles.modalSaveBtnText}>{fetchingUrl ? 'Hämtar...' : 'Hämta produkt'}</Text>
+              <Text style={styles.modalSaveBtnText}>{fetchingUrl ? tr('Hämtar...') : tr('Hämta produkt')}</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -685,11 +685,11 @@ export default function Wardrobe() {
         <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lägg till på köplistan</Text>
+              <Text style={styles.modalTitle}>{tr('Lägg till på köplistan')}</Text>
               <TouchableOpacity
                 onPress={closeWishModal}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel="Stäng"
+                accessibilityLabel={tr('Stäng')}
                 accessibilityRole="button"
               >
                 <Text style={styles.modalClose}>✕</Text>
@@ -703,57 +703,57 @@ export default function Wardrobe() {
                   <SignedImage path={wishImage} style={styles.imagePickerPreview} />
                 ) : (
                   <View style={styles.imagePickerInner}>
-                    <Text style={styles.imagePickerText}>Lägg till bild (valfritt)</Text>
+                    <Text style={styles.imagePickerText}>{tr('Lägg till bild (valfritt)')}</Text>
                   </View>
                 )}
                 {wishImage && (
                   <View style={styles.imageOverlay}>
-                    <Text style={styles.imageOverlayText}>Byt foto</Text>
+                    <Text style={styles.imageOverlayText}>{tr('Byt foto')}</Text>
                   </View>
                 )}
               </TouchableOpacity>
 
-              <Text style={styles.modalLabel}>Namn *</Text>
+              <Text style={styles.modalLabel}>{tr('Namn *')}</Text>
               <TextInput
                 style={styles.modalInput}
-                placeholder="t.ex. Svart kappa"
+                placeholder={tr('t.ex. Svart kappa')}
                 placeholderTextColor={t.placeholder}
                 value={wishName}
                 onChangeText={setWishName}
               />
 
-              <Text style={styles.modalLabel}>Märke</Text>
+              <Text style={styles.modalLabel}>{tr('Märke')}</Text>
               <TextInput
                 style={styles.modalInput}
-                placeholder="t.ex. Arket"
+                placeholder={tr('t.ex. Arket')}
                 placeholderTextColor={t.placeholder}
                 value={wishBrand}
                 onChangeText={setWishBrand}
               />
 
-              <Text style={styles.modalLabel}>Kategori</Text>
+              <Text style={styles.modalLabel}>{tr('Kategori')}</Text>
               <View style={styles.pillsWrap}>
                 {WISH_CATEGORIES.map(c => (
                   <TouchableOpacity key={c} style={[styles.pill, wishCategory === c && styles.pillActive]} onPress={() => { setWishCategory(wishCategory === c ? '' : c); setWishSubcategory('') }}>
-                    <Text style={[styles.pillText, wishCategory === c && styles.pillTextActive]}>{c}</Text>
+                    <Text style={[styles.pillText, wishCategory === c && styles.pillTextActive]}>{tr(c)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               {wishCategory && SUBCATEGORIES[wishCategory] && (
                 <>
-                  <Text style={styles.modalLabel}>Typ</Text>
+                  <Text style={styles.modalLabel}>{tr('Typ')}</Text>
                   <View style={styles.pillsWrap}>
                     {SUBCATEGORIES[wishCategory].map(sub => (
                       <TouchableOpacity key={sub} style={[styles.pill, wishSubcategory === sub && styles.pillActive]} onPress={() => setWishSubcategory(wishSubcategory === sub ? '' : sub)}>
-                        <Text style={[styles.pillText, wishSubcategory === sub && styles.pillTextActive]}>{sub}</Text>
+                        <Text style={[styles.pillText, wishSubcategory === sub && styles.pillTextActive]}>{tr(sub)}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 </>
               )}
 
-              <Text style={styles.modalLabel}>Färg</Text>
+              <Text style={styles.modalLabel}>{tr('Färg')}</Text>
               <View style={styles.wishSwatchGrid}>
                 {COLOR_OPTIONS.map(c => (
                   <TouchableOpacity key={c.name} style={[styles.wishSwatch, { backgroundColor: c.hex }, wishColor === c.name && styles.wishSwatchActive]} onPress={() => setWishColor(wishColor === c.name ? '' : c.name)}>
@@ -761,28 +761,28 @@ export default function Wardrobe() {
                   </TouchableOpacity>
                 ))}
               </View>
-              {wishColor ? <Text style={styles.wishSwatchSelected}>Vald färg: {wishColor}</Text> : null}
+              {wishColor ? <Text style={styles.wishSwatchSelected}>{tr('Vald färg:')} {tr(wishColor)}</Text> : null}
 
-              <Text style={styles.modalLabel}>Säsong</Text>
+              <Text style={styles.modalLabel}>{tr('Säsong')}</Text>
               <View style={styles.pillsWrap}>
                 {WISH_SEASONS.map(s => (
                   <TouchableOpacity key={s} style={[styles.pill, wishSeasons.includes(s) && styles.pillActive]} onPress={() => setWishSeasons(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}>
-                    <Text style={[styles.pillText, wishSeasons.includes(s) && styles.pillTextActive]}>{s}</Text>
+                    <Text style={[styles.pillText, wishSeasons.includes(s) && styles.pillTextActive]}>{tr(s)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={styles.modalLabel}>Pris ({currency})</Text>
+              <Text style={styles.modalLabel}>{tr('Pris')} ({currency})</Text>
               <TextInput
                 style={styles.modalInput}
-                placeholder="t.ex. 299"
+                placeholder={tr('t.ex. 299')}
                 placeholderTextColor={t.placeholder}
                 value={wishPrice}
                 onChangeText={setWishPrice}
                 keyboardType="numeric"
               />
 
-              <Text style={styles.modalLabel}>Produktlänk (valfritt)</Text>
+              <Text style={styles.modalLabel}>{tr('Produktlänk (valfritt)')}</Text>
               <TextInput
                 style={styles.modalInput}
                 placeholder="https://..."
@@ -795,7 +795,7 @@ export default function Wardrobe() {
               />
 
               <TouchableOpacity style={styles.modalSaveBtn} onPress={addWishItem} disabled={savingWish}>
-                <Text style={styles.modalSaveBtnText}>{savingWish ? 'Sparar...' : 'Lägg till'}</Text>
+                <Text style={styles.modalSaveBtnText}>{savingWish ? tr('Sparar...') : tr('Lägg till')}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -807,11 +807,11 @@ export default function Wardrobe() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lägg till till salu</Text>
+              <Text style={styles.modalTitle}>{tr('Lägg till till salu')}</Text>
               <TouchableOpacity
                 onPress={() => { setShowAddSale(false); setSaleSearch('') }}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel="Stäng"
+                accessibilityLabel={tr('Stäng')}
                 accessibilityRole="button"
               >
                 <Text style={styles.modalClose}>✕</Text>
@@ -819,7 +819,7 @@ export default function Wardrobe() {
             </View>
             <TextInput
               style={styles.modalInput}
-              placeholder="Sök plagg..."
+              placeholder={tr('Sök plagg...')}
               placeholderTextColor={t.placeholder}
               value={saleSearch}
               onChangeText={setSaleSearch}
@@ -827,8 +827,8 @@ export default function Wardrobe() {
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 8 }}>
               {filteredSaleGarments.length === 0 ? (
                 <View style={styles.emptyTab}>
-                  <Text style={styles.emptyTabText}>Inga plagg att lägga till</Text>
-                  <Text style={styles.emptyTabHint}>Alla plagg är redan till salu eller garderoben är tom</Text>
+                  <Text style={styles.emptyTabText}>{tr('Inga plagg att lägga till')}</Text>
+                  <Text style={styles.emptyTabHint}>{tr('Alla plagg är redan till salu eller garderoben är tom')}</Text>
                 </View>
               ) : (
                 filteredSaleGarments.map((item: any) => (
@@ -839,10 +839,10 @@ export default function Wardrobe() {
                     }
                     <View style={styles.salePickerInfo}>
                       <Text style={styles.salePickerName}>{item.name}</Text>
-                      <Text style={styles.salePickerCategory}>{item.category}{item.color ? ` · ${item.color}` : ''}</Text>
-                      <Text style={styles.salePickerStat}>Använd {item.times_worn || 0} gånger</Text>
+                      <Text style={styles.salePickerCategory}>{tr(item.category)}{item.color ? ` · ${tr(item.color)}` : ''}</Text>
+                      <Text style={styles.salePickerStat}>{tr('Använd')} {item.times_worn || 0} {tr('gånger')}</Text>
                       <Text style={styles.salePickerStat}>
-                        {item.last_worn ? `Senast använd: ${new Date(item.last_worn).toLocaleDateString('sv-SE')}` : 'Aldrig använd'}
+                        {item.last_worn ? `${tr('Senast använd:')} ${new Date(item.last_worn).toLocaleDateString(lang === 'en' ? 'en-GB' : 'sv-SE')}` : tr('Aldrig använd')}
                       </Text>
                     </View>
                     <View style={styles.addSaleBtn}>
@@ -859,18 +859,18 @@ export default function Wardrobe() {
       <View style={styles.header}>
         <View style={styles.headerTitleWrap}>
           {isPerson && (
-            <TouchableOpacity onPress={() => goBack('/profile')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Tillbaka">
+            <TouchableOpacity onPress={() => goBack('/profile')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel={tr('Tillbaka')}>
               <MaterialIcons name="arrow-back" size={24} color={t.textPrimary} />
             </TouchableOpacity>
           )}
-          <Text style={styles.title} numberOfLines={1}>{isPerson ? `${personName || 'Barnet'}s garderob` : 'Min garderob'}</Text>
+          <Text style={styles.title} numberOfLines={1}>{isPerson ? `${personName || tr('Barnet')}${tr('s garderob')}` : tr('Min garderob')}</Text>
         </View>
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
               style={[styles.iconBtn, (showFilterPanel || hasActiveFilters) && styles.iconBtnActive]}
               onPress={() => { setShowFilterPanel(s => !s); setOpenDropdown(null) }}
-              accessibilityLabel="Filter och sortering"
+              accessibilityLabel={tr('Filter och sortering')}
               accessibilityRole="button"
             >
               <MaterialIcons name="tune" size={20} color={t.onPrimary} />
@@ -880,7 +880,7 @@ export default function Wardrobe() {
             <TouchableOpacity
               style={[styles.iconBtn, showArchive && styles.iconBtnActive]}
               onPress={() => setShowArchive(v => !v)}
-              accessibilityLabel="Arkiv"
+              accessibilityLabel={tr('Arkiv')}
               accessibilityRole="button"
             >
               <MaterialIcons name="inventory-2" size={20} color={t.onPrimary} />
@@ -889,7 +889,7 @@ export default function Wardrobe() {
           <TouchableOpacity
             style={styles.iconBtn}
             onPress={() => router.push(isPerson ? `/stats?person=${person}&personName=${encodeURIComponent(personName || '')}` : '/stats')}
-            accessibilityLabel="Statistik"
+            accessibilityLabel={tr('Statistik')}
             accessibilityRole="button"
           >
             <MaterialIcons name="insights" size={20} color={t.onPrimary} />
@@ -899,10 +899,10 @@ export default function Wardrobe() {
 
       <View style={styles.tabRow}>
         {[
-          { id: 'nuvarande', label: `Garderob${garments.length > 0 ? ` (${garments.length})` : ''}` },
+          { id: 'nuvarande', label: `${tr('Garderob')}${garments.length > 0 ? ` (${garments.length})` : ''}` },
           // Köplista är per person (mig), inte per barn – dölj den i barn-läge.
-          ...(isPerson ? [] : [{ id: 'köp', label: `Köp${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` }]),
-          { id: 'sälj', label: `Sälj${forSale.length > 0 ? ` (${forSale.length})` : ''}` },
+          ...(isPerson ? [] : [{ id: 'köp', label: `${tr('Köp')}${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` }]),
+          { id: 'sälj', label: `${tr('Sälj')}${forSale.length > 0 ? ` (${forSale.length})` : ''}` },
         ].map(({ id, label }) => (
           <TouchableOpacity
             key={id}
@@ -923,7 +923,7 @@ export default function Wardrobe() {
             <MaterialIcons name="search" size={18} color={t.textSecondary} style={{ marginRight: 8 }} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Sök plagg eller färg..."
+              placeholder={tr('Sök plagg eller färg...')}
               placeholderTextColor={t.placeholder}
               value={search}
               onChangeText={handleSearch}
@@ -936,13 +936,13 @@ export default function Wardrobe() {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRowContent}>
             {[
-              { key: 'sort', label: 'Sortera', value: SORT_LABEL[sortBy], on: sortBy !== 'recent' },
-              { key: 'category', label: 'Kategori', value: filterChipValue('Kategori', activeCategories), on: activeCategories.size > 0 },
-              { key: 'type', label: 'Typ', value: filterChipValue('Typ', activeTypes), on: activeTypes.size > 0 },
-              ...(isPerson ? [{ key: 'size', label: 'Storlek', value: filterChipValue('Storlek', activeSizes), on: activeSizes.size > 0 }] : []),
-              { key: 'color', label: 'Färg', value: filterChipValue('Färg', activeColors), on: activeColors.size > 0 },
-              { key: 'season', label: 'Säsong', value: filterChipValue('Säsong', activeSeasons), on: activeSeasons.size > 0 },
-              { key: 'laundry', label: 'Tvätt', value: laundryFilter === 'in' ? 'I tvätten' : laundryFilter === 'out' ? 'Ej i tvätten' : 'Tvätt', on: laundryFilter !== 'all' },
+              { key: 'sort', label: tr('Sortera'), value: tr(SORT_LABEL[sortBy]), on: sortBy !== 'recent' },
+              { key: 'category', label: tr('Kategori'), value: filterChipValue('Kategori', activeCategories), on: activeCategories.size > 0 },
+              { key: 'type', label: tr('Typ'), value: filterChipValue('Typ', activeTypes), on: activeTypes.size > 0 },
+              ...(isPerson ? [{ key: 'size', label: tr('Storlek'), value: filterChipValue('Storlek', activeSizes), on: activeSizes.size > 0 }] : []),
+              { key: 'color', label: tr('Färg'), value: filterChipValue('Färg', activeColors), on: activeColors.size > 0 },
+              { key: 'season', label: tr('Säsong'), value: filterChipValue('Säsong', activeSeasons), on: activeSeasons.size > 0 },
+              { key: 'laundry', label: tr('Tvätt'), value: laundryFilter === 'in' ? tr('I tvätten') : laundryFilter === 'out' ? tr('Ej i tvätten') : tr('Tvätt'), on: laundryFilter !== 'all' },
             ].map(f => (
               <TouchableOpacity
                 key={f.key}
@@ -956,7 +956,7 @@ export default function Wardrobe() {
             ))}
             {(hasActiveFilters || sortBy !== 'recent') && (
               <TouchableOpacity style={styles.chipClear} onPress={clearFilters}>
-                <Text style={styles.chipClearText}>Rensa</Text>
+                <Text style={styles.chipClearText}>{tr('Rensa')}</Text>
               </TouchableOpacity>
             )}
           </ScrollView>
@@ -972,7 +972,7 @@ export default function Wardrobe() {
                           style={[styles.dropdownPill, sortBy === opt.key && styles.dropdownPillActive]}
                           onPress={() => handleSort(opt.key)}
                         >
-                          <Text style={[styles.dropdownPillText, sortBy === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
+                          <Text style={[styles.dropdownPillText, sortBy === opt.key && styles.dropdownPillTextActive]}>{tr(opt.label)}</Text>
                         </TouchableOpacity>
                       ))
                     : openDropdown === 'laundry'
@@ -982,7 +982,7 @@ export default function Wardrobe() {
                           style={[styles.dropdownPill, laundryFilter === key && styles.dropdownPillActive]}
                           onPress={() => { setLaundryFilter(key); setOpenDropdown(null) }}
                         >
-                          <Text style={[styles.dropdownPillText, laundryFilter === key && styles.dropdownPillTextActive]}>{label}</Text>
+                          <Text style={[styles.dropdownPillText, laundryFilter === key && styles.dropdownPillTextActive]}>{tr(label)}</Text>
                         </TouchableOpacity>
                       ))
                     : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'type' ? typeOptions : openDropdown === 'size' ? sizeOptions : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
@@ -997,7 +997,7 @@ export default function Wardrobe() {
                             {openDropdown === 'color' && COLOR_HEX[item] && (
                               <View style={[styles.pillColorDot, { backgroundColor: COLOR_HEX[item] }]} />
                             )}
-                            <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{item}</Text>
+                            <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{tr(item)}</Text>
                           </TouchableOpacity>
                         )
                       })}
@@ -1017,7 +1017,7 @@ export default function Wardrobe() {
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>
-                  {hasActiveFilters ? 'Inga plagg hittades' : 'Din garderob är tom!\nLägg till ditt första plagg'}
+                  {hasActiveFilters ? tr('Inga plagg hittades') : tr('Din garderob är tom!\nLägg till ditt första plagg')}
                 </Text>
               </View>
             }
@@ -1037,7 +1037,7 @@ export default function Wardrobe() {
                     style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
                     onPress={() => toggleLaundry(item)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    accessibilityLabel={item.in_laundry ? `Ta ${item.name} ur tvätten` : `Lägg ${item.name} i tvätten`}
+                    accessibilityLabel={item.in_laundry ? `${tr('Ta ur tvätten')}: ${item.name}` : `${tr('Lägg i tvätten')}: ${item.name}`}
                     accessibilityRole="button"
                   >
                     <MaterialIcons name="local-laundry-service" size={14} color={item.in_laundry ? t.onPrimary : t.textSecondary} />
@@ -1045,7 +1045,7 @@ export default function Wardrobe() {
                 </View>
                 <Text style={styles.itemName}>{item.name}</Text>
                 {item.brand ? <Text style={styles.itemBrand} numberOfLines={1}>{item.brand}</Text> : null}
-                <Text style={styles.itemCategory} numberOfLines={1}>{item.subcategory || item.category}</Text>
+                <Text style={styles.itemCategory} numberOfLines={1}>{tr(item.subcategory || item.category)}</Text>
               </TouchableOpacity>
             )}
           />
@@ -1057,18 +1057,18 @@ export default function Wardrobe() {
         <ScrollView contentContainerStyle={styles.wishScroll}>
           {wishlist.length === 0 ? (
             <View style={styles.emptyTab}>
-              <Text style={styles.emptyTabText}>Köplistan är tom</Text>
-              <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga till plagg du drömmer om</Text>
+              <Text style={styles.emptyTabText}>{tr('Köplistan är tom')}</Text>
+              <Text style={styles.emptyTabHint}>{tr('Tryck ＋ för att lägga till plagg du drömmer om')}</Text>
             </View>
           ) : (
             <>
               <View style={styles.wishTotalCard}>
-                <Text style={styles.wishTotalLabel}>Önskelistans värde</Text>
+                <Text style={styles.wishTotalLabel}>{tr('Önskelistans värde')}</Text>
                 <Text style={styles.wishTotalValue}>
                   {formatPrice(wishlist.reduce((s, w) => s + (Number(w.price) || 0), 0))}
                 </Text>
               </View>
-              <Text style={styles.wishHint}>Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera</Text>
+              <Text style={styles.wishHint}>{tr('Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera')}</Text>
               {wishlist.map((item, index) => {
                 const count = outfitCounts[item.id] || 0
                 return (
@@ -1084,7 +1084,7 @@ export default function Wardrobe() {
                         onPress={() => moveWishItem(index, 'up')}
                         disabled={index === 0}
                         hitSlop={{ top: 10, bottom: 6, left: 10, right: 10 }}
-                        accessibilityLabel="Flytta upp"
+                        accessibilityLabel={tr('Flytta upp')}
                         accessibilityRole="button"
                       >
                         <Text style={styles.arrowText}>▲</Text>
@@ -1095,7 +1095,7 @@ export default function Wardrobe() {
                         onPress={() => moveWishItem(index, 'down')}
                         disabled={index === wishlist.length - 1}
                         hitSlop={{ top: 6, bottom: 10, left: 10, right: 10 }}
-                        accessibilityLabel="Flytta ner"
+                        accessibilityLabel={tr('Flytta ner')}
                         accessibilityRole="button"
                       >
                         <Text style={styles.arrowText}>▼</Text>
@@ -1113,14 +1113,14 @@ export default function Wardrobe() {
                       {item.brand ? <Text style={styles.wishBrand} numberOfLines={1}>{item.brand}</Text> : null}
                       {item.price != null ? <Text style={styles.wishPrice}>{formatPrice(item.price)}</Text> : null}
                       <View style={styles.wishMeta}>
-                        {item.category ? <Text style={styles.wishMetaText}>{item.category}</Text> : null}
+                        {item.category ? <Text style={styles.wishMetaText}>{tr(item.category)}</Text> : null}
                         {item.color ? (
                           <View style={styles.wishColorMeta}>
                             <View style={[styles.wishColorDot, { backgroundColor: COLOR_HEX[item.color] || t.surfaceMuted }]} />
-                            <Text style={styles.wishMetaText}>{item.color}</Text>
+                            <Text style={styles.wishMetaText}>{tr(item.color)}</Text>
                           </View>
                         ) : null}
-                        {item.season ? <Text style={styles.wishMetaText}>· {item.season}</Text> : null}
+                        {item.season ? <Text style={styles.wishMetaText}>· {tr(item.season)}</Text> : null}
                       </View>
                       {count > 0 && (
                         <View style={styles.outfitBadge}>
@@ -1133,26 +1133,26 @@ export default function Wardrobe() {
                         <TouchableOpacity
                           style={styles.buyBtn}
                           onPress={() => openWishLink(item)}
-                          accessibilityLabel={`Köp ${item.name}`}
+                          accessibilityLabel={`${tr('Köp')} ${item.name}`}
                           accessibilityRole="button"
                         >
                           <Ionicons name="bag-handle-outline" size={13} color={t.onPrimary} />
-                          <Text style={styles.buyBtnText}>Köp</Text>
+                          <Text style={styles.buyBtnText}>{tr('Köp')}</Text>
                         </TouchableOpacity>
                       ) : null}
                       <TouchableOpacity
                         style={styles.boughtBtn}
                         onPress={() => markWishBought(item)}
-                        accessibilityLabel={`Markera ${item.name} som köpt`}
+                        accessibilityLabel={`${tr('Markera som köpt')}: ${item.name}`}
                         accessibilityRole="button"
                       >
-                        <Text style={styles.boughtBtnText}>Köpt</Text>
+                        <Text style={styles.boughtBtnText}>{tr('Köpt')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.deleteBtn}
                         onPress={() => deleteWishItem(item)}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        accessibilityLabel={`Ta bort ${item.name}`}
+                        accessibilityLabel={`${tr('Ta bort')} ${item.name}`}
                         accessibilityRole="button"
                       >
                         <Text style={styles.deleteBtnText}>✕</Text>
@@ -1171,8 +1171,8 @@ export default function Wardrobe() {
         <ScrollView contentContainerStyle={styles.saleScroll}>
           {forSale.length === 0 ? (
             <View style={styles.emptyTab}>
-              <Text style={styles.emptyTabText}>Inga plagg till salu</Text>
-              <Text style={styles.emptyTabHint}>Tryck ＋ för att lägga ut plagg du inte använder</Text>
+              <Text style={styles.emptyTabText}>{tr('Inga plagg till salu')}</Text>
+              <Text style={styles.emptyTabHint}>{tr('Tryck ＋ för att lägga ut plagg du inte använder')}</Text>
             </View>
           ) : (
             forSale.map((item) => (
@@ -1183,11 +1183,11 @@ export default function Wardrobe() {
                 }
                 <View style={styles.saleInfo}>
                   <Text style={styles.saleName}>{item.name}</Text>
-                  <Text style={styles.saleCategory}>{item.category}{item.size ? ` · ${item.size}` : ''}</Text>
+                  <Text style={styles.saleCategory}>{tr(item.category)}{item.size ? ` · ${item.size}` : ''}</Text>
                 </View>
                 <View style={styles.saleActions}>
                   <TouchableOpacity style={styles.soldBtn} onPress={() => markAsSold(item)}>
-                    <Text style={styles.soldBtnText}>Såld ✓</Text>
+                    <Text style={styles.soldBtnText}>{tr('Såld ✓')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.removeBtn} onPress={() => removeFromSale(item)}>
                     <Text style={styles.removeBtnText}>✕</Text>
@@ -1203,14 +1203,14 @@ export default function Wardrobe() {
       {(activeTab === 'nuvarande' || activeTab === 'sälj') && showArchive && (
         <ScrollView contentContainerStyle={styles.saleScroll}>
           <View style={styles.archiveTitleRow}>
-            <Text style={styles.archiveTitle}>Arkiv</Text>
-            <TouchableOpacity onPress={() => setShowArchiveHint(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Om arkivet" accessibilityRole="button">
+            <Text style={styles.archiveTitle}>{tr('Arkiv')}</Text>
+            <TouchableOpacity onPress={() => setShowArchiveHint(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel={tr('Om arkivet')} accessibilityRole="button">
               <Ionicons name="information-circle-outline" size={20} color={t.textSecondary} />
             </TouchableOpacity>
           </View>
           {showArchiveHint && (
             <Text style={styles.archiveHint}>
-              Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.
+              {tr('Plagg som inte passar just nu, är undanpackade eller sålda. Ange plats på plagget så vet du alltid var det finns.')}
             </Text>
           )}
 
@@ -1218,14 +1218,14 @@ export default function Wardrobe() {
             <>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRowContent}>
                 {[
-                  { key: 'place', label: 'Plats', value: archPlace, on: archPlace !== 'Alla' },
-                  { key: 'reason', label: 'Anledning', value: reasonFor(archReason)?.label || archReason, on: archReason !== 'Alla' },
-                  { key: 'sort', label: 'Sortera', value: SORT_LABEL[archSort], on: archSort !== 'recent' },
-                  { key: 'category', label: 'Kategori', value: archCat, on: archCat !== 'Alla' },
-                  { key: 'type', label: 'Typ', value: archType, on: archType !== 'Alla' },
-                  ...(isPerson ? [{ key: 'size', label: 'Storlek', value: archSize, on: archSize !== 'Alla' }] : []),
-                  { key: 'color', label: 'Färg', value: archColor, on: archColor !== 'Alla' },
-                  { key: 'season', label: 'Säsong', value: archSeason, on: archSeason !== 'Alla' },
+                  { key: 'place', label: tr('Plats'), value: tr(archPlace), on: archPlace !== 'Alla' },
+                  { key: 'reason', label: tr('Anledning'), value: reasonFor(archReason)?.label ? tr(reasonFor(archReason)!.label) : tr(archReason), on: archReason !== 'Alla' },
+                  { key: 'sort', label: tr('Sortera'), value: tr(SORT_LABEL[archSort]), on: archSort !== 'recent' },
+                  { key: 'category', label: tr('Kategori'), value: tr(archCat), on: archCat !== 'Alla' },
+                  { key: 'type', label: tr('Typ'), value: tr(archType), on: archType !== 'Alla' },
+                  ...(isPerson ? [{ key: 'size', label: tr('Storlek'), value: tr(archSize), on: archSize !== 'Alla' }] : []),
+                  { key: 'color', label: tr('Färg'), value: tr(archColor), on: archColor !== 'Alla' },
+                  { key: 'season', label: tr('Säsong'), value: tr(archSeason), on: archSeason !== 'Alla' },
                 ].map(f => (
                   <TouchableOpacity key={f.key} style={[styles.chip, (f.on || archDropdown === f.key) && styles.chipActive]} onPress={() => setArchDropdown(archDropdown === f.key ? null : f.key)}>
                     <Text style={[styles.chipText, (f.on || archDropdown === f.key) && styles.chipTextActive]}>
@@ -1235,7 +1235,7 @@ export default function Wardrobe() {
                 ))}
                 {(archHasFilters || archSort !== 'recent') && (
                   <TouchableOpacity style={styles.chipClear} onPress={clearArchiveFilters}>
-                    <Text style={styles.chipClearText}>Rensa</Text>
+                    <Text style={styles.chipClearText}>{tr('Rensa')}</Text>
                   </TouchableOpacity>
                 )}
               </ScrollView>
@@ -1247,7 +1247,7 @@ export default function Wardrobe() {
                       {archDropdown === 'sort'
                         ? SORT_OPTIONS.map(opt => (
                             <TouchableOpacity key={opt.key} style={[styles.dropdownPill, archSort === opt.key && styles.dropdownPillActive]} onPress={() => { setArchSort(opt.key); setArchDropdown(null) }}>
-                              <Text style={[styles.dropdownPillText, archSort === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
+                              <Text style={[styles.dropdownPillText, archSort === opt.key && styles.dropdownPillTextActive]}>{tr(opt.label)}</Text>
                             </TouchableOpacity>
                           ))
                         : (archDropdown === 'category' ? CATEGORIES : archDropdown === 'type' ? archTypeOptions : archDropdown === 'size' ? archSizeOptions : archDropdown === 'season' ? SEASONS : archDropdown === 'place' ? archPlaceOptions : archDropdown === 'reason' ? ['Alla', ...ARCHIVE_REASONS.map(r => r.key)] : COLORS).map(item => {
@@ -1266,7 +1266,7 @@ export default function Wardrobe() {
                               }}>
                                 {archDropdown === 'color' && COLOR_HEX[item] && <View style={[styles.pillColorDot, { backgroundColor: COLOR_HEX[item] }]} />}
                                 {reasonMeta && <Ionicons name={reasonMeta.icon as any} size={14} color={isActive ? t.onPrimary : t.textSecondary} style={{ marginRight: 4 }} />}
-                                <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{reasonMeta ? reasonMeta.label : item}</Text>
+                                <Text style={[styles.dropdownPillText, isActive && styles.dropdownPillTextActive]}>{reasonMeta ? tr(reasonMeta.label) : tr(item)}</Text>
                               </TouchableOpacity>
                             )
                           })}
@@ -1278,9 +1278,9 @@ export default function Wardrobe() {
           )}
 
           {archived.length === 0 ? (
-            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>Inga arkiverade plagg</Text></View>
+            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>{tr('Inga arkiverade plagg')}</Text></View>
           ) : filteredArchive.length === 0 ? (
-            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>Inga plagg matchar filtret</Text></View>
+            <View style={styles.emptyTab}><Text style={styles.emptyTabText}>{tr('Inga plagg matchar filtret')}</Text></View>
           ) : (
             filteredArchive.map((item) => (
               <TouchableOpacity key={item.id} style={[styles.saleItem, item.sold && styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
@@ -1297,32 +1297,32 @@ export default function Wardrobe() {
                 </View>
                 <View style={styles.saleInfo}>
                   <Text style={styles.saleName}>{item.name}</Text>
-                  <Text style={styles.saleCategory}>{item.subcategory || item.category}{item.size ? ` · ${item.size}` : ''}</Text>
+                  <Text style={styles.saleCategory}>{tr(item.subcategory || item.category)}{item.size ? ` · ${item.size}` : ''}</Text>
                   {item.location ? (
                     <View style={styles.archMetaRow}>
                       <Ionicons name="location-outline" size={13} color={t.textSecondary} />
                       <Text style={styles.archMetaText}>{item.location}</Text>
                     </View>
                   ) : null}
-                  {item.sold && <Text style={styles.soldTag}>Såld</Text>}
+                  {item.sold && <Text style={styles.soldTag}>{tr('Såld')}</Text>}
                 </View>
                 {!item.sold && (
                   <View style={styles.archActions}>
                     <TouchableOpacity
                       style={styles.unarchiveBtn}
                       onPress={() => unarchive(item)}
-                      accessibilityLabel={`Ta tillbaka ${item.name} till garderoben`}
+                      accessibilityLabel={`${tr('Ta tillbaka till garderoben')}: ${item.name}`}
                       accessibilityRole="button"
                     >
-                      <Text style={styles.unarchiveBtnText}>Ta tillbaka</Text>
+                      <Text style={styles.unarchiveBtnText}>{tr('Ta tillbaka')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.sellArchiveBtn}
                       onPress={() => sellFromArchive(item)}
-                      accessibilityLabel={`Sälj ${item.name}`}
+                      accessibilityLabel={`${tr('Sälj')} ${item.name}`}
                       accessibilityRole="button"
                     >
-                      <Text style={styles.sellArchiveBtnText}>Sälj</Text>
+                      <Text style={styles.sellArchiveBtnText}>{tr('Sälj')}</Text>
                     </TouchableOpacity>
                   </View>
                 )}
