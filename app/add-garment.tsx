@@ -80,7 +80,7 @@ const FAMILY_STATUS_LABELS: Record<FamilyStatus, string> = {
 
 export default function AddGarment() {
   const t = useTheme()
-  const { currency, toBaseSEK } = useSettings()
+  const { currency, toBaseSEK, t: tr } = useSettings()
   const styles = makeStyles(t)
   const [step, setStep] = useState<'pick' | 'review'>('pick')
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])
@@ -285,11 +285,11 @@ export default function AddGarment() {
   async function saveAll() {
     const ready = drafts.filter(d => !d.analyzing && !d.removingBg)
     if (ready.some(d => !d.name || !d.category)) {
-      showAlert('Fyll i namn och kategori för alla plagg')
+      showAlert(tr('Fyll i namn och kategori för alla plagg'))
       return
     }
     if (ready.some(d => d.seasons.length === 0)) {
-      showAlert('Välj årstid', 'Ange minst en årstid för varje plagg – det används för att ge säsongsrätta outfit-förslag. Välj "Alla årstider" om plagget passar året runt.')
+      showAlert(tr('Välj årstid'), tr('Ange minst en årstid för varje plagg – det används för att ge säsongsrätta outfit-förslag. Välj "Alla årstider" om plagget passar året runt.'))
       return
     }
     setSaving(true)
@@ -323,7 +323,7 @@ export default function AddGarment() {
       toast(`${ready.length} ${ready.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
       goBack(personParam ? `/wardrobe?person=${personParam}&personName=${encodeURIComponent(personName || '')}` : '/wardrobe')
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setSaving(false)
     }
@@ -339,12 +339,12 @@ export default function AddGarment() {
         <SafeAreaView style={styles.container}>
           <View style={styles.autoPickWrap}>
             <ActivityIndicator color={t.primary} />
-            <Text style={styles.autoPickHint}>Öppnar galleriet…</Text>
+            <Text style={styles.autoPickHint}>{tr('Öppnar galleriet…')}</Text>
             <TouchableOpacity style={styles.autoPickBtn} onPress={() => pickImages()}>
-              <Text style={styles.autoPickBtnText}>Välj foton</Text>
+              <Text style={styles.autoPickBtnText}>{tr('Välj foton')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => goBack('/wardrobe')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Text style={styles.autoPickCancel}>Avbryt</Text>
+              <Text style={styles.autoPickCancel}>{tr('Avbryt')}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -354,16 +354,16 @@ export default function AddGarment() {
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.backButton} onPress={() => goBack('/wardrobe')}>
-            <Text style={styles.backButtonText}>← Tillbaka</Text>
+            <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Lägg till plagg</Text>
+          <Text style={styles.title}>{tr('Lägg till plagg')}</Text>
 
           {children.length > 0 && (
             <View style={styles.batchCard}>
               <TouchableOpacity style={styles.batchHeader} onPress={() => setBatchMode(v => !v)} activeOpacity={0.8}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.batchTitle}>Lägg in en hel låda</Text>
-                  <Text style={styles.batchHint}>Sätt barn, storlek, status och plats en gång – varje foto ärver det. Perfekt för sparade lådor.</Text>
+                  <Text style={styles.batchTitle}>{tr('Lägg in en hel låda')}</Text>
+                  <Text style={styles.batchHint}>{tr('Sätt barn, storlek, status och plats en gång – varje foto ärver det. Perfekt för sparade lådor.')}</Text>
                 </View>
                 <View style={[styles.toggle, batchMode && styles.toggleOn]}>
                   <View style={[styles.toggleKnob, batchMode && styles.toggleKnobOn]} />
@@ -372,7 +372,7 @@ export default function AddGarment() {
 
               {batchMode && (
                 <View style={styles.batchBody}>
-                  <Text style={styles.cardLabel}>BARN</Text>
+                  <Text style={styles.cardLabel}>{tr('BARN')}</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.pillRow}>
                       {children.map(c => {
@@ -390,7 +390,7 @@ export default function AddGarment() {
                     </View>
                   </ScrollView>
 
-                  <Text style={styles.cardLabel}>STORLEK</Text>
+                  <Text style={styles.cardLabel}>{tr('STORLEK')}</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.pillRow}>
                       {EU_CHILD_SIZES.map(s => (
@@ -402,20 +402,20 @@ export default function AddGarment() {
                     </View>
                   </ScrollView>
 
-                  <Text style={styles.cardLabel}>STATUS</Text>
+                  <Text style={styles.cardLabel}>{tr('STATUS')}</Text>
                   <View style={styles.pillRow}>
                     {(Object.keys(FAMILY_STATUS_LABELS) as FamilyStatus[]).map(v => (
                       <TouchableOpacity key={v} style={[styles.pill, batchStatus === v && styles.pillActive]}
                         onPress={() => setBatchStatus(v)}>
-                        <Text style={[styles.pillText, batchStatus === v && styles.pillTextActive]}>{FAMILY_STATUS_LABELS[v]}</Text>
+                        <Text style={[styles.pillText, batchStatus === v && styles.pillTextActive]}>{tr(FAMILY_STATUS_LABELS[v])}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
 
                   <View style={styles.labelRow}>
-                    <Text style={styles.cardLabel}>PLATS</Text>
+                    <Text style={styles.cardLabel}>{tr('PLATS')}</Text>
                     <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Text style={styles.manageLink}>Hantera platser</Text>
+                      <Text style={styles.manageLink}>{tr('Hantera platser')}</Text>
                     </TouchableOpacity>
                   </View>
                   {locations.length > 0 ? (
@@ -424,13 +424,13 @@ export default function AddGarment() {
                         {locations.map(l => (
                           <TouchableOpacity key={l.id} style={[styles.pill, batchLocation === l.name && styles.pillActive]}
                             onPress={() => setBatchLocation(batchLocation === l.name ? '' : l.name)}>
-                            <Text style={[styles.pillText, batchLocation === l.name && styles.pillTextActive]}>{l.name}{l.is_archive ? ' (arkiv)' : ''}</Text>
+                            <Text style={[styles.pillText, batchLocation === l.name && styles.pillTextActive]}>{l.name}{l.is_archive ? tr(' (arkiv)') : ''}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
                     </ScrollView>
                   ) : (
-                    <Text style={styles.placeHint}>Inga platser än – tryck "Hantera platser" för att skapa en (t.ex. "Kartong 3, vinden").</Text>
+                    <Text style={styles.placeHint}>{tr('Inga platser än – tryck "Hantera platser" för att skapa en (t.ex. "Kartong 3, vinden").')}</Text>
                   )}
                 </View>
               )}
@@ -438,16 +438,16 @@ export default function AddGarment() {
           )}
 
           <TouchableOpacity style={styles.pickBtn} onPress={() => pickImages()}>
-            <Text style={styles.pickBtnTitle}>Välj foton</Text>
-            <Text style={styles.pickBtnHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt</Text>
+            <Text style={styles.pickBtnTitle}>{tr('Välj foton')}</Text>
+            <Text style={styles.pickBtnHint}>{tr('Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pickBtn} onPress={() => router.push('/import-purchases')}>
-            <Text style={styles.pickBtnTitle}>Importera köp</Text>
-            <Text style={styles.pickBtnHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando, Zara m.fl.</Text>
+            <Text style={styles.pickBtnTitle}>{tr('Importera köp')}</Text>
+            <Text style={styles.pickBtnHint}>{tr('Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando, Zara m.fl.')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.pickBtn} onPress={() => router.push('/import-email')}>
-            <Text style={styles.pickBtnTitle}>Importera från mejl</Text>
-            <Text style={styles.pickBtnHint}>Vidarebefordra orderbekräftelser från din mejl så läggs plaggen till automatiskt</Text>
+            <Text style={styles.pickBtnTitle}>{tr('Importera från mejl')}</Text>
+            <Text style={styles.pickBtnHint}>{tr('Vidarebefordra orderbekräftelser från din mejl så läggs plaggen till automatiskt')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -462,29 +462,29 @@ export default function AddGarment() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.backButton} onPress={() => setStep('pick')}>
-          <Text style={styles.backButtonText}>← Välj andra foton</Text>
+          <Text style={styles.backButtonText}>← {tr('Välj andra foton')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Granska plagg</Text>
+        <Text style={styles.title}>{tr('Granska plagg')}</Text>
 
         {processingCount > 0 && (
           <View style={styles.progressRow}>
             <ActivityIndicator color={t.textSecondary} size="small" />
-            <Text style={styles.progressText}>Bearbetar {totalCount - processingCount}/{totalCount}...</Text>
+            <Text style={styles.progressText}>{tr('Bearbetar')} {totalCount - processingCount}/{totalCount}...</Text>
           </View>
         )}
 
         {bgError && (
           <View style={styles.bgErrorBox}>
-            <Text style={styles.bgErrorText}>Bakgrunden kunde inte tas bort – plagget sparas med originalfotot.</Text>
-            <Text style={styles.bgErrorDetail}>Orsak: {bgError}</Text>
+            <Text style={styles.bgErrorText}>{tr('Bakgrunden kunde inte tas bort – plagget sparas med originalfotot.')}</Text>
+            <Text style={styles.bgErrorDetail}>{tr('Orsak:')} {bgError}</Text>
           </View>
         )}
 
         {drafts.map((draft) => {
           const isProcessing = draft.analyzing || draft.removingBg
           const statusText = draft.analyzing && draft.removingBg
-            ? 'AI analyserar & tar bort bakgrund...'
-            : draft.analyzing ? 'AI analyserar...' : 'Tar bort bakgrund...'
+            ? tr('AI analyserar & tar bort bakgrund...')
+            : draft.analyzing ? tr('AI analyserar...') : tr('Tar bort bakgrund...')
 
           return (
             <View key={draft.id} style={styles.card}>
@@ -504,7 +504,7 @@ export default function AddGarment() {
                       style={styles.cardNameInput}
                       value={draft.name}
                       onChangeText={v => updateDraft(draft.id, 'name', v)}
-                      placeholder="Namn på plagget"
+                      placeholder={tr('Namn på plagget')}
                       placeholderTextColor={t.placeholder}
                     />
                   )}
@@ -519,17 +519,17 @@ export default function AddGarment() {
                   {draft.personId && (
                     <View style={styles.familyChip}>
                       <Text style={styles.familyChipText}>
-                        👶 {children.find(c => c.id === draft.personId)?.name ?? 'Barn'}
-                        {draft.sizeCm ? ` · stl ${draft.sizeCm}` : ''} · {FAMILY_STATUS_LABELS[draft.familyStatus]}
+                        👶 {children.find(c => c.id === draft.personId)?.name ?? tr('Barn')}
+                        {draft.sizeCm ? ` · ${tr('stl')} ${draft.sizeCm}` : ''} · {tr(FAMILY_STATUS_LABELS[draft.familyStatus])}
                       </Text>
                     </View>
                   )}
                   {/* Brand */}
-                  <Text style={styles.cardLabel}>MÄRKE (VALFRITT)</Text>
+                  <Text style={styles.cardLabel}>{tr('MÄRKE (VALFRITT)')}</Text>
                   <BrandInput value={draft.brand} onChange={v => updateDraft(draft.id, 'brand', v)} ownBrands={ownBrands} />
 
                   {/* Category */}
-                  <Text style={styles.cardLabel}>KATEGORI</Text>
+                  <Text style={styles.cardLabel}>{tr('KATEGORI')}</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.pillRow}>
                       {CATEGORIES.map(cat => (
@@ -538,7 +538,7 @@ export default function AddGarment() {
                           style={[styles.pill, draft.category === cat && styles.pillActive]}
                           onPress={() => updateDraft(draft.id, 'category', cat)}
                         >
-                          <Text style={[styles.pillText, draft.category === cat && styles.pillTextActive]}>{cat}</Text>
+                          <Text style={[styles.pillText, draft.category === cat && styles.pillTextActive]}>{tr(cat)}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -547,7 +547,7 @@ export default function AddGarment() {
                   {/* Subcategory */}
                   {draft.category && SUBCATEGORIES[draft.category] && (
                     <>
-                      <Text style={styles.cardLabel}>TYP</Text>
+                      <Text style={styles.cardLabel}>{tr('TYP')}</Text>
                       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.pillRow}>
                           {SUBCATEGORIES[draft.category].map(sub => (
@@ -556,7 +556,7 @@ export default function AddGarment() {
                               style={[styles.pill, draft.subcategory === sub && styles.pillActive]}
                               onPress={() => updateDraft(draft.id, 'subcategory', draft.subcategory === sub ? '' : sub)}
                             >
-                              <Text style={[styles.pillText, draft.subcategory === sub && styles.pillTextActive]}>{sub}</Text>
+                              <Text style={[styles.pillText, draft.subcategory === sub && styles.pillTextActive]}>{tr(sub)}</Text>
                             </TouchableOpacity>
                           ))}
                         </View>
@@ -565,7 +565,7 @@ export default function AddGarment() {
                   )}
 
                   {/* Color */}
-                  <Text style={styles.cardLabel}>FÄRG</Text>
+                  <Text style={styles.cardLabel}>{tr('FÄRG')}</Text>
                   <View style={styles.colorRow}>
                     {COLORS.map(c => (
                       <TouchableOpacity
@@ -579,7 +579,7 @@ export default function AddGarment() {
                   </View>
 
                   {/* Season */}
-                  <Text style={styles.cardLabel}>SÄSONG *</Text>
+                  <Text style={styles.cardLabel}>{tr('SÄSONG *')}</Text>
                   <View style={styles.pillRow}>
                     {SEASONS.map(s => (
                       <TouchableOpacity
@@ -587,13 +587,13 @@ export default function AddGarment() {
                         style={[styles.pill, draft.seasons.includes(s) && styles.pillActive]}
                         onPress={() => toggleDraftSeason(draft.id, s)}
                       >
-                        <Text style={[styles.pillText, draft.seasons.includes(s) && styles.pillTextActive]}>{s}</Text>
+                        <Text style={[styles.pillText, draft.seasons.includes(s) && styles.pillTextActive]}>{tr(s)}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
 
                   {/* Size */}
-                  <Text style={styles.cardLabel}>STORLEK (VALFRITT)</Text>
+                  <Text style={styles.cardLabel}>{tr('STORLEK (VALFRITT)')}</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.pillRow}>
                       {SIZES.map(s => (
@@ -609,14 +609,14 @@ export default function AddGarment() {
                   </ScrollView>
                   <TextInput
                     style={styles.sizeInput}
-                    placeholder="Egen storlek, t.ex. 38 eller W29/L32"
+                    placeholder={tr('Egen storlek, t.ex. 38 eller W29/L32')}
                     placeholderTextColor={t.placeholder}
                     value={SIZES.includes(draft.size) ? '' : draft.size}
                     onChangeText={v => updateDraft(draft.id, 'size', v)}
                   />
 
                   {/* Fit / passform */}
-                  <Text style={styles.cardLabel}>PASSFORM (VALFRITT)</Text>
+                  <Text style={styles.cardLabel}>{tr('PASSFORM (VALFRITT)')}</Text>
                   <View style={styles.pillRow}>
                     {FITS.map(f => (
                       <TouchableOpacity
@@ -630,10 +630,10 @@ export default function AddGarment() {
                   </View>
 
                   {/* Price */}
-                  <Text style={styles.cardLabel}>PRIS I {currency} (VALFRITT)</Text>
+                  <Text style={styles.cardLabel}>{tr('PRIS I')} {currency} ({tr('VALFRITT')})</Text>
                   <TextInput
                     style={styles.sizeInput}
-                    placeholder="t.ex. 299"
+                    placeholder={tr('t.ex. 299')}
                     placeholderTextColor={t.placeholder}
                     value={draft.price}
                     onChangeText={v => updateDraft(draft.id, 'price', v)}
@@ -642,9 +642,9 @@ export default function AddGarment() {
 
                   {/* Var finns plagget? */}
                   <View style={styles.labelRow}>
-                    <Text style={styles.cardLabel}>VAR FINNS PLAGGET? (VALFRITT)</Text>
+                    <Text style={styles.cardLabel}>{tr('VAR FINNS PLAGGET? (VALFRITT)')}</Text>
                     <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Text style={styles.manageLink}>Hantera platser</Text>
+                      <Text style={styles.manageLink}>{tr('Hantera platser')}</Text>
                     </TouchableOpacity>
                   </View>
                   {locations.length > 0 ? (
@@ -656,13 +656,13 @@ export default function AddGarment() {
                           onPress={() => updateDraft(draft.id, 'location', draft.location === l.name ? '' : l.name)}
                         >
                           <Text style={[styles.pillText, draft.location === l.name && styles.pillTextActive]}>
-                            {l.name}{l.is_archive ? ' (arkiv)' : ''}
+                            {l.name}{l.is_archive ? tr(' (arkiv)') : ''}
                           </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
                   ) : (
-                    <Text style={styles.placeHint}>Inga platser än – tryck "Hantera platser" för att skapa en.</Text>
+                    <Text style={styles.placeHint}>{tr('Inga platser än – tryck "Hantera platser" för att skapa en.')}</Text>
                   )}
                 </>
               )}
@@ -674,12 +674,12 @@ export default function AddGarment() {
           style={[styles.saveButton, (saving || processingCount > 0) && styles.saveButtonDisabled]}
           onPress={saveAll}
           disabled={saving || processingCount > 0}
-          accessibilityLabel={saving ? 'Sparar plagg' : `Spara ${drafts.length} plagg`}
+          accessibilityLabel={saving ? tr('Sparar plagg') : `${tr('Spara')} ${drafts.length} ${tr('plagg')}`}
           accessibilityRole="button"
         >
           {saving
             ? <ActivityIndicator color={t.onPrimary} size="small" />
-            : <Text style={styles.saveButtonText}>{`Spara ${drafts.length} ${drafts.length === 1 ? 'plagg' : 'plagg'}`}</Text>
+            : <Text style={styles.saveButtonText}>{`${tr('Spara')} ${drafts.length} ${tr('plagg')}`}</Text>
           }
         </TouchableOpacity>
       </ScrollView>
