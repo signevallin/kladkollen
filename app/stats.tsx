@@ -543,10 +543,17 @@ export default function Stats() {
         {/* ── MIN GARDEROB ── */}
         {activeTab === 'garderob' && (
           <>
-            <View style={styles.heroCard}>
-              <View>
-                <Text style={styles.heroNumber}>{totalWorn}</Text>
-                <Text style={styles.heroLabel}>gånger har du använt dina kläder</Text>
+            <View style={styles.heroRow}>
+              <View style={styles.heroCardHalf}>
+                <Text style={styles.heroNumberSm}>{totalWorn}</Text>
+                <Text style={styles.heroLabel}>gånger använda</Text>
+              </View>
+              <View style={styles.heroCardHalf}>
+                <View style={styles.heroLaundryTop}>
+                  <Text style={styles.heroNumberSm}>{garments.filter(g => g.in_laundry).length}</Text>
+                  <MaterialIcons name="local-laundry-service" size={22} color={t.onPrimary} style={{ opacity: 0.85 }} />
+                </View>
+                <Text style={styles.heroLabel}>i tvätten</Text>
               </View>
             </View>
 
@@ -877,6 +884,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   heroCard: { backgroundColor: t.primary, borderRadius: 20, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   heroNumber: { fontFamily: 'Poppins_700Bold', fontSize: 56, color: t.onPrimary, lineHeight: 60 },
   heroLabel: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.onPrimary, opacity: 0.8, marginTop: 4, maxWidth: 160 },
+  heroRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+  heroCardHalf: { flex: 1, backgroundColor: t.primary, borderRadius: 20, padding: 18 },
+  heroNumberSm: { fontFamily: 'Poppins_700Bold', fontSize: 40, color: t.onPrimary, lineHeight: 46 },
+  heroLaundryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroIcon: { fontFamily: 'Lora_400Regular', fontSize: 48, color: t.onPrimary, opacity: 0.5 },
 
   miniStatsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
