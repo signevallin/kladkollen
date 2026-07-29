@@ -18,12 +18,14 @@ import type { Theme } from '../theme/theme'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { goBack } from '../utils/nav'
+import { useSettings } from '../utils/settings'
 
 type Member = { user_id: string; role: string; name: string; avatar_url: string | null }
 
 export default function Partner() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
 
   const [myId, setMyId] = useState<string | null>(null)
   const [members, setMembers] = useState<Member[]>([])
@@ -70,7 +72,7 @@ export default function Partner() {
       if (error) throw error
       setInviteCode(data as string)
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setBusy(false)
     }
@@ -79,12 +81,12 @@ export default function Partner() {
   async function copyCode() {
     if (!inviteCode) return
     await Clipboard.setStringAsync(inviteCode)
-    showAlert('Kopierat!', 'Skicka koden till din partner.')
+    showAlert(tr('Kopierat!'), tr('Skicka koden till din partner.'))
   }
 
   async function join() {
     const code = joinCode.trim()
-    if (!code) { showAlert('Skriv in en kod'); return }
+    if (!code) { showAlert(tr('Skriv in en kod')); return }
     setBusy(true)
     try {
       const { error } = await supabase.rpc('join_by_invite', { invite_code: code })
@@ -92,16 +94,16 @@ export default function Partner() {
       setJoinCode('')
       setInviteCode(null)
       await load()
-      showAlert('Ihopkopplade!', 'Ni delar nu ett hushåll.')
+      showAlert(tr('Ihopkopplade!'), tr('Ni delar nu ett hushåll.'))
     } catch (e: any) {
-      showAlert('Kunde inte koppla', e.message)
+      showAlert(tr('Kunde inte koppla'), e.message)
     } finally {
       setBusy(false)
     }
   }
 
   function unlink() {
-    showConfirm('Koppla isär', 'Vill du koppla isär era konton? Ni delar inte längre hushåll.', async () => {
+    showConfirm(tr('Koppla isär'), tr('Vill du koppla isär era konton? Ni delar inte längre hushåll.'), async () => {
       setBusy(true)
       try {
         const { error } = await supabase.rpc('leave_household')
@@ -109,35 +111,35 @@ export default function Partner() {
         setInviteCode(null)
         await load()
       } catch (e: any) {
-        showAlert('Något gick fel', e.message)
+        showAlert(tr('Något gick fel'), e.message)
       } finally {
         setBusy(false)
       }
-    }, 'Koppla isär', true)
+    }, tr('Koppla isär'), true)
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/profile')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Min partner</Text>
-        <Text style={styles.intro}>Koppla ihop ert konto så kan ni dela på funktioner för partners – önskelistor, koordinering inför event och mer.</Text>
+        <Text style={styles.title}>{tr('Min partner')}</Text>
+        <Text style={styles.intro}>{tr('Koppla ihop ert konto så kan ni dela på funktioner för partners – önskelistor, koordinering inför event och mer.')}</Text>
 
         {loading ? (
           <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
         ) : linked ? (
           <>
             <View style={styles.linkedCard}>
-              <Text style={styles.linkedLabel}>NI ÄR IHOPKOPPLADE</Text>
+              <Text style={styles.linkedLabel}>{tr('NI ÄR IHOPKOPPLADE')}</Text>
               <View style={styles.avatarRow}>
                 {members.map(m => (
                   <View key={m.user_id} style={styles.memberCol}>
                     {m.avatar_url
                       ? <SignedImage path={m.avatar_url} style={styles.avatar} resizeMode="cover" />
                       : <View style={styles.avatarPlaceholder}><MaterialIcons name="person" size={30} color={t.textSecondary} /></View>}
-                    <Text style={styles.memberName} numberOfLines={1}>{m.user_id === myId ? 'Du' : m.name}</Text>
+                    <Text style={styles.memberName} numberOfLines={1}>{m.user_id === myId ? tr('Du') : m.name}</Text>
                   </View>
                 ))}
               </View>
@@ -152,42 +154,42 @@ export default function Partner() {
                   onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
                 >
                   <MaterialIcons name="checkroom" size={20} color={t.textPrimary} />
-                  <Text style={styles.viewBtnText}>Visa {partner.name}s garderob & outfits</Text>
+                  <Text style={styles.viewBtnText}>{tr('Visa')} {partner.name}{tr('s garderob & outfits')}</Text>
                 </TouchableOpacity>
               )
             })()}
 
             <TouchableOpacity style={styles.unlinkBtn} onPress={unlink} disabled={busy}>
-              <Text style={styles.unlinkBtnText}>Koppla isär</Text>
+              <Text style={styles.unlinkBtnText}>{tr('Koppla isär')}</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Bjud in din partner</Text>
-              <Text style={styles.cardDesc}>Skapa en kod och skicka till din partner. När hen anger koden delar ni hushåll.</Text>
+              <Text style={styles.cardTitle}>{tr('Bjud in din partner')}</Text>
+              <Text style={styles.cardDesc}>{tr('Skapa en kod och skicka till din partner. När hen anger koden delar ni hushåll.')}</Text>
               {inviteCode ? (
                 <>
                   <View style={styles.codeBox}><Text style={styles.codeText}>{inviteCode}</Text></View>
                   <TouchableOpacity style={styles.primaryBtn} onPress={copyCode}>
-                    <Text style={styles.primaryBtnText}>Kopiera kod</Text>
+                    <Text style={styles.primaryBtnText}>{tr('Kopiera kod')}</Text>
                   </TouchableOpacity>
-                  <Text style={styles.hint}>Koden gäller i 7 dagar. Väntar på att din partner anger den…</Text>
+                  <Text style={styles.hint}>{tr('Koden gäller i 7 dagar. Väntar på att din partner anger den…')}</Text>
                 </>
               ) : (
                 <TouchableOpacity style={styles.primaryBtn} onPress={createInvite} disabled={busy}>
-                  {busy ? <ActivityIndicator color={t.primary} size="small" /> : <Text style={styles.primaryBtnText}>Skapa inbjudningskod</Text>}
+                  {busy ? <ActivityIndicator color={t.primary} size="small" /> : <Text style={styles.primaryBtnText}>{tr('Skapa inbjudningskod')}</Text>}
                 </TouchableOpacity>
               )}
             </View>
 
-            <Text style={styles.orText}>eller</Text>
+            <Text style={styles.orText}>{tr('eller')}</Text>
 
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Har du fått en kod?</Text>
+              <Text style={styles.cardTitle}>{tr('Har du fått en kod?')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Ange partnerns kod"
+                placeholder={tr('Ange partnerns kod')}
                 placeholderTextColor={t.placeholder}
                 value={joinCode}
                 onChangeText={setJoinCode}
@@ -195,7 +197,7 @@ export default function Partner() {
                 autoCorrect={false}
               />
               <TouchableOpacity style={styles.primaryBtn} onPress={join} disabled={busy}>
-                {busy ? <ActivityIndicator color={t.primary} size="small" /> : <Text style={styles.primaryBtnText}>Koppla ihop</Text>}
+                {busy ? <ActivityIndicator color={t.primary} size="small" /> : <Text style={styles.primaryBtnText}>{tr('Koppla ihop')}</Text>}
               </TouchableOpacity>
             </View>
           </>

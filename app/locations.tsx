@@ -16,10 +16,12 @@ import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
 import { useQuery } from '../utils/useQuery'
 import QueryState from '../components/QueryState'
+import { useSettings } from '../utils/settings'
 
 export default function Locations() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const { data, loading, error, refetch } = useQuery(fetchLocations, [], { cacheKey: 'locations' })
   const locations = data ?? []
   const [newName, setNewName] = useState('')
@@ -31,7 +33,7 @@ export default function Locations() {
     const name = newName.trim()
     if (!name) return
     if (locations.some(l => l.name.toLowerCase() === name.toLowerCase())) {
-      showAlert('Finns redan', 'Du har redan en plats med det namnet.')
+      showAlert(tr('Finns redan'), tr('Du har redan en plats med det namnet.'))
       return
     }
     const { data: { user } } = await supabase.auth.getUser()
@@ -49,22 +51,22 @@ export default function Locations() {
   }
 
   function removeLocation(loc: Location) {
-    showConfirm('Ta bort plats', `Ta bort "${loc.name}"? Plagg som ligger här behåller platsnamnet men du kan inte välja den längre.`, async () => {
+    showConfirm(tr('Ta bort plats'), `${tr('Ta bort platsen?')} ${loc.name} — ${tr('Plagg som ligger här behåller platsnamnet men du kan inte välja den längre.')}`, async () => {
       await supabase.from('locations').delete().eq('id', loc.id)
       load()
-    }, 'Ta bort', true)
+    }, tr('Ta bort'), true)
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/profile')}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Egna platser</Text>
-        <Text style={styles.subtitle}>Bestäm var dina plagg kan förvaras. Markera en plats som Arkiv om plagg där ska räknas som arkiverade (t.ex. källaren).</Text>
+        <Text style={styles.title}>{tr('Egna platser')}</Text>
+        <Text style={styles.subtitle}>{tr('Bestäm var dina plagg kan förvaras. Markera en plats som Arkiv om plagg där ska räknas som arkiverade (t.ex. källaren).')}</Text>
 
-        <QueryState loading={loading} error={error} onRetry={refetch} isEmpty={locations.length === 0} emptyText="Inga platser än.">
+        <QueryState loading={loading} error={error} onRetry={refetch} isEmpty={locations.length === 0} emptyText={tr('Inga platser än.')}>
           {locations.map(loc => (
             <View key={loc.id} style={styles.row}>
               <Text style={styles.rowName}>{loc.name}</Text>
@@ -72,7 +74,7 @@ export default function Locations() {
                 style={[styles.archiveToggle, loc.is_archive && styles.archiveToggleOn]}
                 onPress={() => toggleArchive(loc)}
               >
-                <Text style={[styles.archiveToggleText, loc.is_archive && styles.archiveToggleTextOn]}>Arkiv</Text>
+                <Text style={[styles.archiveToggleText, loc.is_archive && styles.archiveToggleTextOn]}>{tr('Arkiv')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => removeLocation(loc)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Text style={styles.remove}>✕</Text>
@@ -82,10 +84,10 @@ export default function Locations() {
         </QueryState>
 
         <View style={styles.addBox}>
-          <Text style={styles.addLabel}>Lägg till plats</Text>
+          <Text style={styles.addLabel}>{tr('Lägg till plats')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="t.ex. Garderoben uppe"
+            placeholder={tr('t.ex. Garderoben uppe')}
             placeholderTextColor={t.placeholder}
             value={newName}
             onChangeText={setNewName}
@@ -94,10 +96,10 @@ export default function Locations() {
             <View style={[styles.checkbox, newArchive && styles.checkboxOn]}>
               {newArchive && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkLabel}>Plagg här hör till arkivet</Text>
+            <Text style={styles.checkLabel}>{tr('Plagg här hör till arkivet')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.addBtn, !newName.trim() && styles.addBtnDisabled]} onPress={addLocation} disabled={!newName.trim()}>
-            <Text style={styles.addBtnText}>Lägg till</Text>
+            <Text style={styles.addBtnText}>{tr('Lägg till')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
