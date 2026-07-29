@@ -848,6 +848,19 @@ const enBySource: Dict = {
   '3. Inom någon minut dyker plaggen upp här för granskning.': '3. Within a minute the items appear here for review.',
   'Fungerar från vilken mejlapp som helst – ingen Gmail-inställning eller filter behövs.': 'Works from any email app – no Gmail setup or filters needed.',
   'Lägg till plagg i garderoben': 'Add items to the wardrobe',
+
+  // ── Komponenter ──
+  'Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden': 'Choose one or more items – AI fills in the details & removes the background',
+  'Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.': 'Automatically fetch items from your order history at H&M, Zalando and more.',
+  'Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt': 'Forward order confirmations and the items are added automatically',
+  'Dagens låt': 'Song of the day',
+  'Skapad med Klädkollen · din digitala garderob': 'Made with Klädkollen · your digital wardrobe',
+  'Kontrollera din uppkoppling och försök igen.': 'Check your connection and try again.',
+  'Försök igen': 'Try again',
+  'Dra i hörnen för att välja det du vill behålla': 'Drag the corners to choose what to keep',
+  'Beskär': 'Crop',
+  'Inget att visa än.': 'Nothing to show yet.',
+  'till': 'to',
 }
 
 Object.assign(en, enBySource)

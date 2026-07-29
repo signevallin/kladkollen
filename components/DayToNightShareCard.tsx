@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import SignedImage from './SignedImage'
+import { useSettings } from '../utils/settings'
 
 // Varumärkt "dag till fest"-kort som fångas som bild och delas. Renderas utanför
 // skärmen (se inspiration.tsx). Visar båda looken staplade med en pil emellan.
@@ -17,6 +18,7 @@ export default function DayToNightShareCard({
 }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
 
   const look = (label: string, name: string | undefined, items: { name: string; image_url: string | null }[]) => (
     <View style={styles.look}>
@@ -37,11 +39,11 @@ export default function DayToNightShareCard({
   return (
     <View style={styles.card}>
       <Text style={styles.brand}>KLÄDKOLLEN</Text>
-      <Text style={styles.title}>{fromLabel} till {toLabel}</Text>
-      {look('DAG', dayName, dayItems)}
+      <Text style={styles.title}>{tr(fromLabel)} {tr('till')} {tr(toLabel)}</Text>
+      {look(tr('DAG'), dayName, dayItems)}
       <Text style={styles.arrow}>↓</Text>
-      {look('KVÄLL', eveningName, eveningItems)}
-      <Text style={styles.footer}>Skapad med Klädkollen · din digitala garderob</Text>
+      {look(tr('KVÄLL'), eveningName, eveningItems)}
+      <Text style={styles.footer}>{tr('Skapad med Klädkollen · din digitala garderob')}</Text>
     </View>
   )
 }

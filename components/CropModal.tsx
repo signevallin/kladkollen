@@ -13,6 +13,7 @@ import {
 } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import { useSettings } from '../utils/settings'
 
 const MIN = 48 // minsta storlek på beskärningsrutan (i skärmpixlar)
 const HANDLE = 32 // handtagets storlek
@@ -29,6 +30,7 @@ export default function CropModal({
 }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   // imgUri är den bild vi arbetar med just nu. Rotation byter ut den mot en
   // ny (redan roterad) fil så att beskärningsmatten alltid är enkel.
   const [imgUri, setImgUri] = useState<string | null>(uri)
@@ -172,7 +174,7 @@ export default function CropModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop}>
-        <Text style={styles.hint}>Dra i hörnen för att välja det du vill behålla</Text>
+        <Text style={styles.hint}>{tr('Dra i hörnen för att välja det du vill behålla')}</Text>
 
         <View style={styles.stage} onLayout={e => setCont({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
           {imgUri && <Image source={{ uri: imgUri }} style={StyleSheet.absoluteFill} resizeMode="contain" />}
@@ -215,10 +217,10 @@ export default function CropModal({
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.cancelBtn} onPress={onCancel} disabled={working}>
-            <Text style={styles.cancelText}>Avbryt</Text>
+            <Text style={styles.cancelText}>{tr('Avbryt')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.doneBtn} onPress={confirm} disabled={working}>
-            {working ? <ActivityIndicator color={t.onPrimary} /> : <Text style={styles.doneText}>Beskär</Text>}
+            {working ? <ActivityIndicator color={t.onPrimary} /> : <Text style={styles.doneText}>{tr('Beskär')}</Text>}
           </TouchableOpacity>
         </View>
       </View>

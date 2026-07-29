@@ -2,6 +2,7 @@ import { router } from 'expo-router'
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import { useSettings } from '../utils/settings'
 
 // Delad valruta för "Lägg till plagg" så att flödet ser likadant ut oavsett
 // varifrån man öppnar det (hemskärmen, garderoben, ...). Tidigare gick plus →
@@ -16,6 +17,7 @@ export default function AddGarmentChooser({
 }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   // I barn-läge förväljs barnet så fotoflödet taggar plaggen direkt.
   const personQs = person ? `&person=${person}&personName=${encodeURIComponent(personName || '')}` : ''
 
@@ -29,22 +31,22 @@ export default function AddGarmentChooser({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Lägg till plagg</Text>
-            <TouchableOpacity onPress={onClose} accessibilityLabel="Stäng" accessibilityRole="button">
+            <Text style={styles.modalTitle}>{tr('Lägg till plagg')}</Text>
+            <TouchableOpacity onPress={onClose} accessibilityLabel={tr('Stäng')} accessibilityRole="button">
               <Text style={styles.modalClose}>✕</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/add-garment?start=photos${personQs}`)}>
-            <Text style={styles.choiceTitle}>Välj foton</Text>
-            <Text style={styles.choiceHint}>Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden</Text>
+            <Text style={styles.choiceTitle}>{tr('Välj foton')}</Text>
+            <Text style={styles.choiceHint}>{tr('Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/import-purchases')}>
-            <Text style={styles.choiceTitle}>Importera via butiker</Text>
-            <Text style={styles.choiceHint}>Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.</Text>
+            <Text style={styles.choiceTitle}>{tr('Importera via butiker')}</Text>
+            <Text style={styles.choiceHint}>{tr('Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/import-email')}>
-            <Text style={styles.choiceTitle}>Importera från mejl</Text>
-            <Text style={styles.choiceHint}>Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt</Text>
+            <Text style={styles.choiceTitle}>{tr('Importera från mejl')}</Text>
+            <Text style={styles.choiceHint}>{tr('Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt')}</Text>
           </TouchableOpacity>
         </View>
       </View>

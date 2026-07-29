@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import { useSettings } from '../utils/settings'
 
 export type SongData = {
   title: string
@@ -18,6 +19,7 @@ export type SongData = {
 export default function SongCard({ song }: { song: SongData }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const player = useAudioPlayer(song.previewUrl ? { uri: song.previewUrl } : null)
   const status = useAudioPlayerStatus(player)
   const playing = !!status?.playing
@@ -40,7 +42,7 @@ export default function SongCard({ song }: { song: SongData }) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.header}>Dagens låt</Text>
+      <Text style={styles.header}>{tr('Dagens låt')}</Text>
       <View style={styles.row}>
         {song.artwork
           ? <Image source={{ uri: song.artwork }} style={styles.artwork} />
