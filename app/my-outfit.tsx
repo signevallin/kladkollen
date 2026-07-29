@@ -29,13 +29,22 @@ import { captureError } from '../utils/sentry'
 import { loadPartner } from '../utils/household'
 import { geocodeDestination, fetchTripWeather } from '../utils/trip'
 import { useSettings } from '../utils/settings'
+import { localeFor } from '../utils/i18n'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
 const COLORS = ['Alla', ...COLOR_NAMES]
 const STYLE_TAGS = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
-const WEEKDAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön']
-const MONTHS = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December']
+// Måndagsstartade veckodagsetiketter + fullt månadsnamn på valt språk via Intl
+// (inga språklistor att underhålla när nya språk läggs till).
+function weekdayLabels(locale: string): string[] {
+  const fmt = new Intl.DateTimeFormat(locale, { weekday: 'short' })
+  // 2024-01-01 var en måndag – generera mån…sön.
+  return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2024, 0, 1 + i)))
+}
+function monthLabel(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { month: 'long' }).format(date)
+}
 
 const TRIP_KEY = 'kladkollen_trip'
 const TRIP_CHECK_KEY = 'kladkollen_trip_checked'
@@ -44,7 +53,7 @@ export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang } = useSettings()
-  const locale = lang === 'en' ? 'en-GB' : 'sv-SE'
+  const locale = localeFor(lang)
   const { tab, create } = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'resa'>(
     create ? 'outfits' : tab === 'resa' ? 'resa' : tab === 'outfits' ? 'outfits' : 'kalender'
@@ -455,13 +464,13 @@ function isPast(date: Date) {
       const end = new Date(tripEndDate + 'T12:00:00')
       const days = tripDayCount()
       const dateLabel = `${start.toLocaleDateString(locale, { day: 'numeric', month: 'long' })} – ${end.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}`
-      const monthLabel = start.getMonth() === end.getMonth() ? MONTHS[start.getMonth()] : `${MONTHS[start.getMonth()]}/${MONTHS[end.getMonth()]}`
+      const monthLabelStr = start.getMonth() === end.getMonth() ? monthLabel(start, locale) : `${monthLabel(start, locale)}/${monthLabel(end, locale)}`
       const destinationLabel = geo.country ? `${geo.name}, ${geo.country}` : geo.name
 
       const parsed = await apiPost('/api/pack-trip', {
         destination: destinationLabel,
         dateLabel,
-        monthLabel,
+        monthLabel: monthLabelStr,
         days,
         weatherSummary: weather.summary,
         groupedList,
@@ -820,7 +829,7 @@ function isPast(date: Date) {
               <TouchableOpacity onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}>
                 <Text style={styles.monthNavArrow}>‹</Text>
               </TouchableOpacity>
-              <Text style={styles.monthTitle}>{tr(MONTHS[currentMonth.getMonth()])} {currentMonth.getFullYear()}</Text>
+              <Text style={styles.monthTitle}>{monthLabel(currentMonth, locale)} {currentMonth.getFullYear()}</Text>
               <TouchableOpacity onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}>
                 <Text style={styles.monthNavArrow}>›</Text>
               </TouchableOpacity>
@@ -828,7 +837,7 @@ function isPast(date: Date) {
 
             {/* Weekday headers */}
             <View style={styles.weekdayRow}>
-              {WEEKDAYS.map(d => <Text key={d} style={styles.weekdayLabel}>{tr(d)}</Text>)}
+              {weekdayLabels(locale).map((d, i) => <Text key={i} style={styles.weekdayLabel}>{d}</Text>)}
             </View>
 
             {/* Days grid */}
@@ -985,13 +994,13 @@ function isPast(date: Date) {
                     <TouchableOpacity onPress={() => setTripMonth(new Date(tripMonth.getFullYear(), tripMonth.getMonth() - 1, 1))}>
                       <Text style={styles.monthNavArrow}>‹</Text>
                     </TouchableOpacity>
-                    <Text style={styles.monthTitle}>{MONTHS[tripMonth.getMonth()]} {tripMonth.getFullYear()}</Text>
+                    <Text style={styles.monthTitle}>{monthLabel(tripMonth, locale)} {tripMonth.getFullYear()}</Text>
                     <TouchableOpacity onPress={() => setTripMonth(new Date(tripMonth.getFullYear(), tripMonth.getMonth() + 1, 1))}>
                       <Text style={styles.monthNavArrow}>›</Text>
                     </TouchableOpacity>
                   </View>
                   <View style={styles.weekdayRow}>
-                    {WEEKDAYS.map(d => <Text key={d} style={styles.weekdayLabel}>{tr(d)}</Text>)}
+                    {weekdayLabels(locale).map((d, i) => <Text key={i} style={styles.weekdayLabel}>{d}</Text>)}
                   </View>
                   <View style={styles.daysGrid}>
                     {getCalendarDays(tripMonth).map((day, index) => {

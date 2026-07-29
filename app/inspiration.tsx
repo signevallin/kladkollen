@@ -32,6 +32,7 @@ import { loadPartner } from '../utils/household'
 import { uploadUserImage } from '../utils/storage'
 import { pickImageSmart } from '../utils/imagePicker'
 import { useSettings } from '../utils/settings'
+import { localeFor } from '../utils/i18n'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
@@ -379,10 +380,9 @@ export default function Inspiration() {
     if (dateStr === today) return tt('Idag')
     if (dateStr === tmw.toISOString().slice(0, 10)) return tt('Imorgon')
     const d = new Date(dateStr + 'T12:00:00')
-    const WD = lang === 'en'
-      ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-      : ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör']
-    return `${WD[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`
+    // Kort veckodagsnamn på valt språk via Intl.
+    const wd = new Intl.DateTimeFormat(localeFor(lang), { weekday: 'short' }).format(d)
+    return `${wd} ${d.getDate()}/${d.getMonth() + 1}`
   }
 
   async function shareDayToNight() {

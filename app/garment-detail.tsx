@@ -32,6 +32,7 @@ import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import { useSettings } from '../utils/settings'
+import { localeFor } from '../utils/i18n'
 import { resolveImageUrl, uploadUserImage } from '../utils/storage'
 import { loadPartner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
@@ -56,7 +57,7 @@ export default function GarmentDetail() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { currency, toBaseSEK, fromBaseSEK, t: tr, lang } = useSettings()
-  const locale = lang === 'en' ? 'en-GB' : 'sv-SE'
+  const locale = localeFor(lang)
   const { id, wishlistId } = useLocalSearchParams()
   const isWishlistItem = !!wishlistId && !id
 

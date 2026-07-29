@@ -164,7 +164,7 @@ export default function Family() {
                 </View>
                 <View style={[styles.reminderBadge, r.state === 'ready' && styles.reminderBadgeReady]}>
                   <Text style={[styles.reminderBadgeText, r.state === 'ready' && styles.reminderBadgeTextReady]}>
-                    {reminderLabel(r, tr, lang)}
+                    {reminderLabel(r, tr)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -284,12 +284,12 @@ async function loadChildren(): Promise<Person[]> {
   return people.filter(p => p.type === 'child')
 }
 
-function reminderLabel(r: SizeReminder, tr: (k: string) => string, lang: 'sv' | 'en'): string {
+function reminderLabel(r: SizeReminder, tr: (k: string) => string): string {
   if (r.state === 'ready') return tr('Redo nu')
   if (r.state === 'waiting_season') return `${tr('Till')} ${tr(r.season || 'säsong').toLowerCase()}`
   const m = Math.round(r.monthsToFit)
   if (m <= 1) return tr('Snart')
-  return lang === 'en' ? `In ~${m} mo` : `Om ~${m} mån`
+  return tr('family.readyInMonths').replace('{n}', String(m))
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
