@@ -32,8 +32,8 @@ export function ageYearsFromBirthdate(birthdate?: string | null): number | null 
 
 // Snygg åldersetikett: "8 mån" för spädbarn, annars "3 år".
 // Åldersenheter per språk. Lägg till en rad när ett nytt språk läggs till.
-const AGE_MONTH: Record<string, string> = { sv: 'mån', en: 'mo', de: 'Mon.', fr: 'mois' }
-const AGE_YEAR: Record<string, string> = { sv: 'år', en: 'yr', de: 'J.', fr: 'ans' }
+const AGE_MONTH: Record<string, string> = { sv: 'mån', en: 'mo', de: 'Mon.', es: 'mes', fr: 'mois' }
+const AGE_YEAR: Record<string, string> = { sv: 'år', en: 'yr', de: 'J.', es: 'años', fr: 'ans' }
 
 export function formatAge(birthdate?: string | null, lang: string = 'sv'): string | null {
   const years = ageYearsFromBirthdate(birthdate)
