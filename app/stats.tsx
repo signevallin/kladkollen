@@ -103,7 +103,7 @@ interface WinningCombo {
 export default function Stats() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { formatPrice } = useSettings()
+  const { formatPrice, t: tt, lang } = useSettings()
   // Barn-läge: statistik för ett visst barn (öppnas från barnets garderob).
   const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
   const isPerson = !!person
@@ -264,8 +264,8 @@ export default function Stats() {
 
   async function markForSale(item: any) {
     const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
-    if (error) showAlert('Något gick fel', error.message)
-    else { showAlert('Lagt till i säljlistan!', `${item.name} finns nu under Sälj-fliken i din garderob.`); fetchAll() }
+    if (error) showAlert(tt('Något gick fel'), error.message)
+    else { showAlert(tt('Lagt till i säljlistan!'), `${item.name} ${tt('finns nu under Sälj-fliken i din garderob.')}`); fetchAll() }
   }
 
   const mostWornAll = garments.filter(g => g.times_worn > 0)
@@ -360,17 +360,17 @@ export default function Stats() {
         {isPerson ? (
           <TouchableOpacity style={styles.backRow} onPress={() => goBack(`/wardrobe?person=${person}&personName=${encodeURIComponent(personName || '')}`)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <MaterialIcons name="arrow-back" size={22} color={t.textSecondary} />
-            <Text style={styles.backText}>Tillbaka</Text>
+            <Text style={styles.backText}>{tt('Tillbaka')}</Text>
           </TouchableOpacity>
         ) : null}
-        <Text style={styles.title}>{isPerson ? `${personName || 'Barnet'}s statistik` : 'Statistik'}</Text>
+        <Text style={styles.title}>{isPerson ? `${personName || tt('Barnet')}${tt('s statistik')}` : tt('Statistik')}</Text>
         {/* "Min stil" (humör/betyg) är per person – bara garderobsstatistik i barn-läge. */}
         {!isPerson && (
           <View style={styles.tabRow}>
             {(['garderob', 'stil'] as const).map(tab => (
               <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab === 'stil' ? 'Min stil' : 'Min garderob'}
+                  {tab === 'stil' ? tt('Min stil') : tt('Min garderob')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -387,8 +387,8 @@ export default function Stats() {
             <MaterialIcons name="auto-awesome" size={20} color={t.onPrimary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.analysisCtaTitle}>Analysera garderoben med AI</Text>
-            <Text style={styles.analysisCtaSub}>Matcha mot din färganalys, stil eller moodboard</Text>
+            <Text style={styles.analysisCtaTitle}>{tt('Analysera garderoben med AI')}</Text>
+            <Text style={styles.analysisCtaSub}>{tt('Matcha mot din färganalys, stil eller moodboard')}</Text>
           </View>
           <MaterialIcons name="chevron-right" size={22} color={t.textSecondary} />
         </TouchableOpacity>
@@ -398,28 +398,28 @@ export default function Stats() {
         {activeTab === 'stil' && (
           !hasStyleData ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>Ingen data än</Text>
-              <Text style={styles.emptyText}>Generera outfits och betygsätt dem för att se din stilprofil växa fram.</Text>
+              <Text style={styles.emptyTitle}>{tt('Ingen data än')}</Text>
+              <Text style={styles.emptyText}>{tt('Generera outfits och betygsätt dem för att se din stilprofil växa fram.')}</Text>
             </View>
           ) : (
             <>
               {/* Stilprofil */}
               {moodStats.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Din stilprofil</Text>
-                  <Text style={styles.sectionSubtitle}>Hur ofta du klär dig för olika tillfällen</Text>
+                  <Text style={styles.sectionTitle}>{tt('Din stilprofil')}</Text>
+                  <Text style={styles.sectionSubtitle}>{tt('Hur ofta du klär dig för olika tillfällen')}</Text>
                   {moodStats.map(m => (
                     <View key={m.label} style={styles.moodRow}>
                       <View style={styles.moodInfo}>
                         <View style={styles.moodLabelRow}>
-                          <Text style={styles.moodName}>{m.label}</Text>
+                          <Text style={styles.moodName}>{tt(m.label)}</Text>
                           <Text style={[styles.moodPct, { color: m.color }]}>{m.pct}%</Text>
                         </View>
                         <View style={styles.barTrack}>
                           <View style={[styles.barFill, { width: `${m.pct}%`, backgroundColor: m.color }]} />
                         </View>
                         {m.avgRating !== null && (
-                          <Text style={styles.moodAvg}>{stars(m.avgRating)} {m.avgRating}/5 i snitt</Text>
+                          <Text style={styles.moodAvg}>{stars(m.avgRating)} {m.avgRating}/5 {tt('i snitt')}</Text>
                         )}
                       </View>
                     </View>
@@ -431,9 +431,9 @@ export default function Stats() {
               {moodROI && (
                 <View style={[styles.insightCard, { marginBottom: 24 }]}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.insightTitle}>Din bästa stil</Text>
+                    <Text style={styles.insightTitle}>{tt('Din bästa stil')}</Text>
                     <Text style={styles.insightBody}>
-                      {moodROI.bestLabel}-outfits ger {moodROI.pctDiff}% högre betyg än {moodROI.worstLabel}-outfits.
+                      {lang === 'en' ? `${tt(moodROI.bestLabel)} outfits score ${moodROI.pctDiff}% higher than ${tt(moodROI.worstLabel)} outfits.` : `${moodROI.bestLabel}-outfits ger ${moodROI.pctDiff}% högre betyg än ${moodROI.worstLabel}-outfits.`}
                     </Text>
                   </View>
                 </View>
@@ -443,9 +443,9 @@ export default function Stats() {
               {winningCombo && (
                 <View style={[styles.insightCard, { marginBottom: 24 }]}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.insightTitle}>Vinnande kombination</Text>
+                    <Text style={styles.insightTitle}>{tt('Vinnande kombination')}</Text>
                     <Text style={styles.insightBody}>
-                      {winningCombo.group} till {winningCombo.context} ger dig {winningCombo.avgRating}/5 i snitt – din mest lyckade färg × tillfälle.
+                      {lang === 'en' ? `${tt(winningCombo.group)} for ${tt(winningCombo.context)} averages ${winningCombo.avgRating}/5 – your most successful colour × occasion.` : `${winningCombo.group} till ${winningCombo.context} ger dig ${winningCombo.avgRating}/5 i snitt – din mest lyckade färg × tillfälle.`}
                     </Text>
                   </View>
                 </View>
@@ -455,7 +455,7 @@ export default function Stats() {
               {powerPieces.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Power Pieces</Text>
-                  <Text style={styles.sectionSubtitle}>Plagg kopplade till dina bästa outfits</Text>
+                  <Text style={styles.sectionSubtitle}>{tt('Plagg kopplade till dina bästa outfits')}</Text>
                   {powerPieces.map((item, i) => (
                     <View key={item.name} style={styles.pieceRow}>
                       <Text style={styles.pieceRank}>#{i + 1}</Text>
@@ -477,13 +477,13 @@ export default function Stats() {
               {/* Färgpsykologi */}
               {colorInsights.length >= 2 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Färgpsykologi</Text>
-                  <Text style={styles.sectionSubtitle}>Vilka färggrupper ger dig höga betyg</Text>
+                  <Text style={styles.sectionTitle}>{tt('Färgpsykologi')}</Text>
+                  <Text style={styles.sectionSubtitle}>{tt('Vilka färggrupper ger dig höga betyg')}</Text>
                   {colorInsights.map(c => (
                     <View key={c.group} style={styles.colorRow}>
                       <View style={styles.colorInfo}>
                         <View style={styles.colorLabelRow}>
-                          <Text style={styles.colorName}>{c.group}</Text>
+                          <Text style={styles.colorName}>{tt(c.group)}</Text>
                           <Text style={styles.colorRating}>{c.avgRating}★</Text>
                         </View>
                         <View style={styles.barTrack}>
@@ -498,8 +498,8 @@ export default function Stats() {
               {/* Svaga plagg */}
               {weakPieces.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Sänker betyget</Text>
-                  <Text style={styles.sectionSubtitle}>Dessa plagg är kopplade till lägre betyg</Text>
+                  <Text style={styles.sectionTitle}>{tt('Sänker betyget')}</Text>
+                  <Text style={styles.sectionSubtitle}>{tt('Dessa plagg är kopplade till lägre betyg')}</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     <View style={styles.horizontalList}>
                       {weakPieces.map(item => (
@@ -523,16 +523,16 @@ export default function Stats() {
               {ratedCount < 10 && (
                 <View style={styles.unlockCard}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.unlockTitle}>Mer insikter väntar</Text>
+                    <Text style={styles.unlockTitle}>{tt('Mer insikter väntar')}</Text>
                     <Text style={styles.unlockText}>
                       {ratedCount < 5
-                        ? `Betygsätt ${5 - ratedCount} outfits till för Power Pieces och Mood ROI.`
-                        : `Betygsätt ${10 - ratedCount} outfits till för färgpsykologi och djupare trendanalys.`}
+                        ? (lang === 'en' ? `Rate ${5 - ratedCount} more outfits for Power Pieces and Mood ROI.` : `Betygsätt ${5 - ratedCount} outfits till för Power Pieces och Mood ROI.`)
+                        : (lang === 'en' ? `Rate ${10 - ratedCount} more outfits for colour psychology and deeper trend analysis.` : `Betygsätt ${10 - ratedCount} outfits till för färgpsykologi och djupare trendanalys.`)}
                     </Text>
                     <View style={styles.unlockBar}>
                       <View style={[styles.unlockFill, { width: `${Math.min(100, (ratedCount / 10) * 100)}%` }]} />
                     </View>
-                    <Text style={styles.unlockProgress}>{ratedCount}/10 betygsatta outfits</Text>
+                    <Text style={styles.unlockProgress}>{ratedCount}/10 {tt('betygsatta outfits')}</Text>
                   </View>
                 </View>
               )}
@@ -546,29 +546,29 @@ export default function Stats() {
             <View style={styles.heroRow}>
               <View style={styles.heroCardHalf}>
                 <Text style={styles.heroNumberSm}>{totalWorn}</Text>
-                <Text style={styles.heroLabel}>gånger använda</Text>
+                <Text style={styles.heroLabel}>{tt('gånger använda')}</Text>
               </View>
               <View style={styles.heroCardHalf}>
                 <View style={styles.heroLaundryTop}>
                   <Text style={styles.heroNumberSm}>{garments.filter(g => g.in_laundry).length}</Text>
                   <MaterialIcons name="local-laundry-service" size={22} color={t.onPrimary} style={{ opacity: 0.85 }} />
                 </View>
-                <Text style={styles.heroLabel}>i tvätten</Text>
+                <Text style={styles.heroLabel}>{tt('i tvätten')}</Text>
               </View>
             </View>
 
             <View style={styles.miniStatsRow}>
               <View style={styles.miniStat}>
                 <Text style={styles.miniStatNum}>{garments.length}</Text>
-                <Text style={styles.miniStatLabel}>plagg totalt</Text>
+                <Text style={styles.miniStatLabel}>{tt('plagg totalt')}</Text>
               </View>
               <View style={styles.miniStat}>
                 <Text style={styles.miniStatNum}>{garments.filter(g => g.times_worn > 0).length}</Text>
-                <Text style={styles.miniStatLabel}>använda</Text>
+                <Text style={styles.miniStatLabel}>{tt('använda')}</Text>
               </View>
               <View style={styles.miniStat}>
                 <Text style={styles.miniStatNum}>{neverWorn.length}</Text>
-                <Text style={styles.miniStatLabel}>oanvända</Text>
+                <Text style={styles.miniStatLabel}>{tt('oanvända')}</Text>
               </View>
             </View>
 
@@ -576,20 +576,20 @@ export default function Stats() {
               <Text style={styles.usagePercent}>
                 {garments.length > 0 ? Math.round((garments.filter(g => g.times_worn > 0).length / garments.length) * 100) : 0}%
               </Text>
-              <Text style={styles.usageLabel}>av din garderob används aktivt</Text>
+              <Text style={styles.usageLabel}>{tt('av din garderob används aktivt')}</Text>
             </View>
 
             {colorBreakdown.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Din garderobs färger</Text>
-                <Text style={styles.sectionSubtitle}>Så här fördelar sig färgerna i din garderob</Text>
+                <Text style={styles.sectionTitle}>{tt('Din garderobs färger')}</Text>
+                <Text style={styles.sectionSubtitle}>{tt('Så här fördelar sig färgerna i din garderob')}</Text>
                 <View style={styles.pieWrap}>
                   <ColorPie data={colorBreakdown} total={colorTotal} />
                   <View style={styles.legend}>
                     {colorBreakdown.map(c => (
                       <View key={c.name} style={styles.legendRow}>
                         <View style={[styles.legendDot, { backgroundColor: c.hex }]} />
-                        <Text style={styles.legendName} numberOfLines={1}>{c.name}</Text>
+                        <Text style={styles.legendName} numberOfLines={1}>{tt(c.name)}</Text>
                         <Text style={styles.legendCount}>{Math.round((c.count / colorTotal) * 100)}%</Text>
                       </View>
                     ))}
@@ -600,15 +600,15 @@ export default function Stats() {
 
             {categoryBreakdown.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Din garderobs kategorier</Text>
-                <Text style={styles.sectionSubtitle}>Så här fördelar sig plaggen mellan kategorier</Text>
+                <Text style={styles.sectionTitle}>{tt('Din garderobs kategorier')}</Text>
+                <Text style={styles.sectionSubtitle}>{tt('Så här fördelar sig plaggen mellan kategorier')}</Text>
                 <View style={styles.pieWrap}>
                   <ColorPie data={categoryBreakdown} total={categoryTotal} />
                   <View style={styles.legend}>
                     {categoryBreakdown.map(c => (
                       <View key={c.name} style={styles.legendRow}>
                         <View style={[styles.legendDot, { backgroundColor: c.hex }]} />
-                        <Text style={styles.legendName} numberOfLines={1}>{c.name}</Text>
+                        <Text style={styles.legendName} numberOfLines={1}>{tt(c.name)}</Text>
                         <Text style={styles.legendCount}>{Math.round((c.count / categoryTotal) * 100)}%</Text>
                       </View>
                     ))}
@@ -619,15 +619,15 @@ export default function Stats() {
 
             {seasonBreakdown.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Din garderobs säsonger</Text>
-                <Text style={styles.sectionSubtitle}>Så här fördelar sig plaggen mellan årstider</Text>
+                <Text style={styles.sectionTitle}>{tt('Din garderobs säsonger')}</Text>
+                <Text style={styles.sectionSubtitle}>{tt('Så här fördelar sig plaggen mellan årstider')}</Text>
                 <View style={styles.pieWrap}>
                   <ColorPie data={seasonBreakdown} total={seasonTotal} />
                   <View style={styles.legend}>
                     {seasonBreakdown.map(c => (
                       <View key={c.name} style={styles.legendRow}>
                         <View style={[styles.legendDot, { backgroundColor: c.hex }]} />
-                        <Text style={styles.legendName} numberOfLines={1}>{c.name}</Text>
+                        <Text style={styles.legendName} numberOfLines={1}>{tt(c.name)}</Text>
                         <Text style={styles.legendCount}>{Math.round((c.count / seasonTotal) * 100)}%</Text>
                       </View>
                     ))}
@@ -638,8 +638,8 @@ export default function Stats() {
 
             {brandBreakdown.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Dina märken</Text>
-                <Text style={styles.sectionSubtitle}>Antal plagg per märke</Text>
+                <Text style={styles.sectionTitle}>{tt('Dina märken')}</Text>
+                <Text style={styles.sectionSubtitle}>{tt('Antal plagg per märke')}</Text>
                 {brandBreakdown.map(b => (
                   <View key={b.name} style={styles.barRow}>
                     <View style={styles.barInfo}>
@@ -660,12 +660,12 @@ export default function Stats() {
               <View style={styles.section}>
                 <View style={styles.usageCard}>
                   <Text style={styles.usagePercent}>{formatPrice(totalValue)}</Text>
-                  <Text style={styles.usageLabel}>uppskattat värde på din garderob (av plagg med pris)</Text>
+                  <Text style={styles.usageLabel}>{tt('uppskattat värde på din garderob (av plagg med pris)')}</Text>
                 </View>
                 {costPerWear.length > 0 && (
                   <>
-                    <Text style={[styles.sectionTitle, { marginTop: 4 }]}>Kostnad per användning</Text>
-                    <Text style={styles.sectionSubtitle}>Högst först – bär mer eller överväg att sälja</Text>
+                    <Text style={[styles.sectionTitle, { marginTop: 4 }]}>{tt('Kostnad per användning')}</Text>
+                    <Text style={styles.sectionSubtitle}>{tt('Högst först – bär mer eller överväg att sälja')}</Text>
                     {costPerWear.map((item, i) => (
                       <View key={item.name + i} style={styles.pieceRow}>
                         <TouchableOpacity disabled={!item.id} activeOpacity={0.7} onPress={() => item.id && router.push(`/garment-detail?id=${item.id}`)}>
@@ -676,7 +676,7 @@ export default function Stats() {
                         </TouchableOpacity>
                         <View style={styles.pieceInfo}>
                           <Text style={styles.pieceName} numberOfLines={1}>{item.name}</Text>
-                          <Text style={styles.pieceCpw}>{formatPrice(item.cpw)} / användning</Text>
+                          <Text style={styles.pieceCpw}>{formatPrice(item.cpw)} {tt('/ användning')}</Text>
                         </View>
                       </View>
                     ))}
@@ -687,21 +687,21 @@ export default function Stats() {
 
             {mostWornAll.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Mest använda plagg</Text>
+                <Text style={styles.sectionTitle}>{tt('Mest använda plagg')}</Text>
                 {mostWornCats.length > 2 && (
                   <View style={styles.mostWornCats}>
                     {mostWornCats.map(c => {
                       const on = mostWornCat === c
                       return (
                         <TouchableOpacity key={c} style={[styles.mostWornChip, on && styles.mostWornChipActive]} onPress={() => setMostWornCat(c)}>
-                          <Text style={[styles.mostWornChipText, on && styles.mostWornChipTextActive]}>{c}</Text>
+                          <Text style={[styles.mostWornChipText, on && styles.mostWornChipTextActive]}>{tt(c)}</Text>
                         </TouchableOpacity>
                       )
                     })}
                   </View>
                 )}
                 {mostWorn.length === 0 ? (
-                  <Text style={styles.mostWornEmpty}>Inga använda plagg i den kategorin än.</Text>
+                  <Text style={styles.mostWornEmpty}>{tt('Inga använda plagg i den kategorin än.')}</Text>
                 ) : mostWorn.map(item => (
                   <View key={item.id} style={styles.barRow}>
                     <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
@@ -718,7 +718,7 @@ export default function Stats() {
                       <View style={styles.barTrack}>
                         <View style={[styles.barFill, { width: `${(item.times_worn / maxWorn) * 100}%` }]} />
                       </View>
-                      <Text style={styles.barCategory}>{item.category}</Text>
+                      <Text style={styles.barCategory}>{tt(item.category)}</Text>
                     </View>
                   </View>
                 ))}
@@ -727,7 +727,7 @@ export default function Stats() {
 
             {neverWorn.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Aldrig använda</Text>
+                <Text style={styles.sectionTitle}>{tt('Aldrig använda')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={styles.horizontalList}>
                     {neverWorn.map(item => (
@@ -749,20 +749,20 @@ export default function Stats() {
             {vintedTips.length > 0 && (
               <View style={styles.vintedSection}>
                 <View style={styles.vintedHeader}>
-                  <Text style={styles.vintedTitle}>Sälj på Vinted</Text>
+                  <Text style={styles.vintedTitle}>{tt('Sälj på Vinted')}</Text>
                   <View style={styles.vintedBadge}>
-                    <Text style={styles.vintedBadgeText}>{vintedTips.length} tips</Text>
+                    <Text style={styles.vintedBadgeText}>{vintedTips.length} {tt('tips')}</Text>
                   </View>
                 </View>
-                <Text style={styles.vintedSubtitle}>Dessa plagg har inte använts på länge – dags att sälja?</Text>
+                <Text style={styles.vintedSubtitle}>{tt('Dessa plagg har inte använts på länge – dags att sälja?')}</Text>
                 {vintedTips.map(item => {
                   const idleDays = daysSince(item.last_worn)
                   const ownedDays = daysSince(item.created_at)
                   const label = idleDays !== null
-                    ? `Inte använd på ${idleDays} dagar`
+                    ? (lang === 'en' ? `Not worn in ${idleDays} days` : `Inte använd på ${idleDays} dagar`)
                     : ownedDays !== null
-                      ? `Aldrig använd – i garderoben i ${Math.round(ownedDays / 30)} månader`
-                      : 'Aldrig använd'
+                      ? (lang === 'en' ? `Never worn – in your wardrobe for ${Math.round(ownedDays / 30)} months` : `Aldrig använd – i garderoben i ${Math.round(ownedDays / 30)} månader`)
+                      : tt('Aldrig använd')
                   return (
                     <View key={item.id} style={styles.vintedItem}>
                       <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
@@ -773,11 +773,11 @@ export default function Stats() {
                       </TouchableOpacity>
                       <View style={styles.vintedInfo}>
                         <Text style={styles.vintedItemName}>{item.name}</Text>
-                        <Text style={styles.vintedItemCategory}>{item.category}</Text>
+                        <Text style={styles.vintedItemCategory}>{tt(item.category)}</Text>
                         <Text style={styles.vintedDays}>{label}</Text>
                       </View>
                       <TouchableOpacity style={styles.vintedButton} onPress={() => markForSale(item)}>
-                        <Text style={styles.vintedButtonText}>Sälj</Text>
+                        <Text style={styles.vintedButtonText}>{tt('Sälj')}</Text>
                       </TouchableOpacity>
                     </View>
                   )
