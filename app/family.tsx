@@ -25,10 +25,12 @@ import {
 } from '../utils/childSize'
 import { computeSizeReminders, type SizeReminder } from '../utils/sizeReminders'
 import { loadSizedGarments } from '../utils/people'
+import { useSettings } from '../utils/settings'
 
 export default function Family() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr, lang } = useSettings()
   const { data, loading, error, refetch } = useQuery(loadChildren, [], { cacheKey: 'people.children' })
   const children = data ?? []
   const { data: sizedGarments } = useQuery(loadSizedGarments, [], { cacheKey: 'family.sizedGarments' })
@@ -63,14 +65,14 @@ export default function Family() {
   }
 
   async function saveChild() {
-    if (!name.trim()) { showAlert('Skriv ett namn'); return }
+    if (!name.trim()) { showAlert(tr('Skriv ett namn')); return }
     setSaving(true)
     try {
       await addChild({ name, birthdate, gender, current_size_cm: effectiveSize ?? null, avatar_url: avatarUrl })
       resetForm()
       refetch()
     } catch (e: any) {
-      showAlert('Kunde inte spara', 'Något gick fel – försök igen.')
+      showAlert(tr('Kunde inte spara'), tr('Något gick fel – försök igen.'))
     } finally {
       setSaving(false)
     }
@@ -90,7 +92,7 @@ export default function Family() {
     const uri = result.assets[0].uri
     setAvatarUrl(uri) // visa direkt
     try { setAvatarUrl(await uploadImage(uri)) }
-    catch { setAvatarUrl(null); showAlert('Kunde inte ladda upp bilden', 'Försök igen.') }
+    catch { setAvatarUrl(null); showAlert(tr('Kunde inte ladda upp bilden'), tr('Försök igen.')) }
   }
 
   async function changePhoto(child: Person) {
@@ -100,39 +102,39 @@ export default function Family() {
       const url = await uploadImage(result.assets[0].uri)
       await updatePerson(child.id, { avatar_url: url })
       refetch()
-    } catch { showAlert('Kunde inte ladda upp bilden', 'Försök igen.') }
+    } catch { showAlert(tr('Kunde inte ladda upp bilden'), tr('Försök igen.')) }
   }
 
   async function bump(child: Person, dir: 1 | -1) {
     const base = child.current_size_cm ?? suggestedSizeCm(child.birthdate) ?? EU_CHILD_SIZES[0]
     const next = dir > 0 ? nextSize(base) : prevSize(base)
-    try { await setChildSize(child.id, next); refetch() } catch { showAlert('Kunde inte uppdatera storleken') }
+    try { await setChildSize(child.id, next); refetch() } catch { showAlert(tr('Kunde inte uppdatera storleken')) }
   }
 
   function removeChild(child: Person) {
-    showConfirm('Ta bort', `Ta bort ${child.name} ur familjen?`, async () => {
-      try { await deletePerson(child.id); refetch() } catch { showAlert('Kunde inte ta bort') }
-    }, 'Ta bort', true)
+    showConfirm(tr('Ta bort'), `${tr('Ta bort ur familjen?')} – ${child.name}`, async () => {
+      try { await deletePerson(child.id); refetch() } catch { showAlert(tr('Kunde inte ta bort')) }
+    }, tr('Ta bort'), true)
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/profile')}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Familj</Text>
-        <Text style={styles.subtitle}>Lägg till barnen i hushållet och håll koll på storlekarna. Då kan appen påminna när sparade kläder börjar passa.</Text>
+        <Text style={styles.title}>{tr('Familj')}</Text>
+        <Text style={styles.subtitle}>{tr('Lägg till barnen i hushållet och håll koll på storlekarna. Då kan appen påminna när sparade kläder börjar passa.')}</Text>
 
         {reminders.length > 0 && (
           <View style={styles.remindersSection}>
-            <Text style={styles.sectionTitle}>Redo att ta fram</Text>
+            <Text style={styles.sectionTitle}>{tr('Redo att ta fram')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
               {([
-                ['all', `Alla (${reminders.length})`],
-                ['ready', `Redo nu (${reminderCounts.ready})`],
-                ['upcoming', `Snart (${reminderCounts.upcoming})`],
-                ['waiting_season', `Väntar på säsong (${reminderCounts.waiting_season})`],
+                ['all', `${tr('Alla')} (${reminders.length})`],
+                ['ready', `${tr('Redo nu')} (${reminderCounts.ready})`],
+                ['upcoming', `${tr('Snart')} (${reminderCounts.upcoming})`],
+                ['waiting_season', `${tr('Väntar på säsong')} (${reminderCounts.waiting_season})`],
               ] as const).map(([key, label]) => {
                 // Dölj tomma tillståndsfilter (utom Alla).
                 if (key !== 'all' && reminderCounts[key] === 0) return null
@@ -157,12 +159,12 @@ export default function Family() {
                 <View style={styles.reminderInfo}>
                   <Text style={styles.reminderName} numberOfLines={1}>{r.garmentName}</Text>
                   <Text style={styles.reminderMeta} numberOfLines={1}>
-                    {r.childName} · stl {r.sizeCm}{r.location ? ` · ${r.location}` : ''}
+                    {r.childName} · {tr('stl')} {r.sizeCm}{r.location ? ` · ${r.location}` : ''}
                   </Text>
                 </View>
                 <View style={[styles.reminderBadge, r.state === 'ready' && styles.reminderBadgeReady]}>
                   <Text style={[styles.reminderBadgeText, r.state === 'ready' && styles.reminderBadgeTextReady]}>
-                    {reminderLabel(r)}
+                    {reminderLabel(r, tr, lang)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -171,13 +173,13 @@ export default function Family() {
         )}
 
         <QueryState loading={loading} error={error} onRetry={refetch} isEmpty={children.length === 0}
-          emptyText="Inga barn tillagda än. Lägg till ditt första barn nedan.">
+          emptyText={tr('Inga barn tillagda än. Lägg till ditt första barn nedan.')}>
           {children.map(child => (
             <View key={child.id} style={styles.childRow}>
               <TouchableOpacity
                 onPress={() => changePhoto(child)}
                 activeOpacity={0.8}
-                accessibilityLabel={`Byt bild på ${child.name}`}
+                accessibilityLabel={`${tr('Byt bild på')} ${child.name}`}
               >
                 {child.avatar_url
                   ? <SignedImage path={child.avatar_url} style={styles.childAvatar} resizeMode="cover" />
@@ -188,22 +190,22 @@ export default function Family() {
                 style={styles.childInfo}
                 onPress={() => router.push(`/wardrobe?person=${child.id}&personName=${encodeURIComponent(child.name)}`)}
                 activeOpacity={0.8}
-                accessibilityLabel={`Öppna ${child.name}s garderob`}
+                accessibilityLabel={`${tr('Öppna garderob för')} ${child.name}`}
               >
                 <Text style={styles.childName}>{child.name}</Text>
                 <Text style={styles.childMeta}>
-                  {[formatAge(child.birthdate), child.gender].filter(Boolean).join(' · ') || 'Ingen ålder angiven'}
+                  {[formatAge(child.birthdate, lang), tr(child.gender || '')].filter(Boolean).join(' · ') || tr('Ingen ålder angiven')}
                 </Text>
               </TouchableOpacity>
               <View style={styles.sizeStepper}>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, -1)} accessibilityLabel="Mindre storlek">
+                <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, -1)} accessibilityLabel={tr('Mindre storlek')}>
                   <MaterialIcons name="remove" size={16} color={t.textPrimary} />
                 </TouchableOpacity>
                 <View style={styles.sizeValue}>
                   <Text style={styles.sizeNum}>{child.current_size_cm ?? '–'}</Text>
-                  <Text style={styles.sizeUnit}>stl</Text>
+                  <Text style={styles.sizeUnit}>{tr('stl')}</Text>
                 </View>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, 1)} accessibilityLabel="Större storlek">
+                <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, 1)} accessibilityLabel={tr('Större storlek')}>
                   <MaterialIcons name="add" size={16} color={t.textPrimary} />
                 </TouchableOpacity>
               </View>
@@ -216,34 +218,34 @@ export default function Family() {
 
         {showAdd ? (
           <View style={styles.addBox}>
-            <Text style={styles.addLabel}>Nytt barn</Text>
+            <Text style={styles.addLabel}>{tr('Nytt barn')}</Text>
 
-            <TouchableOpacity style={styles.formAvatarWrap} onPress={pickFormAvatar} accessibilityLabel="Välj bild">
+            <TouchableOpacity style={styles.formAvatarWrap} onPress={pickFormAvatar} accessibilityLabel={tr('Välj bild')}>
               {avatarUrl
                 ? <SignedImage path={avatarUrl} style={styles.formAvatar} resizeMode="cover" />
                 : <View style={styles.formAvatarEmpty}><MaterialIcons name="add-a-photo" size={22} color={t.textSecondary} /></View>}
             </TouchableOpacity>
 
-            <Text style={styles.fieldLabel}>Namn</Text>
-            <TextInput style={styles.input} placeholder="t.ex. Alva" placeholderTextColor={t.placeholder}
+            <Text style={styles.fieldLabel}>{tr('Namn')}</Text>
+            <TextInput style={styles.input} placeholder={tr('t.ex. Alva')} placeholderTextColor={t.placeholder}
               value={name} onChangeText={setName} />
 
-            <Text style={styles.fieldLabel}>Födelsedatum</Text>
-            <TextInput style={styles.input} placeholder="ÅÅÅÅ-MM-DD" placeholderTextColor={t.placeholder}
+            <Text style={styles.fieldLabel}>{tr('Födelsedatum')}</Text>
+            <TextInput style={styles.input} placeholder={tr('ÅÅÅÅ-MM-DD')} placeholderTextColor={t.placeholder}
               value={birthdate} onChangeText={setBirthdate} maxLength={10} keyboardType="numbers-and-punctuation" />
 
-            <Text style={styles.fieldLabel}>Kön (valfritt)</Text>
+            <Text style={styles.fieldLabel}>{tr('Kön (valfritt)')}</Text>
             <View style={styles.pills}>
               {['Flicka', 'Pojke'].map(g => (
                 <TouchableOpacity key={g} style={[styles.pill, gender === g && styles.pillActive]}
                   onPress={() => setGender(gender === g ? null : g)}>
-                  <Text style={[styles.pillText, gender === g && styles.pillTextActive]}>{g}</Text>
+                  <Text style={[styles.pillText, gender === g && styles.pillTextActive]}>{tr(g)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             <Text style={styles.fieldLabel}>
-              Storlek{!sizeTouched && suggested != null ? `  (förslag: ${suggested})` : ''}
+              {tr('Storlek')}{!sizeTouched && suggested != null ? `  (${tr('förslag:')} ${suggested})` : ''}
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sizeScroll}>
               {EU_CHILD_SIZES.map(s => {
@@ -259,16 +261,16 @@ export default function Family() {
 
             <TouchableOpacity style={[styles.saveBtn, (!name.trim() || saving) && styles.saveBtnDisabled]}
               onPress={saveChild} disabled={!name.trim() || saving}>
-              <Text style={styles.saveBtnText}>{saving ? 'Sparar…' : 'Lägg till barn'}</Text>
+              <Text style={styles.saveBtnText}>{saving ? tr('Sparar…') : tr('Lägg till barn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelBtn} onPress={resetForm}>
-              <Text style={styles.cancelText}>Avbryt</Text>
+              <Text style={styles.cancelText}>{tr('Avbryt')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity style={styles.addTrigger} onPress={() => setShowAdd(true)}>
             <MaterialIcons name="add" size={20} color={t.onPrimary} />
-            <Text style={styles.addTriggerText}>Lägg till barn</Text>
+            <Text style={styles.addTriggerText}>{tr('Lägg till barn')}</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -282,11 +284,12 @@ async function loadChildren(): Promise<Person[]> {
   return people.filter(p => p.type === 'child')
 }
 
-function reminderLabel(r: SizeReminder): string {
-  if (r.state === 'ready') return 'Redo nu'
-  if (r.state === 'waiting_season') return `Till ${(r.season || 'säsong').toLowerCase()}`
+function reminderLabel(r: SizeReminder, tr: (k: string) => string, lang: 'sv' | 'en'): string {
+  if (r.state === 'ready') return tr('Redo nu')
+  if (r.state === 'waiting_season') return `${tr('Till')} ${tr(r.season || 'säsong').toLowerCase()}`
   const m = Math.round(r.monthsToFit)
-  return m <= 1 ? 'Snart' : `Om ~${m} mån`
+  if (m <= 1) return tr('Snart')
+  return lang === 'en' ? `In ~${m} mo` : `Om ~${m} mån`
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
