@@ -12,6 +12,9 @@
 export const LANGS = [
   { code: 'sv', label: 'Svenska' },
   { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'es', label: 'Español' },
+  { code: 'fr', label: 'Français' },
 ] as const
 
 export type Lang = (typeof LANGS)[number]['code']
@@ -19,13 +22,19 @@ export type Lang = (typeof LANGS)[number]['code']
 // BCP-47-locale per språk – används för datum, månads- och veckodagsnamn via
 // Intl. Okänt språk faller tillbaka på svenska.
 const LOCALES: Record<string, string> = {
-  sv: 'sv-SE', en: 'en-GB', de: 'de-DE', fr: 'fr-FR',
+  sv: 'sv-SE', en: 'en-GB', de: 'de-DE', es: 'es-ES', fr: 'fr-FR',
 }
 export function localeFor(lang: string): string {
   return LOCALES[lang] || 'sv-SE'
 }
 
 type Dict = Record<string, string>
+
+// Ordböcker nycklade på de svenska källsträngarna. Läggs i JSON för att undvika
+// problem med escaping (t.ex. franska apostrofer) i TS-strängar.
+import de from './i18n.de.json'
+import es from './i18n.es.json'
+import fr from './i18n.fr.json'
 
 const sv: Dict = {
   // Bottennavigering
@@ -900,7 +909,7 @@ Object.assign(en, enBySource)
 
 // Nycklad på språkkod (string, inte Lang) så man kan lägga till en LANGS-rad
 // innan ordboken finns – translate faller då tillbaka på svenskan.
-export const translations: Record<string, Dict> = { sv, en }
+export const translations: Record<string, Dict> = { sv, en, de, es, fr }
 
 export function translate(lang: string, key: string): string {
   return translations[lang]?.[key] ?? translations.sv[key] ?? key
