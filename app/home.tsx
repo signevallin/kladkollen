@@ -47,7 +47,7 @@ const RECENT_GARMENTS_KEY = 'kladkollen_recent_garments'
 export default function Home() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { tempLabel } = useSettings()
+  const { tempLabel, t: tr } = useSettings()
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
   const [weather, setWeather] = useState<any>(() => cacheGet('home.weather') ?? null)
@@ -157,7 +157,7 @@ export default function Home() {
   async function fetchWeather() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
-      if (status !== 'granted') { if (!weather) setWeather({ temp: 10, emoji: '🌧️', description: 'Regn', rain: true }); return }
+      if (status !== 'granted') { if (!weather) setWeather({ temp: 10, emoji: '🌧️', description: tr('Regn'), rain: true }); return }
       const location = await Location.getCurrentPositionAsync({})
       const { latitude, longitude } = location.coords
       const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`)
@@ -169,7 +169,7 @@ export default function Home() {
     } catch {
       // Behåll senast kända väder (om det finns) i stället för att skriva över
       // med en platshållare vid tillfälligt fel.
-      if (!weather) setWeather({ temp: 10, emoji: '🌡️', description: 'Okänt', rain: false })
+      if (!weather) setWeather({ temp: 10, emoji: '🌡️', description: tr('Okänt'), rain: false })
     }
   }
 
@@ -184,20 +184,20 @@ export default function Home() {
   }
 
   function getWeatherDescription(code: number) {
-    if (code === 0) return 'Klart'
-    if (code <= 3) return 'Halvklart'
-    if (code <= 48) return 'Dimma'
-    if (code <= 67) return 'Regn'
-    if (code <= 77) return 'Snö'
-    if (code <= 82) return 'Skurar'
-    return 'Åska'
+    if (code === 0) return tr('Klart')
+    if (code <= 3) return tr('Halvklart')
+    if (code <= 48) return tr('Dimma')
+    if (code <= 67) return tr('Regn')
+    if (code <= 77) return tr('Snö')
+    if (code <= 82) return tr('Skurar')
+    return tr('Åska')
   }
 
   function getGreeting() {
     const hour = new Date().getHours()
-    if (hour < 10) return 'God morgon'
-    if (hour < 18) return 'Hej'
-    return 'God kväll'
+    if (hour < 10) return tr('God morgon')
+    if (hour < 18) return tr('Hej')
+    return tr('God kväll')
   }
 
   function selectContext(index: number) {
@@ -338,7 +338,7 @@ export default function Home() {
 
   async function generateOutfit(ctxIndex: number = selectedContext) {
     if (garments.length === 0) {
-      showAlert('Lägg till plagg i garderoben först!')
+      showAlert(tr('Lägg till plagg i garderoben först!'))
       return
     }
 
@@ -456,7 +456,7 @@ export default function Home() {
         if (valid && baseIncluded) break
       }
 
-      if (!parsed?.items?.length) throw new Error('AI:n gav inget giltigt förslag – försök igen.')
+      if (!parsed?.items?.length) throw new Error(tr('AI:n gav inget giltigt förslag – försök igen.'))
 
       // Matcha AI:ns plaggnamn mot rätt plagg – exakt först, sedan mest
       // specifikt, och aldrig samma plagg två gånger. (Lös includes-matchning
@@ -519,7 +519,7 @@ export default function Home() {
       }
 
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setLoading(false)
     }
@@ -534,14 +534,14 @@ export default function Home() {
       const uri = await captureRef(shareCardRef, { format: 'png', quality: 1 })
       const canShare = await Sharing.isAvailableAsync()
       if (canShare) {
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Dela din outfit' })
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: tr('Dela din outfit') })
       } else if (typeof navigator !== 'undefined' && (navigator as any).share) {
-        await (navigator as any).share({ title: 'Min outfit', text: outfit.outfitName })
+        await (navigator as any).share({ title: tr('Min outfit'), text: outfit.outfitName })
       } else {
-        showAlert('Delning stöds inte här', 'Öppna appen på din telefon för att dela din outfit.')
+        showAlert(tr('Delning stöds inte här'), tr('Öppna appen på din telefon för att dela din outfit.'))
       }
     } catch (e: any) {
-      if (e?.message && !/cancel/i.test(e.message)) showAlert('Kunde inte dela', e.message)
+      if (e?.message && !/cancel/i.test(e.message)) showAlert(tr('Kunde inte dela'), e.message)
     } finally {
       setSharing(false)
     }
@@ -608,7 +608,7 @@ export default function Home() {
       const myActive = garments.filter(g => !g.archived && !g.for_sale)
       const parActive = (theirs || []).filter((g: any) => !g.archived && !g.for_sale)
       if (myActive.length === 0 || parActive.length === 0) {
-        showAlert('För få plagg', 'Ni behöver båda ha plagg i garderoben.')
+        showAlert(tr('För få plagg'), tr('Ni behöver båda ha plagg i garderoben.'))
         return
       }
       // Filtrera bort off-season-plagg (löser t.ex. vantar mitt i sommaren),
@@ -630,7 +630,7 @@ export default function Home() {
       const styleRules = STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n')
 
       const parsed = await apiPost('/api/match-couple', {
-        nameA: userName || 'Jag', nameB: partner.name,
+        nameA: userName || tr('Jag'), nameB: partner.name,
         // Min outfit: mina plagg + partnerns lånbara. Partnerns: sina + mina lånbara.
         listA: coupleList(mySeason, parLendable),
         listB: coupleList(parSeason, myLendable),
@@ -662,7 +662,7 @@ export default function Home() {
       }))
       setCoupleOutfit({ ...parsed, outfits: withBorrowed, pools: [myPool, parPool], lentIds })
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setCoupleLoading(false)
     }
@@ -697,9 +697,9 @@ export default function Home() {
         if (error) throw error
       }
       setCoupleSaved(true)
-      showAlert('Sparat!', `Outfitsen finns nu i både ditt och ${partner.name}s konto.`)
+      showAlert(tr('Sparat!'), `${tr('Outfitsen sparades hos både dig och')} ${partner.name}.`)
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setCoupleSaving(false)
     }
@@ -741,9 +741,9 @@ export default function Home() {
       }
       setCoupleWorn(true)
       if (!coupleSaved) setCoupleSaved(true)
-      showAlert('Vald för idag!', `Er look ligger nu i både din och ${partner?.name}s kalender.`)
+      showAlert(tr('Vald för idag!'), `${tr('Looken lades i kalendern hos både dig och')} ${partner?.name}.`)
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setCoupleWearing(false)
     }
@@ -774,9 +774,9 @@ export default function Home() {
         setSavedOutfitId(outfitData.id)
       }
       setSaved(true)
-      showAlert('Outfit sparad!', 'Du hittar den under Outfits.')
+      showAlert(tr('Outfit sparad!'), tr('Du hittar den under Outfits.'))
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setSaving(false)
     }
@@ -818,9 +818,9 @@ export default function Home() {
       if (garmentIds.length) await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
 
       setWornToday(true)
-      showAlert('Outfit vald för idag!', 'Den syns nu i din kalender och plaggen räknas som använda.')
+      showAlert(tr('Outfit vald för idag!'), tr('Den syns nu i din kalender och plaggen räknas som använda.'))
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setWearingToday(false)
     }
@@ -854,7 +854,7 @@ export default function Home() {
       await supabase.from('outfits').update({ rating: stars }).eq('id', outfitId)
       setRating(stars)
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setRatingLoading(false)
     }
@@ -984,10 +984,10 @@ export default function Home() {
       ? SUBCATEGORIES[baseCat]
       : Array.from(new Set(cfg.pool.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))
     const chips = [
-      { key: 'category', label: 'Kategori', value: baseCat },
-      { key: 'type', label: 'Typ', value: baseType },
-      { key: 'color', label: 'Färg', value: baseColor },
-      { key: 'season', label: 'Säsong', value: baseSeason },
+      { key: 'category', label: tr('Kategori'), value: baseCat },
+      { key: 'type', label: tr('Typ'), value: baseType },
+      { key: 'color', label: tr('Färg'), value: baseColor },
+      { key: 'season', label: tr('Säsong'), value: baseSeason },
     ]
     const optionsFor = (key: string): string[] =>
       key === 'category' ? ['Alla', ...CATEGORIES]
@@ -1024,14 +1024,14 @@ export default function Home() {
           <View style={styles.swapSheet}>
             <View style={styles.swapHeader}>
               <Text style={styles.swapTitle}>{cfg.title}</Text>
-              <TouchableOpacity onPress={cfg.onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityLabel="Stäng" accessibilityRole="button">
+              <TouchableOpacity onPress={cfg.onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityLabel={tr('Stäng')} accessibilityRole="button">
                 <Text style={styles.swapClose}>✕</Text>
               </TouchableOpacity>
             </View>
 
             <TextInput
               style={styles.baseSearchInput}
-              placeholder="Sök plagg eller färg..."
+              placeholder={tr('Sök plagg eller färg...')}
               placeholderTextColor={t.textSecondary}
               value={baseSearch}
               onChangeText={setBaseSearch}
@@ -1047,7 +1047,7 @@ export default function Home() {
                     onPress={() => setBaseFilterOpen(baseFilterOpen === c.key ? null : c.key)}
                   >
                     <Text style={[styles.baseChipText, (on || baseFilterOpen === c.key) && styles.baseChipTextActive]} numberOfLines={1}>
-                      {on ? c.value : c.label} ▾
+                      {on ? tr(c.value) : c.label} ▾
                     </Text>
                   </TouchableOpacity>
                 )
@@ -1057,7 +1057,7 @@ export default function Home() {
                   style={styles.baseChipClear}
                   onPress={() => { setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla'); setBaseFilterOpen(null) }}
                 >
-                  <Text style={styles.baseChipClearText}>Rensa</Text>
+                  <Text style={styles.baseChipClearText}>{tr('Rensa')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1075,7 +1075,7 @@ export default function Home() {
                       {baseFilterOpen === 'color' && COLOR_HEX[opt] && (
                         <View style={[styles.baseColorDot, { backgroundColor: COLOR_HEX[opt] }]} />
                       )}
-                      <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{opt}</Text>
+                      <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{tr(opt)}</Text>
                     </TouchableOpacity>
                   )
                 })}
@@ -1084,7 +1084,7 @@ export default function Home() {
 
             {items.length === 0 ? (
               <View style={styles.swapEmpty}>
-                <Text style={styles.swapEmptyText}>Inga plagg matchar filtren</Text>
+                <Text style={styles.swapEmptyText}>{tr('Inga plagg matchar filtren')}</Text>
               </View>
             ) : (
               <FlatList
@@ -1127,7 +1127,7 @@ export default function Home() {
           <TouchableOpacity
             onPress={() => router.push('/profile')}
             style={styles.profileBtn}
-            accessibilityLabel="Min profil"
+            accessibilityLabel={tr('Min profil')}
             accessibilityRole="button"
           >
             {userAvatar
@@ -1147,11 +1147,11 @@ export default function Home() {
                 style={[styles.contextBtn, isSelected && styles.contextBtnSelected]}
                 onPress={() => selectContext(index)}
                 activeOpacity={0.75}
-                accessibilityLabel={`Kontext: ${ctx.label}`}
+                accessibilityLabel={`${tr('Kontext:')} ${tr(ctx.label)}`}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
               >
-                <Text style={[styles.contextLabel, isSelected && styles.contextLabelSelected]}>{ctx.label}</Text>
+                <Text style={[styles.contextLabel, isSelected && styles.contextLabelSelected]}>{tr(ctx.label)}</Text>
               </TouchableOpacity>
             )
           })}
@@ -1167,7 +1167,7 @@ export default function Home() {
             <View style={styles.optionLeft}>
               <Text style={styles.optionIcon}>{weather?.emoji || '🌤'}</Text>
               <View>
-                <Text style={styles.optionText}>Anpassa efter väder</Text>
+                <Text style={styles.optionText}>{tr('Anpassa efter väder')}</Text>
                 {weather && <Text style={styles.optionSub}>{tempLabel(weather.temp)} · {weather.description}</Text>}
               </View>
             </View>
@@ -1186,14 +1186,14 @@ export default function Home() {
                   ? <SignedImage path={baseGarment.image_url} style={styles.baseThumb} resizeMode="contain" />
                   : <View style={[styles.baseThumb, styles.baseThumbEmpty]} />}
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.optionText}>Utgår från plagg</Text>
+                  <Text style={styles.optionText}>{tr('Utgår från plagg')}</Text>
                   <Text style={styles.optionSub} numberOfLines={1}>{baseGarment.name}</Text>
                 </View>
               </View>
               <TouchableOpacity
                 onPress={() => setBaseGarment(null)}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel="Ta bort utgångsplagg"
+                accessibilityLabel={tr('Ta bort utgångsplagg')}
                 accessibilityRole="button"
               >
                 <Ionicons name="close-circle" size={24} color={t.textSecondary} />
@@ -1203,8 +1203,8 @@ export default function Home() {
             <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
               <View style={styles.optionLeft}>
                 <View>
-                  <Text style={styles.optionText}>Utgå från ett plagg</Text>
-                  <Text style={styles.optionSub}>Valfritt – bygg outfiten kring ett plagg</Text>
+                  <Text style={styles.optionText}>{tr('Utgå från ett plagg')}</Text>
+                  <Text style={styles.optionSub}>{tr('Valfritt – bygg outfiten kring ett plagg')}</Text>
                 </View>
               </View>
               <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
@@ -1220,7 +1220,7 @@ export default function Home() {
         >
           {loading
             ? <ActivityIndicator color={t.onPrimary} />
-            : <Text style={styles.generateBtnText}>Generera outfit</Text>
+            : <Text style={styles.generateBtnText}>{tr('Generera outfit')}</Text>
           }
         </TouchableOpacity>
 
@@ -1229,7 +1229,7 @@ export default function Home() {
           <TouchableOpacity style={styles.coupleBtn} onPress={generateCouple} disabled={coupleLoading || loading}>
             {coupleLoading
               ? <ActivityIndicator color={t.primary} />
-              : <Text style={styles.coupleBtnText}>Generera outfits för mig och {partner.name}</Text>}
+              : <Text style={styles.coupleBtnText}>{tr('Generera outfits för mig och')} {partner.name}</Text>}
           </TouchableOpacity>
         )}
 
@@ -1254,7 +1254,7 @@ export default function Home() {
                   style={styles.outfitItemWrap}
                   onPress={() => setSwapIndex(i)}
                   activeOpacity={0.7}
-                  accessibilityLabel={`Byt ut ${item.name}`}
+                  accessibilityLabel={`${tr('Byt ut')} ${item.name}`}
                   accessibilityRole="button"
                 >
                   {item.image_url
@@ -1270,13 +1270,13 @@ export default function Home() {
                   style={styles.outfitItemWrap}
                   onPress={() => openAddPicker(null)}
                   activeOpacity={0.7}
-                  accessibilityLabel="Lägg till plagg"
+                  accessibilityLabel={tr('Lägg till plagg')}
                   accessibilityRole="button"
                 >
                   <View style={styles.addItemBox}>
                     <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
                   </View>
-                  <Text style={styles.outfitItemName} numberOfLines={1}>Lägg till</Text>
+                  <Text style={styles.outfitItemName} numberOfLines={1}>{tr('Lägg till')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1284,7 +1284,7 @@ export default function Home() {
             {outfit.song && <SongCard song={outfit.song} />}
 
             <View style={styles.ratingRow}>
-              <Text style={styles.ratingLabel}>Vad tyckte du om looken?</Text>
+              <Text style={styles.ratingLabel}>{tr('Vad tyckte du om looken?')}</Text>
               <View style={styles.stars}>
                 {[1, 2, 3, 4, 5].map(star => (
                   <TouchableOpacity
@@ -1293,7 +1293,7 @@ export default function Home() {
                     disabled={ratingLoading}
                     activeOpacity={0.7}
                     hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                    accessibilityLabel={`Betyg ${star} av 5`}
+                    accessibilityLabel={`${tr('Betyg')} ${star} ${tr('av')} 5`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: star <= (rating || 0) }}
                   >
@@ -1310,19 +1310,19 @@ export default function Home() {
                 style={[styles.saveBtn, saved && styles.saveBtnDone]}
                 onPress={saveOutfit}
                 disabled={saving || saved}
-                accessibilityLabel={saved ? 'Outfit sparad' : 'Spara outfit'}
+                accessibilityLabel={saved ? tr('Outfit sparad') : tr('Spara outfit')}
                 accessibilityRole="button"
               >
                 {saving
                   ? <ActivityIndicator color={t.onPrimary} size="small" />
-                  : <Text style={styles.saveBtnText}>{saved ? '✓ Sparad' : 'Spara outfit'}</Text>
+                  : <Text style={styles.saveBtnText}>{saved ? `✓ ${tr('Sparad')}` : tr('Spara outfit')}</Text>
                 }
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.shareBtn}
                 onPress={shareOutfit}
                 disabled={sharing}
-                accessibilityLabel="Dela outfit"
+                accessibilityLabel={tr('Dela outfit')}
                 accessibilityRole="button"
               >
                 {sharing
@@ -1338,12 +1338,12 @@ export default function Home() {
               style={[styles.wearTodayBtn, wornToday && styles.wearTodayBtnDone]}
               onPress={wearToday}
               disabled={wearingToday || wornToday}
-              accessibilityLabel={wornToday ? 'Vald för idag' : 'Vill ha på mig idag'}
+              accessibilityLabel={wornToday ? tr('Vald för idag') : tr('Vill ha på mig idag')}
               accessibilityRole="button"
             >
               {wearingToday
                 ? <ActivityIndicator color={t.onPrimary} size="small" />
-                : <Text style={[styles.wearTodayBtnText, wornToday && styles.wearTodayBtnTextDone]}>{wornToday ? '✓ Vald för idag' : 'Vill ha på mig idag'}</Text>
+                : <Text style={[styles.wearTodayBtnText, wornToday && styles.wearTodayBtnTextDone]}>{wornToday ? `✓ ${tr('Vald för idag')}` : tr('Vill ha på mig idag')}</Text>
               }
             </TouchableOpacity>
           </Animated.View>
@@ -1355,7 +1355,7 @@ export default function Home() {
             {!!coupleOutfit.vibe && <Text style={styles.coupleVibe}>{coupleOutfit.vibe}</Text>}
             {(coupleOutfit.outfits || []).map((o: any, oi: number) => (
               <View key={oi} style={styles.couplePersonBlock}>
-                <Text style={styles.couplePersonTitle}>{o.person || (oi === 0 ? (userName || 'Jag') : partner?.name)}</Text>
+                <Text style={styles.couplePersonTitle}>{o.person || (oi === 0 ? (userName || tr('Jag')) : partner?.name)}</Text>
                 <View style={styles.outfitImages}>
                   {o.itemsWithImages.map((item: any, i: number) => (
                     <TouchableOpacity
@@ -1363,7 +1363,7 @@ export default function Home() {
                       style={styles.outfitItemWrap}
                       onPress={() => setCoupleSwap({ person: oi, index: i })}
                       activeOpacity={0.7}
-                      accessibilityLabel={`Byt ut ${item.name}`}
+                      accessibilityLabel={`${tr('Byt ut')} ${item.name}`}
                       accessibilityRole="button"
                     >
                       {item.image_url
@@ -1384,14 +1384,14 @@ export default function Home() {
                       <View style={styles.addItemBox}>
                         <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
                       </View>
-                      <Text style={styles.outfitItemName} numberOfLines={1}>Lägg till</Text>
+                      <Text style={styles.outfitItemName} numberOfLines={1}>{tr('Lägg till')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
                 {(o.borrowed || []).length > 0 && (
                   <View style={styles.coupleBorrowedRow}>
                     <Ionicons name="swap-horizontal" size={14} color={t.primaryActive} />
-                    <Text style={styles.coupleBorrowed}>Lånar: {o.borrowed.join(', ')}</Text>
+                    <Text style={styles.coupleBorrowed}>{tr('Lånar:')} {o.borrowed.join(', ')}</Text>
                   </View>
                 )}
               </View>
@@ -1407,7 +1407,7 @@ export default function Home() {
               >
                 {coupleSaving
                   ? <ActivityIndicator color={t.onPrimary} size="small" />
-                  : <Text style={styles.saveBtnText}>{coupleSaved ? '✓ Sparad' : 'Spara båda'}</Text>}
+                  : <Text style={styles.saveBtnText}>{coupleSaved ? `✓ ${tr('Sparad')}` : tr('Spara båda')}</Text>}
               </TouchableOpacity>
               <TouchableOpacity style={styles.newBtn} onPress={generateCouple}>
                 <Ionicons name="refresh" size={22} color={t.textSecondary} />
@@ -1420,7 +1420,7 @@ export default function Home() {
             >
               {coupleWearing
                 ? <ActivityIndicator color={t.onPrimary} size="small" />
-                : <Text style={[styles.wearTodayBtnText, coupleWorn && styles.wearTodayBtnTextDone]}>{coupleWorn ? '✓ Vald för idag' : 'Vill ha på mig idag'}</Text>}
+                : <Text style={[styles.wearTodayBtnText, coupleWorn && styles.wearTodayBtnTextDone]}>{coupleWorn ? `✓ ${tr('Vald för idag')}` : tr('Vill ha på mig idag')}</Text>}
             </TouchableOpacity>
           </View>
         )}
@@ -1430,7 +1430,7 @@ export default function Home() {
       {/* Välj utgångsplagg att bygga outfiten kring */}
       {renderGarmentPicker({
         visible: showBasePicker,
-        title: 'Utgå från ett plagg',
+        title: tr('Utgå från ett plagg'),
         pool: activeGarmentsForPicker,
         onSelect: (g) => setBaseGarment(g),
         onClose: closeBasePicker,
@@ -1439,7 +1439,7 @@ export default function Home() {
       {/* Lägg till ytterligare plagg i en genererad outfit */}
       {renderGarmentPicker({
         visible: addTarget !== null,
-        title: 'Lägg till plagg',
+        title: tr('Lägg till plagg'),
         pool: addPickerPool,
         onSelect: addItemToOutfit,
         onClose: closeAddPicker,
@@ -1451,11 +1451,11 @@ export default function Home() {
         <View style={styles.swapOverlay}>
           <View style={styles.swapSheet}>
             <View style={styles.swapHeader}>
-              <Text style={styles.swapTitle}>Byt ut{swapItem ? ` ${swapItem.name}` : ''}</Text>
+              <Text style={styles.swapTitle}>{tr('Byt ut')}{swapItem ? ` ${swapItem.name}` : ''}</Text>
               <TouchableOpacity
                 onPress={() => setSwapIndex(null)}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel="Stäng"
+                accessibilityLabel={tr('Stäng')}
                 accessibilityRole="button"
               >
                 <Text style={styles.swapClose}>✕</Text>
@@ -1466,12 +1466,12 @@ export default function Home() {
               style={styles.swapRemoveBtn}
               onPress={() => swapIndex !== null && removeItem(swapIndex)}
             >
-              <Text style={styles.swapRemoveText}>Ta bort ur outfiten</Text>
+              <Text style={styles.swapRemoveText}>{tr('Ta bort ur outfiten')}</Text>
             </TouchableOpacity>
 
             {swapAlternatives.length === 0 ? (
               <View style={styles.swapEmpty}>
-                <Text style={styles.swapEmptyText}>Inga andra plagg i samma kategori</Text>
+                <Text style={styles.swapEmptyText}>{tr('Inga andra plagg i samma kategori')}</Text>
               </View>
             ) : (
               <FlatList
@@ -1501,11 +1501,11 @@ export default function Home() {
         <View style={styles.swapOverlay}>
           <View style={styles.swapSheet}>
             <View style={styles.swapHeader}>
-              <Text style={styles.swapTitle}>Byt ut{coupleSwapItem ? ` ${coupleSwapItem.name}` : ''}</Text>
+              <Text style={styles.swapTitle}>{tr('Byt ut')}{coupleSwapItem ? ` ${coupleSwapItem.name}` : ''}</Text>
               <TouchableOpacity
                 onPress={() => setCoupleSwap(null)}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel="Stäng"
+                accessibilityLabel={tr('Stäng')}
                 accessibilityRole="button"
               >
                 <Text style={styles.swapClose}>✕</Text>
@@ -1516,12 +1516,12 @@ export default function Home() {
               style={styles.swapRemoveBtn}
               onPress={() => coupleSwap && removeCoupleItem(coupleSwap.person, coupleSwap.index)}
             >
-              <Text style={styles.swapRemoveText}>Ta bort ur outfiten</Text>
+              <Text style={styles.swapRemoveText}>{tr('Ta bort ur outfiten')}</Text>
             </TouchableOpacity>
 
             {coupleSwapAlternatives.length === 0 ? (
               <View style={styles.swapEmpty}>
-                <Text style={styles.swapEmptyText}>Inga andra plagg i samma kategori</Text>
+                <Text style={styles.swapEmptyText}>{tr('Inga andra plagg i samma kategori')}</Text>
               </View>
             ) : (
               <FlatList
@@ -1552,7 +1552,7 @@ export default function Home() {
           <View ref={shareCardRef} collapsable={false}>
             <OutfitShareCard
               outfit={outfit}
-              subtitle={`${CONTEXTS[selectedContext].label}${weather ? ` · ${tempLabel(weather.temp)}` : ''}`}
+              subtitle={`${tr(CONTEXTS[selectedContext].label)}${weather ? ` · ${tempLabel(weather.temp)}` : ''}`}
             />
           </View>
         </View>
