@@ -93,6 +93,16 @@ export async function openaiChat(messages: any[], model: string, maxTokens: numb
   return text
 }
 
+/**
+ * Instruktion till AI:n om vilket språk svaret ska vara på. Klienten skickar
+ * `lang` ('sv' | 'en') i bodyn utifrån användarens valda appspråk. Default: sv.
+ */
+export function langInstruction(lang: unknown): string {
+  return lang === 'en'
+    ? 'IMPORTANT: Respond in ENGLISH. All generated text (names, messages, reasons, descriptions, summaries) must be written in natural English.'
+    : 'VIKTIGT: Svara på SVENSKA. All text du genererar (namn, meddelanden, motiveringar, beskrivningar) ska vara på naturlig svenska.'
+}
+
 /** Trunkerar en sträng från klienten så att promptar inte kan växa obegränsat. */
 export function clip(value: unknown, maxLength: number): string {
   return typeof value === 'string' ? value.slice(0, maxLength) : ''

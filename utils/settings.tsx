@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { translate, type Lang } from './i18n'
+import { setApiLang } from './api'
 
 // App-övergripande inställningar som påverkar hur siffror visas i hela appen:
 // valuta (priser) och temperaturenhet (väder). Sparas lokalt och läses via
@@ -81,7 +82,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const u = await AsyncStorage.getItem(TEMP_KEY)
         if (u === 'F' || u === 'C') setTempUnitState(u)
         const l = await AsyncStorage.getItem(LANG_KEY)
-        if (l === 'sv' || l === 'en') setLangState(l)
+        if (l === 'sv' || l === 'en') { setLangState(l); setApiLang(l) }
       } catch { /* behåll standard */ }
       loadRates()
     })()
@@ -118,6 +119,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }
   function setLang(l: Lang) {
     setLangState(l)
+    setApiLang(l)
     AsyncStorage.setItem(LANG_KEY, l).catch(() => {})
   }
 

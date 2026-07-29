@@ -5,16 +5,25 @@ import { captureError } from './sentry'
 // Sätt EXPO_PUBLIC_API_URL till t.ex. https://kladkollen.vercel.app för native-byggen.
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || ''
 
+// Aktuellt appspråk. Sätts av SettingsProvider när språket laddas/ändras och
+// bifogas automatiskt i varje AI-anrop så genererad text kommer på rätt språk.
+let currentLang: 'sv' | 'en' = 'sv'
+export function setApiLang(lang: 'sv' | 'en') { currentLang = lang }
+
 /** POST till en av våra serverless-endpoints med Supabase-sessionen som Bearer-token. */
 export async function apiPost<T = any>(path: string, body: unknown): Promise<T> {
   const { data: { session } } = await supabase.auth.getSession()
+  // Bifoga valt språk (utan att skriva över om anroparen redan satt det).
+  const payload = (body && typeof body === 'object' && !Array.isArray(body))
+    ? { lang: currentLang, ...(body as Record<string, unknown>) }
+    : body
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   })
   let data: any = null
   try {
