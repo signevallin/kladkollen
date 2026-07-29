@@ -19,12 +19,13 @@ import { useSettings } from '../utils/settings'
 import { COLOR_HEX } from '../utils/constants'
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export default function PartnerCloset() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { user: targetId, name } = useLocalSearchParams<{ user?: string; name?: string }>()
-  const { formatPrice } = useSettings()
+  const { formatPrice, t: tr, lang } = useSettings()
 
   const [loading, setLoading] = useState(true)
   const [garments, setGarments] = useState<any[]>([])
@@ -93,20 +94,20 @@ export default function PartnerCloset() {
 
   function fmtDate(d: string) {
     const dt = new Date(d + 'T12:00:00')
-    return `${dt.getDate()} ${MONTHS[dt.getMonth()]}`
+    return `${dt.getDate()} ${(lang === 'en' ? MONTHS_EN : MONTHS)[dt.getMonth()]}`
   }
 
   const partnerName = name || 'Partner'
 
   const garderobSubs = [
-    { key: 'garderob', label: `Garderob (${active.length})` },
-    { key: 'kop', label: `Köp (${wishlist.length})` },
-    { key: 'salj', label: `Sälj (${forSale.length})` },
+    { key: 'garderob', label: `${tr('Garderob')} (${active.length})` },
+    { key: 'kop', label: `${tr('Köp')} (${wishlist.length})` },
+    { key: 'salj', label: `${tr('Sälj')} (${forSale.length})` },
   ]
   const outfitSubs = [
-    { key: 'kalender', label: 'Kalender' },
-    { key: 'outfits', label: `Outfits (${savedOutfits.length})` },
-    { key: 'resa', label: 'Resa' },
+    { key: 'kalender', label: tr('Kalender') },
+    { key: 'outfits', label: `${tr('Outfits')} (${savedOutfits.length})` },
+    { key: 'resa', label: tr('Resa') },
   ]
   const subs = topTab === 'garderob' ? garderobSubs : outfitSubs
   const activeSub = subs.some(s => s.key === subTab) ? subTab : subs[0].key
@@ -140,15 +141,15 @@ export default function PartnerCloset() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topArea}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/partner')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{partnerName}s garderob</Text>
-        <Text style={styles.readonly}>👁 Läsläge – du kan titta men inte ändra</Text>
+        <Text style={styles.title}>{partnerName}{tr('s garderob')}</Text>
+        <Text style={styles.readonly}>👁 {tr('Läsläge – du kan titta men inte ändra')}</Text>
 
         <View style={styles.tabRow}>
           {(['garderob', 'outfits'] as const).map(tab => (
             <TouchableOpacity key={tab} style={[styles.tab, topTab === tab && styles.tabActive]} onPress={() => switchTop(tab)}>
-              <Text style={[styles.tabText, topTab === tab && styles.tabTextActive]}>{tab === 'garderob' ? 'Garderob' : 'Outfits'}</Text>
+              <Text style={[styles.tabText, topTab === tab && styles.tabTextActive]}>{tab === 'garderob' ? tr('Garderob') : tr('Outfits')}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -169,18 +170,18 @@ export default function PartnerCloset() {
           <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
         ) : (
           <>
-            {activeSub === 'garderob' && garmentGrid(active, 'Inga plagg i garderoben.')}
-            {activeSub === 'salj' && garmentGrid(forSale, 'Inget till salu.')}
+            {activeSub === 'garderob' && garmentGrid(active, tr('Inga plagg i garderoben.'))}
+            {activeSub === 'salj' && garmentGrid(forSale, tr('Inget till salu.'))}
 
             {activeSub === 'kop' && (
               wishlist.length === 0
-                ? <Text style={styles.empty}>Tom köplista.</Text>
+                ? <Text style={styles.empty}>{tr('Tom köplista.')}</Text>
                 : wishlist.map(w => (
                     <View key={w.id} style={styles.wishRow}>
                       {w.image_url ? <SignedImage path={w.image_url} style={styles.wishImg} /> : <View style={styles.wishImgEmpty} />}
                       <View style={{ flex: 1 }}>
                         <Text style={styles.wishName} numberOfLines={1}>{w.name}</Text>
-                        <Text style={styles.wishMeta}>{[w.brand, w.subcategory || w.category].filter(Boolean).join(' · ')}</Text>
+                        <Text style={styles.wishMeta}>{[w.brand, tr(w.subcategory || w.category || '')].filter(Boolean).join(' · ')}</Text>
                       </View>
                       {w.color && <View style={[styles.colorDot, { backgroundColor: COLOR_HEX[w.color] || t.surfaceMuted }]} />}
                       {w.price != null && <Text style={styles.wishPrice}>{formatPrice(w.price)}</Text>}
@@ -190,12 +191,12 @@ export default function PartnerCloset() {
 
             {activeSub === 'outfits' && (
               savedOutfits.length === 0
-                ? <Text style={styles.empty}>Inga sparade outfits.</Text>
+                ? <Text style={styles.empty}>{tr('Inga sparade outfits.')}</Text>
                 : savedOutfits.map(o => (
                     <View key={o.id} style={styles.outfitCard}>
                       <View style={styles.outfitHeader}>
                         <Text style={[styles.outfitName, { flex: 1 }]}>{o.name}</Text>
-                        <TouchableOpacity onPress={() => toggleLike(o.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Gilla outfit">
+                        <TouchableOpacity onPress={() => toggleLike(o.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel={tr('Gilla outfit')}>
                           <Ionicons name={likes.has(o.id) ? 'heart' : 'heart-outline'} size={24} color={likes.has(o.id) ? t.danger : t.textSecondary} />
                         </TouchableOpacity>
                       </View>
@@ -209,7 +210,7 @@ export default function PartnerCloset() {
 
             {activeSub === 'kalender' && (
               calEntries.length === 0
-                ? <Text style={styles.empty}>Inga planerade outfits.</Text>
+                ? <Text style={styles.empty}>{tr('Inga planerade outfits.')}</Text>
                 : calEntries.map((e, i) => (
                     <View key={i} style={styles.calRow}>
                       <View style={styles.calDate}><Text style={styles.calDateText}>{fmtDate(e.date)}</Text></View>
@@ -225,22 +226,22 @@ export default function PartnerCloset() {
 
             {activeSub === 'resa' && (
               !trip
-                ? <Text style={styles.empty}>Ingen planerad resa.</Text>
+                ? <Text style={styles.empty}>{tr('Ingen planerad resa.')}</Text>
                 : (
                   <View>
                     <View style={styles.tripHeader}>
                       <Text style={styles.tripDest}>{trip.destinationLabel}</Text>
-                      <Text style={styles.tripDates}>{trip.dateLabel}{trip.days ? ` · ${trip.days} dagar` : ''}</Text>
+                      <Text style={styles.tripDates}>{trip.dateLabel}{trip.days ? ` · ${trip.days} ${tr('dagar')}` : ''}</Text>
                       {!!trip.climateNote && <Text style={styles.tripClimate}>{trip.climateNote}</Text>}
                     </View>
-                    {(trip.outfits || []).length > 0 && <Text style={styles.sectionLabel}>Outfits</Text>}
+                    {(trip.outfits || []).length > 0 && <Text style={styles.sectionLabel}>{tr('Outfits')}</Text>}
                     {(trip.outfits || []).map((o: any, i: number) => (
                       <View key={i} style={styles.outfitCard}>
                         <Text style={styles.outfitName}>{o.name}</Text>
                         <Text style={styles.outfitGarments}>{(o.items || []).join(' · ')}</Text>
                       </View>
                     ))}
-                    {(trip.packingList || []).length > 0 && <Text style={styles.sectionLabel}>Packlista</Text>}
+                    {(trip.packingList || []).length > 0 && <Text style={styles.sectionLabel}>{tr('Packlista')}</Text>}
                     {(trip.packingList || []).map((p: string, i: number) => (
                       <Text key={i} style={styles.packItem}>• {p}</Text>
                     ))}

@@ -14,12 +14,14 @@ import {
 } from 'react-native'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
+import { useSettings } from '../utils/settings'
 
 // Landningssida för återställningslänken i mailet.
 // Supabase-klienten (detectSessionInUrl) loggar in användaren med recovery-token,
 // därefter kan lösenordet bytas här.
 export default function ResetPassword() {
   const t = useTheme()
+  const { t: tr } = useSettings()
   const styles = makeStyles(t)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -27,27 +29,27 @@ export default function ResetPassword() {
 
   async function updatePassword() {
     if (password.length < 8) {
-      showAlert('För kort lösenord', 'Använd minst 8 tecken.')
+      showAlert(tr('För kort lösenord'), tr('Använd minst 8 tecken.'))
       return
     }
     if (password !== confirm) {
-      showAlert('Lösenorden matchar inte')
+      showAlert(tr('Lösenorden matchar inte'))
       return
     }
     setLoading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        showAlert('Länken har gått ut', 'Begär en ny återställningslänk från inloggningssidan.')
+        showAlert(tr('Länken har gått ut'), tr('Begär en ny återställningslänk från inloggningssidan.'))
         router.replace('/login')
         return
       }
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
-      showAlert('Lösenord uppdaterat!')
+      showAlert(tr('Lösenord uppdaterat!'))
       router.replace('/home')
     } catch (error: any) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tr('Något gick fel'), error.message)
     } finally {
       setLoading(false)
     }
@@ -61,11 +63,11 @@ export default function ResetPassword() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>KLÄDKOLLEN</Text>
-          <Text style={styles.subtitle}>Välj nytt lösenord</Text>
+          <Text style={styles.subtitle}>{tr('Välj nytt lösenord')}</Text>
         </View>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Nytt lösenord</Text>
+          <Text style={styles.label}>{tr('Nytt lösenord')}</Text>
           <TextInput
             style={styles.input}
             placeholder="••••••••"
@@ -75,7 +77,7 @@ export default function ResetPassword() {
             secureTextEntry
           />
 
-          <Text style={styles.label}>Upprepa lösenordet</Text>
+          <Text style={styles.label}>{tr('Upprepa lösenordet')}</Text>
           <TextInput
             style={styles.input}
             placeholder="••••••••"
@@ -86,7 +88,7 @@ export default function ResetPassword() {
           />
 
           <TouchableOpacity style={styles.button} onPress={updatePassword} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? 'Sparar...' : 'Spara nytt lösenord'}</Text>
+            <Text style={styles.buttonText}>{loading ? tr('Sparar...') : tr('Spara nytt lösenord')}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

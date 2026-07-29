@@ -17,6 +17,7 @@ import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { STYLE_RULES } from '../utils/constants'
+import { useSettings } from '../utils/settings'
 
 type Mode = 'color' | 'style' | 'moodboard'
 
@@ -31,6 +32,8 @@ const MODES: { key: Mode; icon: any; title: string; desc: string }[] = [
 export default function WardrobeAnalysis() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr, lang } = useSettings()
+  const locale = lang === 'en' ? 'en-GB' : 'sv-SE'
 
   const [garments, setGarments] = useState<any[]>([])
   const [colorAnalysis, setColorAnalysis] = useState<any | null>(null)
@@ -109,14 +112,14 @@ export default function WardrobeAnalysis() {
   }
 
   function missingHint(mode: Mode): string {
-    if (mode === 'color') return 'Gör en färganalys under Min profil → Färganalys först.'
-    if (mode === 'moodboard') return 'Lägg till bilder i din moodboard under Inspiration först.'
-    return 'Fyll i din stil under Min profil först.'
+    if (mode === 'color') return tr('Gör en färganalys under Min profil → Färganalys först.')
+    if (mode === 'moodboard') return tr('Lägg till bilder i din moodboard under Inspiration först.')
+    return tr('Fyll i din stil under Min profil först.')
   }
 
   async function analyze(mode: Mode) {
-    if (garments.length === 0) { showAlert('Tom garderob', 'Lägg till plagg först så kan jag analysera.'); return }
-    if (!ready(mode)) { showAlert('Saknar underlag', missingHint(mode)); return }
+    if (garments.length === 0) { showAlert(tr('Tom garderob'), tr('Lägg till plagg först så kan jag analysera.')); return }
+    if (!ready(mode)) { showAlert(tr('Saknar underlag'), missingHint(mode)); return }
     setLoadingMode(mode)
     try {
       const payload: any = { mode, garmentList: garmentListText() }
@@ -131,7 +134,7 @@ export default function WardrobeAnalysis() {
         return next
       })
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     } finally {
       setLoadingMode(null)
     }
@@ -143,10 +146,10 @@ export default function WardrobeAnalysis() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/stats')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Garderobsanalys</Text>
-        <Text style={styles.intro}>Låt AI:n analysera hela din garderob mot olika referenser och ge dig konkreta råd.</Text>
+        <Text style={styles.title}>{tr('Garderobsanalys')}</Text>
+        <Text style={styles.intro}>{tr('Låt AI:n analysera hela din garderob mot olika referenser och ge dig konkreta råd.')}</Text>
 
         {MODES.map(m => {
           const isReady = ready(m.key)
@@ -157,8 +160,8 @@ export default function WardrobeAnalysis() {
               <View style={styles.cardHeader}>
                 <MaterialIcons name={m.icon} size={22} color={t.primary} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{m.title}</Text>
-                  <Text style={styles.cardDesc}>{m.desc}</Text>
+                  <Text style={styles.cardTitle}>{tr(m.title)}</Text>
+                  <Text style={styles.cardDesc}>{tr(m.desc)}</Text>
                 </View>
               </View>
               {!isReady && <Text style={styles.cardMissing}>{missingHint(m.key)}</Text>}
@@ -169,12 +172,12 @@ export default function WardrobeAnalysis() {
               >
                 {isLoading
                   ? <ActivityIndicator color={t.onPrimary} size="small" />
-                  : <Text style={styles.analyzeBtnText}>{result ? 'Analysera igen' : 'Analysera'}</Text>}
+                  : <Text style={styles.analyzeBtnText}>{result ? tr('Analysera igen') : tr('Analysera')}</Text>}
               </TouchableOpacity>
 
               {result && (
                 <View style={styles.result}>
-                  {result._ts && <Text style={styles.resultTs}>Senast analyserad {new Date(result._ts).toLocaleDateString('sv-SE')}</Text>}
+                  {result._ts && <Text style={styles.resultTs}>{tr('Senast analyserad')} {new Date(result._ts).toLocaleDateString(locale)}</Text>}
                   <View style={styles.scoreRow}>
                     <View style={[styles.scoreCircle, { borderColor: scoreColor(result.score) }]}>
                       <Text style={[styles.scoreNum, { color: scoreColor(result.score) }]}>{result.score}</Text>
@@ -184,7 +187,7 @@ export default function WardrobeAnalysis() {
 
                   {result.strengths?.length > 0 && (
                     <View style={styles.block}>
-                      <Text style={styles.blockTitle}>Styrkor</Text>
+                      <Text style={styles.blockTitle}>{tr('Styrkor')}</Text>
                       {result.strengths.map((s: string, i: number) => (
                         <View key={i} style={styles.line}><Text style={styles.bulletOk}>✓</Text><Text style={styles.lineText}>{s}</Text></View>
                       ))}
@@ -192,7 +195,7 @@ export default function WardrobeAnalysis() {
                   )}
                   {result.gaps?.length > 0 && (
                     <View style={styles.block}>
-                      <Text style={styles.blockTitle}>Luckor</Text>
+                      <Text style={styles.blockTitle}>{tr('Luckor')}</Text>
                       {result.gaps.map((s: string, i: number) => (
                         <View key={i} style={styles.line}><Text style={styles.bulletGap}>•</Text><Text style={styles.lineText}>{s}</Text></View>
                       ))}
@@ -200,7 +203,7 @@ export default function WardrobeAnalysis() {
                   )}
                   {result.recommendations?.length > 0 && (
                     <View style={styles.block}>
-                      <Text style={styles.blockTitle}>Rekommendationer</Text>
+                      <Text style={styles.blockTitle}>{tr('Rekommendationer')}</Text>
                       {result.recommendations.map((s: string, i: number) => (
                         <View key={i} style={styles.line}><Text style={styles.bulletRec}>→</Text><Text style={styles.lineText}>{s}</Text></View>
                       ))}

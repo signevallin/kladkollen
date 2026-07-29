@@ -31,14 +31,14 @@ export function ageYearsFromBirthdate(birthdate?: string | null): number | null 
 }
 
 // Snygg åldersetikett: "8 mån" för spädbarn, annars "3 år".
-export function formatAge(birthdate?: string | null): string | null {
+export function formatAge(birthdate?: string | null, lang: 'sv' | 'en' = 'sv'): string | null {
   const years = ageYearsFromBirthdate(birthdate)
   if (years == null) return null
   if (years < 1) {
     const months = Math.max(0, Math.round(years * 12))
-    return `${months} mån`
+    return `${months} ${lang === 'en' ? 'mo' : 'mån'}`
   }
-  return `${Math.floor(years)} år`
+  return `${Math.floor(years)} ${lang === 'en' ? 'yr' : 'år'}`
 }
 
 // Ungefärlig barnlängd (cm) vid en viss ålder, för att gissa startstorlek.

@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import { useSettings } from '../utils/settings'
 
 // Enhetliga laddnings-/fel-/tomlägen. Wrappa datadrivet innehåll så alla skärmar
 // beter sig likadant i stället för att vissa visar spinner och andra bara tomt.
@@ -18,6 +19,7 @@ type Props = {
 export default function QueryState({ loading, error, isEmpty, onRetry, emptyText, emptyIcon, children }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
 
   if (loading) {
     return (
@@ -30,11 +32,11 @@ export default function QueryState({ loading, error, isEmpty, onRetry, emptyText
   if (error) {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>Något gick fel</Text>
-        <Text style={styles.sub}>Kontrollera din uppkoppling och försök igen.</Text>
+        <Text style={styles.title}>{tr('Något gick fel')}</Text>
+        <Text style={styles.sub}>{tr('Kontrollera din uppkoppling och försök igen.')}</Text>
         {onRetry && (
           <TouchableOpacity style={styles.retryBtn} onPress={onRetry} accessibilityRole="button">
-            <Text style={styles.retryText}>Försök igen</Text>
+            <Text style={styles.retryText}>{tr('Försök igen')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -45,7 +47,7 @@ export default function QueryState({ loading, error, isEmpty, onRetry, emptyText
     return (
       <View style={styles.center}>
         {emptyIcon}
-        <Text style={styles.sub}>{emptyText || 'Inget att visa än.'}</Text>
+        <Text style={styles.sub}>{emptyText || tr('Inget att visa än.')}</Text>
       </View>
     )
   }

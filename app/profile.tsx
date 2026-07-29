@@ -386,7 +386,7 @@ export default function Profile() {
   const colorAnalysisBody = (
     <View>
       <Text style={styles.hint}>
-        {colorAnalysis ? 'Din personliga färgprofil.' : 'Ladda upp en bild eller fyll i formuläret.'}
+        {colorAnalysis ? tr('Din personliga färgprofil.') : tr('Ladda upp en bild eller fyll i formuläret.')}
       </Text>
       <View style={styles.inputModeRow}>
         {(['image', 'form'] as const).map(mode => (
@@ -396,7 +396,7 @@ export default function Profile() {
             onPress={() => setInputMode(mode)}
           >
             <Text style={[styles.inputModeBtnText, inputMode === mode && styles.inputModeBtnTextActive]}>
-              {mode === 'image' ? 'Ladda upp bild' : 'Fyll i formulär'}
+              {mode === 'image' ? tr('Ladda upp bild') : tr('Fyll i formulär')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -407,8 +407,8 @@ export default function Profile() {
           {colorImage
             ? <Image source={{ uri: colorImage }} style={styles.colorUploadPreview} resizeMode="cover" />
             : <>
-                <Text style={styles.colorUploadText}>Tryck för att välja bild</Text>
-                <Text style={styles.colorUploadHint}>Helst ett foto i naturligt ljus</Text>
+                <Text style={styles.colorUploadText}>{tr('Tryck för att välja bild')}</Text>
+                <Text style={styles.colorUploadHint}>{tr('Helst ett foto i naturligt ljus')}</Text>
               </>
           }
         </TouchableOpacity>
@@ -424,7 +424,7 @@ export default function Profile() {
             { label: 'Kontrast (hud vs hår)', value: contrastLevel, set: setContrastLevel, options: ['Låg', 'Medel', 'Hög'] },
           ].map(field => (
             <View key={field.label} style={styles.colorFormGroup}>
-              <Text style={styles.colorFormLabel}>{field.label}</Text>
+              <Text style={styles.colorFormLabel}>{tr(field.label)}</Text>
               <View style={styles.colorFormPills}>
                 {field.options.map(opt => (
                   <TouchableOpacity
@@ -432,7 +432,7 @@ export default function Profile() {
                     style={[styles.colorFormPill, field.value === opt && styles.colorFormPillActive]}
                     onPress={() => field.set(opt)}
                   >
-                    <Text style={[styles.colorFormPillText, field.value === opt && styles.colorFormPillTextActive]}>{opt}</Text>
+                    <Text style={[styles.colorFormPillText, field.value === opt && styles.colorFormPillTextActive]}>{tr(opt)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -447,8 +447,8 @@ export default function Profile() {
         disabled={analyzingColor || (inputMode === 'image' ? !colorBase64 : (!skinTone || !skinUndertone || !hairColor || !eyeColor || !contrastLevel))}
       >
         {analyzingColor
-          ? <><ActivityIndicator color={t.onPrimary} size="small" /><Text style={styles.analyzeBtnText}> Analyserar...</Text></>
-          : <Text style={styles.analyzeBtnText}>{colorAnalysis ? 'Analysera igen' : 'Analysera färgprofil'}</Text>
+          ? <><ActivityIndicator color={t.onPrimary} size="small" /><Text style={styles.analyzeBtnText}> {tr('Analyserar...')}</Text></>
+          : <Text style={styles.analyzeBtnText}>{colorAnalysis ? tr('Analysera igen') : tr('Analysera färgprofil')}</Text>
         }
       </TouchableOpacity>
 
@@ -456,10 +456,10 @@ export default function Profile() {
         <View style={styles.colorResults}>
           <View style={styles.bioChips}>
             {[
-              { label: 'Undertone', value: colorAnalysis.biologisk.undertone },
-              { label: 'Värde',     value: colorAnalysis.biologisk.varde },
-              { label: 'Intensitet',value: colorAnalysis.biologisk.intensitet },
-              { label: 'Kontrast',  value: colorAnalysis.biologisk.kontrast },
+              { label: tr('Undertone'), value: colorAnalysis.biologisk.undertone },
+              { label: tr('Värde'),     value: colorAnalysis.biologisk.varde },
+              { label: tr('Intensitet'),value: colorAnalysis.biologisk.intensitet },
+              { label: tr('Kontrast'),  value: colorAnalysis.biologisk.kontrast },
             ].map(chip => (
               <View key={chip.label} style={styles.bioChip}>
                 <Text style={styles.bioChipLabel}>{chip.label.toUpperCase()}</Text>
@@ -476,7 +476,7 @@ export default function Profile() {
                 onPress={() => setColorSection(tab)}
               >
                 <Text style={[styles.colorTabText, colorSection === tab && styles.colorTabTextActive]}>
-                  {tab === 'bio' ? 'Analys' : tab === 'palett' ? 'Palett' : tab === 'strategi' ? 'Stil' : 'Säsong'}
+                  {tab === 'bio' ? tr('Analys') : tab === 'palett' ? tr('Palett') : tab === 'strategi' ? tr('Stil') : tr('Säsong')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -485,16 +485,16 @@ export default function Profile() {
           {colorSection === 'bio' && (
             <View style={styles.tabContent}>
               <View style={styles.bioCard}>
-                <Text style={styles.bioCardTitle}>Hudreaktion</Text>
+                <Text style={styles.bioCardTitle}>{tr('Hudreaktion')}</Text>
                 <Text style={styles.bioCardText}>{colorAnalysis.biologisk.hudreaktion}</Text>
               </View>
               <View style={styles.bioCard}>
-                <Text style={styles.bioCardTitle}>Svart & kritvitt</Text>
+                <Text style={styles.bioCardTitle}>{tr('Svart & kritvitt')}</Text>
                 <Text style={styles.bioCardText}>{colorAnalysis.biologisk.svartVitt}</Text>
               </View>
               {colorAnalysis.sammanfattning.length > 0 && (
                 <View style={styles.summaryCard}>
-                  <Text style={styles.summaryTitle}>Sammanfattning</Text>
+                  <Text style={styles.summaryTitle}>{tr('Sammanfattning')}</Text>
                   {colorAnalysis.sammanfattning.map((punkt, i) => (
                     <View key={i} style={styles.summaryRow}>
                       <View style={styles.summaryDot} />
@@ -509,10 +509,10 @@ export default function Profile() {
           {colorSection === 'palett' && (
             <View style={styles.tabContent}>
               {([
-                { key: 'bas',            label: 'Basfärger',          items: colorAnalysis.palett.bas },
-                { key: 'kompletterande', label: 'Kompletterande',      items: colorAnalysis.palett.kompletterande },
-                { key: 'accent',         label: 'Accenter',            items: colorAnalysis.palett.accent },
-                { key: 'undvik',         label: 'Undvik nära ansiktet',items: colorAnalysis.palett.undvik },
+                { key: 'bas',            label: tr('Basfärger'),          items: colorAnalysis.palett.bas },
+                { key: 'kompletterande', label: tr('Kompletterande'),      items: colorAnalysis.palett.kompletterande },
+                { key: 'accent',         label: tr('Accenter'),            items: colorAnalysis.palett.accent },
+                { key: 'undvik',         label: tr('Undvik nära ansiktet'),items: colorAnalysis.palett.undvik },
               ] as { key: string; label: string; items: ColorItem[] }[]).map(group => (
                 <View key={group.key} style={styles.paletteGroup}>
                   <Text style={styles.paletteGroupLabel}>
@@ -544,7 +544,7 @@ export default function Profile() {
                   <View key={key} style={styles.strategiCard}>
                     <View style={styles.strategiHeader}>
                       <Text style={styles.strategiEmoji}>{meta.emoji}</Text>
-                      <Text style={styles.strategiLabel}>{meta.label}</Text>
+                      <Text style={styles.strategiLabel}>{tr(meta.label)}</Text>
                       <View style={styles.strategiSwatches}>
                         {val.farger.slice(0, 4).map((hex, i) => (
                           <View key={i} style={[styles.strategiSwatch, { backgroundColor: hex }]} />
@@ -561,16 +561,16 @@ export default function Profile() {
           {colorSection === 'sasong' && (
             <View style={styles.tabContent}>
               <View style={styles.sasongsCard}>
-                <Text style={styles.sasongsTitle}>Sommar</Text>
+                <Text style={styles.sasongsTitle}>{tr('Sommar')}</Text>
                 <Text style={styles.sasongsText}>{colorAnalysis.sasong.sommar}</Text>
               </View>
               <View style={styles.sasongsCard}>
-                <Text style={styles.sasongsTitle}>Vinter</Text>
+                <Text style={styles.sasongsTitle}>{tr('Vinter')}</Text>
                 <Text style={styles.sasongsText}>{colorAnalysis.sasong.vinter}</Text>
               </View>
               {colorAnalysis.garderobsAlgoritm && (
                 <View style={styles.algoritmCard}>
-                  <Text style={styles.algoritmTitle}>Garderobsalgoritm</Text>
+                  <Text style={styles.algoritmTitle}>{tr('Garderobsalgoritm')}</Text>
                   <Text style={styles.algoritmText}>{colorAnalysis.garderobsAlgoritm}</Text>
                 </View>
               )}

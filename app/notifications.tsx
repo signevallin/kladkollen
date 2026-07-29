@@ -17,6 +17,7 @@ import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { DEFAULT_PREFS, registerForPush, type NotifPrefs } from '../utils/push'
 import { getSmartPushTime, isSmartPushEnabled, setSmartPushEnabled, setSmartPushTime } from '../utils/smartPush'
+import { useSettings } from '../utils/settings'
 
 const TIME_PRESETS = [
   { hour: 6, minute: 0 }, { hour: 6, minute: 30 }, { hour: 7, minute: 0 },
@@ -35,6 +36,7 @@ const CATEGORIES: { key: keyof NotifPrefs; title: string; desc: string }[] = [
 export default function NotificationsSettings() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const [enabled, setEnabled] = useState(true)
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS)
   const [smart, setSmart] = useState(false)
@@ -61,7 +63,7 @@ export default function NotificationsSettings() {
     const ok = await setSmartPushEnabled(v)
     if (v && !ok) {
       setSmart(false)
-      showAlert('Kunde inte slå på Smart Push', 'Tillåt kalender- och notis-åtkomst för Klädkollen i telefonens inställningar.')
+      showAlert(tr('Kunde inte slå på Smart Push'), tr('Tillåt kalender- och notis-åtkomst för Klädkollen i telefonens inställningar.'))
     }
   }
 
@@ -85,7 +87,7 @@ export default function NotificationsSettings() {
       if (perm.status !== 'granted') {
         const req = await Notifications.requestPermissionsAsync()
         if (req.status !== 'granted') {
-          showAlert('Notiser är avstängda', 'Tillåt notiser för Klädkollen i telefonens inställningar för att få påminnelser.')
+          showAlert(tr('Notiser är avstängda'), tr('Tillåt notiser för Klädkollen i telefonens inställningar för att få påminnelser.'))
         }
       }
       registerForPush()
@@ -102,23 +104,23 @@ export default function NotificationsSettings() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/profile')}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Notiser</Text>
+        <Text style={styles.title}>{tr('Notiser')}</Text>
         <Text style={styles.subtitle}>
-          Klädkollen kan skicka personliga, hjälpsamma notiser baserade på din garderob och vädret. Du bestämmer vilka.
+          {tr('Klädkollen kan skicka personliga, hjälpsamma notiser baserade på din garderob och vädret. Du bestämmer vilka.')}
         </Text>
 
         {Platform.OS === 'web' && (
           <View style={styles.webNote}>
-            <Text style={styles.webNoteText}>Push-notiser fungerar i appen (iOS/Android), inte i webbläsaren.</Text>
+            <Text style={styles.webNoteText}>{tr('Push-notiser fungerar i appen (iOS/Android), inte i webbläsaren.')}</Text>
           </View>
         )}
 
         <View style={styles.masterRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.masterTitle}>Tillåt notiser</Text>
-            <Text style={styles.masterDesc}>Slå av för att pausa alla notiser.</Text>
+            <Text style={styles.masterTitle}>{tr('Tillåt notiser')}</Text>
+            <Text style={styles.masterDesc}>{tr('Slå av för att pausa alla notiser.')}</Text>
           </View>
           <Toggle value={enabled} onValueChange={toggleMaster} />
         </View>
@@ -126,8 +128,8 @@ export default function NotificationsSettings() {
         {CATEGORIES.map(c => (
           <View key={c.key} style={[styles.row, !enabled && styles.rowDisabled]}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.rowTitle}>{c.title}</Text>
-              <Text style={styles.rowDesc}>{c.desc}</Text>
+              <Text style={styles.rowTitle}>{tr(c.title)}</Text>
+              <Text style={styles.rowDesc}>{tr(c.desc)}</Text>
             </View>
             <Toggle
               value={enabled && prefs[c.key]}
@@ -140,9 +142,9 @@ export default function NotificationsSettings() {
         <Text style={styles.sectionHeading}>Smart Push</Text>
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>Kalenderbaserad morgonnotis</Text>
+            <Text style={styles.rowTitle}>{tr('Kalenderbaserad morgonnotis')}</Text>
             <Text style={styles.rowDesc}>
-              Läser dagens kalender på din telefon och väljer en outfit som passar dina planer – t.ex. "Idag väntar 3 möten" eller en påminnelse att byta om inför kvällen. Kalendern lämnar aldrig telefonen.
+              {tr('Läser dagens kalender på din telefon och väljer en outfit som passar dina planer – t.ex. "Idag väntar 3 möten" eller en påminnelse att byta om inför kvällen. Kalendern lämnar aldrig telefonen.')}
             </Text>
           </View>
           <Toggle value={smart} onValueChange={toggleSmart} />
@@ -150,7 +152,7 @@ export default function NotificationsSettings() {
 
         {smart && (
           <View style={styles.timeBlock}>
-            <Text style={styles.timeLabel}>Notisen skickas kl.</Text>
+            <Text style={styles.timeLabel}>{tr('Notisen skickas kl.')}</Text>
             <View style={styles.timeChips}>
               {TIME_PRESETS.map(({ hour, minute }) => {
                 const on = smartTime.hour === hour && smartTime.minute === minute
@@ -168,12 +170,12 @@ export default function NotificationsSettings() {
           </View>
         )}
 
-        <Text style={styles.sectionHeading}>Familj</Text>
+        <Text style={styles.sectionHeading}>{tr('Familj')}</Text>
         <View style={[styles.row, !enabled && styles.rowDisabled]}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>Storlekspåminnelser</Text>
+            <Text style={styles.rowTitle}>{tr('Storlekspåminnelser')}</Text>
             <Text style={styles.rowDesc}>
-              En veckodigest när sparade barnkläder är redo att tas fram – rätt storlek i rätt säsong, med plats ("kartong 3, vinden"). Skickas även om du inte öppnar appen.
+              {tr('En veckodigest när sparade barnkläder är redo att tas fram – rätt storlek i rätt säsong, med plats ("kartong 3, vinden"). Skickas även om du inte öppnar appen.')}
             </Text>
           </View>
           <Toggle
@@ -184,7 +186,7 @@ export default function NotificationsSettings() {
         </View>
 
         <Text style={styles.footnote}>
-          Väderbaserade notiser använder din senast kända plats. Vi hämtar aldrig platsen i bakgrunden bara för notiser.
+          {tr('Väderbaserade notiser använder din senast kända plats. Vi hämtar aldrig platsen i bakgrunden bara för notiser.')}
         </Text>
       </ScrollView>
     </SafeAreaView>

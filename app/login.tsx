@@ -17,6 +17,7 @@ import {
 } from 'react-native'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
+import { useSettings } from '../utils/settings'
 import GoogleIcon from '../components/GoogleIcon'
 
 // Se till att en ev. öppnad auth-webbsession avslutas snyggt (OAuth-återhopp).
@@ -30,6 +31,7 @@ try { AppleAuthentication = require('expo-apple-authentication') } catch { Apple
 export default function Login() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -50,7 +52,7 @@ export default function Login() {
 
   async function handleAuth() {
     if (!email || !password) {
-      showAlert('Fyll i email och lösenord!')
+      showAlert(tr('Fyll i email och lösenord!'))
       return
     }
     setLoading(true)
@@ -58,14 +60,14 @@ export default function Login() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        showAlert('Konto skapat!', 'Kolla din email för att verifiera ditt konto.')
+        showAlert(tr('Konto skapat!'), tr('Kolla din email för att verifiera ditt konto.'))
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         goHome()
       }
     } catch (error: any) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tr('Något gick fel'), error.message)
     } finally {
       setLoading(false)
     }
@@ -73,7 +75,7 @@ export default function Login() {
 
   async function forgotPassword() {
     if (!email) {
-      showAlert('Fyll i din email först', 'Skriv din emailadress i fältet ovan så skickar vi en återställningslänk.')
+      showAlert(tr('Fyll i din email först'), tr('Skriv din emailadress i fältet ovan så skickar vi en återställningslänk.'))
       return
     }
     try {
@@ -82,9 +84,9 @@ export default function Login() {
         : 'kladkollen://reset-password'
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
       if (error) throw error
-      showAlert('Mail skickat!', 'Kolla din inkorg för en länk att återställa lösenordet.')
+      showAlert(tr('Mail skickat!'), tr('Kolla din inkorg för en länk att återställa lösenordet.'))
     } catch (error: any) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tr('Något gick fel'), error.message)
     }
   }
 
@@ -114,7 +116,7 @@ export default function Login() {
       goHome()
     } catch (e: any) {
       if (e?.code === 'ERR_REQUEST_CANCELED') return // användaren avbröt
-      showAlert('Kunde inte logga in med Apple', e.message || 'Försök igen.')
+      showAlert(tr('Kunde inte logga in med Apple'), e.message || tr('Försök igen.'))
     } finally {
       setSocial(null)
     }
@@ -149,7 +151,7 @@ export default function Login() {
         }
       }
     } catch (e: any) {
-      showAlert('Kunde inte logga in med Google', e.message || 'Försök igen.')
+      showAlert(tr('Kunde inte logga in med Google'), e.message || tr('Försök igen.'))
     } finally {
       setSocial(null)
     }
@@ -169,13 +171,13 @@ export default function Login() {
               <Ionicons name="shirt-outline" size={30} color={t.onPrimary} />
             </View>
             <Text style={styles.title}>KLÄDKOLLEN</Text>
-            <Text style={styles.tagline}>Din digitala garderob</Text>
+            <Text style={styles.tagline}>{tr('Din digitala garderob')}</Text>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{isSignUp ? 'Skapa konto' : 'Välkommen tillbaka'}</Text>
+            <Text style={styles.cardTitle}>{isSignUp ? tr('Skapa konto') : tr('Välkommen tillbaka')}</Text>
             <Text style={styles.cardSub}>
-              {isSignUp ? 'Kom igång på ett par sekunder.' : 'Logga in för att fortsätta.'}
+              {isSignUp ? tr('Kom igång på ett par sekunder.') : tr('Logga in för att fortsätta.')}
             </Text>
 
             <Text style={styles.label}>Email</Text>
@@ -191,7 +193,7 @@ export default function Login() {
               textContentType="emailAddress"
             />
 
-            <Text style={styles.label}>Lösenord</Text>
+            <Text style={styles.label}>{tr('Lösenord')}</Text>
             <TextInput
               style={styles.input}
               placeholder="••••••••"
@@ -205,18 +207,18 @@ export default function Login() {
             <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={handleAuth} disabled={busy}>
               {loading
                 ? <ActivityIndicator color={t.onPrimary} />
-                : <Text style={styles.buttonText}>{isSignUp ? 'Skapa konto' : 'Logga in'}</Text>}
+                : <Text style={styles.buttonText}>{isSignUp ? tr('Skapa konto') : tr('Logga in')}</Text>}
             </TouchableOpacity>
 
             {!isSignUp && (
               <TouchableOpacity style={styles.forgotButton} onPress={forgotPassword} disabled={busy}>
-                <Text style={styles.forgotText}>Glömt lösenord?</Text>
+                <Text style={styles.forgotText}>{tr('Glömt lösenord?')}</Text>
               </TouchableOpacity>
             )}
 
             <View style={styles.dividerRow}>
               <View style={styles.divider} />
-              <Text style={styles.dividerText}>eller</Text>
+              <Text style={styles.dividerText}>{tr('eller')}</Text>
               <View style={styles.divider} />
             </View>
 
@@ -226,7 +228,7 @@ export default function Login() {
                   ? <ActivityIndicator color="#fff" />
                   : <>
                       <Ionicons name="logo-apple" size={19} color="#fff" style={styles.socialIcon} />
-                      <Text style={styles.appleBtnText}>Fortsätt med Apple</Text>
+                      <Text style={styles.appleBtnText}>{tr('Fortsätt med Apple')}</Text>
                     </>}
               </TouchableOpacity>
             )}
@@ -236,15 +238,15 @@ export default function Login() {
                 ? <ActivityIndicator color={t.textPrimary} />
                 : <>
                     <View style={styles.socialIcon}><GoogleIcon size={18} /></View>
-                    <Text style={styles.googleBtnText}>Fortsätt med Google</Text>
+                    <Text style={styles.googleBtnText}>{tr('Fortsätt med Google')}</Text>
                   </>}
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.switchButton} onPress={() => setIsSignUp(!isSignUp)} disabled={busy}>
             <Text style={styles.switchText}>
-              {isSignUp ? 'Har du redan ett konto? ' : 'Inget konto? '}
-              <Text style={styles.switchTextBold}>{isSignUp ? 'Logga in' : 'Skapa ett här'}</Text>
+              {isSignUp ? tr('Har du redan ett konto? ') : tr('Inget konto? ')}
+              <Text style={styles.switchTextBold}>{isSignUp ? tr('Logga in') : tr('Skapa ett här')}</Text>
             </Text>
           </TouchableOpacity>
         </ScrollView>

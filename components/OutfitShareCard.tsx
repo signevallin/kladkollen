@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import SignedImage from './SignedImage'
+import { useSettings } from '../utils/settings'
 
 // Ren, varumärkt vy av dagens outfit som fångas som bild och delas på
 // sociala medier. Renderas utanför skärmen (se home.tsx) och är avsiktligt
@@ -14,12 +15,13 @@ export default function OutfitShareCard({
 }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const items: any[] = outfit?.itemsWithImages || []
 
   return (
     <View style={styles.card}>
       <Text style={styles.brand}>KLÄDKOLLEN</Text>
-      <Text style={styles.title} numberOfLines={2}>{outfit?.outfitName || 'Dagens outfit'}</Text>
+      <Text style={styles.title} numberOfLines={2}>{outfit?.outfitName || tr('Dagens outfit')}</Text>
       {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
 
       <View style={styles.grid}>
@@ -37,7 +39,7 @@ export default function OutfitShareCard({
         <Text style={styles.song}>🎵 {outfit.song.title}{outfit.song.artist ? ` – ${outfit.song.artist}` : ''}</Text>
       )}
 
-      <Text style={styles.footer}>Skapad med Klädkollen · din digitala garderob</Text>
+      <Text style={styles.footer}>{tr('Skapad med Klädkollen · din digitala garderob')}</Text>
     </View>
   )
 }

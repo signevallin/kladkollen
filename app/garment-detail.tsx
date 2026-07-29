@@ -55,7 +55,8 @@ function blobToBase64(blob: Blob): Promise<string> {
 export default function GarmentDetail() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { currency, toBaseSEK, fromBaseSEK } = useSettings()
+  const { currency, toBaseSEK, fromBaseSEK, t: tr, lang } = useSettings()
+  const locale = lang === 'en' ? 'en-GB' : 'sv-SE'
   const { id, wishlistId } = useLocalSearchParams()
   const isWishlistItem = !!wishlistId && !id
 
@@ -245,7 +246,7 @@ export default function GarmentDetail() {
       setSaveState('saved')
     } catch (e: any) {
       setSaveState('error')
-      showAlert('Bilden kunde inte sparas', e.message)
+      showAlert(tr('Bilden kunde inte sparas'), e.message)
     }
   }
 
@@ -272,7 +273,7 @@ export default function GarmentDetail() {
       setSaveState('saved')
     } catch (e: any) {
       setSaveState('error')
-      showAlert('Bilden kunde inte sparas', e.message)
+      showAlert(tr('Bilden kunde inte sparas'), e.message)
     }
   }
 
@@ -310,7 +311,7 @@ export default function GarmentDetail() {
       setSaveState('saved')
     } catch (e: any) {
       setSaveState('error')
-      showAlert('Kunde inte ta bort bakgrunden', e.message)
+      showAlert(tr('Kunde inte ta bort bakgrunden'), e.message)
     } finally {
       setRedoing(false)
     }
@@ -323,15 +324,15 @@ export default function GarmentDetail() {
   }
 
   async function deleteGarment() {
-    showConfirm('Ta bort plagg', `Är du säker på att du vill ta bort ${name}?`, async () => {
+    showConfirm(tr('Ta bort plagg'), `${tr('Är du säker på att du vill ta bort')} ${name}?`, async () => {
       const { error } = await supabase.from('garments').delete().eq('id', id)
-      if (error) showAlert('Något gick fel', error.message)
+      if (error) showAlert(tr('Något gick fel'), error.message)
       else back()
     }, 'Ta bort', true)
   }
 
   async function deleteWishlistItem() {
-    showConfirm('Ta bort', `Ta bort "${name}" från köplistan?`, async () => {
+    showConfirm(tr('Ta bort'), `${tr('Ta bort från köplistan?')} – ${name}`, async () => {
       await supabase.from('wishlist').delete().eq('id', wishlistId)
       back()
     }, 'Ta bort', true)
@@ -343,7 +344,7 @@ export default function GarmentDetail() {
     if (!archived) {
       const archiveLoc = locations.find(l => l.is_archive)
       if (!archiveLoc) {
-        showAlert('Ingen arkiv-plats', 'Skapa först en plats markerad som Arkiv (t.ex. Källaren) under Min profil → Egna platser.')
+        showAlert(tr('Ingen arkiv-plats'), tr('Skapa först en plats markerad som Arkiv (t.ex. Källaren) under Min profil → Egna platser.'))
         return
       }
       // Fråga varför plagget arkiveras innan det flyttas.
@@ -362,7 +363,7 @@ export default function GarmentDetail() {
       toast('Plagget ligger nu i säljlistan')
       back()
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tr('Något gick fel'), e.message)
     }
   }
 
@@ -377,16 +378,16 @@ export default function GarmentDetail() {
   async function markAsWorn() {
     const today = new Date().toISOString().split('T')[0]
     if (lastWorn === today) {
-      showAlert('Du har redan markerat detta plagg som använt idag!')
+      showAlert(tr('Du har redan markerat detta plagg som använt idag!'))
       return
     }
     const newCount = timesWorn + 1
     const { error } = await supabase.from('garments').update({ times_worn: newCount, last_worn: today }).eq('id', id)
     if (error) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tr('Något gick fel'), error.message)
     } else {
       setTimesWorn(newCount); setLastWorn(today)
-      showAlert(`Markerat som använt!`, `Använt ${newCount} gånger totalt.`)
+      showAlert(tr('Markerat som använt!'), `${tr('Använt')} ${newCount} ${tr('gånger totalt.')}`)
     }
   }
 
@@ -398,19 +399,19 @@ export default function GarmentDetail() {
             style={styles.backButton}
             onPress={back}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityLabel="Gå tillbaka"
+            accessibilityLabel={tr('Gå tillbaka')}
             accessibilityRole="button"
           >
             <Text style={styles.backButtonText}>← Tillbaka</Text>
           </TouchableOpacity>
-          {saveState === 'saving' && <Text style={styles.saveStatus}>Sparar…</Text>}
-          {saveState === 'saved' && <Text style={styles.saveStatus}>Sparat ✓</Text>}
-          {saveState === 'error' && <Text style={[styles.saveStatus, styles.saveStatusError]} numberOfLines={2}>Kunde inte spara: {saveError}</Text>}
+          {saveState === 'saving' && <Text style={styles.saveStatus}>{tr('Sparar…')}</Text>}
+          {saveState === 'saved' && <Text style={styles.saveStatus}>{tr('Sparat ✓')}</Text>}
+          {saveState === 'error' && <Text style={[styles.saveStatus, styles.saveStatusError]} numberOfLines={2}>{tr('Kunde inte spara:')} {saveError}</Text>}
         </View>
 
         {isWishlistItem && (
           <View style={styles.wishlistBadge}>
-            <Text style={styles.wishlistBadgeText}>Köplista – äger ej ännu</Text>
+            <Text style={styles.wishlistBadgeText}>{tr('Köplista – äger ej ännu')}</Text>
           </View>
         )}
 
@@ -433,7 +434,7 @@ export default function GarmentDetail() {
           )}
           {(newImage || imageUrl) && (
             <View style={styles.imageOverlay}>
-              <Text style={styles.imageOverlayText}>Byt foto</Text>
+              <Text style={styles.imageOverlayText}>{tr('Byt foto')}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -444,21 +445,21 @@ export default function GarmentDetail() {
               style={[styles.redoBgBtn, { flex: 1 }]}
               onPress={redoBackground}
               disabled={redoing}
-              accessibilityLabel="Ta bort bakgrunden igen"
+              accessibilityLabel={tr('Ta bort bakgrunden igen')}
               accessibilityRole="button"
             >
               {redoing
                 ? <ActivityIndicator color={t.textSecondary} size="small" />
-                : <><Ionicons name="sparkles-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>Ta bort bakgrund</Text></>
+                : <><Ionicons name="sparkles-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>{tr('Ta bort bakgrund')}</Text></>
               }
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.redoBgBtn, { flex: 1 }]}
               onPress={openCrop}
-              accessibilityLabel="Beskär bild"
+              accessibilityLabel={tr('Beskär bild')}
               accessibilityRole="button"
             >
-              <Ionicons name="crop-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>Beskär bild</Text>
+              <Ionicons name="crop-outline" size={16} color={t.textSecondary} /><Text style={styles.redoBgBtnText}>{tr('Beskär bild')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -473,39 +474,39 @@ export default function GarmentDetail() {
         <Modal visible={showReasonPicker} transparent animationType="fade" onRequestClose={() => setShowReasonPicker(false)}>
           <TouchableOpacity style={styles.reasonBackdrop} activeOpacity={1} onPress={() => setShowReasonPicker(false)}>
             <TouchableOpacity style={styles.reasonSheet} activeOpacity={1}>
-              <Text style={styles.reasonTitle}>Varför arkiveras plagget?</Text>
+              <Text style={styles.reasonTitle}>{tr('Varför arkiveras plagget?')}</Text>
               {ARCHIVE_REASONS.map(r => (
                 <TouchableOpacity key={r.key} style={styles.reasonRow} onPress={() => pickArchiveReason(r.key)}>
                   <Ionicons name={r.icon as any} size={22} color={t.textPrimary} />
-                  <Text style={styles.reasonLabel}>{r.label}</Text>
+                  <Text style={styles.reasonLabel}>{tr(r.label)}</Text>
                 </TouchableOpacity>
               ))}
             </TouchableOpacity>
           </TouchableOpacity>
         </Modal>
 
-        <Text style={styles.label}>Namn</Text>
+        <Text style={styles.label}>{tr('Namn')}</Text>
         <TextInput style={styles.input} placeholderTextColor={t.placeholder} value={name} onChangeText={setName} />
 
-        <Text style={styles.label}>Märke</Text>
+        <Text style={styles.label}>{tr('Märke')}</Text>
         <BrandInput value={brand} onChange={setBrand} ownBrands={ownBrands} />
 
-        <Text style={styles.label}>Kategori</Text>
+        <Text style={styles.label}>{tr('Kategori')}</Text>
         <View style={styles.pills}>
           {CATEGORIES.map((cat) => (
             <TouchableOpacity key={cat} style={[styles.pill, category === cat && styles.pillActive]} onPress={() => { setCategory(cat); setSubcategory('') }}>
-              <Text style={[styles.pillText, category === cat && styles.pillTextActive]}>{cat}</Text>
+              <Text style={[styles.pillText, category === cat && styles.pillTextActive]}>{tr(cat)}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {category && SUBCATEGORIES[category] && (
           <>
-            <Text style={styles.label}>Typ</Text>
+            <Text style={styles.label}>{tr('Typ')}</Text>
             <View style={styles.pills}>
               {SUBCATEGORIES[category].map((sub) => (
                 <TouchableOpacity key={sub} style={[styles.pill, subcategory === sub && styles.pillActive]} onPress={() => setSubcategory(subcategory === sub ? '' : sub)}>
-                  <Text style={[styles.pillText, subcategory === sub && styles.pillTextActive]}>{sub}</Text>
+                  <Text style={[styles.pillText, subcategory === sub && styles.pillTextActive]}>{tr(sub)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -513,7 +514,7 @@ export default function GarmentDetail() {
         )}
 
         {/* Färg – swatch-väljare med faktiska färger (både garderob och köplista) */}
-        <Text style={styles.label}>Färg</Text>
+        <Text style={styles.label}>{tr('Färg')}</Text>
         <View style={styles.colorGrid}>
           {COLORS.map((c) => (
             <TouchableOpacity key={c.name} style={[styles.colorDot, { backgroundColor: c.hex }, color === c.name && styles.colorDotActive]} onPress={() => setColor(color === c.name ? '' : c.name)}>
@@ -521,14 +522,14 @@ export default function GarmentDetail() {
             </TouchableOpacity>
           ))}
         </View>
-        {color ? <Text style={styles.colorSelected}>Vald färg: {color}</Text> : null}
+        {color ? <Text style={styles.colorSelected}>{tr('Vald färg:')} {tr(color)}</Text> : null}
 
         {/* Säsong – visas för både garderob och köplista */}
-        <Text style={styles.label}>Säsong</Text>
+        <Text style={styles.label}>{tr('Säsong')}</Text>
         <View style={styles.pills}>
           {SEASONS.map((s) => (
             <TouchableOpacity key={s} style={[styles.pill, seasons.includes(s) && styles.pillActive]} onPress={() => toggleSeason(s)}>
-              <Text style={[styles.pillText, seasons.includes(s) && styles.pillTextActive]}>{s}</Text>
+              <Text style={[styles.pillText, seasons.includes(s) && styles.pillTextActive]}>{tr(s)}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -536,10 +537,10 @@ export default function GarmentDetail() {
         {/* Pris – även på köplistan (för budget/överblick) */}
         {isWishlistItem && (
           <>
-            <Text style={styles.label}>Pris ({currency})</Text>
+            <Text style={styles.label}>{tr('Pris')} ({currency})</Text>
             <TextInput
               style={styles.input}
-              placeholder="t.ex. 299"
+              placeholder={tr('t.ex. 299')}
               placeholderTextColor={t.placeholder}
               value={price}
               onChangeText={setPrice}
@@ -551,7 +552,7 @@ export default function GarmentDetail() {
         {/* Storlek & plats – bara för egna plagg */}
         {!isWishlistItem && (
           <>
-            <Text style={styles.label}>Storlek</Text>
+            <Text style={styles.label}>{tr('Storlek')}</Text>
             <View style={styles.pills}>
               {SIZES.map((s) => (
                 <TouchableOpacity key={s} style={[styles.pill, size === s && styles.pillActive]} onPress={() => setSize(size === s ? '' : s)}>
@@ -561,13 +562,13 @@ export default function GarmentDetail() {
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Egen storlek, t.ex. 38 eller W29/L32"
+              placeholder={tr('Egen storlek, t.ex. 38 eller W29/L32')}
               placeholderTextColor={t.placeholder}
               value={SIZES.includes(size) ? '' : size}
               onChangeText={setSize}
             />
 
-            <Text style={styles.label}>Passform</Text>
+            <Text style={styles.label}>{tr('Passform')}</Text>
             <View style={styles.pills}>
               {FITS.map((f) => (
                 <TouchableOpacity key={f} style={[styles.pill, fit === f && styles.pillActive]} onPress={() => setFit(fit === f ? '' : f)}>
@@ -579,8 +580,8 @@ export default function GarmentDetail() {
             {hasPartner && (
               <TouchableOpacity style={styles.lendRow} onPress={() => setLendable(v => !v)}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.label}>Får lånas av partner</Text>
-                  <Text style={styles.lendHint}>Syns med en lån-markering i din partners vy och kan användas i Matcha-outfits.</Text>
+                  <Text style={styles.label}>{tr('Får lånas av partner')}</Text>
+                  <Text style={styles.lendHint}>{tr('Syns med en lån-markering i din partners vy och kan användas i Matcha-outfits.')}</Text>
                 </View>
                 <View style={[styles.toggle, lendable && styles.toggleOn]}>
                   <View style={[styles.toggleKnob, lendable && styles.toggleKnobOn]} />
@@ -589,29 +590,29 @@ export default function GarmentDetail() {
             )}
 
             <View style={styles.labelRow}>
-              <Text style={styles.label}>Var finns plagget?</Text>
+              <Text style={styles.label}>{tr('Var finns plagget?')}</Text>
               <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Text style={styles.manageLink}>Hantera platser</Text>
+                <Text style={styles.manageLink}>{tr('Hantera platser')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.pills}>
               {locations.map((l) => (
                 <TouchableOpacity key={l.id} style={[styles.pill, location === l.name && styles.pillActive]} onPress={() => setLocation(location === l.name ? '' : l.name)}>
-                  <Text style={[styles.pillText, location === l.name && styles.pillTextActive]}>{l.name}{l.is_archive ? ' (arkiv)' : ''}</Text>
+                  <Text style={[styles.pillText, location === l.name && styles.pillTextActive]}>{l.name}{l.is_archive ? tr(' (arkiv)') : ''}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             {archived && (
               <>
-                <Text style={styles.label}>Anledning till arkivering</Text>
+                <Text style={styles.label}>{tr('Anledning till arkivering')}</Text>
                 <View style={styles.pills}>
                   {ARCHIVE_REASONS.map(r => {
                     const on = archiveReason === r.key
                     return (
                       <TouchableOpacity key={r.key} style={[styles.pill, styles.reasonPill, on && styles.pillActive]} onPress={() => setArchiveReason(on ? null : r.key)}>
                         <Ionicons name={r.icon as any} size={14} color={on ? t.onPrimary : t.textSecondary} />
-                        <Text style={[styles.pillText, on && styles.pillTextActive]}>{r.label}</Text>
+                        <Text style={[styles.pillText, on && styles.pillTextActive]}>{tr(r.label)}</Text>
                       </TouchableOpacity>
                     )
                   })}
@@ -621,7 +622,7 @@ export default function GarmentDetail() {
 
             {children.length > 0 && (
               <>
-                <Text style={styles.label}>Tillhör (familj)</Text>
+                <Text style={styles.label}>{tr('Tillhör (familj)')}</Text>
                 <View style={styles.pills}>
                   {children.map((c) => {
                     const on = personId === c.id
@@ -642,7 +643,7 @@ export default function GarmentDetail() {
 
                 {personId && (
                   <>
-                    <Text style={styles.label}>Barnstorlek</Text>
+                    <Text style={styles.label}>{tr('Barnstorlek')}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
                       {EU_CHILD_SIZES.map((s) => (
                         <TouchableOpacity key={s} style={[styles.pill, sizeCm === s && styles.pillActive]} onPress={() => setSizeCm(sizeCm === s ? null : s)}>
@@ -651,11 +652,11 @@ export default function GarmentDetail() {
                       ))}
                     </ScrollView>
 
-                    <Text style={styles.label}>Status</Text>
+                    <Text style={styles.label}>{tr('Status')}</Text>
                     <View style={styles.pills}>
                       {([['in_use', 'Används'], ['stored', 'Sparad i låda'], ['outgrown', 'Urvuxen']] as const).map(([v, lbl]) => (
                         <TouchableOpacity key={v} style={[styles.pill, familyStatus === v && styles.pillActive]} onPress={() => setFamilyStatus(v)}>
-                          <Text style={[styles.pillText, familyStatus === v && styles.pillTextActive]}>{lbl}</Text>
+                          <Text style={[styles.pillText, familyStatus === v && styles.pillTextActive]}>{tr(lbl)}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -664,10 +665,10 @@ export default function GarmentDetail() {
               </>
             )}
 
-            <Text style={styles.label}>Pris ({currency})</Text>
+            <Text style={styles.label}>{tr('Pris')} ({currency})</Text>
             <TextInput
               style={styles.input}
-              placeholder="t.ex. 299"
+              placeholder={tr('t.ex. 299')}
               placeholderTextColor={t.placeholder}
               value={price}
               onChangeText={setPrice}
@@ -680,33 +681,33 @@ export default function GarmentDetail() {
         {!isWishlistItem && (
           <View style={styles.wornSection}>
             <View style={styles.wornInfo}>
-              <Text style={styles.wornCount}>{timesWorn} gånger</Text>
-              <Text style={styles.wornLabel}>{lastWorn ? `Senast använd: ${new Date(lastWorn).toLocaleDateString('sv-SE')}` : 'Aldrig använd'}</Text>
+              <Text style={styles.wornCount}>{timesWorn} {tr('gånger')}</Text>
+              <Text style={styles.wornLabel}>{lastWorn ? `${tr('Senast använd:')} ${new Date(lastWorn).toLocaleDateString(locale)}` : tr('Aldrig använd')}</Text>
             </View>
             <TouchableOpacity style={styles.wornButton} onPress={markAsWorn}>
-              <Text style={styles.wornButtonText}>Använd idag</Text>
+              <Text style={styles.wornButtonText}>{tr('Använd idag')}</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        <Text style={styles.autosaveHint}>Ändringar sparas automatiskt</Text>
+        <Text style={styles.autosaveHint}>{tr('Ändringar sparas automatiskt')}</Text>
 
         {!isWishlistItem && !sold && (
           <TouchableOpacity style={styles.sellButton} onPress={sellGarment}>
-            <Text style={styles.sellButtonText}>Lägg i säljlistan</Text>
+            <Text style={styles.sellButtonText}>{tr('Lägg i säljlistan')}</Text>
           </TouchableOpacity>
         )}
 
         {!isWishlistItem && (
           <TouchableOpacity style={styles.archiveButton} onPress={toggleArchive}>
             <Text style={styles.archiveButtonText}>
-              {archived ? 'Ta tillbaka till garderoben' : 'Arkivera (passar inte / används ej)'}
+              {archived ? tr('Ta tillbaka till garderoben') : tr('Arkivera (passar inte / används ej)')}
             </Text>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity style={styles.deleteButton} onPress={isWishlistItem ? deleteWishlistItem : deleteGarment}>
-          <Text style={styles.deleteButtonText}>{isWishlistItem ? 'Ta bort från köplistan' : 'Ta bort plagg'}</Text>
+          <Text style={styles.deleteButtonText}>{isWishlistItem ? tr('Ta bort från köplistan') : tr('Ta bort plagg')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

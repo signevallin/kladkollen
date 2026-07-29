@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -36,6 +36,8 @@ ${focus}
 
 GARDEROB:
 ${garmentList}
+
+${langInstruction(body.lang)}
 
 Svara ENDAST med ett JSON-objekt, inga backticks:
 {
