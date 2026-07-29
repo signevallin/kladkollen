@@ -93,14 +93,24 @@ export async function openaiChat(messages: any[], model: string, maxTokens: numb
   return text
 }
 
+// Språknamn per kod – används för att bygga AI-instruktionen. Lägg till en rad
+// här när ett nytt språk läggs till i appen (klienten skickar `lang` i bodyn).
+const LANG_NAMES: Record<string, string> = {
+  en: 'ENGLISH', de: 'GERMAN (Deutsch)', fr: 'FRENCH (français)',
+  es: 'SPANISH (español)', it: 'ITALIAN (italiano)',
+}
+
 /**
  * Instruktion till AI:n om vilket språk svaret ska vara på. Klienten skickar
- * `lang` ('sv' | 'en') i bodyn utifrån användarens valda appspråk. Default: sv.
+ * `lang` i bodyn utifrån användarens valda appspråk. Default: svenska.
  */
 export function langInstruction(lang: unknown): string {
-  return lang === 'en'
-    ? 'IMPORTANT: Respond in ENGLISH. All generated text (names, messages, reasons, descriptions, summaries) must be written in natural English.'
-    : 'VIKTIGT: Svara på SVENSKA. All text du genererar (namn, meddelanden, motiveringar, beskrivningar) ska vara på naturlig svenska.'
+  const code = String(lang || 'sv')
+  if (code === 'sv') {
+    return 'VIKTIGT: Svara på SVENSKA. All text du genererar (namn, meddelanden, motiveringar, beskrivningar) ska vara på naturlig svenska.'
+  }
+  const name = LANG_NAMES[code] || 'ENGLISH'
+  return `IMPORTANT: Respond in ${name}. All generated text (names, messages, reasons, descriptions, summaries) must be written in natural ${name}.`
 }
 
 /** Trunkerar en sträng från klienten så att promptar inte kan växa obegränsat. */

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { translate, type Lang } from './i18n'
+import { translate, LANGS, type Lang } from './i18n'
 import { setApiLang } from './api'
 
 // App-övergripande inställningar som påverkar hur siffror visas i hela appen:
@@ -82,7 +82,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const u = await AsyncStorage.getItem(TEMP_KEY)
         if (u === 'F' || u === 'C') setTempUnitState(u)
         const l = await AsyncStorage.getItem(LANG_KEY)
-        if (l === 'sv' || l === 'en') { setLangState(l); setApiLang(l) }
+        if (l && LANGS.some(x => x.code === l)) { setLangState(l as Lang); setApiLang(l) }
       } catch { /* behåll standard */ }
       loadRates()
     })()

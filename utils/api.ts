@@ -7,8 +7,8 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL || ''
 
 // Aktuellt appspråk. Sätts av SettingsProvider när språket laddas/ändras och
 // bifogas automatiskt i varje AI-anrop så genererad text kommer på rätt språk.
-let currentLang: 'sv' | 'en' = 'sv'
-export function setApiLang(lang: 'sv' | 'en') { currentLang = lang }
+let currentLang: string = 'sv'
+export function setApiLang(lang: string) { currentLang = lang }
 
 /** POST till en av våra serverless-endpoints med Supabase-sessionen som Bearer-token. */
 export async function apiPost<T = any>(path: string, body: unknown): Promise<T> {

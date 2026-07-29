@@ -1,13 +1,29 @@
 // Enkel i18n för appen. Språket väljs i profilen och lagras via useSettings().
-// Nya strängar läggs till här (sv + en). Saknas en engelsk nyckel faller vi
-// tillbaka på svenskan, så appen aldrig visar en tom text under utrullningen.
+//
+// Lägg till ett nytt språk (t.ex. tyska) i TRE steg:
+//   1. Lägg till en rad i LANGS: `{ code: 'de', label: 'Deutsch' }`.
+//   2. Lägg till en locale i LOCALES: `de: 'de-DE'` (för datum/månadsnamn).
+//   3. Lägg till en ordbok nycklad på de svenska källsträngarna och registrera
+//      den i `translations` (`de`). Saknas en nyckel faller vi tillbaka på
+//      svenskan, så inget blir tomt under utrullningen.
+// Inga skärmar behöver röras – allt går via t()/translate().
 
-export type Lang = 'sv' | 'en'
-
-export const LANGS: { code: Lang; label: string }[] = [
+// Lang härleds automatiskt ur LANGS, så en ny rad i LANGS vidgar typen.
+export const LANGS = [
   { code: 'sv', label: 'Svenska' },
   { code: 'en', label: 'English' },
-]
+] as const
+
+export type Lang = (typeof LANGS)[number]['code']
+
+// BCP-47-locale per språk – används för datum, månads- och veckodagsnamn via
+// Intl. Okänt språk faller tillbaka på svenska.
+const LOCALES: Record<string, string> = {
+  sv: 'sv-SE', en: 'en-GB', de: 'de-DE', fr: 'fr-FR',
+}
+export function localeFor(lang: string): string {
+  return LOCALES[lang] || 'sv-SE'
+}
 
 type Dict = Record<string, string>
 
@@ -39,6 +55,15 @@ const sv: Dict = {
   'profile.currency': 'Valuta',
   'profile.temperature': 'Temperatur',
   'profile.notifications': 'Notiser',
+
+  // Interpolerade meningar (statistik/familj). {x} ersätts i koden.
+  'stats.moodRoi': '{best}-outfits ger {pct}% högre betyg än {worst}-outfits.',
+  'stats.winningCombo': '{group} till {ctx} ger dig {avg}/5 i snitt – din mest lyckade färg × tillfälle.',
+  'stats.unlock5': 'Betygsätt {n} outfits till för Power Pieces och Mood ROI.',
+  'stats.unlock10': 'Betygsätt {n} outfits till för färgpsykologi och djupare trendanalys.',
+  'stats.notWornDays': 'Inte använd på {n} dagar',
+  'stats.neverWornMonths': 'Aldrig använd – i garderoben i {n} månader',
+  'family.readyInMonths': 'Om ~{n} mån',
 }
 
 const en: Dict = {
@@ -65,6 +90,14 @@ const en: Dict = {
   'profile.currency': 'Currency',
   'profile.temperature': 'Temperature',
   'profile.notifications': 'Notifications',
+
+  'stats.moodRoi': '{best} outfits score {pct}% higher than {worst} outfits.',
+  'stats.winningCombo': '{group} for {ctx} averages {avg}/5 – your most successful colour × occasion.',
+  'stats.unlock5': 'Rate {n} more outfits for Power Pieces and Mood ROI.',
+  'stats.unlock10': 'Rate {n} more outfits for colour psychology and deeper trend analysis.',
+  'stats.notWornDays': 'Not worn in {n} days',
+  'stats.neverWornMonths': 'Never worn – in your wardrobe for {n} months',
+  'family.readyInMonths': 'In ~{n} mo',
 }
 
 // ── Engelska överättningar nycklade på den svenska källsträngen ──────────────
@@ -865,8 +898,10 @@ const enBySource: Dict = {
 
 Object.assign(en, enBySource)
 
-export const translations: Record<Lang, Dict> = { sv, en }
+// Nycklad på språkkod (string, inte Lang) så man kan lägga till en LANGS-rad
+// innan ordboken finns – translate faller då tillbaka på svenskan.
+export const translations: Record<string, Dict> = { sv, en }
 
-export function translate(lang: Lang, key: string): string {
+export function translate(lang: string, key: string): string {
   return translations[lang]?.[key] ?? translations.sv[key] ?? key
 }

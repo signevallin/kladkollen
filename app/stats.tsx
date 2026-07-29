@@ -433,7 +433,7 @@ export default function Stats() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.insightTitle}>{tt('Din bästa stil')}</Text>
                     <Text style={styles.insightBody}>
-                      {lang === 'en' ? `${tt(moodROI.bestLabel)} outfits score ${moodROI.pctDiff}% higher than ${tt(moodROI.worstLabel)} outfits.` : `${moodROI.bestLabel}-outfits ger ${moodROI.pctDiff}% högre betyg än ${moodROI.worstLabel}-outfits.`}
+                      {tt('stats.moodRoi').replace('{best}', tt(moodROI.bestLabel)).replace('{pct}', String(moodROI.pctDiff)).replace('{worst}', tt(moodROI.worstLabel))}
                     </Text>
                   </View>
                 </View>
@@ -445,7 +445,7 @@ export default function Stats() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.insightTitle}>{tt('Vinnande kombination')}</Text>
                     <Text style={styles.insightBody}>
-                      {lang === 'en' ? `${tt(winningCombo.group)} for ${tt(winningCombo.context)} averages ${winningCombo.avgRating}/5 – your most successful colour × occasion.` : `${winningCombo.group} till ${winningCombo.context} ger dig ${winningCombo.avgRating}/5 i snitt – din mest lyckade färg × tillfälle.`}
+                      {tt('stats.winningCombo').replace('{group}', tt(winningCombo.group)).replace('{ctx}', tt(winningCombo.context)).replace('{avg}', String(winningCombo.avgRating))}
                     </Text>
                   </View>
                 </View>
@@ -526,8 +526,8 @@ export default function Stats() {
                     <Text style={styles.unlockTitle}>{tt('Mer insikter väntar')}</Text>
                     <Text style={styles.unlockText}>
                       {ratedCount < 5
-                        ? (lang === 'en' ? `Rate ${5 - ratedCount} more outfits for Power Pieces and Mood ROI.` : `Betygsätt ${5 - ratedCount} outfits till för Power Pieces och Mood ROI.`)
-                        : (lang === 'en' ? `Rate ${10 - ratedCount} more outfits for colour psychology and deeper trend analysis.` : `Betygsätt ${10 - ratedCount} outfits till för färgpsykologi och djupare trendanalys.`)}
+                        ? tt('stats.unlock5').replace('{n}', String(5 - ratedCount))
+                        : tt('stats.unlock10').replace('{n}', String(10 - ratedCount))}
                     </Text>
                     <View style={styles.unlockBar}>
                       <View style={[styles.unlockFill, { width: `${Math.min(100, (ratedCount / 10) * 100)}%` }]} />
@@ -759,9 +759,9 @@ export default function Stats() {
                   const idleDays = daysSince(item.last_worn)
                   const ownedDays = daysSince(item.created_at)
                   const label = idleDays !== null
-                    ? (lang === 'en' ? `Not worn in ${idleDays} days` : `Inte använd på ${idleDays} dagar`)
+                    ? tt('stats.notWornDays').replace('{n}', String(idleDays))
                     : ownedDays !== null
-                      ? (lang === 'en' ? `Never worn – in your wardrobe for ${Math.round(ownedDays / 30)} months` : `Aldrig använd – i garderoben i ${Math.round(ownedDays / 30)} månader`)
+                      ? tt('stats.neverWornMonths').replace('{n}', String(Math.round(ownedDays / 30)))
                       : tt('Aldrig använd')
                   return (
                     <View key={item.id} style={styles.vintedItem}>

@@ -33,6 +33,7 @@ import { pickImageSmart } from '../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
 import { parsePrice } from '../utils/brands'
 import { useSettings } from '../utils/settings'
+import { localeFor } from '../utils/i18n'
 import { affiliateUrl } from '../utils/affiliate'
 import * as WebBrowser from 'expo-web-browser'
 import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, COLOR_OPTIONS, SEASONS as SEASON_LIST, SUBCATEGORIES } from '../utils/constants'
@@ -842,7 +843,7 @@ export default function Wardrobe() {
                       <Text style={styles.salePickerCategory}>{tr(item.category)}{item.color ? ` · ${tr(item.color)}` : ''}</Text>
                       <Text style={styles.salePickerStat}>{tr('Använd')} {item.times_worn || 0} {tr('gånger')}</Text>
                       <Text style={styles.salePickerStat}>
-                        {item.last_worn ? `${tr('Senast använd:')} ${new Date(item.last_worn).toLocaleDateString(lang === 'en' ? 'en-GB' : 'sv-SE')}` : tr('Aldrig använd')}
+                        {item.last_worn ? `${tr('Senast använd:')} ${new Date(item.last_worn).toLocaleDateString(localeFor(lang))}` : tr('Aldrig använd')}
                       </Text>
                     </View>
                     <View style={styles.addSaleBtn}>

@@ -16,10 +16,8 @@ import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { goBack } from '../utils/nav'
 import { useSettings } from '../utils/settings'
+import { localeFor } from '../utils/i18n'
 import { COLOR_HEX } from '../utils/constants'
-
-const MONTHS = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
-const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export default function PartnerCloset() {
   const t = useTheme()
@@ -94,7 +92,8 @@ export default function PartnerCloset() {
 
   function fmtDate(d: string) {
     const dt = new Date(d + 'T12:00:00')
-    return `${dt.getDate()} ${(lang === 'en' ? MONTHS_EN : MONTHS)[dt.getMonth()]}`
+    // Kort månadsnamn på valt språk via Intl (inga språklistor att underhålla).
+    return `${dt.getDate()} ${new Intl.DateTimeFormat(localeFor(lang), { month: 'short' }).format(dt)}`
   }
 
   const partnerName = name || 'Partner'

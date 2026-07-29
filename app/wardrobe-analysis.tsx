@@ -18,6 +18,7 @@ import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { STYLE_RULES } from '../utils/constants'
 import { useSettings } from '../utils/settings'
+import { localeFor } from '../utils/i18n'
 
 type Mode = 'color' | 'style' | 'moodboard'
 
@@ -33,7 +34,7 @@ export default function WardrobeAnalysis() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang } = useSettings()
-  const locale = lang === 'en' ? 'en-GB' : 'sv-SE'
+  const locale = localeFor(lang)
 
   const [garments, setGarments] = useState<any[]>([])
   const [colorAnalysis, setColorAnalysis] = useState<any | null>(null)
