@@ -80,6 +80,7 @@ export default function Wardrobe() {
   const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set())
   // Barnstorlek (bara relevant i barn-läge) – lagras som strängar av size_cm.
   const [activeSizes, setActiveSizes] = useState<Set<string>>(new Set())
+  const [laundryFilter, setLaundryFilter] = useState<'all' | 'in' | 'out'>('all')
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
@@ -337,6 +338,8 @@ export default function Wardrobe() {
     if (activeColors.size) result = result.filter(g => activeColors.has(g.color))
     if (activeTypes.size) result = result.filter(g => activeTypes.has(g.subcategory))
     if (activeSizes.size) result = result.filter(g => g.size_cm != null && activeSizes.has(String(g.size_cm)))
+    if (laundryFilter === 'in') result = result.filter(g => g.in_laundry)
+    else if (laundryFilter === 'out') result = result.filter(g => !g.in_laundry)
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(g =>
@@ -357,7 +360,7 @@ export default function Wardrobe() {
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     }
     return sorted
-  }, [garments, activeCategories, activeSeasons, activeColors, activeTypes, activeSizes, search, sortBy])
+  }, [garments, activeCategories, activeSeasons, activeColors, activeTypes, activeSizes, laundryFilter, search, sortBy])
 
   // Typ-alternativ (subkategorier) som faktiskt finns i garderoben, för filtret.
   const typeOptions = useMemo(() => {
@@ -431,6 +434,7 @@ export default function Wardrobe() {
   function handleSort(key: string) { setSortBy(key); setOpenDropdown(null) }
   function clearFilters() {
     setActiveCategories(new Set()); setActiveSeasons(new Set()); setActiveColors(new Set()); setActiveTypes(new Set()); setActiveSizes(new Set())
+    setLaundryFilter('all')
     setSearch(''); setSortBy('recent'); setShowSearch(false); setOpenDropdown(null)
   }
 
@@ -531,7 +535,7 @@ export default function Wardrobe() {
     showAlert('Grattis!', `${item.name} finns nu i garderoben.`)
   }
 
-  const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || activeSizes.size > 0 || search !== ''
+  const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || activeSizes.size > 0 || laundryFilter !== 'all' || search !== ''
   // Etikett för filter-chippen: inget val → filternamnet, ett val → värdet,
   // flera val → "Filternamn (antal)".
   const filterChipValue = (label: string, set: Set<string>) =>
@@ -938,6 +942,7 @@ export default function Wardrobe() {
               ...(isPerson ? [{ key: 'size', label: 'Storlek', value: filterChipValue('Storlek', activeSizes), on: activeSizes.size > 0 }] : []),
               { key: 'color', label: 'Färg', value: filterChipValue('Färg', activeColors), on: activeColors.size > 0 },
               { key: 'season', label: 'Säsong', value: filterChipValue('Säsong', activeSeasons), on: activeSeasons.size > 0 },
+              { key: 'laundry', label: 'Tvätt', value: laundryFilter === 'in' ? 'I tvätten' : laundryFilter === 'out' ? 'Ej i tvätten' : 'Tvätt', on: laundryFilter !== 'all' },
             ].map(f => (
               <TouchableOpacity
                 key={f.key}
@@ -968,6 +973,16 @@ export default function Wardrobe() {
                           onPress={() => handleSort(opt.key)}
                         >
                           <Text style={[styles.dropdownPillText, sortBy === opt.key && styles.dropdownPillTextActive]}>{opt.label}</Text>
+                        </TouchableOpacity>
+                      ))
+                    : openDropdown === 'laundry'
+                    ? ([['all', 'Alla'], ['in', 'I tvätten'], ['out', 'Ej i tvätten']] as const).map(([key, label]) => (
+                        <TouchableOpacity
+                          key={key}
+                          style={[styles.dropdownPill, laundryFilter === key && styles.dropdownPillActive]}
+                          onPress={() => { setLaundryFilter(key); setOpenDropdown(null) }}
+                        >
+                          <Text style={[styles.dropdownPillText, laundryFilter === key && styles.dropdownPillTextActive]}>{label}</Text>
                         </TouchableOpacity>
                       ))
                     : (openDropdown === 'category' ? CATEGORIES : openDropdown === 'type' ? typeOptions : openDropdown === 'size' ? sizeOptions : openDropdown === 'season' ? SEASONS : COLORS).map(item => {
