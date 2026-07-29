@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -66,6 +66,8 @@ B. Varje saknat plagg måste gå att BÄRA IHOP med de valda plaggen. Föreslå
 C. Saknade plagg ska tona in färg- och materialmässigt i looken. Blanda inte
    in en tredje stark färg eller svart+brunt läder.
 D. Max 3 saknade plagg, gärna färre. Kvalitet före kvantitet.
+
+${langInstruction(body.lang)} OBS: "items" ska vara plaggens namn EXAKT som i garderoben (översätt dem INTE). Språkvalet gäller "styleDescription", "outfitName", "missing" och "tip".
 
 Svara ENDAST med ett JSON-objekt:
 {

@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -46,6 +46,8 @@ REGLER:
 3. Varje "out" måste finnas i dayItems och INTE i eveningItems. Varje "in" måste finnas i eveningItems och INTE i dayItems.
 4. Inga dubbletter (en överdel, en nederdel, ett par skor). Färgharmoni i båda looken.
 ${styleRules ? `5. Användarens egna stilregler (följ noga): ${styleRules}` : ''}
+
+${langInstruction(body.lang)} OBS: "dayItems", "eveningItems" och swap-plaggen ("out"/"in") ska vara plaggens namn EXAKT som i garderoben (översätt dem INTE). Språkvalet gäller "dayName", "eveningName" och "tip".
 
 Svara ENDAST med JSON, inga backticks:
 {"dayName": "kort namn på daglooken", "dayItems": ["exakt plaggnamn", ...], "eveningName": "kort namn på kvällslooken", "eveningItems": ["exakt plaggnamn", ...], "swaps": [{"out": "plagg som tas av", "in": "plagg som tas på"}], "tip": "Ett peppande stylist-tips om förvandlingen (1–2 meningar)."}`

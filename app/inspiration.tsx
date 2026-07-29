@@ -31,6 +31,7 @@ import { showAlert, showConfirm } from '../utils/alert'
 import { loadPartner } from '../utils/household'
 import { uploadUserImage } from '../utils/storage'
 import { pickImageSmart } from '../utils/imagePicker'
+import { useSettings } from '../utils/settings'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
@@ -51,6 +52,7 @@ const DTN_TRANSITIONS = [
 export default function Inspiration() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tt, lang } = useSettings()
   const [activeTab, setActiveTab] = useState<'analys' | 'moodboard' | 'dagtillfest'>('analys')
 
   // Dag till fest state
@@ -144,7 +146,7 @@ export default function Inspiration() {
         if (dbError) throw dbError
         fetchMoodboard()
       } catch (error: any) {
-        showAlert('Något gick fel', error.message)
+        showAlert(tt('Något gick fel'), error.message)
       } finally {
         setUploadingMoodboard(false)
       }
@@ -173,7 +175,7 @@ export default function Inspiration() {
   })).current
 
   async function deleteMoodboardImage(id: string) {
-    showConfirm('Ta bort bild', 'Vill du ta bort bilden från moodboarden?', async () => {
+    showConfirm(tt('Ta bort bild'), tt('Vill du ta bort bilden från moodboarden?'), async () => {
       await supabase.from('moodboard').delete().eq('id', id)
       setSelectedImage(null)
       fetchMoodboard()
@@ -209,16 +211,16 @@ export default function Inspiration() {
       sort_order: count || 0,
     })
     if (error) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tt('Något gick fel'), error.message)
     } else {
       setAddedToWishlist(prev => [...prev, itemName])
-      showAlert('Lagt till!', `"${itemName}" finns nu i din köplista.`)
+      showAlert(tt('Lagt till!'), `"${itemName}" ${tt('finns nu i din köplista.')}`)
     }
   }
 
   async function analyzeAndMatch() {
     if (!inspoBase64) {
-      showAlert('Välj en inspirationsbild först!')
+      showAlert(tt('Välj en inspirationsbild först!'))
       return
     }
     setLoading(true)
@@ -254,7 +256,7 @@ export default function Inspiration() {
       setOutfit({ ...parsed, missing: missingArray, itemsWithImages })
       setSavedInspo(false)
     } catch (error: any) {
-      showAlert('Något gick fel', error.message)
+      showAlert(tt('Något gick fel'), error.message)
     } finally {
       setLoading(false)
     }
@@ -277,9 +279,9 @@ export default function Inspiration() {
       }])
       if (error) throw error
       setSavedInspo(true)
-      showAlert('Outfit sparad!', 'Du hittar den under Outfits.')
+      showAlert(tt('Outfit sparad!'), tt('Du hittar den under Outfits.'))
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tt('Något gick fel'), e.message)
     } finally {
       setSavingInspo(false)
     }
@@ -327,7 +329,7 @@ export default function Inspiration() {
         .is('person_id', null)
       const pool = (currentGarments || []).filter((g: any) => !g.archived && !g.for_sale)
       if (pool.length < 4) {
-        showAlert('För få plagg', 'Lägg till fler plagg i garderoben så kan jag bygga en dag-till-fest-look.')
+        showAlert(tt('För få plagg'), tt('Lägg till fler plagg i garderoben så kan jag bygga en dag-till-fest-look.'))
         return
       }
       const parsed = await apiPost('/api/day-to-night', {
@@ -355,7 +357,7 @@ export default function Inspiration() {
         })),
       })
     } catch (e: any) {
-      showAlert('Kunde inte skapa looken', e.message || 'Försök igen.')
+      showAlert(tt('Kunde inte skapa looken'), e.message || tt('Försök igen.'))
     } finally {
       setDtnLoading(false)
     }
@@ -374,10 +376,12 @@ export default function Inspiration() {
   function dtnDateLabel(dateStr: string): string {
     const today = new Date().toISOString().slice(0, 10)
     const tmw = new Date(); tmw.setDate(tmw.getDate() + 1)
-    if (dateStr === today) return 'Idag'
-    if (dateStr === tmw.toISOString().slice(0, 10)) return 'Imorgon'
+    if (dateStr === today) return tt('Idag')
+    if (dateStr === tmw.toISOString().slice(0, 10)) return tt('Imorgon')
     const d = new Date(dateStr + 'T12:00:00')
-    const WD = ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör']
+    const WD = lang === 'en'
+      ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      : ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör']
     return `${WD[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`
   }
 
@@ -396,10 +400,10 @@ export default function Inspiration() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Dela din dag-till-fest' })
       } else {
-        showAlert('Delning stöds inte här', 'Öppna appen på telefonen för att dela.')
+        showAlert(tt('Delning stöds inte här'), tt('Öppna appen på telefonen för att dela.'))
       }
     } catch (e: any) {
-      if (e?.message && !/cancel/i.test(e.message)) showAlert('Kunde inte dela', e.message)
+      if (e?.message && !/cancel/i.test(e.message)) showAlert(tt('Kunde inte dela'), e.message)
     } finally {
       setDtnSharing(false); setDtnShareTarget(null)
     }
@@ -435,14 +439,14 @@ export default function Inspiration() {
       setDtnShowDates(false)
       toast('Sparat!', `Kvällslooken ligger på ${dtnDateLabel(dateStr).toLowerCase()}. Båda looken finns i Outfits.`)
     } catch (e: any) {
-      showAlert('Kunde inte spara', e.message || 'Försök igen.')
+      showAlert(tt('Kunde inte spara'), e.message || tt('Försök igen.'))
     } finally {
       setDtnSaving(false)
     }
   }
 
   async function analyzeCouple() {
-    if (!inspoBase64) { showAlert('Välj en inspirationsbild först!'); return }
+    if (!inspoBase64) { showAlert(tt('Välj en inspirationsbild först!')); return }
     if (!partner) return
     setCoupleLoading(true); setCoupleResult(null); setCoupleSaved(false)
     try {
@@ -454,7 +458,7 @@ export default function Inspiration() {
       const myG = (mine.data || []).filter((g: any) => !g.archived && !g.for_sale)
       const parG = (theirs.data || []).filter((g: any) => !g.archived && !g.for_sale)
       if (myG.length === 0 || parG.length === 0) {
-        showAlert('För få plagg', 'Ni behöver båda ha plagg i garderoben.')
+        showAlert(tt('För få plagg'), tt('Ni behöver båda ha plagg i garderoben.'))
         return
       }
       const parsed = await apiPost('/api/analyze-inspo-couple', {
@@ -469,7 +473,7 @@ export default function Inspiration() {
       }))
       setCoupleResult({ results })
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tt('Något gick fel'), e.message)
     } finally {
       setCoupleLoading(false)
     }
@@ -503,9 +507,9 @@ export default function Inspiration() {
         if (error) throw error
       }
       setCoupleSaved(true)
-      showAlert('Sparat!', `Outfiten finns nu i både ditt och ${partner.name}s konto.`)
+      showAlert(tt('Sparat!'), `${tt('Outfiten sparades hos både dig och')} ${partner.name}.`)
     } catch (e: any) {
-      showAlert('Något gick fel', e.message)
+      showAlert(tt('Något gick fel'), e.message)
     } finally {
       setCoupleSaving(false)
     }
@@ -526,7 +530,7 @@ export default function Inspiration() {
                 <TouchableOpacity
                   style={[styles.imageModalArrow, styles.imageModalArrowLeft]}
                   onPress={() => stepImage(-1)}
-                  accessibilityLabel="Föregående bild"
+                  accessibilityLabel={tt('Föregående bild')}
                   accessibilityRole="button"
                 >
                   <Text style={styles.imageModalArrowText}>‹</Text>
@@ -543,7 +547,7 @@ export default function Inspiration() {
                 <TouchableOpacity
                   style={[styles.imageModalArrow, styles.imageModalArrowRight]}
                   onPress={() => stepImage(1)}
-                  accessibilityLabel="Nästa bild"
+                  accessibilityLabel={tt('Nästa bild')}
                   accessibilityRole="button"
                 >
                   <Text style={styles.imageModalArrowText}>›</Text>
@@ -556,7 +560,7 @@ export default function Inspiration() {
                   if (item) deleteMoodboardImage(item.id)
                 }}
               >
-                <Text style={styles.imageModalDeleteText}>Ta bort</Text>
+                <Text style={styles.imageModalDeleteText}>{tt('Ta bort')}</Text>
               </TouchableOpacity>
             </>
           )}
@@ -564,7 +568,7 @@ export default function Inspiration() {
       </Modal>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Inspiration</Text>
+        <Text style={styles.title}>{tt('Inspiration')}</Text>
 
         {/* Tabs */}
         <View style={styles.tabRow}>
@@ -575,7 +579,7 @@ export default function Inspiration() {
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'analys' ? 'AI-analys' : tab === 'moodboard' ? 'Moodboard' : 'Dag till fest'}
+                {tab === 'analys' ? tt('AI-analys') : tab === 'moodboard' ? tt('Moodboard') : tt('Dag till fest')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -589,13 +593,13 @@ export default function Inspiration() {
                 <Image source={{ uri: inspoImage }} style={styles.inspoImage} resizeMode="contain" />
               ) : (
                 <View style={styles.uploadPlaceholder}>
-                  <Text style={styles.uploadText}>Ladda upp inspirationsbild</Text>
-                  <Text style={styles.uploadSub}>Pinterest · Instagram · Kamera</Text>
+                  <Text style={styles.uploadText}>{tt('Ladda upp inspirationsbild')}</Text>
+                  <Text style={styles.uploadSub}>{tt('Pinterest · Instagram · Kamera')}</Text>
                 </View>
               )}
               {inspoImage && (
                 <View style={styles.changeImageOverlay}>
-                  <Text style={styles.changeImageText}>Byt bild</Text>
+                  <Text style={styles.changeImageText}>{tt('Byt bild')}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -606,7 +610,7 @@ export default function Inspiration() {
               disabled={loading || !inspoImage}
             >
               <Text style={styles.analyzeButtonText}>
-                {loading ? 'Analyserar...' : 'Matcha mot min garderob'}
+                {loading ? tt('Analyserar...') : tt('Matcha mot min garderob')}
               </Text>
             </TouchableOpacity>
 
@@ -617,7 +621,7 @@ export default function Inspiration() {
                 disabled={coupleLoading || loading || !inspoBase64}
               >
                 <Text style={styles.coupleMatchBtnText}>
-                  {coupleLoading ? 'Analyserar paret...' : `Matcha mot min och ${partner.name}s garderob`}
+                  {coupleLoading ? tt('Analyserar paret...') : `${tt('Matcha mot min och')} ${partner.name}${tt('s garderob')}`}
                 </Text>
               </TouchableOpacity>
             )}
@@ -625,14 +629,14 @@ export default function Inspiration() {
             {loading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator color={t.textSecondary} />
-                <Text style={styles.loadingText}>AI:n analyserar din bild...</Text>
+                <Text style={styles.loadingText}>{tt('AI:n analyserar din bild...')}</Text>
               </View>
             )}
 
             {outfit && (
               <View style={styles.resultCard}>
                 <View style={styles.styleSection}>
-                  <Text style={styles.sectionLabel}>STILEN I BILDEN</Text>
+                  <Text style={styles.sectionLabel}>{tt('STILEN I BILDEN')}</Text>
                   <Text style={styles.styleDescription}>{outfit.styleDescription}</Text>
                 </View>
                 <Text style={styles.outfitName}>{outfit.outfitName}</Text>
@@ -651,8 +655,8 @@ export default function Inspiration() {
                   <View style={styles.missingSection}>
                     <View style={styles.missingSectionHeader}>
                       <View>
-                        <Text style={styles.missingTitle}>Du saknar i garderoben</Text>
-                        <Text style={styles.missingSubtitle}>Lägg till i köplistan för att komplettera</Text>
+                        <Text style={styles.missingTitle}>{tt('Du saknar i garderoben')}</Text>
+                        <Text style={styles.missingSubtitle}>{tt('Lägg till i köplistan för att komplettera')}</Text>
                       </View>
                     </View>
                     {outfit.missing.map((missingItem: string, index: number) => {
@@ -669,7 +673,7 @@ export default function Inspiration() {
                             disabled={alreadyAdded}
                           >
                             <Text style={[styles.addBtnText, alreadyAdded && styles.addBtnTextDone]}>
-                              {alreadyAdded ? '✓ Tillagd' : '+ Köplista'}
+                              {alreadyAdded ? tt('✓ Tillagd') : tt('+ Köplista')}
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -686,7 +690,7 @@ export default function Inspiration() {
                   disabled={savingInspo || savedInspo}
                 >
                   <Text style={styles.saveInspoBtnText}>
-                    {savingInspo ? '...' : savedInspo ? '✓ Sparad i outfits' : 'Spara outfit'}
+                    {savingInspo ? '...' : savedInspo ? tt('✓ Sparad i outfits') : tt('Spara outfit')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -711,7 +715,7 @@ export default function Inspiration() {
                       ))}
                     </View>
                     {(r.missing || []).length > 0 && (
-                      <Text style={styles.coupleMissing}>Saknas: {r.missing.join(', ')}</Text>
+                      <Text style={styles.coupleMissing}>{tt('Saknas:')} {r.missing.join(', ')}</Text>
                     )}
                     {!!r.tip && <View style={styles.tipCard}><Text style={styles.tipText}>{r.tip}</Text></View>}
                   </View>
@@ -722,7 +726,7 @@ export default function Inspiration() {
                   disabled={coupleSaving || coupleSaved}
                 >
                   <Text style={styles.saveInspoBtnText}>
-                    {coupleSaving ? '...' : coupleSaved ? '✓ Sparad i båda konton' : 'Spara båda outfits'}
+                    {coupleSaving ? '...' : coupleSaved ? tt('✓ Sparad i båda konton') : tt('Spara båda outfits')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -736,14 +740,14 @@ export default function Inspiration() {
             <TouchableOpacity style={styles.moodboardUploadBtn} onPress={pickMoodboardImage} disabled={uploadingMoodboard}>
               {uploadingMoodboard
                 ? <ActivityIndicator color={t.onPrimary} />
-                : <Text style={styles.moodboardUploadBtnText}>＋ Lägg till bild</Text>
+                : <Text style={styles.moodboardUploadBtnText}>{tt('＋ Lägg till bild')}</Text>
               }
             </TouchableOpacity>
 
             {moodboardImages.length === 0 ? (
               <View style={styles.moodboardEmpty}>
-                <Text style={styles.moodboardEmptyText}>Din moodboard är tom</Text>
-                <Text style={styles.moodboardEmptyHint}>Lägg till bilder som inspirerar dig</Text>
+                <Text style={styles.moodboardEmptyText}>{tt('Din moodboard är tom')}</Text>
+                <Text style={styles.moodboardEmptyHint}>{tt('Lägg till bilder som inspirerar dig')}</Text>
               </View>
             ) : (
               <View style={styles.moodboardGrid}>
@@ -764,7 +768,7 @@ export default function Inspiration() {
 
         {activeTab === 'dagtillfest' && (
           <>
-            <Text style={styles.dtnIntro}>Samma outfit – från dag till kväll. Välj en förvandling så visar jag vilka få plagg du byter ut.</Text>
+            <Text style={styles.dtnIntro}>{tt('Samma outfit – från dag till kväll. Välj en förvandling så visar jag vilka få plagg du byter ut.')}</Text>
             <View style={styles.dtnChips}>
               {DTN_TRANSITIONS.map(tr => (
                 <TouchableOpacity
@@ -773,7 +777,7 @@ export default function Inspiration() {
                   onPress={() => runDayToNight(tr, { vary: dtnKey === tr.key })}
                   disabled={dtnLoading}
                 >
-                  <Text style={[styles.dtnChipText, dtnKey === tr.key && styles.dtnChipTextActive]}>{tr.label}</Text>
+                  <Text style={[styles.dtnChipText, dtnKey === tr.key && styles.dtnChipTextActive]}>{tt(tr.fromLabel)} → {tr.toLabel}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -783,7 +787,7 @@ export default function Inspiration() {
             {dtnResult && !dtnLoading && (
               <>
                 {/* DAG */}
-                <Text style={styles.dtnHeading}>DAG</Text>
+                <Text style={styles.dtnHeading}>{tt('DAG')}</Text>
                 <Text style={styles.outfitName}>{dtnResult.dayName}</Text>
                 <View style={styles.outfitItems}>
                   {dtnResult.dayImages.map((item: any, i: number) => (
@@ -795,7 +799,7 @@ export default function Inspiration() {
                 </View>
 
                 {/* BYT UT */}
-                <Text style={styles.dtnHeading}>BYT UT</Text>
+                <Text style={styles.dtnHeading}>{tt('BYT UT')}</Text>
                 {dtnResult.swapImages.map((s: any, i: number) => (
                   <View key={`s${i}`} style={styles.swapRow}>
                     <View style={styles.swapItem}>
@@ -810,11 +814,11 @@ export default function Inspiration() {
                   </View>
                 ))}
                 {dtnResult.keep?.length > 0 && (
-                  <Text style={styles.dtnKeep}>Behåll: {dtnResult.keep.join(' · ')}</Text>
+                  <Text style={styles.dtnKeep}>{tt('Behåll:')} {dtnResult.keep.join(' · ')}</Text>
                 )}
 
                 {/* KVÄLL */}
-                <Text style={styles.dtnHeading}>KVÄLL</Text>
+                <Text style={styles.dtnHeading}>{tt('KVÄLL')}</Text>
                 <Text style={styles.outfitName}>{dtnResult.eveningName}</Text>
                 <View style={styles.outfitItems}>
                   {dtnResult.eveningImages.map((item: any, i: number) => (
@@ -835,21 +839,21 @@ export default function Inspiration() {
                   disabled={dtnLoading}
                 >
                   <Ionicons name="shuffle" size={16} color={t.textPrimary} />
-                  <Text style={styles.dtnShuffleText}>Blanda om</Text>
+                  <Text style={styles.dtnShuffleText}>{tt('Blanda om')}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.dtnActions}>
                   <TouchableOpacity style={styles.dtnActionBtn} onPress={shareDayToNight} disabled={dtnSharing}>
-                    <Text style={styles.dtnActionText}>{dtnSharing ? 'Delar…' : 'Dela'}</Text>
+                    <Text style={styles.dtnActionText}>{dtnSharing ? tt('Delar…') : tt('Dela')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={[styles.dtnActionBtn, styles.dtnActionBtnPrimary]} onPress={() => setDtnShowDates(v => !v)}>
-                    <Text style={[styles.dtnActionText, styles.dtnActionTextPrimary]}>Spara till kalender</Text>
+                    <Text style={[styles.dtnActionText, styles.dtnActionTextPrimary]}>{tt('Spara till kalender')}</Text>
                   </TouchableOpacity>
                 </View>
 
                 {dtnShowDates && (
                   <>
-                    <Text style={styles.dtnKeep}>Välj dag:</Text>
+                    <Text style={styles.dtnKeep}>{tt('Välj dag:')}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dtnDateChips}>
                       {dtnNextDates(14).map(d => (
                         <TouchableOpacity key={d} style={styles.dtnDateChip} disabled={dtnSaving} onPress={() => saveDayToNightToCalendar(d)}>

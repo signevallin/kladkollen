@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -61,6 +61,8 @@ Garderob B (${nameB}):
 ${listB}
 
 För VARJE person, gå igenom looken roll för roll och välj HÖGST ETT plagg per roll ur RÄTT garderob: en överdel + en nederdel (eller en klänning istället för båda) + ett par skor + ev. ytterplagg/accessoar. Aldrig två överdelar, två nederdelar eller två par skor. Saknar garderoben ett passande plagg för en roll → lägg rollen i "missing" (färg/typ), aldrig i "items".
+
+${langInstruction(body.lang)} OBS: "items" ska vara plaggens namn EXAKT som i garderoberna (översätt dem INTE). Språkvalet gäller "styleDescription", "outfitName", "missing" och "tip" (inte "person"/"items").
 
 Svara ENDAST med JSON i EXAKT denna ordning (results[0] = garderob A / ${nameA}, results[1] = garderob B / ${nameB}), inga backticks:
 {"results":[{"person":"${nameA}","styleDescription":"kort","outfitName":"namn","items":["exakt plaggnamn ur garderob A"],"missing":["saknat plagg"],"tip":"styling-tips"},{"person":"${nameB}","styleDescription":"kort","outfitName":"namn","items":["exakt plaggnamn ur garderob B"],"missing":[],"tip":"styling-tips"}]}`
