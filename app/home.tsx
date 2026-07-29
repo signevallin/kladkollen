@@ -147,7 +147,7 @@ export default function Home() {
   async function fetchAll() {
     // Bara kolumnerna hemskärmen faktiskt använder (outfit-generering + räknare) –
     // slipper dra hela plaggraden vid varje appstart.
-    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived').is('person_id', null)
+    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived, in_laundry').is('person_id', null)
     if (data) {
       setGarments(data); cacheSet('home.garments', data)
     }
@@ -371,7 +371,8 @@ export default function Home() {
         dislikedOutfits.length > 0 ? `Användaren GILLADE INTE dessa: ${dislikedOutfits.slice(0, 3).join(' | ')}` : '',
       ].filter(Boolean).join('\n')
 
-      const activeGarments = garments.filter(g => !g.archived)
+      // Plagg i tvätten föreslås inte i genererade outfits.
+      const activeGarments = garments.filter(g => !g.archived && !g.in_laundry)
       const weatherCtx = useWeather ? buildWeatherContext(currentWeather, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
 
       // Filtrera bort renodlade off-season-plagg (t.ex. vinterjacka på sommaren).
@@ -892,7 +893,7 @@ export default function Home() {
   const swapItem = swapIndex !== null ? outfit?.itemsWithImages?.[swapIndex] : null
   const swapCategory = swapItem ? garments.find(g => g.id === swapItem.id)?.category : null
   const swapAlternatives = garments.filter(g =>
-    !g.archived && g.id !== swapItem?.id && (swapCategory ? g.category === swapCategory : true)
+    !g.archived && !g.in_laundry && g.id !== swapItem?.id && (swapCategory ? g.category === swapCategory : true)
   )
 
   // ── Byt ut plagg i en par-outfit (samma logik som ovan, per person) ──────
@@ -973,7 +974,7 @@ export default function Home() {
 
   // Antal manuellt tillagda plagg (för att kunna begränsa till MAX_ADDED).
   const singleAddedCount = (outfit?.itemsWithImages || []).filter((i: any) => i.added).length
-  const activeGarmentsForPicker = garments.filter(g => !g.archived && !g.for_sale)
+  const activeGarmentsForPicker = garments.filter(g => !g.archived && !g.for_sale && !g.in_laundry)
 
   const activeCtx = CONTEXTS[selectedContext]
 
