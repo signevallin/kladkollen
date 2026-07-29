@@ -27,6 +27,7 @@ import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
+import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 // Hur frusen användaren är – justerar hur AI:n tolkar temperaturen vid outfit-förslag.
@@ -77,7 +78,7 @@ export default function Profile() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
-  const { currency, setCurrency, tempUnit, setTempUnit } = useSettings()
+  const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang } = useSettings()
 
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)
@@ -864,8 +865,16 @@ export default function Profile() {
             ),
           })}
           {renderRow('sprak', 'Språk', {
-            icon: 'language', value: 'Svenska',
-            body: <Text style={styles.hint}>Appen är på svenska. Fler språk kommer snart.</Text>,
+            icon: 'language', value: LANGS.find(l => l.code === lang)?.label ?? 'Svenska',
+            body: (
+              <View style={styles.pills}>
+                {LANGS.map(l => (
+                  <TouchableOpacity key={l.code} style={[styles.pill, lang === l.code && styles.pillActive]} onPress={() => setLang(l.code)}>
+                    <Text style={[styles.pillText, lang === l.code && styles.pillTextActive]}>{l.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ),
           })}
           {renderRow('platser', 'Egna platser', { icon: 'place', onPress: () => router.push('/locations') })}
           {renderRow('notiser', 'Notiser', { icon: 'notifications-none', onPress: () => router.push('/notifications') })}

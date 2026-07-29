@@ -5,6 +5,7 @@ import { router, usePathname } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import AddGarmentChooser from './AddGarmentChooser'
+import { useSettings } from '../utils/settings'
 
 // Ljusblå plusknapp – samma i både ljust och mörkt läge (som användaren bad om).
 const PLUS_BLUE = '#DDE6ED'
@@ -12,16 +13,16 @@ const PLUS_ICON = '#402D21'
 
 // Fyra flikar + en upphöjd plusknapp i mitten (Statistik nås numera via Profil).
 const tabs = [
-  { name: 'home',        label: 'Hem',      icon: 'home',     iconOutline: 'home-outline',     path: '/home' },
-  { name: 'wardrobe',    label: 'Garderob', icon: 'shirt',    iconOutline: 'shirt-outline',    path: '/wardrobe' },
-  { name: 'my-outfit',   label: 'Outfits',  icon: 'sparkles', iconOutline: 'sparkles-outline', path: '/my-outfit' },
-  { name: 'inspiration', label: 'Inspo',    icon: 'camera',   iconOutline: 'camera-outline',   path: '/inspiration' },
+  { name: 'home',        labelKey: 'nav.home',     icon: 'home',     iconOutline: 'home-outline',     path: '/home' },
+  { name: 'wardrobe',    labelKey: 'nav.wardrobe', icon: 'shirt',    iconOutline: 'shirt-outline',    path: '/wardrobe' },
+  { name: 'my-outfit',   labelKey: 'nav.outfits',  icon: 'sparkles', iconOutline: 'sparkles-outline', path: '/my-outfit' },
+  { name: 'inspiration', labelKey: 'nav.inspo',    icon: 'camera',   iconOutline: 'camera-outline',   path: '/inspiration' },
 ]
 
 const addOptions = [
-  { label: 'Lägg till plagg',            icon: 'shirt-outline',    path: '/add-garment' },
-  { label: 'Lägg till outfit',           icon: 'sparkles-outline', path: '/my-outfit?create=1' },
-  { label: 'Lägg till inspirationsbild', icon: 'camera-outline',   path: '/inspiration' },
+  { labelKey: 'add.garment', icon: 'shirt-outline',    path: '/add-garment' },
+  { labelKey: 'add.outfit',  icon: 'sparkles-outline', path: '/my-outfit?create=1' },
+  { labelKey: 'add.inspo',   icon: 'camera-outline',   path: '/inspiration' },
 ]
 
 // onAddGarment: låter en skärm (t.ex. garderoben) ta över vad "Lägg till plagg"
@@ -29,12 +30,14 @@ const addOptions = [
 export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void } = {}) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [showAddChooser, setShowAddChooser] = useState(false)
 
   function renderTab(tab: typeof tabs[number]) {
     const active = pathname === tab.path
+    const label = tr(tab.labelKey)
     return (
       <TouchableOpacity
         key={tab.name}
@@ -42,7 +45,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
         // navigate (inte push) återanvänder en redan öppnad flik i stället för
         // att montera om skärmen och ladda om allt – gör flikbyten mycket snabbare.
         onPress={() => { if (!active) router.navigate(tab.path as any) }}
-        accessibilityLabel={tab.label}
+        accessibilityLabel={label}
         accessibilityRole="button"
         accessibilityState={{ selected: active }}
       >
@@ -51,7 +54,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
           size={22}
           color={active ? t.primary : t.textFaint}
         />
-        <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
+        <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
       </TouchableOpacity>
     )
   }
@@ -68,7 +71,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
       {menuOpen && (
         <Pressable style={styles.overlay} onPress={() => setMenuOpen(false)}>
           <Pressable style={styles.card} onPress={() => {}}>
-            <Text style={styles.cardTitle}>Lägg till</Text>
+            <Text style={styles.cardTitle}>{tr('nav.add')}</Text>
             {addOptions.map((o, i) => (
               <TouchableOpacity
                 key={o.path + i}
@@ -84,12 +87,12 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
                   else go(o.path)
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={o.label}
+                accessibilityLabel={tr(o.labelKey)}
               >
                 <View style={styles.optionIcon}>
                   <Ionicons name={o.icon as any} size={20} color="#2B2320" />
                 </View>
-                <Text style={styles.optionLabel}>{o.label}</Text>
+                <Text style={styles.optionLabel}>{tr(o.labelKey)}</Text>
                 <Ionicons name="chevron-forward" size={18} color="#6B605A" />
               </TouchableOpacity>
             ))}
@@ -105,7 +108,7 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
           <TouchableOpacity
             style={styles.plusBtn}
             onPress={() => setMenuOpen(o => !o)}
-            accessibilityLabel={menuOpen ? 'Stäng' : 'Lägg till'}
+            accessibilityLabel={menuOpen ? tr('common.close') : tr('nav.add')}
             accessibilityRole="button"
           >
             <Ionicons name={menuOpen ? 'close' : 'add'} size={27} color={PLUS_ICON} />
