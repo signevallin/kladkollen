@@ -307,7 +307,7 @@ export default function ImportPurchases() {
           <View style={styles.privacyBox}>
             <Text style={styles.privacyTitle}>{tr('Integritet')}</Text>
             <Text style={styles.privacyText}>
-              {tr('Du loggar in direkt hos butiken – Klädkollen ser aldrig ditt lösenord. Endast produktinformation hämtas (namn, märke, pris, datum, bild). Namn, adress och betalningsuppgifter samlas aldrig in.')}
+              {tr('Du loggar in direkt hos butiken – Skrud ser aldrig ditt lösenord. Endast produktinformation hämtas (namn, märke, pris, datum, bild). Namn, adress och betalningsuppgifter samlas aldrig in.')}
             </Text>
           </View>
         </ScrollView>

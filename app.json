@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Klädkollen",
+    "name": "Skrud",
     "slug": "kladkollen",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -30,8 +30,8 @@
     "web": {
       "output": "static",
       "favicon": "./assets/favicon.png",
-      "name": "Klädkollen",
-      "shortName": "Klädkollen",
+      "name": "Skrud",
+      "shortName": "Skrud",
       "description": "Din digitala garderob",
       "themeColor": "#FEFAF8",
       "backgroundColor": "#FEFAF8"
@@ -55,14 +55,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Klädkollen behöver åtkomst till dina foton för att du ska kunna lägga till bilder på dina plagg.",
-          "cameraPermission": "Klädkollen behöver åtkomst till kameran för att du ska kunna ta bilder på dina plagg."
+          "photosPermission": "Skrud behöver åtkomst till dina foton för att du ska kunna lägga till bilder på dina plagg.",
+          "cameraPermission": "Skrud behöver åtkomst till kameran för att du ska kunna ta bilder på dina plagg."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Klädkollen använder din plats för att hämta det lokala vädret och föreslå outfits som passar dagens väder."
+          "locationWhenInUsePermission": "Skrud använder din plats för att hämta det lokala vädret och föreslå outfits som passar dagens väder."
         }
       ],
       [
@@ -74,7 +74,7 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "Klädkollen läser din kalender för att föreslå en outfit som passar dagens planer."
+          "calendarPermission": "Skrud läser din kalender för att föreslå en outfit som passar dagens planer."
         }
       ],
       "expo-background-task"

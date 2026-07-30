@@ -20,7 +20,7 @@ export default function OutfitShareCard({
 
   return (
     <View style={styles.card}>
-      <Text style={styles.brand}>KLÄDKOLLEN</Text>
+      <Text style={styles.brand}>SKRUD</Text>
       <Text style={styles.title} numberOfLines={2}>{outfit?.outfitName || tr('Dagens outfit')}</Text>
       {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
 
@@ -39,7 +39,7 @@ export default function OutfitShareCard({
         <Text style={styles.song}>🎵 {outfit.song.title}{outfit.song.artist ? ` – ${outfit.song.artist}` : ''}</Text>
       )}
 
-      <Text style={styles.footer}>{tr('Skapad med Klädkollen · din digitala garderob')}</Text>
+      <Text style={styles.footer}>{tr('Skapad med Skrud · din digitala garderob')}</Text>
     </View>
   )
 }

@@ -1,12 +1,13 @@
-import { useTheme } from '../theme/ThemeProvider'
-import type { Theme } from '../theme/theme'
 import { Ionicons } from '@expo/vector-icons'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
+import { StatusBar } from 'expo-status-bar'
 import * as WebBrowser from 'expo-web-browser'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  Dimensions,
   KeyboardAvoidingView, Platform,
   SafeAreaView,
   ScrollView,
@@ -15,6 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 import { useSettings } from '../utils/settings'
@@ -28,9 +30,26 @@ WebBrowser.maybeCompleteAuthSession()
 let AppleAuthentication: any = null
 try { AppleAuthentication = require('expo-apple-authentication') } catch { AppleAuthentication = null }
 
+// Vilken inloggningsmetod som användes senast – visas som "Senast använd".
+const LAST_METHOD_KEY = 'skrud.lastLoginMethod'
+type Method = 'google' | 'apple' | 'email'
+
+// Mörk, editorial palett – login-sidan har en egen fullskärmslook oavsett tema.
+const C = {
+  bg: '#181009',
+  ink: '#F6ECE2',
+  sub: '#CBB199',
+  pill: '#FFFFFF',
+  pillInk: '#1A120B',
+  gold: '#E4C39B',
+}
+// Varma toner till collage-mosaiken bakom (fungerar som tygrutor utan foton).
+const TILES = ['#4A3120', '#8C5A3C', '#CFB59E', '#5E3E28', '#DBB48D', '#6C4D38', '#A9764F', '#3A2417']
+const COL_LEFT = [168, 220, 130, 196]
+const COL_RIGHT = [210, 138, 226, 150]
+const { width: SCREEN_W } = Dimensions.get('window')
+
 export default function Login() {
-  const t = useTheme()
-  const styles = makeStyles(t)
   const { t: tr } = useSettings()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,16 +57,31 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [social, setSocial] = useState<null | 'apple' | 'google'>(null)
   const [appleAvailable, setAppleAvailable] = useState(false)
+  const [mode, setMode] = useState<'providers' | 'email'>('providers')
+  const [lastMethod, setLastMethod] = useState<Method | null>(null)
 
   useEffect(() => {
     if (Platform.OS === 'ios' && AppleAuthentication?.isAvailableAsync) {
       AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => setAppleAvailable(false))
     }
+    AsyncStorage.getItem(LAST_METHOD_KEY).then(m => {
+      if (m === 'google' || m === 'apple' || m === 'email') setLastMethod(m)
+    }).catch(() => {})
   }, [])
+
+  async function rememberMethod(m: Method) {
+    setLastMethod(m)
+    try { await AsyncStorage.setItem(LAST_METHOD_KEY, m) } catch {}
+  }
 
   function goHome() {
     if (Platform.OS === 'web') window.location.href = '/home'
     else router.replace('/home')
+  }
+
+  function openEmail(signUp: boolean) {
+    setIsSignUp(signUp)
+    setMode('email')
   }
 
   async function handleAuth() {
@@ -60,10 +94,12 @@ export default function Login() {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
+        await rememberMethod('email')
         showAlert(tr('Konto skapat!'), tr('Kolla din email för att verifiera ditt konto.'))
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        await rememberMethod('email')
         goHome()
       }
     } catch (error: any) {
@@ -113,6 +149,7 @@ export default function Login() {
         const name = [given, credential.fullName?.familyName].filter(Boolean).join(' ')
         await supabase.from('profiles').upsert({ id: data.user.id, name }).then(() => {}, () => {})
       }
+      await rememberMethod('apple')
       goHome()
     } catch (e: any) {
       if (e?.code === 'ERR_REQUEST_CANCELED') return // användaren avbröt
@@ -127,6 +164,7 @@ export default function Login() {
     setSocial('google')
     try {
       if (Platform.OS === 'web') {
+        await rememberMethod('google')
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: { redirectTo: `${window.location.origin}/home` },
@@ -147,6 +185,7 @@ export default function Login() {
         if (code) {
           const { error: exErr } = await supabase.auth.exchangeCodeForSession(String(code))
           if (exErr) throw exErr
+          await rememberMethod('google')
           goHome()
         }
       }
@@ -159,133 +198,237 @@ export default function Login() {
 
   const busy = loading || social !== null
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+  function renderPill(opts: {
+    key: string
+    onPress: () => void
+    icon: React.ReactNode
+    label: string
+    loading?: boolean
+    method: Method
+  }) {
+    return (
+      <TouchableOpacity
+        key={opts.key}
+        style={[styles.pill, busy && styles.pillDisabled]}
+        onPress={opts.onPress}
+        disabled={busy}
+        activeOpacity={0.85}
       >
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <View style={styles.logoBadge}>
-              <Ionicons name="shirt-outline" size={30} color={t.onPrimary} />
+        {lastMethod === opts.method && (
+          <View style={styles.badge}><Text style={styles.badgeText}>{tr('Senast använd')}</Text></View>
+        )}
+        {opts.loading
+          ? <ActivityIndicator color={C.pillInk} />
+          : <>
+              <View style={styles.pillIcon}>{opts.icon}</View>
+              <Text style={styles.pillText}>{opts.label}</Text>
+            </>}
+      </TouchableOpacity>
+    )
+  }
+
+  return (
+    <View style={styles.root}>
+      <StatusBar style="light" />
+
+      {/* Collage-mosaik i varma toner (bakgrund) */}
+      <View style={styles.collage} pointerEvents="none">
+        <View style={styles.col}>
+          {COL_LEFT.map((h, i) => (
+            <View key={`l${i}`} style={[styles.tile, { height: h, backgroundColor: TILES[(i * 2) % TILES.length] }]} />
+          ))}
+        </View>
+        <View style={styles.col}>
+          {COL_RIGHT.map((h, i) => (
+            <View key={`r${i}`} style={[styles.tile, { height: h, backgroundColor: TILES[(i * 2 + 1) % TILES.length] }]} />
+          ))}
+        </View>
+      </View>
+
+      {/* Mörk gradient-skärm så rubrik och knappar syns tydligt */}
+      <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Defs>
+          <SvgGradient id="scrim" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={C.bg} stopOpacity="0.2" />
+            <Stop offset="0.4" stopColor={C.bg} stopOpacity="0.5" />
+            <Stop offset="0.68" stopColor={C.bg} stopOpacity="0.94" />
+            <Stop offset="1" stopColor={C.bg} stopOpacity="1" />
+          </SvgGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill="url(#scrim)" />
+      </Svg>
+
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.topRow}>
+          <Text style={styles.wordmark}>SKRUD</Text>
+        </View>
+
+        {mode === 'providers' ? (
+          <View style={styles.bottom}>
+            <Text style={styles.hero}>{tr('Din digitala garderob')}</Text>
+
+            <View style={styles.pills}>
+              {renderPill({
+                key: 'google',
+                onPress: signInWithGoogle,
+                icon: <GoogleIcon size={20} />,
+                label: tr('Fortsätt med Google'),
+                loading: social === 'google',
+                method: 'google',
+              })}
+
+              {appleAvailable && renderPill({
+                key: 'apple',
+                onPress: signInWithApple,
+                icon: <Ionicons name="logo-apple" size={22} color={C.pillInk} />,
+                label: tr('Fortsätt med Apple'),
+                loading: social === 'apple',
+                method: 'apple',
+              })}
+
+              {renderPill({
+                key: 'email',
+                onPress: () => openEmail(true),
+                icon: <Ionicons name="mail-outline" size={20} color={C.pillInk} />,
+                label: tr('Fortsätt med e-post'),
+                method: 'email',
+              })}
             </View>
-            <Text style={styles.title}>KLÄDKOLLEN</Text>
-            <Text style={styles.tagline}>{tr('Din digitala garderob')}</Text>
-          </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{isSignUp ? tr('Skapa konto') : tr('Välkommen tillbaka')}</Text>
-            <Text style={styles.cardSub}>
-              {isSignUp ? tr('Kom igång på ett par sekunder.') : tr('Logga in för att fortsätta.')}
-            </Text>
-
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="din@email.com"
-              placeholderTextColor={t.placeholder}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              textContentType="emailAddress"
-            />
-
-            <Text style={styles.label}>{tr('Lösenord')}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor={t.placeholder}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              textContentType={isSignUp ? 'newPassword' : 'password'}
-            />
-
-            <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={handleAuth} disabled={busy}>
-              {loading
-                ? <ActivityIndicator color={t.onPrimary} />
-                : <Text style={styles.buttonText}>{isSignUp ? tr('Skapa konto') : tr('Logga in')}</Text>}
-            </TouchableOpacity>
-
-            {!isSignUp && (
-              <TouchableOpacity style={styles.forgotButton} onPress={forgotPassword} disabled={busy}>
-                <Text style={styles.forgotText}>{tr('Glömt lösenord?')}</Text>
-              </TouchableOpacity>
-            )}
-
-            <View style={styles.dividerRow}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>{tr('eller')}</Text>
-              <View style={styles.divider} />
-            </View>
-
-            {appleAvailable && (
-              <TouchableOpacity style={[styles.appleBtn, busy && styles.buttonDisabled]} onPress={signInWithApple} disabled={busy}>
-                {social === 'apple'
-                  ? <ActivityIndicator color="#fff" />
-                  : <>
-                      <Ionicons name="logo-apple" size={19} color="#fff" style={styles.socialIcon} />
-                      <Text style={styles.appleBtnText}>{tr('Fortsätt med Apple')}</Text>
-                    </>}
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity style={[styles.googleBtn, busy && styles.buttonDisabled]} onPress={signInWithGoogle} disabled={busy}>
-              {social === 'google'
-                ? <ActivityIndicator color={t.textPrimary} />
-                : <>
-                    <View style={styles.socialIcon}><GoogleIcon size={18} /></View>
-                    <Text style={styles.googleBtnText}>{tr('Fortsätt med Google')}</Text>
-                  </>}
+            <TouchableOpacity style={styles.footerBtn} onPress={() => openEmail(false)} disabled={busy}>
+              <Text style={styles.footer}>
+                {tr('Har du redan ett konto? ')}
+                <Text style={styles.footerBold}>{tr('Logga in')}</Text>
+              </Text>
             </TouchableOpacity>
           </View>
+        ) : (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.emailWrap}
+          >
+            <ScrollView contentContainerStyle={styles.emailScroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <View style={styles.sheet}>
+                <TouchableOpacity style={styles.backBtn} onPress={() => setMode('providers')} disabled={busy}>
+                  <Ionicons name="chevron-back" size={22} color={C.ink} />
+                </TouchableOpacity>
 
-          <TouchableOpacity style={styles.switchButton} onPress={() => setIsSignUp(!isSignUp)} disabled={busy}>
-            <Text style={styles.switchText}>
-              {isSignUp ? tr('Har du redan ett konto? ') : tr('Inget konto? ')}
-              <Text style={styles.switchTextBold}>{isSignUp ? tr('Logga in') : tr('Skapa ett här')}</Text>
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+                <Text style={styles.sheetTitle}>{isSignUp ? tr('Skapa konto') : tr('Välkommen tillbaka')}</Text>
+                <Text style={styles.sheetSub}>
+                  {isSignUp ? tr('Kom igång på ett par sekunder.') : tr('Logga in för att fortsätta.')}
+                </Text>
+
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="din@email.com"
+                  placeholderTextColor="rgba(203,177,153,0.6)"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                />
+
+                <Text style={styles.label}>{tr('Lösenord')}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="••••••••"
+                  placeholderTextColor="rgba(203,177,153,0.6)"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  textContentType={isSignUp ? 'newPassword' : 'password'}
+                />
+
+                <TouchableOpacity style={[styles.submit, busy && styles.pillDisabled]} onPress={handleAuth} disabled={busy}>
+                  {loading
+                    ? <ActivityIndicator color={C.pillInk} />
+                    : <Text style={styles.submitText}>{isSignUp ? tr('Skapa konto') : tr('Logga in')}</Text>}
+                </TouchableOpacity>
+
+                {!isSignUp && (
+                  <TouchableOpacity style={styles.forgotBtn} onPress={forgotPassword} disabled={busy}>
+                    <Text style={styles.forgotText}>{tr('Glömt lösenord?')}</Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity style={styles.switchBtn} onPress={() => setIsSignUp(!isSignUp)} disabled={busy}>
+                  <Text style={styles.switchText}>
+                    {isSignUp ? tr('Har du redan ett konto? ') : tr('Inget konto? ')}
+                    <Text style={styles.switchTextBold}>{isSignUp ? tr('Logga in') : tr('Skapa ett här')}</Text>
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        )}
+      </SafeAreaView>
+    </View>
   )
 }
 
-const makeStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.bg },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  header: { alignItems: 'center', marginBottom: 28 },
-  logoBadge: { width: 64, height: 64, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 34, color: t.textPrimary, letterSpacing: 3 },
-  tagline: { fontFamily: 'Lora_400Regular', fontSize: 15, color: t.textSecondary, marginTop: 6 },
+const TILE_COL_W = (SCREEN_W - 30) / 2
 
-  card: { backgroundColor: t.surface, borderRadius: 24, padding: 22, borderWidth: 1, borderColor: t.border },
-  cardTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary },
-  cardSub: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 4, marginBottom: 14 },
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
 
-  label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 13, marginTop: 10, marginBottom: 6 },
-  input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border },
-  button: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 18, minHeight: 54, justifyContent: 'center' },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
-  forgotButton: { alignItems: 'center', paddingVertical: 12 },
-  forgotText: { fontFamily: 'Lora_400Regular', color: t.textFaint, fontSize: 13, textDecorationLine: 'underline' },
+  collage: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', gap: 10, padding: 10, paddingTop: 40 },
+  col: { width: TILE_COL_W, gap: 10 },
+  tile: { width: '100%', borderRadius: 18 },
 
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, gap: 12 },
-  divider: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-  dividerText: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint },
+  safe: { flex: 1, justifyContent: 'space-between' },
+  topRow: { alignItems: 'center', paddingTop: 12 },
+  wordmark: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: C.ink, letterSpacing: 6 },
 
-  socialIcon: { marginRight: 10 },
-  appleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', borderRadius: 16, minHeight: 54, marginBottom: 10 },
-  appleBtnText: { fontFamily: 'Poppins_600SemiBold', color: '#fff', fontSize: 16 },
-  googleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderRadius: 16, minHeight: 54, borderWidth: 1, borderColor: t.border },
-  googleBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 16 },
+  bottom: { paddingHorizontal: 22, paddingBottom: 12 },
+  hero: { fontFamily: 'Lora_500Medium', fontSize: 52, lineHeight: 56, color: C.ink, marginBottom: 26 },
 
-  switchButton: { alignItems: 'center', marginTop: 22, padding: 8 },
-  switchText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
-  switchTextBold: { fontFamily: 'Poppins_600SemiBold', color: t.primary },
+  pills: { gap: 12 },
+  pill: {
+    height: 58, borderRadius: 30, backgroundColor: C.pill,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 4,
+  },
+  pillDisabled: { opacity: 0.6 },
+  pillIcon: { position: 'absolute', left: 24 },
+  pillText: { fontFamily: 'Poppins_600SemiBold', fontSize: 16.5, color: C.pillInk },
+  badge: {
+    position: 'absolute', top: -11, right: 22, backgroundColor: C.gold,
+    borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3,
+  },
+  badgeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: C.pillInk },
+
+  footerBtn: { alignItems: 'center', marginTop: 22, padding: 8 },
+  footer: { fontFamily: 'Lora_400Regular', fontSize: 14.5, color: C.sub },
+  footerBold: { fontFamily: 'Poppins_600SemiBold', color: C.ink },
+
+  emailWrap: { flex: 1, justifyContent: 'flex-end' },
+  emailScroll: { flexGrow: 1, justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: '#241811', borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    padding: 24, paddingBottom: 34, borderWidth: 1, borderColor: 'rgba(245,233,223,0.10)',
+  },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(245,233,223,0.08)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+  },
+  sheetTitle: { fontFamily: 'Lora_500Medium', fontSize: 26, color: C.ink },
+  sheetSub: { fontFamily: 'Lora_400Regular', fontSize: 14, color: C.sub, marginTop: 4, marginBottom: 16 },
+
+  label: { fontFamily: 'Poppins_600SemiBold', color: C.ink, fontSize: 13, marginTop: 10, marginBottom: 6 },
+  input: {
+    fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(245,233,223,0.08)', borderRadius: 14,
+    padding: 15, color: C.ink, fontSize: 16, borderWidth: 1, borderColor: 'rgba(245,233,223,0.12)',
+  },
+  submit: {
+    backgroundColor: C.pill, borderRadius: 28, height: 56, alignItems: 'center', justifyContent: 'center', marginTop: 20,
+  },
+  submitText: { fontFamily: 'Poppins_600SemiBold', color: C.pillInk, fontSize: 16 },
+  forgotBtn: { alignItems: 'center', paddingVertical: 12 },
+  forgotText: { fontFamily: 'Lora_400Regular', color: C.sub, fontSize: 13, textDecorationLine: 'underline' },
+  switchBtn: { alignItems: 'center', marginTop: 6, padding: 8 },
+  switchText: { fontFamily: 'Lora_400Regular', color: C.sub, fontSize: 14 },
+  switchTextBold: { fontFamily: 'Poppins_600SemiBold', color: C.gold },
 })

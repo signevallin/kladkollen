@@ -38,12 +38,12 @@ export default function DayToNightShareCard({
 
   return (
     <View style={styles.card}>
-      <Text style={styles.brand}>KLÄDKOLLEN</Text>
+      <Text style={styles.brand}>SKRUD</Text>
       <Text style={styles.title}>{tr(fromLabel)} {tr('till')} {tr(toLabel)}</Text>
       {look(tr('DAG'), dayName, dayItems)}
       <Text style={styles.arrow}>↓</Text>
       {look(tr('KVÄLL'), eveningName, eveningItems)}
-      <Text style={styles.footer}>{tr('Skapad med Klädkollen · din digitala garderob')}</Text>
+      <Text style={styles.footer}>{tr('Skapad med Skrud · din digitala garderob')}</Text>
     </View>
   )
 }

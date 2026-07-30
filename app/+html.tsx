@@ -12,7 +12,7 @@ export default function Root({ children }: PropsWithChildren) {
         {/* PWA – iOS */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Klädkollen" />
+        <meta name="apple-mobile-web-app-title" content="Skrud" />
         <link rel="apple-touch-icon" href="/icon.png" />
 
         {/* PWA – generellt */}
