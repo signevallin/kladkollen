@@ -301,6 +301,13 @@ export default function Login() {
                 <Text style={styles.footerBold}>{tr('Logga in')}</Text>
               </Text>
             </TouchableOpacity>
+
+            <Text style={styles.legal}>
+              {tr('Genom att fortsätta godkänner du våra ')}
+              <Text style={styles.legalLink} onPress={() => router.push('/terms')}>{tr('Villkor')}</Text>
+              {tr(' och ')}
+              <Text style={styles.legalLink} onPress={() => router.push('/privacy')}>{tr('Integritetspolicy')}</Text>
+            </Text>
           </View>
         ) : (
           <KeyboardAvoidingView
@@ -403,6 +410,8 @@ const styles = StyleSheet.create({
   footerBtn: { alignItems: 'center', marginTop: 22, padding: 8 },
   footer: { fontFamily: 'Lora_400Regular', fontSize: 14.5, color: C.sub },
   footerBold: { fontFamily: 'Poppins_600SemiBold', color: C.ink },
+  legal: { fontFamily: 'Lora_400Regular', fontSize: 12, color: C.sub, textAlign: 'center', marginTop: 6, paddingHorizontal: 16, lineHeight: 18 },
+  legalLink: { fontFamily: 'Poppins_600SemiBold', color: C.ink, textDecorationLine: 'underline' },
 
   emailWrap: { flex: 1, justifyContent: 'flex-end' },
   emailScroll: { flexGrow: 1, justifyContent: 'flex-end' },

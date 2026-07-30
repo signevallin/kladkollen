@@ -892,6 +892,13 @@ export default function Profile() {
           })}
         </View>
 
+        {/* ── Om Skrud ── */}
+        <Text style={styles.sectionTitle}>{tr('Om Skrud')}</Text>
+        <View style={styles.listCard}>
+          {renderRow('villkor', 'Användarvillkor', { icon: 'description', onPress: () => router.push('/terms') })}
+          {renderRow('integritet', 'Integritetspolicy', { icon: 'privacy-tip', onPress: () => router.push('/privacy') })}
+        </View>
+
         <Text style={styles.autosaveHint}>
           {saveState === 'saving' ? tr('Sparar…') : saveState === 'saved' ? tr('Ändringar sparas automatiskt ✓') : tr('Ändringar sparas automatiskt')}
         </Text>
