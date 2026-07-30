@@ -6,7 +6,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
 import AppleMusicBadge from './AppleMusicBadge'
-import SpotifyLogo from './SpotifyLogo'
+import SpotifyFullLogo from './SpotifyFullLogo'
 
 export type SongData = {
   title: string
@@ -83,13 +83,13 @@ export default function SongCard({ song }: { song: SongData }) {
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity
-          style={styles.badge}
+          style={styles.spotifyBadge}
           onPress={() => Linking.openURL(`https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`)}
           accessibilityLabel="Lyssna på Spotify"
           accessibilityRole="link"
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <SpotifyLogo size={18} />
-          <Text style={styles.badgeText}>Spotify</Text>
+          <SpotifyFullLogo height={17} />
         </TouchableOpacity>
       </View>
     </View>
@@ -110,6 +110,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   links: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
   // Clear space runt Apple-badgen (≥1/10 av 30px-höjden = 3px, §1.4).
   appleBadge: { padding: 4 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#000', borderRadius: 19, paddingHorizontal: 14, height: 38 },
-  badgeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: '#fff' },
+  // Spotifys logga på svart pill, samma synliga höjd (30px) som Apple-badgen.
+  spotifyBadge: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', borderRadius: 15, paddingHorizontal: 14, height: 30 },
 })
