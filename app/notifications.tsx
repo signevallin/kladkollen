@@ -63,7 +63,7 @@ export default function NotificationsSettings() {
     const ok = await setSmartPushEnabled(v)
     if (v && !ok) {
       setSmart(false)
-      showAlert(tr('Kunde inte slå på Smart Push'), tr('Tillåt kalender- och notis-åtkomst för Klädkollen i telefonens inställningar.'))
+      showAlert(tr('Kunde inte slå på Smart Push'), tr('Tillåt kalender- och notis-åtkomst för Skrud i telefonens inställningar.'))
     }
   }
 
@@ -87,7 +87,7 @@ export default function NotificationsSettings() {
       if (perm.status !== 'granted') {
         const req = await Notifications.requestPermissionsAsync()
         if (req.status !== 'granted') {
-          showAlert(tr('Notiser är avstängda'), tr('Tillåt notiser för Klädkollen i telefonens inställningar för att få påminnelser.'))
+          showAlert(tr('Notiser är avstängda'), tr('Tillåt notiser för Skrud i telefonens inställningar för att få påminnelser.'))
         }
       }
       registerForPush()
@@ -108,7 +108,7 @@ export default function NotificationsSettings() {
         </TouchableOpacity>
         <Text style={styles.title}>{tr('Notiser')}</Text>
         <Text style={styles.subtitle}>
-          {tr('Klädkollen kan skicka personliga, hjälpsamma notiser baserade på din garderob och vädret. Du bestämmer vilka.')}
+          {tr('Skrud kan skicka personliga, hjälpsamma notiser baserade på din garderob och vädret. Du bestämmer vilka.')}
         </Text>
 
         {Platform.OS === 'web' && (

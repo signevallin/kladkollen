@@ -8,7 +8,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity } from 're
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: '1. Vem ansvarar för dina uppgifter?',
-    body: 'Klädkollen ("vi") är personuppgiftsansvarig för de uppgifter som behandlas i appen. Kontakta oss på hej@kladkollen.se vid frågor om din data.',
+    body: 'Skrud ("vi") är personuppgiftsansvarig för de uppgifter som behandlas i appen. Kontakta oss på hej@kladkollen.se vid frågor om din data.',
   },
   {
     title: '2. Vilka uppgifter samlar vi in?',

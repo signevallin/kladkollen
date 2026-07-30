@@ -52,7 +52,7 @@ export async function registerForPush(): Promise<void> {
 
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
-        name: 'Klädkollen',
+        name: 'Skrud',
         importance: Notifications.AndroidImportance.DEFAULT,
       })
     }

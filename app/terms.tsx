@@ -8,7 +8,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity } from 're
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: '1. Om tjänsten',
-    body: 'Klädkollen är en digital garderobstjänst som hjälper dig organisera dina kläder och få AI-genererade outfit- och stilförslag. Genom att skapa ett konto godkänner du dessa villkor.',
+    body: 'Skrud är en digital garderobstjänst som hjälper dig organisera dina kläder och få AI-genererade outfit- och stilförslag. Genom att skapa ett konto godkänner du dessa villkor.',
   },
   {
     title: '2. Ditt konto',

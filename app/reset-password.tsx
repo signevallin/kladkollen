@@ -62,7 +62,7 @@ export default function ResetPassword() {
         style={styles.inner}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>KLÄDKOLLEN</Text>
+          <Text style={styles.title}>SKRUD</Text>
           <Text style={styles.subtitle}>{tr('Välj nytt lösenord')}</Text>
         </View>
 
