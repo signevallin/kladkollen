@@ -1,10 +1,11 @@
-import { FontAwesome, Ionicons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
 import { useEffect } from 'react'
 import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
+import SpotifyLogo from './SpotifyLogo'
 
 export type SongData = {
   title: string
@@ -68,24 +69,27 @@ export default function SongCard({ song }: { song: SongData }) {
       {song.reason ? <Text style={styles.reason}>{song.reason}</Text> : null}
 
       <View style={styles.links}>
-        <TouchableOpacity
-          style={styles.logoBtn}
-          onPress={() => Linking.openURL(`https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`)}
-          accessibilityLabel="Öppna i Spotify"
-          accessibilityRole="link"
-        >
-          <FontAwesome name="spotify" size={26} color="#1DB954" />
-        </TouchableOpacity>
         {song.appleMusicUrl ? (
           <TouchableOpacity
-            style={styles.logoBtn}
+            style={styles.badge}
             onPress={() => Linking.openURL(song.appleMusicUrl!)}
-            accessibilityLabel="Öppna i Apple Music"
+            accessibilityLabel="Lyssna på Apple Music"
             accessibilityRole="link"
           >
-            <FontAwesome name="apple" size={24} color={t.textPrimary} />
+            {/* Apple-symbolen oförändrad i vitt på svart badge (enligt Apples riktlinjer) */}
+            <Ionicons name="logo-apple" size={17} color="#fff" style={styles.badgeIcon} />
+            <Text style={styles.badgeText}>Apple Music</Text>
           </TouchableOpacity>
         ) : null}
+        <TouchableOpacity
+          style={styles.badge}
+          onPress={() => Linking.openURL(`https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`)}
+          accessibilityLabel="Lyssna på Spotify"
+          accessibilityRole="link"
+        >
+          <SpotifyLogo size={18} />
+          <Text style={styles.badgeText}>Spotify</Text>
+        </TouchableOpacity>
       </View>
     </View>
   )
@@ -102,6 +106,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   artist: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
   reason: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, fontStyle: 'italic', lineHeight: 19 },
   playBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  links: { flexDirection: 'row', gap: 12 },
-  logoBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.borderSoft },
+  links: { flexDirection: 'row', gap: 10 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#000', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9 },
+  badgeIcon: { marginTop: -1 },
+  badgeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: '#fff' },
 })
