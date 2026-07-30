@@ -5,6 +5,7 @@ import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
+import AppleMusicBadge from './AppleMusicBadge'
 import SpotifyLogo from './SpotifyLogo'
 
 export type SongData = {
@@ -68,17 +69,17 @@ export default function SongCard({ song }: { song: SongData }) {
       {/* Motiveringen på egen rad i full bredd så hela texten syns */}
       {song.reason ? <Text style={styles.reason}>{song.reason}</Text> : null}
 
+      {/* Apple Music alltid FÖRST i raden (Apple §1.3). Clear space runt badgen
+          säkras av appleBadge-paddingen (≥1/10 av höjden, §1.4). */}
       <View style={styles.links}>
         {song.appleMusicUrl ? (
           <TouchableOpacity
-            style={styles.badge}
+            style={styles.appleBadge}
             onPress={() => Linking.openURL(song.appleMusicUrl!)}
             accessibilityLabel="Lyssna på Apple Music"
             accessibilityRole="link"
           >
-            {/* Apple-symbolen oförändrad i vitt på svart badge (enligt Apples riktlinjer) */}
-            <Ionicons name="logo-apple" size={17} color="#fff" style={styles.badgeIcon} />
-            <Text style={styles.badgeText}>Apple Music</Text>
+            <AppleMusicBadge height={30} />
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity
@@ -106,8 +107,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   artist: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
   reason: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, fontStyle: 'italic', lineHeight: 19 },
   playBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  links: { flexDirection: 'row', gap: 10 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#000', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9 },
-  badgeIcon: { marginTop: -1 },
+  links: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  // Clear space runt Apple-badgen (≥1/10 av 30px-höjden = 3px, §1.4).
+  appleBadge: { padding: 4 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#000', borderRadius: 19, paddingHorizontal: 14, height: 38 },
   badgeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: '#fff' },
 })
