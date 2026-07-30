@@ -48,7 +48,7 @@ function describe(g: Garment): string {
 async function getWeather(lat: number, lon: number) {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
-      + `&current=temperature_2m,weathercode&daily=uv_index_max&timezone=auto`
+      + `&current=temperature_2m,weathercode&daily=uv_index_max,precipitation_probability_max&timezone=auto`
     const r = await fetch(url)
     if (!r.ok) return null
     const d: any = await r.json()
@@ -56,6 +56,7 @@ async function getWeather(lat: number, lon: number) {
       temp: Math.round(d?.current?.temperature_2m ?? NaN),
       code: d?.current?.weathercode ?? 0,
       uv: Math.round(d?.daily?.uv_index_max?.[0] ?? 0),
+      rainChance: Math.round(d?.daily?.precipitation_probability_max?.[0] ?? 0),
     }
   } catch { return null }
 }
@@ -102,6 +103,19 @@ async function buildNotif(
   const weather = (prefs.weather && p.push_lat != null && p.push_lon != null)
     ? await getWeather(p.push_lat, p.push_lon)
     : null
+
+  // Regnvarning: hög regnrisk under dagen → påminn om regnplagg. Ligger först
+  // eftersom det är mer akut att missa regnjackan än ett solglasögontips.
+  if (weather && prefs.weather && weather.rainChance >= 60) {
+    const raincoat = active.find(g => /regn/i.test(`${g.name || ''} ${g.category || ''}`))
+    const item = raincoat ? `din ${describe(raincoat)}` : 'regnjackan eller paraplyet'
+    return {
+      kind: 'rain',
+      title: 'Det ser ut att bli regn idag ☔️',
+      body: `${weather.rainChance}% risk för regn – glöm inte ${item}.`,
+      route: '/home',
+    }
+  }
 
   // UV-varning på soliga sommardagar.
   if (weather && prefs.weather && weather.uv >= 6) {
