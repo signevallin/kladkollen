@@ -107,7 +107,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   artist: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
   reason: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, fontStyle: 'italic', lineHeight: 19 },
   playBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  links: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  links: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
   // Clear space runt Apple-badgen (≥1/10 av 30px-höjden = 3px, §1.4).
   appleBadge: { padding: 4 },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#000', borderRadius: 19, paddingHorizontal: 14, height: 38 },
