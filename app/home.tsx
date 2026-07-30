@@ -32,6 +32,7 @@ import SongCard from '../components/SongCard'
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 import { apiPost } from '../utils/api'
+import { buildWeatherContext, summarizeDayForecast } from '../utils/weather'
 
 const CONTEXTS = OUTFIT_CONTEXTS
 
@@ -160,11 +161,14 @@ export default function Home() {
       if (status !== 'granted') { if (!weather) setWeather({ temp: 10, emoji: '🌧️', description: tr('Regn'), rain: true }); return }
       const location = await Location.getCurrentPositionAsync({})
       const { latitude, longitude } = location.coords
-      const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`)
+      // current = hur det känns nu (emoji/etikett). hourly + daily = resten av
+      // dagens temperaturspann och regnrisk, så outfiten håller hela dagen.
+      const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&hourly=temperature_2m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=auto`)
       const data = await response.json()
       const temp = Math.round(data.current.temperature_2m)
       const code = data.current.weathercode
-      const w = { temp, emoji: getWeatherEmoji(code), description: getWeatherDescription(code), rain: code >= 51 && code <= 82 }
+      const forecast = summarizeDayForecast(data)
+      const w = { temp, emoji: getWeatherEmoji(code), description: getWeatherDescription(code), rain: code >= 51 && code <= 82, ...forecast }
       setWeather(w); cacheSet('home.weather', w)
     } catch {
       // Behåll senast kända väder (om det finns) i stället för att skriva över
@@ -207,45 +211,6 @@ export default function Home() {
     setSavedOutfitId(null)
     setWornToday(false)
     setRating(null)
-  }
-
-  // coldSensitivity 1–5 (3 = lagom). Lättfrusna (4–5) upplever det kallare,
-  // värmetåliga (1–2) varmare – vi justerar den "upplevda" temperaturen så att
-  // klädreglerna anpassas per person.
-  function buildWeatherContext(w: any, coldSensitivity = 3): { summary: string; rules: string; requiresOuterwear: boolean } {
-    if (!w) return { summary: '', rules: '', requiresOuterwear: false }
-    const temp = w.temp
-    const rain = w.rain
-    const perceived = temp - (coldSensitivity - 3) * 2
-
-    let summary = `Väder just nu: ${temp}°C, ${w.description}.`
-    const rules: string[] = []
-    let requiresOuterwear = false
-
-    if (coldSensitivity >= 4) rules.push('ANVÄNDAREN ÄR LÄTTFRUSEN: lägg hellre till ett extra lager – hen fryser lätt.')
-    else if (coldSensitivity <= 2) rules.push('ANVÄNDAREN ÄR VÄRMETÅLIG: undvik att övertäcka – hen fryser sällan, lättare lager räcker.')
-
-    if (perceived <= 5) {
-      summary += ' Det är kallt.'
-      rules.push('KALLT VÄDER: Ytterkläder (jacka/kappa) är OBLIGATORISKT om det finns i garderoben. Välj varma material.')
-      requiresOuterwear = true
-    } else if (perceived <= 12) {
-      summary += ' Det är svalt.'
-      rules.push('SVALT VÄDER: Lägg till ytterkläder eller kavaj om det finns – annars välj en tjockare tröja.')
-    } else if (perceived <= 18) {
-      summary += ' Det är milt.'
-      rules.push('MILT VÄDER: En lätt kavaj eller tröja kan passa, men ytterkläder är inte nödvändigt.')
-    } else if (perceived >= 23) {
-      summary += ' Det är varmt.'
-      rules.push('VARMT VÄDER: Välj lätta material. Undvik tjocka lager och ytterkläder.')
-    }
-
-    if (rain) {
-      rules.push('REGN: Prioritera ytterkläder med regnbeskyddande funktion om det finns. Undvik vita eller känsliga material.')
-      requiresOuterwear = true
-    }
-
-    return { summary, rules: rules.join('\n'), requiresOuterwear }
   }
 
   function getCurrentSeason(): string {
