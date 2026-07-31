@@ -16,6 +16,7 @@ type EntitlementsCtx = {
   packages: PurchasePackage[]
   purchasesAvailable: boolean
   creditsLeft: number   // -1 = obegränsat (Premium), annars antal kvar denna vecka
+  purchasesDebug: string // dev-diagnostik för varför paket ev. saknas
   refresh: () => Promise<void>
   purchase: (pkg: PurchasePackage) => Promise<{ ok: boolean; cancelled?: boolean; error?: string }>
   restore: () => Promise<boolean>
@@ -28,6 +29,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [packages, setPackages] = useState<PurchasePackage[]>([])
   const [creditsLeft, setCreditsLeft] = useState<number>(FREE_AI_PER_WEEK)
+  const [purchasesDebug, setPurchasesDebug] = useState<string>(purchasesAvailable ? 'laddar…' : 'SDK/nyckel av')
 
   // Läser pro-status ur databasen (entitlements.pro_until, satt av webhooken) –
   // fungerar även utan native-modulen. Kombineras med RevenueCat om tillgängligt.
@@ -67,7 +69,10 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
         if (user) await identifyPurchases(user.id)
       } catch { /* ignorera */ }
       if (purchasesAvailable) {
-        try { const p = await getPackages(); if (alive) setPackages(p) } catch { /* inga paket */ }
+        try {
+          const { packages: p, debug } = await getPackages()
+          if (alive) { setPackages(p); setPurchasesDebug(debug) }
+        } catch (e: any) { if (alive) setPurchasesDebug('fel: ' + (e?.message || '?')) }
       }
       await refresh()
       if (alive) setLoading(false)
@@ -93,7 +98,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   return (
-    <Ctx.Provider value={{ isPro, loading, packages, purchasesAvailable, creditsLeft, refresh, purchase, restore }}>
+    <Ctx.Provider value={{ isPro, loading, packages, purchasesAvailable, creditsLeft, purchasesDebug, refresh, purchase, restore }}>
       {children}
     </Ctx.Provider>
   )

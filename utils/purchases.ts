@@ -55,20 +55,25 @@ export async function identifyPurchases(userId: string) {
   try { await Purchases.logIn(userId) } catch { /* ignorera */ }
 }
 
-export async function getPackages(): Promise<PurchasePackage[]> {
-  if (!purchasesAvailable) return []
+export async function getPackages(): Promise<{ packages: PurchasePackage[]; debug: string }> {
+  if (!Purchases) return { packages: [], debug: 'SDK saknas' }
+  if (!API_KEY) return { packages: [], debug: 'nyckel saknas' }
   try {
     const offerings = await Purchases.getOfferings()
+    const allCount = offerings?.all ? Object.keys(offerings.all).length : 0
     const current = offerings?.current
-    if (!current?.availablePackages?.length) return []
-    return current.availablePackages.map((p: any) => ({
+    if (!current) return { packages: [], debug: `ingen current offering (all: ${allCount})` }
+    const packages: PurchasePackage[] = (current.availablePackages || []).map((p: any) => ({
       id: p.identifier,
       title: p.product?.title || p.identifier,
       priceString: p.product?.priceString || '',
       period: p.packageType,
       raw: p,
     }))
-  } catch { return [] }
+    return { packages, debug: `current "${current.identifier}", paket: ${packages.length}` }
+  } catch (e: any) {
+    return { packages: [], debug: 'fel: ' + (e?.message || '?') }
+  }
 }
 
 export async function purchasePackage(pkg: PurchasePackage): Promise<{ ok: boolean; isPro: boolean; proUntil: string | null; cancelled?: boolean; error?: string }> {
