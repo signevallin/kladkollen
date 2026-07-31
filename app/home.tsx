@@ -33,7 +33,7 @@ import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../utils/weather'
-import { useEntitlements } from '../utils/entitlements'
+import { useEntitlements, FREE_AI_PER_WEEK } from '../utils/entitlements'
 
 const CONTEXTS = OUTFIT_CONTEXTS
 
@@ -50,7 +50,7 @@ export default function Home() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { tempLabel, t: tr } = useSettings()
-  const { isPro } = useEntitlements()
+  const { isPro, creditsLeft, refresh: refreshEntitlements } = useEntitlements()
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
   const [weather, setWeather] = useState<any>(() => cacheGet('home.weather') ?? null)
@@ -493,6 +493,8 @@ export default function Home() {
       showAlert(tr('Något gick fel'), e.message)
     } finally {
       setLoading(false)
+      // Uppdatera kvar-räknaren efter varje försök (den ändras serverside).
+      refreshEntitlements()
     }
   }
 
@@ -1197,6 +1199,17 @@ export default function Home() {
           }
         </TouchableOpacity>
 
+        {/* Gratis-kvot: dold för Premium (creditsLeft === -1). Klickbar → paywall. */}
+        {creditsLeft >= 0 && (
+          <TouchableOpacity style={styles.quotaHint} onPress={() => router.push('/paywall')}>
+            <Text style={styles.quotaText}>
+              {creditsLeft > 0
+                ? tr('{n} av {max} gratis outfits kvar denna vecka').replace('{n}', String(creditsLeft)).replace('{max}', String(FREE_AI_PER_WEEK))
+                : tr('Gratiskvoten är slut · Uppgradera')}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Par-generering – bara i samboläge. Använder samma valda kontext/väder. */}
         {partner && (
           <TouchableOpacity style={styles.coupleBtn} onPress={generateCouple} disabled={coupleLoading || loading}>
@@ -1584,6 +1597,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   // Generate
   generateBtn: { marginHorizontal: 28, backgroundColor: t.primary, borderRadius: 18, padding: 18, alignItems: 'center', marginBottom: 12 },
   generateBtnText: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, letterSpacing: 0.5 },
+  quotaHint: { alignItems: 'center', marginTop: -4, marginBottom: 10, paddingVertical: 4 },
+  quotaText: { fontFamily: 'Lora_400Regular', fontSize: 12.5, color: t.textFaint },
   coupleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 28, backgroundColor: t.surfaceMuted, borderRadius: 16, paddingVertical: 15, borderWidth: 1, borderColor: t.border, marginBottom: 28 },
   coupleBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14 },
   coupleVibe: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary, lineHeight: 21, textAlign: 'center', marginBottom: 4 },

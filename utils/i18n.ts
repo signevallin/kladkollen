@@ -781,6 +781,8 @@ const enBySource: Dict = {
   'Välkommen till Skrud Premium! 🎉': 'Welcome to Skrud Premium! 🎉',
   'Ditt köp återställdes ✓': 'Your purchase was restored ✓',
   'Inget köp att återställa': 'No purchase to restore',
+  '{n} av {max} gratis outfits kvar denna vecka': '{n} of {max} free outfits left this week',
+  'Gratiskvoten är slut · Uppgradera': 'Free quota used up · Upgrade',
   'Har du redan ett konto? ': 'Already have an account? ',
   'Inget konto? ': 'No account? ',
   'Skapa ett här': 'Create one here',

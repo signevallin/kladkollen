@@ -863,5 +863,7 @@
  "Återställ köp": "Restaurar compras",
  "Välkommen till Skrud Premium! 🎉": "¡Bienvenido a Skrud Premium! 🎉",
  "Ditt köp återställdes ✓": "Tu compra se restauró ✓",
- "Inget köp att återställa": "No hay ninguna compra que restaurar"
+ "Inget köp att återställa": "No hay ninguna compra que restaurar",
+ "{n} av {max} gratis outfits kvar denna vecka": "{n} de {max} outfits gratis esta semana",
+ "Gratiskvoten är slut · Uppgradera": "Cupo gratis agotado · Mejorar"
 }
