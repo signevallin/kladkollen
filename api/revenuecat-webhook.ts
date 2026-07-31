@@ -63,6 +63,13 @@ export default async function handler(request: Request): Promise<Response> {
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
+      // 23503 = foreign key-violation: app_user_id är inte en riktig Skrud-användare
+      // (anonymt RevenueCat-id eller testevent). Kvittera med 200 så RevenueCat
+      // inte retry-spammar – riktiga köp (där appen kört Purchases.logIn med
+      // Supabase-id) matchar en användare och skrivs korrekt.
+      if (res.status === 409 || text.includes('23503')) {
+        return jsonResponse({ ok: true, skipped: 'unknown user' }, 200)
+      }
       return jsonResponse({ ok: false, error: `DB-fel (${res.status})`, detail: text.slice(0, 300) }, 500)
     }
 
