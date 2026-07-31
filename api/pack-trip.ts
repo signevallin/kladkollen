@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -69,7 +69,7 @@ ${langInstruction(body.lang)} OBS: "packingList" och "outfits[].items" ska vara 
 Svara ENDAST med JSON, inga backticks:
 {"climateNote": "1–2 meningar om vädret på plats och vad det betyder för packningen", "packingList": ["exakt plaggnamn", "..."], "outfits": [{"name": "outfitnamn", "items": ["exakt plaggnamn", "..."]}], "extras": ["Underkläder ×${days}", "Laddare", "..."]}`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 1300, 0.7)
+    const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 1300, 0.7)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.packingList)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
     if (!Array.isArray(parsed.outfits)) parsed.outfits = []

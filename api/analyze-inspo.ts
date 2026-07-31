@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -86,7 +86,7 @@ Svara ENDAST med ett JSON-objekt:
       ],
     }]
 
-    const text = await openaiChat(messages, 'gpt-4o', 500)
+    const text = await openaiChat(messages, OPENAI_MODEL, 500)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.items)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
 

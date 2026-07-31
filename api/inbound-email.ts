@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { clip, json, openaiChat, parseAiJson } from './_utils'
+import { clip, json, openaiChat, parseAiJson, OPENAI_MODEL } from './_utils'
 import { CATEGORIES, COLOR_NAMES, SEASONS } from '../utils/constants'
 
 export const config = { runtime: 'edge' }
@@ -123,7 +123,7 @@ Hittar du inga plagg, svara {"items": []}.
 MEJL:
 ${content}`
 
-    const aiText = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 1800)
+    const aiText = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 1800)
     const parsed = parseAiJson(aiText)
     const items = Array.isArray(parsed.items) ? parsed.items.slice(0, 40) : []
     console.log('[inbound] aiItems=', items.length)

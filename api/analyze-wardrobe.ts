@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -61,7 +61,7 @@ Svara ENDAST med ett JSON-objekt, inga backticks:
       messages = [{ role: 'user', content: prompt }]
     }
 
-    const text = await openaiChat(messages, 'gpt-4o', 700, 0.6)
+    const text = await openaiChat(messages, OPENAI_MODEL, 700, 0.6)
     const parsed = parseAiJson(text)
     parsed.score = Math.max(0, Math.min(100, Math.round(Number(parsed.score) || 0)))
     if (!Array.isArray(parsed.strengths)) parsed.strengths = []

@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -73,7 +73,7 @@ Svara ENDAST med JSON, inga backticks:
   "garderobsAlgoritm": "..."
 }`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 4096)
+    const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 4096)
     return json(parseAiJson(text))
   } catch (e: any) {
     return json({ error: e.message }, 500)

@@ -1,4 +1,4 @@
-import { clip, json, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -48,7 +48,7 @@ orderhistorik), svara {"items": []}.
 SIDINNEHÅLL:
 ${content}`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 2000)
+    const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 2000)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.items)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
 
