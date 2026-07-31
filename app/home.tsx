@@ -159,7 +159,9 @@ export default function Home() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') { if (!weather) setWeather({ temp: 10, emoji: '🌧️', description: tr('Regn'), rain: true }); return }
-      const location = await Location.getCurrentPositionAsync({})
+      // Låg precision räcker gott för väder (~stad/kvarter) och håller platsen
+      // grov – vi behöver aldrig exakt position.
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low })
       const { latitude, longitude } = location.coords
       // current = hur det känns nu (emoji/etikett). hourly + daily = resten av
       // dagens temperaturspann och regnrisk, så outfiten håller hela dagen.
