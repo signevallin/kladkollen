@@ -68,6 +68,35 @@ export async function requireUser(request: Request): Promise<AuthedUser | Respon
   return user
 }
 
+// Gratis-AI-kvot per vecka. Premium-användare (giltig entitlement) räknas inte
+// och får alltid true (obegränsat) – det avgörs i RPC:n use_ai_credit, som är
+// den enda pålitliga källan (klienten kan inte skriva entitlements).
+export const FREE_AI_PER_WEEK = 3
+const WEEK_SECONDS = 7 * 24 * 60 * 60
+
+// Drar en gratis-AI-kredit för den inloggade användaren. Returnerar false när
+// gratis-taket nåtts (och användaren inte är Premium). Fail-open: om RPC:n
+// saknas/inte svarar släpper vi igenom (blockerar aldrig en betalande/legitim
+// användare pga infra-strul).
+export async function useAiCredit(request: Request): Promise<boolean> {
+  const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+  if (!token || !supabaseUrl || !anonKey) return true
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/use_ai_credit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: anonKey, Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ max_free: FREE_AI_PER_WEEK, window_seconds: WEEK_SECONDS }),
+    })
+    if (!res.ok) return true
+    const allowed = await res.json()
+    return allowed !== false
+  } catch {
+    return true
+  }
+}
+
 /** Plockar ut och parsar JSON-objektet ur ett AI-svar (hanterar ```-staket och omgivande text). */
 export function parseAiJson(text: string): any {
   const cleaned = text.replace(/```json|```/g, '').trim()

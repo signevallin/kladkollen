@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, useAiCredit, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -8,6 +8,12 @@ export default async function handler(request: Request): Promise<Response> {
   }
   const auth = await requireUser(request)
   if (auth instanceof Response) return auth
+
+  // Freemium: gratis-användare har en veckokvot; Premium är obegränsat. Koden
+  // 'quota_exceeded' talar om för klienten att visa paywall.
+  if (!(await useAiCredit(request))) {
+    return json({ error: 'Gratiskvoten för AI-outfits är slut den här veckan.', code: 'quota_exceeded' }, 402)
+  }
 
   try {
     const body = (await request.json()) as any

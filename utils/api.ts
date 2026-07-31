@@ -34,8 +34,11 @@ export async function apiPost<T = any>(path: string, body: unknown): Promise<T> 
     throw err
   }
   if (!res.ok || data?.error) {
-    const err = new Error(data?.error || `Serverfel (${res.status})`)
-    captureError(err, { path, status: res.status })
+    const err: any = new Error(data?.error || `Serverfel (${res.status})`)
+    err.code = data?.code
+    err.status = res.status
+    // Kvot-stopp (402) är förväntat, inte ett fel att rapportera till Sentry.
+    if (data?.code !== 'quota_exceeded') captureError(err, { path, status: res.status })
     throw err
   }
   return data as T

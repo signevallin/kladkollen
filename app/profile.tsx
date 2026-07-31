@@ -27,6 +27,7 @@ import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
+import { useEntitlements } from '../utils/entitlements'
 import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
@@ -79,6 +80,7 @@ export default function Profile() {
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
   const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, t: tr } = useSettings()
+  const { isPro } = useEntitlements()
 
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)
@@ -727,8 +729,8 @@ export default function Profile() {
               </>
             ),
           })}
-          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', onPress: () => router.push('/partner') })}
-          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', onPress: () => router.push('/family') })}
+          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/partner' : '/paywall') })}
+          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/family' : '/paywall') })}
         </View>
 
         {/* ── Min stil ── */}
@@ -889,6 +891,16 @@ export default function Profile() {
                 ))}
               </View>
             ),
+          })}
+        </View>
+
+        {/* ── Skrud Premium ── */}
+        <Text style={styles.sectionTitle}>{tr('Skrud Premium')}</Text>
+        <View style={styles.listCard}>
+          {renderRow('premium', 'Skrud Premium', {
+            icon: 'workspace-premium',
+            value: isPro ? 'Aktiv' : 'Uppgradera',
+            onPress: () => router.push('/paywall'),
           })}
         </View>
 

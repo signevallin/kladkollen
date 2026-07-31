@@ -11,6 +11,7 @@ import { registerForPush } from '../utils/push'
 import { scheduleSmartPush } from '../utils/smartPush'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
 import { SettingsProvider } from '../utils/settings'
+import { EntitlementsProvider } from '../utils/entitlements'
 import { ToastHost } from '../components/Toast'
 import { initSentry, wrapWithSentry } from '../utils/sentry'
 import '../global.css'
@@ -119,7 +120,9 @@ function Layout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <SettingsProvider>
-          <RootLayout />
+          <EntitlementsProvider>
+            <RootLayout />
+          </EntitlementsProvider>
         </SettingsProvider>
       </ThemeProvider>
     </SafeAreaProvider>

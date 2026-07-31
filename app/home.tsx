@@ -33,6 +33,7 @@ import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 import { apiPost } from '../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../utils/weather'
+import { useEntitlements } from '../utils/entitlements'
 
 const CONTEXTS = OUTFIT_CONTEXTS
 
@@ -49,6 +50,7 @@ export default function Home() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { tempLabel, t: tr } = useSettings()
+  const { isPro } = useEntitlements()
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
   const [weather, setWeather] = useState<any>(() => cacheGet('home.weather') ?? null)
@@ -486,6 +488,8 @@ export default function Home() {
       }
 
     } catch (e: any) {
+      // Gratiskvoten slut → visa paywall i stället för ett generiskt fel.
+      if (e?.code === 'quota_exceeded') { router.push('/paywall'); return }
       showAlert(tr('Något gick fel'), e.message)
     } finally {
       setLoading(false)
@@ -564,6 +568,8 @@ export default function Home() {
 
   async function generateCouple() {
     if (!partner || coupleLoading) return
+    // Par-matchning är en Premium-funktion.
+    if (!isPro) { router.push('/paywall'); return }
     setCoupleLoading(true); setCoupleOutfit(null); setCoupleSaved(false); setCoupleWorn(false)
     try {
       const ctx = CONTEXTS[selectedContext]
