@@ -759,6 +759,8 @@ const enBySource: Dict = {
   'Fortsätt med Google': 'Continue with Google',
   'Fortsätt med e-post': 'Continue with email',
   'Senast använd': 'Last used',
+  'Töm tvätten': 'Empty the laundry',
+  'Markera alla {n} plagg som tvättade?': 'Mark all {n} garments as washed?',
   'Genom att fortsätta godkänner du våra ': 'By continuing you agree to our ',
   'Villkor': 'Terms',
   ' och ': ' and ',

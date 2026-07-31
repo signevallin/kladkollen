@@ -180,6 +180,34 @@ export default function Wardrobe() {
     }
   }
 
+  // Tömmer hela tvättkorgen på en gång: markerar alla plagg i tvätten som
+  // tvättade (in_laundry = false). Optimistisk uppdatering med återställning.
+  async function clearLaundry() {
+    const ids = garments.filter(g => g.in_laundry).map(g => g.id)
+    if (ids.length === 0) return
+    showConfirm(
+      tr('Töm tvätten'),
+      tr('Markera alla {n} plagg som tvättade?').replace('{n}', String(ids.length)),
+      async () => {
+        setGarments(prev => {
+          const nx = prev.map(g => g.in_laundry ? { ...g, in_laundry: false } : g)
+          cacheSet('wardrobe.garments', nx)
+          return nx
+        })
+        const { error } = await supabase.from('garments').update({ in_laundry: false }).in('id', ids)
+        if (error) {
+          setGarments(prev => {
+            const nx = prev.map(g => ids.includes(g.id) ? { ...g, in_laundry: true } : g)
+            cacheSet('wardrobe.garments', nx)
+            return nx
+          })
+          showAlert(tr('Något gick fel'))
+        }
+      },
+      tr('Töm tvätten'),
+    )
+  }
+
   async function fetchWishlist() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -537,6 +565,7 @@ export default function Wardrobe() {
   }
 
   const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || activeSizes.size > 0 || laundryFilter !== 'all' || search !== ''
+  const laundryCount = garments.filter(g => g.in_laundry).length
   // Etikett för filter-chippen: inget val → filternamnet, ett val → värdet,
   // flera val → "Filternamn (antal)".
   const filterChipValue = (label: string, set: Set<string>) =>
@@ -1015,6 +1044,14 @@ export default function Wardrobe() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.grid}
             style={styles.flatList}
+            ListHeaderComponent={
+              laundryFilter === 'in' && laundryCount > 0 ? (
+                <TouchableOpacity style={styles.clearLaundryBtn} onPress={clearLaundry} accessibilityRole="button">
+                  <MaterialIcons name="local-laundry-service" size={18} color={t.onPrimary} />
+                  <Text style={styles.clearLaundryText}>{tr('Töm tvätten')} · {laundryCount}</Text>
+                </TouchableOpacity>
+              ) : null
+            }
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>
@@ -1381,6 +1418,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dropdownPillTextActive: { color: t.onPrimary },
   flatList: { flex: 1 },
   grid: { paddingHorizontal: 16, paddingBottom: 100, gap: 10 },
+  clearLaundryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: t.primary, borderRadius: 14, paddingVertical: 12, marginBottom: 4 },
+  clearLaundryText: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.onPrimary },
   item: { width: '31%', margin: '1%', alignItems: 'center', backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 8, borderWidth: 1, borderColor: t.border },
   itemImageWrap: { width: '100%' },
   itemImage: { width: '100%', height: 90, borderRadius: 10, marginBottom: 6, resizeMode: 'contain', backgroundColor: 'transparent' },
