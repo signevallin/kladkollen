@@ -79,22 +79,67 @@ export function parseAiJson(text: string): any {
 
 // Standardmodell för OpenAI-anropen. gpt-4.1-mini ger ~6× lägre kostnad än
 // gpt-4o med bibehållen kvalitet och bildstöd, och är en drop-in (stödjer
-// max_tokens + temperature, till skillnad från reasoning-modellerna). Kan
-// överstyras med miljövariabeln OPENAI_MODEL utan kodändring.
+// max_tokens + temperature). Kan överstyras med miljövariabeln OPENAI_MODEL
+// utan kodändring – t.ex. till en reasoning-modell (gpt-5.6-luna) som hanteras
+// automatiskt nedan.
 export const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1-mini'
+
+// Beprövad, icke-reasoning-modell att falla tillbaka på om den valda modellen
+// ger tomt svar eller strular. Måste själv vara en drop-in-modell.
+const FALLBACK_MODEL = 'gpt-4.1-mini'
+
+// Reasoning-modeller (o-serien och gpt-5-familjen, inkl. gpt-5.6-luna) beter
+// sig annorlunda: de kräver max_completion_tokens i stället för max_tokens,
+// stödjer inte fritt temperature, och bränner reasoning-tokens som räknas mot
+// output. Vi upptäcker dem för att skicka rätt parametrar.
+export function isReasoningModel(model: string): boolean {
+  return /^(gpt-5|o\d)/.test(model)
+}
 
 /** Anropar OpenAI chat completions och returnerar svarstexten. */
 export async function openaiChat(messages: any[], model: string, maxTokens: number, temperature?: number): Promise<string> {
   const key = process.env.OPENAI_API_KEY
   if (!key) throw new Error('OPENAI_API_KEY saknas på servern')
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model, messages, max_tokens: maxTokens, ...(temperature != null ? { temperature } : {}) }),
-  })
-  const data = await res.json()
-  if (data.error) throw new Error(data.error.message || 'OpenAI API-fel')
-  const text = data.choices?.[0]?.message?.content
+
+  async function call(useModel: string): Promise<string | undefined> {
+    const reasoning = isReasoningModel(useModel)
+    const body = reasoning
+      ? {
+          model: useModel,
+          messages,
+          // Extra utrymme så reasoning-tokens inte svälter det synliga svaret.
+          max_completion_tokens: maxTokens + 2000,
+          reasoning_effort: 'low',
+        }
+      : {
+          model: useModel,
+          messages,
+          max_tokens: maxTokens,
+          ...(temperature != null ? { temperature } : {}),
+        }
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error.message || 'OpenAI API-fel')
+    return data.choices?.[0]?.message?.content
+  }
+
+  // Försök med den valda modellen. Om den ger tomt svar eller kastar (t.ex. en
+  // ny reasoning-modell som beter sig oväntat) faller vi tillbaka på den
+  // beprövade modellen – så det är riskfritt att testa nya modeller i prod.
+  let text: string | undefined
+  try {
+    text = await call(model)
+  } catch (e) {
+    if (model === FALLBACK_MODEL) throw e
+    text = undefined
+  }
+  if (!text && model !== FALLBACK_MODEL) {
+    text = await call(FALLBACK_MODEL)
+  }
   if (!text) throw new Error('Tomt svar från AI')
   return text
 }
