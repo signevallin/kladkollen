@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -52,7 +52,7 @@ ${langInstruction(body.lang)} OBS: "dayItems", "eveningItems" och swap-plaggen (
 Svara ENDAST med JSON, inga backticks:
 {"dayName": "kort namn på daglooken", "dayItems": ["exakt plaggnamn", ...], "eveningName": "kort namn på kvällslooken", "eveningItems": ["exakt plaggnamn", ...], "swaps": [{"out": "plagg som tas av", "in": "plagg som tas på"}], "tip": "Ett peppande stylist-tips om förvandlingen (1–2 meningar)."}`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 500, 0.9)
+    const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 500, 0.9)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.dayItems) || !Array.isArray(parsed.eveningItems)) {
       return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)

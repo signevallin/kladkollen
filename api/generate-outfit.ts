@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -102,7 +102,7 @@ ${langInstruction(body.lang)} OBS: Fälten "items" ska ALLTID vara plaggens namn
 Svara ENDAST med JSON, inga backticks:
 {"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o', 350, 0.9)
+    const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 350, 0.9)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.items)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
     return json(parsed)

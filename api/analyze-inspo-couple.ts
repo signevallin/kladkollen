@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -75,7 +75,7 @@ Svara ENDAST med JSON i EXAKT denna ordning (results[0] = garderob A / ${nameA},
       ],
     }]
 
-    const text = await openaiChat(messages, 'gpt-4o', 800)
+    const text = await openaiChat(messages, OPENAI_MODEL, 800)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.results)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
     parsed.results = parsed.results.slice(0, 2).map((r: any) => ({

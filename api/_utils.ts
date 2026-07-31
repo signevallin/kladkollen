@@ -77,6 +77,12 @@ export function parseAiJson(text: string): any {
   return JSON.parse(cleaned.slice(start, end + 1))
 }
 
+// Standardmodell för OpenAI-anropen. gpt-4.1-mini ger ~6× lägre kostnad än
+// gpt-4o med bibehållen kvalitet och bildstöd, och är en drop-in (stödjer
+// max_tokens + temperature, till skillnad från reasoning-modellerna). Kan
+// överstyras med miljövariabeln OPENAI_MODEL utan kodändring.
+export const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1-mini'
+
 /** Anropar OpenAI chat completions och returnerar svarstexten. */
 export async function openaiChat(messages: any[], model: string, maxTokens: number, temperature?: number): Promise<string> {
   const key = process.env.OPENAI_API_KEY
