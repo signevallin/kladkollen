@@ -77,6 +77,11 @@ export default function Paywall() {
         ) : (
           <View style={styles.soonBox}>
             <Text style={styles.soonText}>{tr('Premium går snart att köpa här.')}</Text>
+            {__DEV__ && (
+              <Text style={styles.debugText}>
+                {`SDK: ${purchasesAvailable ? 'på' : 'AV'} · paket: ${packages.length}`}
+              </Text>
+            )}
           </View>
         )}
 
@@ -117,6 +122,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   activeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   soonBox: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 18, alignItems: 'center' },
   soonText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, textAlign: 'center' },
+  debugText: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint, textAlign: 'center', marginTop: 8 },
 
   restoreBtn: { alignItems: 'center', paddingVertical: 16 },
   restoreText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textFaint, textDecorationLine: 'underline' },
