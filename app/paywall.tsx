@@ -20,7 +20,7 @@ export default function Paywall() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
-  const { packages, purchasesAvailable, isPro, purchase, restore } = useEntitlements()
+  const { packages, purchasesAvailable, isPro, purchase, restore, purchasesDebug } = useEntitlements()
   const [busy, setBusy] = useState(false)
 
   async function buy(pkg: PurchasePackage) {
@@ -79,7 +79,7 @@ export default function Paywall() {
             <Text style={styles.soonText}>{tr('Premium går snart att köpa här.')}</Text>
             {__DEV__ && (
               <Text style={styles.debugText}>
-                {`SDK: ${purchasesAvailable ? 'på' : 'AV'} · paket: ${packages.length}`}
+                {`SDK: ${purchasesAvailable ? 'på' : 'AV'} · paket: ${packages.length}\n${purchasesDebug}`}
               </Text>
             )}
           </View>
