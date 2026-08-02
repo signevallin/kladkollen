@@ -172,7 +172,11 @@ export default function Login() {
         if (error) throw error
         return // webben omdirigerar själv
       }
-      const redirectTo = Linking.createURL('/home')
+      // Ren scheme-URL (samma stil som reset-password) så den matchar exakt det
+      // som ligger i Supabases Redirect URLs. createURL('/home') gav tidigare
+      // kladkollen:///home (tre snedstreck) → matchade inte → föll tillbaka på
+      // webb-Site-URL:en, därav att man hamnade i webbläsaren.
+      const redirectTo = 'kladkollen://home'
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo, skipBrowserRedirect: true },
