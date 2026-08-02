@@ -1,11 +1,11 @@
-import { useTheme } from '../theme/ThemeProvider'
-import type { Theme } from '../theme/theme'
+import { useTheme } from '../../theme/ThemeProvider'
+import type { Theme } from '../../theme/theme'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { goBack } from '../utils/nav'
+import { goBack } from '../../utils/nav'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   FlatList,
@@ -20,23 +20,23 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
-import BottomNav from '../components/BottomNav'
-import AddGarmentChooser from '../components/AddGarmentChooser'
-import SignedImage from '../components/SignedImage'
-import { supabase } from '../supabase'
-import { showAlert, showConfirm } from '../utils/alert'
-import { apiPost } from '../utils/api'
-import { newImageId } from '../utils/id'
-import { uploadUserImage } from '../utils/storage'
-import { cacheGet, cacheSet } from '../utils/cache'
-import { pickImageSmart } from '../utils/imagePicker'
-import { ARCHIVE_REASONS, reasonFor } from '../utils/archiveReasons'
-import { parsePrice } from '../utils/brands'
-import { useSettings } from '../utils/settings'
-import { localeFor } from '../utils/i18n'
-import { affiliateUrl } from '../utils/affiliate'
+import BottomNav from '../../components/BottomNav'
+import AddGarmentChooser from '../../components/AddGarmentChooser'
+import SignedImage from '../../components/SignedImage'
+import { supabase } from '../../supabase'
+import { showAlert, showConfirm } from '../../utils/alert'
+import { apiPost } from '../../utils/api'
+import { newImageId } from '../../utils/id'
+import { uploadUserImage } from '../../utils/storage'
+import { cacheGet, cacheSet } from '../../utils/cache'
+import { pickImageSmart } from '../../utils/imagePicker'
+import { ARCHIVE_REASONS, reasonFor } from '../../utils/archiveReasons'
+import { parsePrice } from '../../utils/brands'
+import { useSettings } from '../../utils/settings'
+import { localeFor } from '../../utils/i18n'
+import { affiliateUrl } from '../../utils/affiliate'
 import * as WebBrowser from 'expo-web-browser'
-import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, COLOR_OPTIONS, SEASONS as SEASON_LIST, SUBCATEGORIES } from '../utils/constants'
+import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, COLOR_OPTIONS, SEASONS as SEASON_LIST, SUBCATEGORIES } from '../../utils/constants'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const WISH_CATEGORIES = CATEGORY_LIST
@@ -132,11 +132,14 @@ export default function Wardrobe() {
   const [saleGarments, setSaleGarments] = useState<any[]>([])
 
   useFocusEffect(
+    // Beror på `person`: tabben hålls monterad och återanvänds för barn-closet
+    // (?person=), så effekten måste köras om när personen ändras – annars visas
+    // fel persons plagg.
     useCallback(() => {
       fetchGarments()
       fetchWishlist()
       loadCapsule()
-    }, [])
+    }, [person])
   )
 
   // Köp-fliken finns inte i barn-läge – hamna aldrig på den.
