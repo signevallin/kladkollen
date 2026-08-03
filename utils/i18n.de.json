@@ -873,5 +873,8 @@
  "Namn på nytt set": "Name des neuen Sets",
  "Skapa set": "Set erstellen",
  "Eller välj befintligt:": "Oder ein vorhandenes wählen:",
- "Ingår i ett set": "Teil eines Sets"
+ "Ingår i ett set": "Teil eines Sets",
+ "Utgår från set": "Basiert auf Set",
+ "Ta bort utgångsset": "Ausgangs-Set entfernen",
+ "Eller utgå från ett set:": "Oder von einem Set ausgehen:"
 }

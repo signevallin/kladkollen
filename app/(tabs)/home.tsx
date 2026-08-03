@@ -34,6 +34,7 @@ import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
 import { useEntitlements, FREE_AI_PER_WEEK } from '../../utils/entitlements'
+import { fetchSets, type GarmentSet } from '../../utils/sets'
 
 const CONTEXTS = OUTFIT_CONTEXTS
 
@@ -87,6 +88,9 @@ export default function Home() {
   const [coupleSwap, setCoupleSwap] = useState<{ person: number; index: number } | null>(null)
   // Valfritt utgångsplagg – bygg outfiten kring ett specifikt plagg.
   const [baseGarment, setBaseGarment] = useState<any | null>(null)
+  // Utgångsset: generera en outfit KRING ett helt set (alt. till utgångsplagg).
+  const [baseSet, setBaseSet] = useState<{ id: string; name: string; members: any[] } | null>(null)
+  const [sets, setSets] = useState<GarmentSet[]>([])
   const [showBasePicker, setShowBasePicker] = useState(false)
   const [baseSearch, setBaseSearch] = useState('')
   // Filter i plagg-väljaren (enkelval, 'Alla' = inget filter).
@@ -114,6 +118,7 @@ export default function Home() {
       // ändrat i profilen slår igenom direkt när man kommer tillbaka hit.
       loadUser()
       fetchAll()
+      fetchSets().then(setSets)
       loadPartner().then(({ partner }) => { setPartner(partner); cacheSet('household.partner', partner) })
     }, [])
   )
@@ -370,13 +375,16 @@ export default function Home() {
       let pool = poolCanFormOutfit ? seasonalPool : activeGarments
       // Utgångsplagget måste alltid finnas i poolen även om det är off-season.
       if (baseGarment && !pool.some(g => g.id === baseGarment.id)) pool = [baseGarment, ...pool]
-      // Set-plaggen ("styla hela setet") måste också alltid finnas i poolen.
-      for (const g of baseSetGarments) if (!pool.some(p => p.id === g.id)) pool = [g, ...pool]
+      // Set att bygga kring: explicit inskickat (t.ex. "styla hela setet") eller
+      // det utgångsset man valt på startskärmen.
+      const setGarments = baseSetGarments.length ? baseSetGarments : (baseSet?.members || [])
+      // Set-plaggen måste också alltid finnas i poolen.
+      for (const g of setGarments) if (!pool.some(p => p.id === g.id)) pool = [g, ...pool]
       const annot = (g: any) => {
         const extra = [g.subcategory, g.color].filter(Boolean).join(', ')
         return `${g.name}${extra ? ` (${extra})` : ''}`
       }
-      const baseSetStr = baseSetGarments.map(annot).join(', ')
+      const baseSetStr = setGarments.map(annot).join(', ')
 
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
 
@@ -1103,6 +1111,15 @@ export default function Home() {
     )
   }
 
+  // Set som har minst ett användbart plagg (för utgångsset-valet).
+  const availableSets = sets.filter(s => garments.some(g => g.set_id === s.id && !g.archived && !g.in_laundry))
+  function chooseBaseSet(s: GarmentSet) {
+    const members = garments.filter(g => g.set_id === s.id && !g.archived && !g.in_laundry)
+    if (members.length === 0) return
+    setBaseSet({ id: s.id, name: s.name, members })
+    setBaseGarment(null)
+  }
+
   const addPickerPool: any[] = addTarget
     ? (addTarget.person === null ? activeGarmentsForPicker : (coupleOutfit?.pools?.[addTarget.person] || []))
     : []
@@ -1171,9 +1188,27 @@ export default function Home() {
           </TouchableOpacity>
         </View>
 
-        {/* Valfritt utgångsplagg – generera outfit KRING ett plagg */}
+        {/* Valfritt utgångsplagg/-set – generera outfit KRING ett plagg eller set */}
         <View style={styles.section}>
-          {baseGarment ? (
+          {baseSet ? (
+            <View style={styles.optionRow}>
+              <View style={styles.optionLeft}>
+                <View style={styles.baseSetIcon}><Ionicons name="albums" size={18} color={t.primary} /></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.optionText}>{tr('Utgår från set')}</Text>
+                  <Text style={styles.optionSub} numberOfLines={1}>{baseSet.name}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => setBaseSet(null)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel={tr('Ta bort utgångsset')}
+                accessibilityRole="button"
+              >
+                <Ionicons name="close-circle" size={24} color={t.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          ) : baseGarment ? (
             <View style={styles.optionRow}>
               <View style={styles.optionLeft}>
                 {baseGarment.image_url
@@ -1194,15 +1229,30 @@ export default function Home() {
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
-              <View style={styles.optionLeft}>
-                <View>
-                  <Text style={styles.optionText}>{tr('Utgå från ett plagg')}</Text>
-                  <Text style={styles.optionSub}>{tr('Valfritt – bygg outfiten kring ett plagg')}</Text>
+            <>
+              <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
+                <View style={styles.optionLeft}>
+                  <View>
+                    <Text style={styles.optionText}>{tr('Utgå från ett plagg')}</Text>
+                    <Text style={styles.optionSub}>{tr('Valfritt – bygg outfiten kring ett plagg')}</Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
-            </TouchableOpacity>
+                <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
+              </TouchableOpacity>
+              {availableSets.length > 0 && (
+                <View style={styles.baseSetChipsWrap}>
+                  <Text style={styles.baseSetChipsLabel}>{tr('Eller utgå från ett set:')}</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.baseSetChipsRow}>
+                    {availableSets.map(s => (
+                      <TouchableOpacity key={s.id} style={styles.baseSetChip} onPress={() => chooseBaseSet(s)}>
+                        <Ionicons name="albums-outline" size={14} color={t.textSecondary} />
+                        <Text style={styles.baseSetChipText} numberOfLines={1}>{s.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </>
           )}
         </View>
 
@@ -1437,7 +1487,7 @@ export default function Home() {
         visible: showBasePicker,
         title: tr('Utgå från ett plagg'),
         pool: activeGarmentsForPicker,
-        onSelect: (g) => setBaseGarment(g),
+        onSelect: (g) => { setBaseGarment(g); setBaseSet(null) },
         onClose: closeBasePicker,
       })}
 
@@ -1638,6 +1688,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitImage: { width: 80, height: 80, borderRadius: 14 },
   baseThumb: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface },
   baseThumbEmpty: { borderWidth: 1, borderColor: t.border },
+  baseSetIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
+  baseSetChipsWrap: { marginTop: 10 },
+  baseSetChipsLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginBottom: 8, marginLeft: 2 },
+  baseSetChipsRow: { gap: 8, paddingRight: 8 },
+  baseSetChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.surfaceMuted, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: t.border },
+  baseSetChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, maxWidth: 160 },
   baseSearchInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: t.textPrimary, fontSize: 15, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
   baseFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   baseChip: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
