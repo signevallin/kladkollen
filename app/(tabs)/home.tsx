@@ -981,7 +981,7 @@ export default function Home() {
   const activeCtx = CONTEXTS[selectedContext]
 
   // Återanvändbar plagg-väljare (samma UI för utgångsplagg och "lägg till plagg").
-  function renderGarmentPicker(cfg: { visible: boolean; title: string; pool: any[]; onSelect: (g: any) => void; onClose: () => void; accessoriesFirst?: boolean }) {
+  function renderGarmentPicker(cfg: { visible: boolean; title: string; pool: any[]; onSelect: (g: any) => void; onClose: () => void; accessoriesFirst?: boolean; sets?: GarmentSet[]; onSelectSet?: (s: GarmentSet) => void }) {
     const typeOptions = baseCat !== 'Alla' && SUBCATEGORIES[baseCat]
       ? SUBCATEGORIES[baseCat]
       : Array.from(new Set(cfg.pool.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))
@@ -1030,6 +1030,20 @@ export default function Home() {
                 <Text style={styles.swapClose}>✕</Text>
               </TouchableOpacity>
             </View>
+
+            {cfg.sets && cfg.sets.length > 0 && (
+              <View style={styles.baseSetChipsWrap}>
+                <Text style={styles.baseSetChipsLabel}>{tr('Set')}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.baseSetChipsRow}>
+                  {cfg.sets.map(s => (
+                    <TouchableOpacity key={s.id} style={styles.baseSetChip} onPress={() => { cfg.onSelectSet?.(s); cfg.onClose() }}>
+                      <Ionicons name="albums-outline" size={14} color={t.textSecondary} />
+                      <Text style={styles.baseSetChipText} numberOfLines={1}>{s.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             <TextInput
               style={styles.baseSearchInput}
@@ -1229,30 +1243,15 @@ export default function Home() {
               </TouchableOpacity>
             </View>
           ) : (
-            <>
-              <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
-                <View style={styles.optionLeft}>
-                  <View>
-                    <Text style={styles.optionText}>{tr('Utgå från ett plagg')}</Text>
-                    <Text style={styles.optionSub}>{tr('Valfritt – bygg outfiten kring ett plagg')}</Text>
-                  </View>
+            <TouchableOpacity style={styles.optionRow} onPress={() => setShowBasePicker(true)} activeOpacity={0.8}>
+              <View style={styles.optionLeft}>
+                <View>
+                  <Text style={styles.optionText}>{tr('Utgå från ett plagg/set')}</Text>
+                  <Text style={styles.optionSub}>{tr('Valfritt – bygg outfiten kring ett plagg')}</Text>
                 </View>
-                <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
-              </TouchableOpacity>
-              {availableSets.length > 0 && (
-                <View style={styles.baseSetChipsWrap}>
-                  <Text style={styles.baseSetChipsLabel}>{tr('Eller utgå från ett set:')}</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.baseSetChipsRow}>
-                    {availableSets.map(s => (
-                      <TouchableOpacity key={s.id} style={styles.baseSetChip} onPress={() => chooseBaseSet(s)}>
-                        <Ionicons name="albums-outline" size={14} color={t.textSecondary} />
-                        <Text style={styles.baseSetChipText} numberOfLines={1}>{s.name}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-            </>
+              </View>
+              <View style={styles.addItemCircle}><Ionicons name="add" size={16} color={t.onPrimary} /></View>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -1485,10 +1484,12 @@ export default function Home() {
       {/* Välj utgångsplagg att bygga outfiten kring */}
       {renderGarmentPicker({
         visible: showBasePicker,
-        title: tr('Utgå från ett plagg'),
+        title: tr('Utgå från ett plagg/set'),
         pool: activeGarmentsForPicker,
         onSelect: (g) => { setBaseGarment(g); setBaseSet(null) },
         onClose: closeBasePicker,
+        sets: availableSets,
+        onSelectSet: chooseBaseSet,
       })}
 
       {/* Lägg till ytterligare plagg i en genererad outfit */}
