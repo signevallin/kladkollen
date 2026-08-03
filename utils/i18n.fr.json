@@ -873,5 +873,8 @@
  "Namn på nytt set": "Nom du nouvel ensemble",
  "Skapa set": "Créer un ensemble",
  "Eller välj befintligt:": "Ou choisis-en un existant :",
- "Ingår i ett set": "Fait partie d’un ensemble"
+ "Ingår i ett set": "Fait partie d’un ensemble",
+ "Utgår från set": "Basé sur un ensemble",
+ "Ta bort utgångsset": "Retirer l’ensemble de base",
+ "Eller utgå från ett set:": "Ou partir d’un ensemble :"
 }
