@@ -793,6 +793,7 @@ const enBySource: Dict = {
   'Eller välj befintligt:': 'Or pick an existing one:',
   'Ingår i ett set': 'Part of a set',
   'Utgår från set': 'Based on set',
+  'Utgå från ett plagg/set': 'Base on a garment/set',
   'Ta bort utgångsset': 'Remove base set',
   'Eller utgå från ett set:': 'Or base it on a set:',
   'Har du redan ett konto? ': 'Already have an account? ',
