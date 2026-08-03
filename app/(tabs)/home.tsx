@@ -1690,7 +1690,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseThumb: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface },
   baseThumbEmpty: { borderWidth: 1, borderColor: t.border },
   baseSetIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
-  baseSetChipsWrap: { marginTop: 10, marginBottom: 16 },
+  baseSetChipsWrap: { marginBottom: 16 },
   baseSetChipsLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginBottom: 8, marginLeft: 2 },
   baseSetChipsRow: { gap: 8, paddingRight: 8 },
   baseSetChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.surfaceMuted, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: t.border },
@@ -1716,7 +1716,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   // Byt-ut-modal
   swapOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  swapSheet: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '75%' },
+  swapSheet: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '88%' },
   swapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   swapTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary, flex: 1 },
   swapClose: { color: t.textSecondary, fontSize: 20 },
