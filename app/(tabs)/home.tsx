@@ -120,7 +120,7 @@ export default function Home() {
 
   // Öppnade man appen via en Smart Push-notis: förvälj kalenderns kontext och
   // generera outfiten direkt (en gång, när garderoben har laddats).
-  const { smartContext } = useLocalSearchParams<{ smartContext?: string }>()
+  const { smartContext, styleSet } = useLocalSearchParams<{ smartContext?: string; styleSet?: string }>()
   const smartHandled = useRef(false)
   useEffect(() => {
     if (!smartContext || smartHandled.current || garments.length === 0) return
@@ -131,6 +131,17 @@ export default function Home() {
     generateOutfit(idx)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [smartContext, garments.length])
+
+  // "Styla hela setet" (från plaggvyn): bygg en outfit kring hela setet en gång.
+  const styleSetHandled = useRef(false)
+  useEffect(() => {
+    if (!styleSet || styleSetHandled.current || garments.length === 0) return
+    const members = garments.filter(g => g.set_id === styleSet && !g.archived && !g.in_laundry)
+    if (members.length === 0) return
+    styleSetHandled.current = true
+    generateOutfit(selectedContext, members)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [styleSet, garments.length])
 
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -150,7 +161,7 @@ export default function Home() {
   async function fetchAll() {
     // Bara kolumnerna hemskärmen faktiskt använder (outfit-generering + räknare) –
     // slipper dra hela plaggraden vid varje appstart.
-    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived, in_laundry').is('person_id', null)
+    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived, in_laundry, set_id').is('person_id', null)
     if (data) {
       setGarments(data); cacheSet('home.garments', data)
     }
@@ -305,7 +316,7 @@ export default function Home() {
     return { valid: true, missing: '' }
   }
 
-  async function generateOutfit(ctxIndex: number = selectedContext) {
+  async function generateOutfit(ctxIndex: number = selectedContext, baseSetGarments: any[] = []) {
     if (garments.length === 0) {
       showAlert(tr('Lägg till plagg i garderoben först!'))
       return
@@ -359,6 +370,13 @@ export default function Home() {
       let pool = poolCanFormOutfit ? seasonalPool : activeGarments
       // Utgångsplagget måste alltid finnas i poolen även om det är off-season.
       if (baseGarment && !pool.some(g => g.id === baseGarment.id)) pool = [baseGarment, ...pool]
+      // Set-plaggen ("styla hela setet") måste också alltid finnas i poolen.
+      for (const g of baseSetGarments) if (!pool.some(p => p.id === g.id)) pool = [g, ...pool]
+      const annot = (g: any) => {
+        const extra = [g.subcategory, g.color].filter(Boolean).join(', ')
+        return `${g.name}${extra ? ` (${extra})` : ''}`
+      }
+      const baseSetStr = baseSetGarments.map(annot).join(', ')
 
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
 
@@ -414,6 +432,7 @@ export default function Home() {
           baseGarment: baseGarment
             ? `${baseGarment.name}${[baseGarment.subcategory, baseGarment.color].filter(Boolean).length ? ` (${[baseGarment.subcategory, baseGarment.color].filter(Boolean).join(', ')})` : ''}`
             : '',
+          baseSet: baseSetStr,
         })
 
         const { valid } = validateOutfit(parsed.items, pool, weatherCtx.requiresOuterwear)

@@ -865,5 +865,13 @@
  "Ditt köp återställdes ✓": "Dein Kauf wurde wiederhergestellt ✓",
  "Inget köp att återställa": "Kein Kauf zum Wiederherstellen",
  "{n} av {max} gratis outfits kvar denna vecka": "{n} von {max} kostenlosen Outfits diese Woche übrig",
- "Gratiskvoten är slut · Uppgradera": "Kostenloses Kontingent aufgebraucht · Upgraden"
+ "Gratiskvoten är slut · Uppgradera": "Kostenloses Kontingent aufgebraucht · Upgraden",
+ "Set": "Set",
+ "Styla hela setet": "Ganzes Set stylen",
+ "Ta bort ur set": "Aus Set entfernen",
+ "Lägg till i set": "Zu Set hinzufügen",
+ "Namn på nytt set": "Name des neuen Sets",
+ "Skapa set": "Set erstellen",
+ "Eller välj befintligt:": "Oder ein vorhandenes wählen:",
+ "Ingår i ett set": "Teil eines Sets"
 }

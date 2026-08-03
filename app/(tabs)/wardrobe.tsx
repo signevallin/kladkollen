@@ -1083,6 +1083,11 @@ export default function Wardrobe() {
                   >
                     <MaterialIcons name="local-laundry-service" size={14} color={item.in_laundry ? t.onPrimary : t.textSecondary} />
                   </TouchableOpacity>
+                  {item.set_id && (
+                    <View style={styles.setBadge} accessibilityLabel={tr('Ingår i ett set')}>
+                      <MaterialIcons name="link" size={13} color={t.onPrimary} />
+                    </View>
+                  )}
                 </View>
                 <Text style={styles.itemName}>{item.name}</Text>
                 {item.brand ? <Text style={styles.itemBrand} numberOfLines={1}>{item.brand}</Text> : null}
@@ -1530,6 +1535,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   reasonBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   lendBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   laundryBadge: { position: 'absolute', top: -6, left: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+  setBadge: { position: 'absolute', bottom: -6, right: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   laundryBadgeOn: { backgroundColor: t.primary, borderColor: t.primary },
   archMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   archMetaText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
