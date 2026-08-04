@@ -942,6 +942,25 @@ const enBySource: Dict = {
   'Beskär': 'Crop',
   'Inget att visa än.': 'Nothing to show yet.',
   'till': 'to',
+
+  // Onboarding (intro första gången)
+  'Hoppa över': 'Skip',
+  'Nästa': 'Next',
+  'Importera mina plagg': 'Import my clothes',
+  'Fota ett plagg': 'Take a photo',
+  'Jag gör det senare': "I'll do it later",
+  'Välkommen till Skrud': 'Welcome to Skrud',
+  'Fyll garderoben på minuter': 'Fill your wardrobe in minutes',
+  'Färdig outfit på morgonen': 'A ready outfit in the morning',
+  'En garderob för hela livet': 'A wardrobe for every stage of life',
+  'Din digitala garderob – för hela livet. Slut på känslan av att inte ha något att ha på sig.':
+    'Your digital wardrobe – for every stage of life. No more "I have nothing to wear".',
+  'Du behöver inte fota allt. Importera dina plagg direkt från kvitton och butiker – eller fota en favorit, så fyller Skrud i namn, färg och säsong åt dig.':
+    "You don't have to photograph everything. Import your clothes straight from receipts and stores – or snap a favourite and Skrud fills in the name, colour and season for you.",
+  'Välj Jobb, Ledig eller Fest och tryck en gång. Skrud bygger en komplett look ur din garderob, anpassad efter hela dagens väder – och påminner dig om regnjackan.':
+    'Pick Work, Casual or Party and tap once. Skrud builds a complete look from your wardrobe, tuned to the whole day\'s weather – and reminds you about the raincoat.',
+  'Börja med din egen garderob. Dela med din partner. Samla hela familjens kläder på ett ställe – samma app, oavsett var i livet du är.':
+    'Start with your own wardrobe. Share it with your partner. Gather the whole family\'s clothes in one place – the same app, wherever you are in life.',
 }
 
 Object.assign(en, enBySource)
