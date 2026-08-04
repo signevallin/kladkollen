@@ -644,7 +644,7 @@ export default function Inspiration() {
                   {outfit.itemsWithImages.map((item: any, index: number) => (
                     <View key={index} style={styles.outfitItem}>
                       {item.image_url
-                        ? <SignedImage path={item.image_url} style={styles.outfitItemImage} transform={{ width: 800, format: 'origin' }} />
+                        ? <SignedImage path={item.image_url} style={styles.outfitItemImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                         : <View style={styles.outfitItemEmptyBox} />
                       }
                       <Text style={styles.outfitItemName}>{item.name}</Text>
@@ -708,7 +708,7 @@ export default function Inspiration() {
                       {r.itemsWithImages.map((item: any, index: number) => (
                         <View key={index} style={styles.outfitItem}>
                           {item.image_url
-                            ? <SignedImage path={item.image_url} style={styles.outfitItemImage} transform={{ width: 800, format: 'origin' }} />
+                            ? <SignedImage path={item.image_url} style={styles.outfitItemImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                             : <View style={styles.outfitItemEmptyBox} />}
                           <Text style={styles.outfitItemName}>{item.name}</Text>
                         </View>
@@ -758,7 +758,7 @@ export default function Inspiration() {
                     onPress={() => setSelectedImage(item.image_url)}
                     activeOpacity={0.85}
                   >
-                    <SignedImage path={item.image_url} style={styles.moodboardImage} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
+                    <SignedImage path={item.image_url} style={styles.moodboardImage} resizeMode="contain" transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                   </TouchableOpacity>
                 ))}
               </View>

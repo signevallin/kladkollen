@@ -155,7 +155,7 @@ export default function Family() {
                 activeOpacity={0.8}
               >
                 {r.imageUrl
-                  ? <SignedImage path={r.imageUrl} style={styles.reminderThumb} transform={{ width: 800, format: 'origin' }} />
+                  ? <SignedImage path={r.imageUrl} style={styles.reminderThumb} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                   : <View style={styles.reminderThumbEmpty}><MaterialIcons name="checkroom" size={20} color={t.textSecondary} /></View>}
                 <View style={styles.reminderInfo}>
                   <Text style={styles.reminderName} numberOfLines={1}>{r.garmentName}</Text>

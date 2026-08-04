@@ -461,7 +461,7 @@ export default function Stats() {
                       <Text style={styles.pieceRank}>#{i + 1}</Text>
                       <TouchableOpacity disabled={!item.id} activeOpacity={0.7} onPress={() => item.id && router.push(`/garment-detail?id=${item.id}`)}>
                         {item.image_url
-                          ? <SignedImage path={item.image_url} style={styles.pieceImage} transform={{ width: 800, format: 'origin' }} />
+                          ? <SignedImage path={item.image_url} style={styles.pieceImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                           : <View style={styles.pieceImageEmpty} />
                         }
                       </TouchableOpacity>
@@ -506,7 +506,7 @@ export default function Stats() {
                         <View key={item.name} style={styles.neverItem}>
                           <TouchableOpacity disabled={!item.id} activeOpacity={0.7} onPress={() => item.id && router.push(`/garment-detail?id=${item.id}`)}>
                             {item.image_url
-                              ? <SignedImage path={item.image_url} style={styles.neverImage} transform={{ width: 800, format: 'origin' }} />
+                              ? <SignedImage path={item.image_url} style={styles.neverImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                               : <View style={styles.neverImageEmpty} />
                             }
                           </TouchableOpacity>
@@ -670,7 +670,7 @@ export default function Stats() {
                       <View key={item.name + i} style={styles.pieceRow}>
                         <TouchableOpacity disabled={!item.id} activeOpacity={0.7} onPress={() => item.id && router.push(`/garment-detail?id=${item.id}`)}>
                           {item.image_url
-                            ? <SignedImage path={item.image_url} style={styles.pieceImage} transform={{ width: 800, format: 'origin' }} />
+                            ? <SignedImage path={item.image_url} style={styles.pieceImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                             : <View style={styles.pieceImageEmpty} />
                           }
                         </TouchableOpacity>
@@ -706,7 +706,7 @@ export default function Stats() {
                   <View key={item.id} style={styles.barRow}>
                     <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                       {item.image_url
-                        ? <SignedImage path={item.image_url} style={styles.barImage} transform={{ width: 800, format: 'origin' }} />
+                        ? <SignedImage path={item.image_url} style={styles.barImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                         : <View style={styles.barImageEmpty} />
                       }
                     </TouchableOpacity>
@@ -734,7 +734,7 @@ export default function Stats() {
                       <View key={item.id} style={styles.neverItem}>
                         <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                           {item.image_url
-                            ? <SignedImage path={item.image_url} style={styles.neverImage} transform={{ width: 800, format: 'origin' }} />
+                            ? <SignedImage path={item.image_url} style={styles.neverImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                             : <View style={styles.neverImageEmpty} />
                           }
                         </TouchableOpacity>
@@ -767,7 +767,7 @@ export default function Stats() {
                     <View key={item.id} style={styles.vintedItem}>
                       <TouchableOpacity activeOpacity={0.7} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                         {item.image_url
-                          ? <SignedImage path={item.image_url} style={styles.vintedImage} transform={{ width: 800, format: 'origin' }} />
+                          ? <SignedImage path={item.image_url} style={styles.vintedImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                           : <View style={styles.vintedImageEmpty} />
                         }
                       </TouchableOpacity>
