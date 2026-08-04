@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
@@ -7,10 +7,13 @@ import { goBack } from '../utils/nav'
 
 // "Så funkar Skrud" – en interaktiv guide där varje knapp/ikon i appen
 // förklaras. Grupperad per skärm och hopfällbar så man snabbt hittar rätt.
-// Ikonerna speglar de som faktiskt används i appen. En mer översiktlig
-// variant av samma innehåll finns som webbsida (public/support.html).
-
-type Item = { icon: keyof typeof Ionicons.glyphMap; label: string; desc: string }
+//
+// Viktigt: guiden ska spegla appen exakt. Kontroller som har en ikon visas med
+// SAMMA ikon (rätt bibliotek – vissa är Ionicons, andra MaterialIcons).
+// Kontroller som i appen bara är en textknapp visas med `pill` = den exakta
+// texten, i stället för en påhittad ikon. En översiktlig variant av samma
+// innehåll finns som webbsida (public/support.html).
+type Item = { lib?: 'ion' | 'mat'; icon?: string; pill?: string; label: string; desc: string }
 type Group = { key: string; title: string; items: Item[] }
 
 const GROUPS: Group[] = [
@@ -18,60 +21,61 @@ const GROUPS: Group[] = [
     key: 'nav',
     title: 'Nedersta menyn',
     items: [
-      { icon: 'home', label: 'Hem', desc: 'Din startskärm. Här skapar du dagens outfit.' },
-      { icon: 'shirt', label: 'Garderob', desc: 'Alla dina plagg. Här filtrerar och hanterar du dem.' },
-      { icon: 'sparkles', label: 'Outfits', desc: 'Outfits du sparat och gillat.' },
-      { icon: 'camera', label: 'Inspo', desc: 'Inspirationsbilder du sparat.' },
-      { icon: 'add', label: 'Plus-knappen', desc: 'Lägg till ett plagg, en outfit eller en inspirationsbild.' },
+      { lib: 'ion', icon: 'home', label: 'Hem', desc: 'Din startskärm. Här skapar du dagens outfit.' },
+      { lib: 'ion', icon: 'shirt', label: 'Garderob', desc: 'Alla dina plagg. Här filtrerar och hanterar du dem.' },
+      { lib: 'ion', icon: 'sparkles', label: 'Outfits', desc: 'Outfits du sparat och gillat.' },
+      { lib: 'ion', icon: 'camera', label: 'Inspo', desc: 'Inspirationsbilder du sparat.' },
+      { lib: 'ion', icon: 'add', label: 'Plus-knappen', desc: 'Lägg till ett plagg, en outfit eller en inspirationsbild.' },
     ],
   },
   {
     key: 'home',
     title: 'Hemskärmen – skapa outfit',
     items: [
-      { icon: 'options-outline', label: 'Jobb / Ledig / Fest', desc: 'Välj tillfälle. Skrud anpassar outfiten efter det.' },
-      { icon: 'sparkles', label: 'Skapa outfit', desc: 'Bygger en komplett outfit ur din garderob, anpassad efter dagens väder.' },
-      { icon: 'albums', label: 'Utgå från ett plagg/set', desc: 'Lås ett favoritplagg eller ett helt set som outfiten byggs runt.' },
-      { icon: 'flash-outline', label: 'X av 3 gratis kvar', desc: 'Antal gratis AI-outfits kvar denna vecka. Premium ger obegränsat.' },
-      { icon: 'swap-horizontal', label: 'Byt plagg', desc: 'Byt ut ett enskilt plagg i outfiten mot ett annat.' },
-      { icon: 'refresh', label: 'Nytt förslag', desc: 'Generera ett nytt outfit-förslag.' },
-      { icon: 'share-outline', label: 'Dela', desc: 'Spara eller dela din outfit som bild.' },
-      { icon: 'partly-sunny-outline', label: 'Väder', desc: 'Dagens väder som outfiten anpassas efter.' },
+      { pill: 'Ledig', label: 'Tillfälle', desc: 'Välj tillfälle högst upp: Jobb, Skola, Ledig, Aktiv, Date eller Fest. Skrud anpassar outfiten efter det.' },
+      { pill: '15°', label: 'Dagens väder', desc: 'Visas överst – outfiten anpassas efter dagens temperatur och regnrisk.' },
+      { lib: 'ion', icon: 'add', label: 'Utgå från ett plagg/set', desc: 'Bygg outfiten kring ett favoritplagg eller ett helt set. Tryck på plus för att välja.' },
+      { pill: 'Generera outfit', label: 'Generera-knappen', desc: 'Skapar en komplett outfit ur din garderob, anpassad efter vädret.' },
+      { pill: '3 av 3', label: 'Gratis kvar', desc: 'Antal gratis AI-outfits kvar denna vecka. Premium ger obegränsat.' },
+      { lib: 'ion', icon: 'swap-horizontal', label: 'Byt plagg', desc: 'Byt ut ett enskilt plagg i outfiten mot ett annat.' },
+      { lib: 'ion', icon: 'refresh', label: 'Nytt förslag', desc: 'Generera ett nytt outfit-förslag.' },
+      { lib: 'ion', icon: 'share-outline', label: 'Dela', desc: 'Spara eller dela din outfit som bild.' },
     ],
   },
   {
     key: 'wardrobe',
     title: 'Garderoben',
     items: [
-      { icon: 'options-outline', label: 'Filter', desc: 'Filtrera på kategori, färg, storlek och säsong.' },
-      { icon: 'water-outline', label: 'Tvätt-markering', desc: 'Markera ett plagg som i tvätten – då föreslås det inte förrän det är rent.' },
-      { icon: 'refresh-circle-outline', label: 'Töm tvätten', desc: 'Markera allt i tvätten som rent igen med ett tryck.' },
-      { icon: 'albums-outline', label: 'Set-markering', desc: 'En liten markering visar att plagget hör till ett set.' },
-      { icon: 'stats-chart-outline', label: 'Statistik', desc: 'Överblick över din garderob – hur ofta du bär plaggen, mest använda färger och mer.' },
+      { lib: 'mat', icon: 'tune', label: 'Filter', desc: 'Filtrera på kategori, färg, storlek och säsong.' },
+      { lib: 'mat', icon: 'inventory-2', label: 'Arkiv', desc: 'Visa plagg du arkiverat.' },
+      { lib: 'mat', icon: 'insights', label: 'Statistik', desc: 'Överblick över din garderob – hur ofta du bär plaggen, mest använda färger och mer.' },
+      { lib: 'mat', icon: 'local-laundry-service', label: 'Tvätt-markering', desc: 'Markera ett plagg som i tvätten – då föreslås det inte förrän det är rent.' },
+      { pill: 'Töm tvätten', label: 'Töm tvätten', desc: 'Markera allt i tvätten som rent igen med ett tryck.' },
+      { lib: 'mat', icon: 'link', label: 'Set-markering', desc: 'En liten markering visar att plagget hör till ett set.' },
     ],
   },
   {
     key: 'garment',
     title: 'Ett plagg (tryck på ett plagg)',
     items: [
-      { icon: 'sparkles-outline', label: 'Ta bort bakgrund', desc: 'Låt AI rensa bort bakgrunden på bilden igen.' },
-      { icon: 'crop-outline', label: 'Beskär bild', desc: 'Beskär plaggets bild.' },
-      { icon: 'link-outline', label: 'Koppla till set', desc: 'Länka plagget till ett set – eller skapa ett nytt.' },
-      { icon: 'sparkles', label: 'Styla hela setet', desc: 'Skapa en outfit byggd kring hela setet.' },
-      { icon: 'cart-outline', label: 'Köplista', desc: 'Plagg du vill köpa men inte äger än.' },
-      { icon: 'pricetag-outline', label: 'Sälj', desc: 'Märk plagg du vill sälja vidare.' },
-      { icon: 'archive-outline', label: 'Arkivera', desc: 'Lägg undan plagg som inte passar just nu – med en notering om var det förvaras.' },
+      { lib: 'ion', icon: 'sparkles-outline', label: 'Ta bort bakgrund', desc: 'Låt AI rensa bort bakgrunden på bilden igen.' },
+      { lib: 'ion', icon: 'crop-outline', label: 'Beskär bild', desc: 'Beskär plaggets bild.' },
+      { lib: 'ion', icon: 'link-outline', label: 'Koppla till set', desc: 'Länka plagget till ett set – eller skapa ett nytt.' },
+      { lib: 'ion', icon: 'sparkles-outline', label: 'Styla hela setet', desc: 'Skapa en outfit byggd kring hela setet.' },
+      { pill: 'Lägg i säljlistan', label: 'Säljlista', desc: 'Märk plagg du vill sälja vidare.' },
+      { pill: 'Arkivera', label: 'Arkivera plagg', desc: 'Lägg undan plagg som inte passar just nu – med en notering om var det förvaras.' },
     ],
   },
   {
     key: 'profile',
     title: 'Profil & inställningar',
     items: [
-      { icon: 'color-palette-outline', label: 'Min stil & färganalys', desc: 'Din personliga färgpalett och dina stilpreferenser.' },
-      { icon: 'snow-outline', label: 'Frusen', desc: 'Ställ in hur snabbt du fryser så väderanpassningen blir rätt.' },
-      { icon: 'people-outline', label: 'Mitt hushåll', desc: 'Dela garderob med partner och samla familjens kläder (Premium).' },
-      { icon: 'star-outline', label: 'Skrud Premium', desc: 'Obegränsad AI och delad garderob för par och familj.' },
-      { icon: 'notifications-outline', label: 'Notiser', desc: 'Styr påminnelser, till exempel regnvarningar.' },
+      { lib: 'mat', icon: 'checkroom', label: 'Stil', desc: 'Din stilriktning och dina stilpreferenser.' },
+      { lib: 'mat', icon: 'colorize', label: 'Färganalys', desc: 'Din personliga färgpalett utifrån hud-, hår- och ögonfärg.' },
+      { lib: 'mat', icon: 'ac-unit', label: 'Frusen', desc: 'Ställ in hur snabbt du fryser så väderanpassningen blir rätt.' },
+      { lib: 'mat', icon: 'people-outline', label: 'Min partner', desc: 'Dela garderob med din partner och samla familjens kläder (Premium).' },
+      { lib: 'mat', icon: 'workspace-premium', label: 'Skrud Premium', desc: 'Obegränsad AI och delad garderob för par och familj.' },
+      { lib: 'mat', icon: 'notifications-none', label: 'Notiser', desc: 'Styr påminnelser, till exempel regnvarningar.' },
     ],
   },
 ]
@@ -107,9 +111,15 @@ export default function HowItWorks() {
                 <View style={styles.itemList}>
                   {g.items.map(it => (
                     <View key={it.label} style={styles.item}>
-                      <View style={styles.iconChip}>
-                        <Ionicons name={it.icon} size={20} color={t.primary} />
-                      </View>
+                      {it.pill
+                        ? <View style={styles.pillChip}><Text style={styles.pillChipText} numberOfLines={2}>{it.pill}</Text></View>
+                        : (
+                          <View style={styles.iconChip}>
+                            {it.lib === 'mat'
+                              ? <MaterialIcons name={it.icon as any} size={20} color={t.primary} />
+                              : <Ionicons name={it.icon as any} size={20} color={t.primary} />}
+                          </View>
+                        )}
                       <View style={styles.itemText}>
                         <Text style={styles.itemLabel}>{it.label}</Text>
                         <Text style={styles.itemDesc}>{it.desc}</Text>
@@ -146,6 +156,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   itemList: { paddingHorizontal: 18, paddingBottom: 8 },
   item: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: t.borderSoft },
   iconChip: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
+  pillChip: { minWidth: 40, maxWidth: 96, minHeight: 40, borderRadius: 12, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, paddingHorizontal: 8, paddingVertical: 4 },
+  pillChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11.5, color: t.primary, textAlign: 'center' },
   itemText: { flex: 1 },
   itemLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 14.5, color: t.textPrimary, marginBottom: 3 },
   itemDesc: { fontFamily: 'Lora_400Regular', fontSize: 13.5, color: t.textSecondary, lineHeight: 20 },
