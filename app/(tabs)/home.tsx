@@ -33,6 +33,7 @@ import { supabase } from '../../supabase'
 import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
+import { pregnancyPromptContext, trimesterFromDueDate } from '../../utils/pregnancy'
 import { useEntitlements, FREE_AI_PER_WEEK } from '../../utils/entitlements'
 import { fetchSets, type GarmentSet } from '../../utils/sets'
 
@@ -69,6 +70,8 @@ export default function Home() {
   const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
   const [musicGenres, setMusicGenres] = useState<string>('')
   const [coldSensitivity, setColdSensitivity] = useState(3)
+  const [pregnant, setPregnant] = useState(false)
+  const [dueDate, setDueDate] = useState<string | null>(null)
   const [styleRuleKeys, setStyleRuleKeys] = useState<string[]>([])
   const [avoidNote, setAvoidNote] = useState('')
   const [sharing, setSharing] = useState(false)
@@ -151,7 +154,7 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date').eq('id', user.id).single()
       const name = profile?.name || user.email?.split('@')[0] || ''
       setUserName(name); cacheSet('home.userName', name)
       setUserAvatar(profile?.avatar_url || null); cacheSet('home.userAvatar', profile?.avatar_url || null)
@@ -160,13 +163,15 @@ export default function Home() {
       if (profile?.cold_sensitivity != null) setColdSensitivity(profile.cold_sensitivity)
       setStyleRuleKeys(profile?.style_rules ? profile.style_rules.split(', ').filter(Boolean) : [])
       setAvoidNote(profile?.avoid_note || '')
+      setPregnant(!!profile?.pregnant); cacheSet('profile.pregnant', !!profile?.pregnant)
+      setDueDate(profile?.due_date || null)
     }
   }
 
   async function fetchAll() {
     // Bara kolumnerna hemskärmen faktiskt använder (outfit-generering + räknare) –
     // slipper dra hela plaggraden vid varje appstart.
-    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived, in_laundry, set_id').is('person_id', null)
+    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived, in_laundry, set_id, maternity_friendly, paused_pregnancy').is('person_id', null)
     if (data) {
       setGarments(data); cacheSet('home.garments', data)
     }
@@ -356,8 +361,9 @@ export default function Home() {
         dislikedOutfits.length > 0 ? `Användaren GILLADE INTE dessa: ${dislikedOutfits.slice(0, 3).join(' | ')}` : '',
       ].filter(Boolean).join('\n')
 
-      // Plagg i tvätten föreslås inte i genererade outfits.
-      const activeGarments = garments.filter(g => !g.archived && !g.in_laundry)
+      // Plagg i tvätten föreslås inte i genererade outfits. I gravidläget döljs
+      // även pausade plagg (de som inte passar just nu).
+      const activeGarments = garments.filter(g => !g.archived && !g.in_laundry && !(pregnant && g.paused_pregnancy))
       const weatherCtx = useWeather ? buildWeatherContext(currentWeather, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
 
       // Filtrera bort renodlade off-season-plagg (t.ex. vinterjacka på sommaren).
@@ -441,6 +447,7 @@ export default function Home() {
             ? `${baseGarment.name}${[baseGarment.subcategory, baseGarment.color].filter(Boolean).length ? ` (${[baseGarment.subcategory, baseGarment.color].filter(Boolean).join(', ')})` : ''}`
             : '',
           baseSet: baseSetStr,
+          pregnancy: pregnancyPromptContext(pregnant, trimesterFromDueDate(dueDate)),
         })
 
         const { valid } = validateOutfit(parsed.items, pool, weatherCtx.requiresOuterwear)

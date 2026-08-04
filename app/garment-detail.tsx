@@ -28,6 +28,7 @@ import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
 import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
+import { cacheGet } from '../utils/cache'
 import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
@@ -77,6 +78,10 @@ export default function GarmentDetail() {
   const [fit, setFit] = useState('')
   const [lendable, setLendable] = useState(false)
   const [hasPartner, setHasPartner] = useState(false)
+  const [maternityFriendly, setMaternityFriendly] = useState(false)
+  const [pausedPregnancy, setPausedPregnancy] = useState(false)
+  // Visa gravid-inställningarna bara när gravidläget är på (läses ur cachen).
+  const pregnant = cacheGet<boolean>('profile.pregnant') ?? false
   const [location, setLocation] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
@@ -135,6 +140,7 @@ export default function GarmentDetail() {
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
       setSize(data.size || ''); setFit(data.fit || ''); setLocation(data.location || ''); setLendable(!!data.lendable)
+      setMaternityFriendly(!!data.maternity_friendly); setPausedPregnancy(!!data.paused_pregnancy)
       setBrand(data.brand || ''); setPrice(data.price != null ? String(fromBaseSEK(data.price)) : '')
       setArchived(!!data.archived); setSold(!!data.sold)
       setArchiveReason(data.archive_reason || null)
@@ -209,6 +215,8 @@ export default function GarmentDetail() {
           size: size.trim() || null,
           fit: fit || null,
           lendable,
+          maternity_friendly: maternityFriendly,
+          paused_pregnancy: pausedPregnancy,
           location: location.trim() || null,
           brand: brand.trim() || null,
           price: toBaseSEK(parsePrice(price)),
@@ -239,7 +247,7 @@ export default function GarmentDetail() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [name, category, subcategory, color, seasons, size, fit, lendable, location, brand, price, archiveReason, personId, sizeCm, familyStatus])
+  }, [name, category, subcategory, color, seasons, size, fit, lendable, maternityFriendly, pausedPregnancy, location, brand, price, archiveReason, personId, sizeCm, familyStatus])
 
   // Håll arkiv-badgen i synk med vald plats.
   useEffect(() => {
@@ -627,6 +635,29 @@ export default function GarmentDetail() {
                   <View style={[styles.toggleKnob, lendable && styles.toggleKnobOn]} />
                 </View>
               </TouchableOpacity>
+            )}
+
+            {pregnant && (
+              <>
+                <TouchableOpacity style={styles.lendRow} onPress={() => setMaternityFriendly(v => !v)}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.label}>{tr('Gravid-/amningsvänligt')}</Text>
+                    <Text style={styles.lendHint}>{tr('Prioriteras i outfit-förslagen under graviditeten.')}</Text>
+                  </View>
+                  <View style={[styles.toggle, maternityFriendly && styles.toggleOn]}>
+                    <View style={[styles.toggleKnob, maternityFriendly && styles.toggleKnobOn]} />
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.lendRow} onPress={() => setPausedPregnancy(v => !v)}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.label}>{tr('Pausa under graviditeten')}</Text>
+                    <Text style={styles.lendHint}>{tr('Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.')}</Text>
+                  </View>
+                  <View style={[styles.toggle, pausedPregnancy && styles.toggleOn]}>
+                    <View style={[styles.toggleKnob, pausedPregnancy && styles.toggleKnobOn]} />
+                  </View>
+                </TouchableOpacity>
+              </>
             )}
 
             <View style={styles.labelRow}>

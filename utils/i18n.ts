@@ -961,6 +961,26 @@ const enBySource: Dict = {
     'Pick Work, Casual or Party and tap once. Skrud builds a complete look from your wardrobe, tuned to the whole day\'s weather – and reminds you about the raincoat.',
   'Börja med din egen garderob. Dela med din partner. Samla hela familjens kläder på ett ställe – samma app, oavsett var i livet du är.':
     'Start with your own wardrobe. Share it with your partner. Gather the whole family\'s clothes in one place – the same app, wherever you are in life.',
+
+  // Gravidläge (pregnancy mode)
+  'Gravidläge': 'Pregnancy mode',
+  'Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.':
+    'Adapts outfits to your bump and lets you pause clothes that don\'t fit right now.',
+  'Beräknat födelsedatum (BF)': 'Due date',
+  'Första trimestern': 'First trimester',
+  'Andra trimestern': 'Second trimester',
+  'Tredje trimestern': 'Third trimester',
+  'Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.':
+    'Mark garments as maternity/nursing-friendly or pause them from each garment.',
+  'Ta tillbaka pausade plagg': 'Bring back paused clothes',
+  'Kunde inte ta tillbaka plaggen': 'Could not bring the clothes back',
+  'plagg togs tillbaka i garderoben.': 'clothes brought back to your wardrobe.',
+  'Gravid-/amningsvänligt': 'Maternity/nursing-friendly',
+  'Prioriteras i outfit-förslagen under graviditeten.': 'Prioritised in outfit suggestions during pregnancy.',
+  'Pausa under graviditeten': 'Pause during pregnancy',
+  'Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.':
+    'Hidden from outfit suggestions until you bring it back. The garment is kept.',
+  'Pausad under graviditeten': 'Paused during pregnancy',
 }
 
 Object.assign(en, enBySource)

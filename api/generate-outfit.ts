@@ -35,6 +35,7 @@ export default async function handler(request: Request): Promise<Response> {
     const previousItems = clip(body.previousItems, 400)
     const baseGarment = clip(body.baseGarment, 120)
     const baseSet = clip(body.baseSet, 400)
+    const pregnancy = clip(body.pregnancy, 700)
     const retry = body.retry === true
 
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -50,6 +51,7 @@ ${contextNote ? `Användarens egen önskan för "${contextLabel}": ${contextNote
 Intensitet: ${intensity}
 ${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
+${pregnancy ? '\n' + pregnancy + '\n' : ''}
 VIKTIGT: Anpassa valet TYDLIGT efter kontexten "${contextLabel}". En festoutfit
 ska skilja sig markant från en vardags-/jobboutfit – annan känsla, andra plagg.
 Välj inte samma look oavsett tillfälle.
