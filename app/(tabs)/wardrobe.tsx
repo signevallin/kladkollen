@@ -83,6 +83,8 @@ export default function Wardrobe() {
   const [activeSizes, setActiveSizes] = useState<Set<string>>(new Set())
   const [laundryFilter, setLaundryFilter] = useState<'all' | 'in' | 'out'>('all')
   const [prefsLoaded, setPrefsLoaded] = useState(false)
+  // Gravidläget styr om gravid-markeringar visas i rutnätet (läses ur cachen).
+  const pregnant = cacheGet<boolean>('profile.pregnant') ?? false
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
   const [showSearch, setShowSearch] = useState(false)
@@ -1066,9 +1068,19 @@ export default function Wardrobe() {
               <TouchableOpacity style={styles.item} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 <View style={styles.itemImageWrap}>
                   {item.image_url
-                    ? <SignedImage path={item.image_url} style={styles.itemImage} transform={{ width: 800, format: 'origin' }} />
+                    ? <SignedImage path={item.image_url} style={[styles.itemImage, pregnant && item.paused_pregnancy && styles.itemPaused]} transform={{ width: 800, format: 'origin' }} />
                     : null
                   }
+                  {pregnant && item.maternity_friendly && (
+                    <View style={styles.maternityBadge} accessibilityLabel={tr('Gravid-/amningsvänligt')}>
+                      <MaterialIcons name="pregnant-woman" size={13} color={t.onPrimary} />
+                    </View>
+                  )}
+                  {pregnant && item.paused_pregnancy && (
+                    <View style={styles.pausedBadge} accessibilityLabel={tr('Pausad under graviditeten')}>
+                      <MaterialIcons name="pause" size={18} color={t.onPrimary} />
+                    </View>
+                  )}
                   {item.lendable && (
                     <View style={styles.lendBadge}>
                       <Ionicons name="swap-horizontal" size={14} color={t.onPrimary} />
@@ -1536,6 +1548,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   lendBadge: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   laundryBadge: { position: 'absolute', top: -6, left: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
   setBadge: { position: 'absolute', bottom: 4, right: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  maternityBadge: { position: 'absolute', bottom: 4, left: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  pausedBadge: { position: 'absolute', top: '50%', left: '50%', width: 32, height: 32, borderRadius: 16, marginTop: -16, marginLeft: -16, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  itemPaused: { opacity: 0.5 },
   laundryBadgeOn: { backgroundColor: t.primary, borderColor: t.primary },
   archMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   archMetaText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },

@@ -21,6 +21,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { downscaleForUpload } from '../utils/image'
 import { cacheGet, cacheSet } from '../utils/cache'
+import { trimesterFromDueDate, trimesterLabel } from '../utils/pregnancy'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
 import { COLOR_OPTIONS, MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
@@ -96,6 +97,8 @@ export default function Profile() {
   const [lifeMode, setLifeMode] = useState('single')
   // Rita senast kända hushåll direkt (delas med hemskärmen) och uppdatera i
   // bakgrunden – annars väntar raden på en DB-fråga varje gång man öppnar profilen.
+  const [pregnant, setPregnant] = useState(false)
+  const [dueDate, setDueDate] = useState('')
   const [partner, setPartner] = useState<Partner | null>(() => cacheGet<Partner | null>('household.partner') ?? null)
   const [householdChildren, setHouseholdChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
   // Autospar: sparar tyst en stund efter senaste ändringen (ingen spara-knapp att glömma).
@@ -151,7 +154,7 @@ export default function Profile() {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoaded, name, avatar, gender, birthday, avoidNote, lifeMode, stylePrefs, colorPrefs,
-      currentSeason, coldSensitivity, stilProfil, fargsatt, livsstil, contextNotes, musicGenres, styleRules])
+      currentSeason, coldSensitivity, pregnant, dueDate, stilProfil, fargsatt, livsstil, contextNotes, musicGenres, styleRules])
 
   async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -169,6 +172,8 @@ export default function Profile() {
         setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
         setCurrentSeason(data.current_season || '')
         if (data.cold_sensitivity != null) setColdSensitivity(data.cold_sensitivity)
+        setPregnant(!!data.pregnant); cacheSet('profile.pregnant', !!data.pregnant)
+        setDueDate(data.due_date || '')
         if (data.color_analysis) setColorAnalysis(data.color_analysis)
         if (data.skin_tone) setSkinTone(data.skin_tone)
         if (data.skin_undertone) setSkinUndertone(data.skin_undertone)
@@ -203,6 +208,8 @@ export default function Profile() {
       color_prefs: colorPrefs.join(', '),
       current_season: currentSeason,
       cold_sensitivity: coldSensitivity,
+      pregnant,
+      due_date: dueDate || null,
       stil_profil: stilProfil.join(', '),
       fargsatt,
       livsstil: livsstil.join(', '),
@@ -247,6 +254,20 @@ export default function Profile() {
         showAlert(tr('Kunde inte ladda upp bilden'), tr('Försök igen om en stund.'))
       }
     }
+  }
+
+  function togglePregnant() {
+    setPregnant(v => { const nv = !v; cacheSet('profile.pregnant', nv); return nv })
+  }
+
+  // Tar tillbaka alla plagg som pausats under graviditeten (döljda ur förslag).
+  async function restorePausedGarments() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data, error } = await supabase
+      .from('garments').update({ paused_pregnancy: false }).eq('paused_pregnancy', true).select('id')
+    if (error) { showAlert(tr('Kunde inte ta tillbaka plaggen'), tr('Försök igen om en stund.')); return }
+    showAlert(tr('Klart'), `${data?.length ?? 0} ${tr('plagg togs tillbaka i garderoben.')}`)
   }
 
   async function uploadAvatar(uri: string): Promise<string> {
@@ -902,6 +923,43 @@ export default function Profile() {
           })}
         </View>
 
+        {/* ── Gravidläge ── */}
+        <Text style={styles.sectionTitle}>{tr('Gravidläge')}</Text>
+        <View style={styles.listCard}>
+          <TouchableOpacity style={styles.pregnantRow} onPress={togglePregnant} activeOpacity={0.7}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowLabel}>{tr('Gravidläge')}</Text>
+              <Text style={styles.pregnantHint}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
+            </View>
+            <View style={[styles.toggle, pregnant && styles.toggleOn]}>
+              <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
+            </View>
+          </TouchableOpacity>
+
+          {pregnant && (
+            <View style={styles.pregnantBody}>
+              <Text style={styles.rowLabel}>{tr('Beräknat födelsedatum (BF)')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={tr('ÅÅÅÅ-MM-DD')}
+                placeholderTextColor={t.placeholder}
+                value={dueDate}
+                onChangeText={setDueDate}
+                maxLength={10}
+              />
+              {(() => {
+                const tri = trimesterFromDueDate(dueDate || null)
+                return tri ? <Text style={styles.pregnantHint}>{tr(trimesterLabel(tri))}</Text> : null
+              })()}
+              <Text style={styles.pregnantHint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
+              <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
+                <MaterialIcons name="undo" size={18} color={t.textPrimary} />
+                <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
         {/* ── Skrud Premium ── */}
         <Text style={styles.sectionTitle}>{tr('Skrud Premium')}</Text>
         <View style={styles.listCard}>
@@ -959,6 +1017,15 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 8 },
   hint: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 11, fontStyle: 'italic', marginBottom: 10, marginTop: 4 },
   input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surface, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginTop: 6 },
+  pregnantRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  pregnantHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 19, marginTop: 6 },
+  pregnantBody: { paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: t.borderSoft, paddingTop: 12 },
+  restoreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14, backgroundColor: t.surface, borderRadius: 12, paddingVertical: 12, borderWidth: 1, borderColor: t.border },
+  restoreBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },
+  toggle: { width: 48, height: 28, borderRadius: 14, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, padding: 2, justifyContent: 'center' },
+  toggleOn: { backgroundColor: t.primary, borderColor: t.primary },
+  toggleKnob: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.textSecondary },
+  toggleKnobOn: { alignSelf: 'flex-end', backgroundColor: t.onPrimary },
   accountEmail: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, marginTop: 8, marginBottom: 14 },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border },
