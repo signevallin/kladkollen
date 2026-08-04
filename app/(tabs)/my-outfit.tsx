@@ -585,7 +585,7 @@ function isPast(date: Date) {
                   {selectedGarments.map((g: any) => (
                     <View key={g.id} style={styles.selectedItem}>
                       {g.image_url
-                        ? <SignedImage path={g.image_url} style={[styles.selectedImage, g.isWishlist && styles.wishlistImageBorder]} />
+                        ? <SignedImage path={g.image_url} style={[styles.selectedImage, g.isWishlist && styles.wishlistImageBorder]} transform={{ width: 800, format: 'origin' }} />
                         : <View style={[styles.selectedImageEmpty, g.isWishlist && styles.wishlistImageEmptyBorder]}><Text style={{ fontSize: 20 }}>{g.isWishlist ? '' : ''}</Text></View>
                       }
                       {g.isWishlist && <View style={styles.notOwnedBadgeTiny}><Text style={styles.notOwnedBadgeTinyText}>{tr('Äger ej')}</Text></View>}
@@ -709,7 +709,7 @@ function isPast(date: Date) {
                   <TouchableOpacity key={outfit.id} style={styles.outfitPickerItem} onPress={() => assignOutfitToDate(outfit)}>
                     <View style={styles.outfitPickerImages}>
                       {(outfit.image_urls || []).slice(0, 3).map((url: string, i: number) => (
-                        <SignedImage key={i} path={url} style={styles.outfitPickerImage} />
+                        <SignedImage key={i} path={url} style={styles.outfitPickerImage} transform={{ width: 800, format: 'origin' }} />
                       ))}
                       {(outfit.image_urls || []).length === 0 && (
                         <View style={styles.outfitPickerImageEmpty} />
@@ -750,7 +750,7 @@ function isPast(date: Date) {
                     <ScrollView showsVerticalScrollIndicator={false} style={{ marginVertical: 12, maxHeight: 360 }}>
                       <View style={styles.dayDetailGrid}>
                         {(dayDetailEntry.outfits?.image_urls || []).map((url: string, i: number) => (
-                          <SignedImage key={i} path={url} style={styles.dayDetailImage} resizeMode="contain" />
+                          <SignedImage key={i} path={url} style={styles.dayDetailImage} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
                         ))}
                       </View>
                     </ScrollView>
@@ -958,7 +958,7 @@ function isPast(date: Date) {
                   </View>
                   <View style={styles.outfitImages}>
                     {(outfit.image_urls || []).map((url: string, i: number) => (
-                      <SignedImage key={i} path={url} style={styles.outfitImage} />
+                      <SignedImage key={i} path={url} style={styles.outfitImage} transform={{ width: 800, format: 'origin' }} />
                     ))}
                     {(outfit.garment_names || []).filter((_: any, i: number) => !outfit.image_urls?.[i]).map((_: string, i: number) => (
                       <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
@@ -1069,7 +1069,7 @@ function isPast(date: Date) {
                           {(o.items || []).map((name: string, j: number) => {
                             const m = matchGarment(name)
                             return m?.image_url
-                              ? <SignedImage key={j} path={m.image_url} style={styles.outfitImage} />
+                              ? <SignedImage key={j} path={m.image_url} style={styles.outfitImage} transform={{ width: 800, format: 'origin' }} />
                               : <View key={j} style={styles.outfitImageEmpty} />
                           })}
                         </View>
@@ -1094,7 +1094,7 @@ function isPast(date: Date) {
                           {checked && <Text style={styles.packCheckMark}>✓</Text>}
                         </View>
                         {m?.image_url
-                          ? <SignedImage path={m.image_url} style={styles.packThumb} />
+                          ? <SignedImage path={m.image_url} style={styles.packThumb} transform={{ width: 800, format: 'origin' }} />
                           : <View style={styles.packThumbEmpty} />}
                         <Text style={[styles.packName, checked && styles.packNameChecked]}>{name}</Text>
                       </TouchableOpacity>
