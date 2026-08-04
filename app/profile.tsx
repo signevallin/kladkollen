@@ -19,6 +19,8 @@ import {
 import SignedImage from '../components/SignedImage'
 import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
+import { downscaleForUpload } from '../utils/image'
+import { cacheGet, cacheSet } from '../utils/cache'
 import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
 import { COLOR_OPTIONS, MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
@@ -92,8 +94,10 @@ export default function Profile() {
   const [coldSensitivity, setColdSensitivity] = useState(3)
   const [avoidNote, setAvoidNote] = useState('')
   const [lifeMode, setLifeMode] = useState('single')
-  const [partner, setPartner] = useState<Partner | null>(null)
-  const [householdChildren, setHouseholdChildren] = useState<Person[]>([])
+  // Rita senast kända hushåll direkt (delas med hemskärmen) och uppdatera i
+  // bakgrunden – annars väntar raden på en DB-fråga varje gång man öppnar profilen.
+  const [partner, setPartner] = useState<Partner | null>(() => cacheGet<Partner | null>('household.partner') ?? null)
+  const [householdChildren, setHouseholdChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
   // Autospar: sparar tyst en stund efter senaste ändringen (ingen spara-knapp att glömma).
   const [profileLoaded, setProfileLoaded] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -130,8 +134,11 @@ export default function Profile() {
   // direkt efter att man kopplat ihop/isär på partner-sidan.
   useFocusEffect(
     useCallback(() => {
-      loadPartner().then(({ partner }) => setPartner(partner))
-      loadPeople().then(ppl => setHouseholdChildren(ppl.filter(p => p.type === 'child'))).catch(() => {})
+      loadPartner().then(({ partner }) => { setPartner(partner); cacheSet('household.partner', partner) })
+      loadPeople().then(ppl => {
+        const children = ppl.filter(p => p.type === 'child')
+        setHouseholdChildren(children); cacheSet('household.children', children)
+      }).catch(() => {})
     }, [])
   )
 
@@ -243,9 +250,10 @@ export default function Profile() {
   }
 
   async function uploadAvatar(uri: string): Promise<string> {
-    const response = await fetch(uri)
-    const arrayBuffer = await response.arrayBuffer()
-    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+    // Skala ner till en liten WebP – avataren visas som liten miniatyr, så
+    // fullstora foton gör bara hushållsraden seg att ladda.
+    const { bytes, ext, contentType } = await downscaleForUpload(uri, 512)
+    return uploadUserImage(bytes, ext, contentType)
   }
 
   async function pickColorImage() {

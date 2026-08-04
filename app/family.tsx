@@ -20,6 +20,7 @@ import { useQuery } from '../utils/useQuery'
 import { addChild, deletePerson, loadPeople, setChildSize, updatePerson, type Person } from '../utils/people'
 import { pickImageSmart } from '../utils/imagePicker'
 import { uploadUserImage } from '../utils/storage'
+import { downscaleForUpload } from '../utils/image'
 import {
   EU_CHILD_SIZES, formatAge, nextSize, prevSize, suggestedSizeCm,
 } from '../utils/childSize'
@@ -81,9 +82,9 @@ export default function Family() {
   // Bilduppladdning: aldrig spara en lokal file://-sökväg (syns bara på egna
   // telefonen) – ladda upp och spara storage-sökvägen.
   async function uploadImage(uri: string): Promise<string> {
-    const response = await fetch(uri)
-    const arrayBuffer = await response.arrayBuffer()
-    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+    // Skala ner till liten WebP – barnens avatarer visas som miniatyrer.
+    const { bytes, ext, contentType } = await downscaleForUpload(uri, 512)
+    return uploadUserImage(bytes, ext, contentType)
   }
 
   async function pickFormAvatar() {
