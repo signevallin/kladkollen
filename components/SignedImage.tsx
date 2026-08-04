@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { StyleProp, StyleSheet, View } from 'react-native'
 import { Image, ImageContentFit, ImageProps, ImageStyle } from 'expo-image'
 import { useTheme } from '../theme/ThemeProvider'
-import { imageUrl } from '../utils/storage'
+import { imageUrl, type ImageTransform } from '../utils/storage'
 
 // Bygger på expo-image istället för RN Image: bilderna nedskalas till
 // vyns storlek (allowDownscaling) och cachas på disk, så små miniatyrer
@@ -17,6 +17,8 @@ type Props = Omit<ImageProps, 'source' | 'style'> & {
   style?: StyleProp<ImageStyle>
   // Bakåtkompatibelt: kod skickar resizeMode (som RN Image), vi översätter till contentFit.
   resizeMode?: ResizeMode
+  // Be servern skicka en nedskalad bild (miniatyrer). Kräver betald Supabase-plan.
+  transform?: ImageTransform
 }
 
 const RESIZE_TO_FIT: Record<ResizeMode, ImageContentFit> = {
@@ -34,11 +36,14 @@ const RESIZE_TO_FIT: Record<ResizeMode, ImageContentFit> = {
  * Lägger en ljus platta bakom bilden (imageBg) så urklippta plagg med
  * genomskinlig bakgrund syns även i mörkt läge. Passerad style kan överstyra.
  */
-export default function SignedImage({ path, style, flat, resizeMode, contentFit, ...rest }: Props) {
+export default function SignedImage({ path, style, flat, resizeMode, contentFit, transform, ...rest }: Props) {
   const t = useTheme()
   // Publik bucket → URL:en kan räknas ut synkront, så bilden får sin källa
   // direkt (ingen tom ruta + extra render per bild).
-  const uri = useMemo(() => (path ? imageUrl(path) : null), [path])
+  const uri = useMemo(
+    () => (path ? imageUrl(path, transform) : null),
+    [path, transform?.width, transform?.height, transform?.resize, transform?.quality],
+  )
 
   if (!uri) return <View style={style} />
 

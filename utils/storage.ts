@@ -45,13 +45,28 @@ export async function resolveImageUrl(value: string): Promise<string> {
   return imageUrl(value)
 }
 
+// Bild-transformation (kräver betald Supabase-plan). Låter servern skicka en
+// nedskalad version så att en liten miniatyr inte drar ner hela originalet –
+// gäller även redan uppladdade bilder, utan ombuild.
+export type ImageTransform = {
+  width?: number
+  height?: number
+  resize?: 'cover' | 'contain' | 'fill'
+  quality?: number
+}
+
 /**
  * Synkron variant – eftersom bucketen är publik behövs inget nätverksanrop.
  * Används i SignedImage så bilder får sin URL direkt vid render, utan en tom
  * ruta + extra omrendering per bild (märkbart i stora rutnät).
+ *
+ * Med `transform` returneras en render-URL som serverar en nedskalad bild.
  */
-export function imageUrl(value: string): string {
+export function imageUrl(value: string, transform?: ImageTransform): string {
   const path = storagePathFrom(value)
   if (!path) return value
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
+  const hasTransform = !!transform && (transform.width != null || transform.height != null)
+  return supabase.storage
+    .from(BUCKET)
+    .getPublicUrl(path, hasTransform ? { transform } : undefined).data.publicUrl
 }

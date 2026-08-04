@@ -183,7 +183,7 @@ export default function Family() {
                 accessibilityLabel={`${tr('Byt bild på')} ${child.name}`}
               >
                 {child.avatar_url
-                  ? <SignedImage path={child.avatar_url} style={styles.childAvatar} resizeMode="cover" />
+                  ? <SignedImage path={child.avatar_url} style={styles.childAvatar} resizeMode="cover" transform={{ width: 160, height: 160, resize: 'cover' }} />
                   : <View style={styles.childAvatarEmpty}><MaterialIcons name="child-care" size={24} color={t.textSecondary} /></View>}
                 <View style={styles.childAvatarBadge}><MaterialIcons name="photo-camera" size={11} color={t.onPrimary} /></View>
               </TouchableOpacity>
@@ -223,7 +223,7 @@ export default function Family() {
 
             <TouchableOpacity style={styles.formAvatarWrap} onPress={pickFormAvatar} accessibilityLabel={tr('Välj bild')}>
               {avatarUrl
-                ? <SignedImage path={avatarUrl} style={styles.formAvatar} resizeMode="cover" />
+                ? <SignedImage path={avatarUrl} style={styles.formAvatar} resizeMode="cover" transform={{ width: 220, height: 220, resize: 'cover' }} />
                 : <View style={styles.formAvatarEmpty}><MaterialIcons name="add-a-photo" size={22} color={t.textSecondary} /></View>}
             </TouchableOpacity>
 
