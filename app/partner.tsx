@@ -137,7 +137,7 @@ export default function Partner() {
                 {members.map(m => (
                   <View key={m.user_id} style={styles.memberCol}>
                     {m.avatar_url
-                      ? <SignedImage path={m.avatar_url} style={styles.avatar} resizeMode="cover" />
+                      ? <SignedImage path={m.avatar_url} style={styles.avatar} resizeMode="cover" transform={{ width: 160, height: 160, resize: 'cover' }} />
                       : <View style={styles.avatarPlaceholder}><MaterialIcons name="person" size={30} color={t.textSecondary} /></View>}
                     <Text style={styles.memberName} numberOfLines={1}>{m.user_id === myId ? tr('Du') : m.name}</Text>
                   </View>
