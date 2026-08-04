@@ -128,7 +128,7 @@ export default function Home() {
 
   // Öppnade man appen via en Smart Push-notis: förvälj kalenderns kontext och
   // generera outfiten direkt (en gång, när garderoben har laddats).
-  const { smartContext, styleSet } = useLocalSearchParams<{ smartContext?: string; styleSet?: string }>()
+  const { smartContext, styleSet, baseGarmentId } = useLocalSearchParams<{ smartContext?: string; styleSet?: string; baseGarmentId?: string }>()
   const smartHandled = useRef(false)
   useEffect(() => {
     if (!smartContext || smartHandled.current || garments.length === 0) return
@@ -139,6 +139,21 @@ export default function Home() {
     generateOutfit(idx)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [smartContext, garments.length])
+
+  // "Återupptäck" (från Inspo): bygg en outfit kring ett sällan använt plagg.
+  // Följ senast hanterade id (inte en bool) så varje nytt plagg triggar igen –
+  // hemskärmen ligger kvar monterad i flik-navigatorn.
+  const lastBaseGarment = useRef<string | null>(null)
+  useEffect(() => {
+    if (!baseGarmentId || garments.length === 0) return
+    if (lastBaseGarment.current === baseGarmentId) return
+    const g = garments.find(x => x.id === baseGarmentId && !x.archived)
+    if (!g) return
+    lastBaseGarment.current = baseGarmentId
+    setBaseGarment(g)
+    generateOutfit(selectedContext, [], g)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseGarmentId, garments.length])
 
   // "Styla hela setet" (från plaggvyn): bygg en outfit kring hela setet en gång.
   const styleSetHandled = useRef(false)
@@ -326,7 +341,9 @@ export default function Home() {
     return { valid: true, missing: '' }
   }
 
-  async function generateOutfit(ctxIndex: number = selectedContext, baseSetGarments: any[] = []) {
+  async function generateOutfit(ctxIndex: number = selectedContext, baseSetGarments: any[] = [], baseGarmentOverride: any = null) {
+    // Utgångsplagg: explicit inskickat (t.ex. "Återupptäck") annars valt på startskärmen.
+    const bg = baseGarmentOverride ?? baseGarment
     if (garments.length === 0) {
       showAlert(tr('Lägg till plagg i garderoben först!'))
       return
@@ -383,7 +400,7 @@ export default function Home() {
         seasonalPool.some(g => TOP_OR_DRESS.includes(g.category))
       let pool = poolCanFormOutfit ? seasonalPool : activeGarments
       // Utgångsplagget måste alltid finnas i poolen även om det är off-season.
-      if (baseGarment && !pool.some(g => g.id === baseGarment.id)) pool = [baseGarment, ...pool]
+      if (bg && !pool.some(g => g.id === bg.id)) pool = [bg, ...pool]
       // Set att bygga kring: explicit inskickat (t.ex. "styla hela setet") eller
       // det utgångsset man valt på startskärmen.
       const setGarments = baseSetGarments.length ? baseSetGarments : (baseSet?.members || [])
@@ -446,8 +463,8 @@ export default function Home() {
           styleRules: STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n'),
           previousItems: attempts === 1 ? previousItems : '',
           retry: attempts > 1,
-          baseGarment: baseGarment
-            ? `${baseGarment.name}${[baseGarment.subcategory, baseGarment.color].filter(Boolean).length ? ` (${[baseGarment.subcategory, baseGarment.color].filter(Boolean).join(', ')})` : ''}`
+          baseGarment: bg
+            ? `${bg.name}${[bg.subcategory, bg.color].filter(Boolean).length ? ` (${[bg.subcategory, bg.color].filter(Boolean).join(', ')})` : ''}`
             : '',
           baseSet: baseSetStr,
           pregnancy: pregnancyPromptContext(pregnant, trimesterFromDueDate(dueDate)),

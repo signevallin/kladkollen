@@ -1,7 +1,7 @@
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
-import { useFocusEffect } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { cacheGet, cacheSet } from '../../utils/cache'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -21,7 +21,6 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../../components/BottomNav'
 import SignedImage from '../../components/SignedImage'
-import DayToNightShareCard from '../../components/DayToNightShareCard'
 import { captureRef } from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
 import { toast } from '../../components/Toast'
@@ -37,34 +36,31 @@ import { localeFor } from '../../utils/i18n'
 const SCREEN_WIDTH = Dimensions.get('window').width
 const IMAGE_SIZE = (SCREEN_WIDTH - 48 - 8) / 3
 
-// "Dag till fest"-förvandlingar: bygg en look för dag-kontexten och byt några
-// plagg för att nå kvällskontexten.
-const JOBB_LOGIC = 'professionellt, snyggt, välskräddat, stilrent, passar arbetsplatsen'
-const SKOLA_LOGIC = 'bekvämt men snyggt, ungt och avslappnat, funkar en hel skoldag, effortless casual'
-const DATE_LOGIC = 'romantiskt och självsäkert, snyggt utan att vara overdressed, charmigt med en personlig touch'
-const AW_LOGIC = 'afterwork – avslappnat men uppklätt för drinkar efter jobbet, lite läckrare och mer social känsla än en vanlig arbetsdag'
-const DTN_TRANSITIONS = [
-  { key: 'jobb-date', label: 'Jobb → Date', fromLabel: 'Jobb', fromLogic: JOBB_LOGIC, toLabel: 'Date', toLogic: DATE_LOGIC },
-  { key: 'jobb-aw', label: 'Jobb → AW', fromLabel: 'Jobb', fromLogic: JOBB_LOGIC, toLabel: 'AW', toLogic: AW_LOGIC },
-  { key: 'skola-date', label: 'Skola → Date', fromLabel: 'Skola', fromLogic: SKOLA_LOGIC, toLabel: 'Date', toLogic: DATE_LOGIC },
-  { key: 'skola-aw', label: 'Skola → AW', fromLabel: 'Skola', fromLogic: SKOLA_LOGIC, toLabel: 'AW', toLogic: AW_LOGIC },
-] as const
-
 export default function Inspiration() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tt, lang } = useSettings()
-  const [activeTab, setActiveTab] = useState<'analys' | 'moodboard' | 'dagtillfest'>('analys')
+  const [activeTab, setActiveTab] = useState<'analys' | 'moodboard' | 'aterupptack'>('analys')
 
-  // Dag till fest state
-  const [dtnKey, setDtnKey] = useState<string | null>(null)
-  const [dtnLoading, setDtnLoading] = useState(false)
-  const [dtnResult, setDtnResult] = useState<any>(null)
-  const [dtnSharing, setDtnSharing] = useState(false)
-  const [dtnShareTarget, setDtnShareTarget] = useState<any>(null)
-  const [dtnShowDates, setDtnShowDates] = useState(false)
-  const [dtnSaving, setDtnSaving] = useState(false)
-  const dtnShareRef = useRef<View>(null)
+  // Återupptäck-state: dina minst använda plagg.
+  const [rediscover, setRediscover] = useState<any[]>([])
+  const [rediscoverLoaded, setRediscoverLoaded] = useState(false)
+
+  async function loadRediscover() {
+    const { data } = await supabase
+      .from('garments')
+      .select('id, name, category, image_url, times_worn')
+      .is('person_id', null).eq('archived', false).eq('in_laundry', false)
+      .order('times_worn', { ascending: true, nullsFirst: true })
+      .limit(12)
+    setRediscover(data || [])
+    setRediscoverLoaded(true)
+  }
+
+  useEffect(() => {
+    if (activeTab === 'aterupptack') loadRediscover()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
 
   // AI-analys state
   const [inspoImage, setInspoImage] = useState<string | null>(null)
@@ -313,138 +309,6 @@ export default function Inspiration() {
     }).join('\n')
   }
 
-  async function runDayToNight(transition: typeof DTN_TRANSITIONS[number], opts?: { vary?: boolean }) {
-    // Vill man ha en ny variant (samma förvandling igen) – tala om för AI:n
-    // vilka plagg den valde sist så den ger en annan kombination.
-    const avoidItems = opts?.vary && dtnResult
-      ? [...(dtnResult.dayItems || []), ...(dtnResult.eveningItems || [])].join(', ')
-      : ''
-    setDtnKey(transition.key)
-    setDtnLoading(true)
-    setDtnResult(null)
-    setDtnShowDates(false)
-    try {
-      const { data: currentGarments } = await supabase
-        .from('garments')
-        .select('id, name, category, subcategory, color, season, archived, for_sale, image_url')
-        .is('person_id', null)
-      const pool = (currentGarments || []).filter((g: any) => !g.archived && !g.for_sale)
-      if (pool.length < 4) {
-        showAlert(tt('För få plagg'), tt('Lägg till fler plagg i garderoben så kan jag bygga en dag-till-fest-look.'))
-        return
-      }
-      const parsed = await apiPost('/api/day-to-night', {
-        fromLabel: transition.fromLabel,
-        fromLogic: transition.fromLogic,
-        toLabel: transition.toLabel,
-        toLogic: transition.toLogic,
-        groupedList: buildGarmentList(pool),
-        avoidItems,
-      })
-      if (parsed.error) throw new Error(parsed.error)
-      const swapOut = new Set((parsed.swaps || []).map((s: any) => (s.out || '').toLowerCase()))
-      const swapIn = new Set((parsed.swaps || []).map((s: any) => (s.in || '').toLowerCase()))
-      setDtnResult({
-        ...parsed,
-        dayImages: matchItemsToPool(parsed.dayItems || [], pool),
-        eveningImages: matchItemsToPool(parsed.eveningItems || [], pool),
-        // Plaggen som stannar = finns i båda looken och inte är del av ett byte.
-        keep: (parsed.dayItems || []).filter((n: string) =>
-          (parsed.eveningItems || []).some((e: string) => e.toLowerCase() === n.toLowerCase())
-          && !swapOut.has(n.toLowerCase()) && !swapIn.has(n.toLowerCase())),
-        swapImages: (parsed.swaps || []).map((s: any) => ({
-          out: matchItemsToPool([s.out], pool)[0],
-          in: matchItemsToPool([s.in], pool)[0],
-        })),
-      })
-    } catch (e: any) {
-      showAlert(tt('Kunde inte skapa looken'), e.message || tt('Försök igen.'))
-    } finally {
-      setDtnLoading(false)
-    }
-  }
-
-  function dtnNextDates(n: number): string[] {
-    const out: string[] = []
-    const base = new Date()
-    for (let i = 0; i < n; i++) {
-      const x = new Date(base); x.setDate(base.getDate() + i)
-      out.push(x.toISOString().slice(0, 10))
-    }
-    return out
-  }
-
-  function dtnDateLabel(dateStr: string): string {
-    const today = new Date().toISOString().slice(0, 10)
-    const tmw = new Date(); tmw.setDate(tmw.getDate() + 1)
-    if (dateStr === today) return tt('Idag')
-    if (dateStr === tmw.toISOString().slice(0, 10)) return tt('Imorgon')
-    const d = new Date(dateStr + 'T12:00:00')
-    // Kort veckodagsnamn på valt språk via Intl.
-    const wd = new Intl.DateTimeFormat(localeFor(lang), { weekday: 'short' }).format(d)
-    return `${wd} ${d.getDate()}/${d.getMonth() + 1}`
-  }
-
-  async function shareDayToNight() {
-    if (dtnSharing || !dtnResult) return
-    setDtnSharing(true)
-    const tr = DTN_TRANSITIONS.find(x => x.key === dtnKey)
-    setDtnShareTarget({
-      fromLabel: tr?.fromLabel || 'Dag', toLabel: tr?.toLabel || 'Fest',
-      dayName: dtnResult.dayName, dayItems: dtnResult.dayImages,
-      eveningName: dtnResult.eveningName, eveningItems: dtnResult.eveningImages,
-    })
-    try {
-      await new Promise(r => setTimeout(r, 350)) // låt dela-vyn rita klart
-      const uri = await captureRef(dtnShareRef, { format: 'png', quality: 1 })
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Dela din dag-till-fest' })
-      } else {
-        showAlert(tt('Delning stöds inte här'), tt('Öppna appen på telefonen för att dela.'))
-      }
-    } catch (e: any) {
-      if (e?.message && !/cancel/i.test(e.message)) showAlert(tt('Kunde inte dela'), e.message)
-    } finally {
-      setDtnSharing(false); setDtnShareTarget(null)
-    }
-  }
-
-  async function saveDayToNightToCalendar(dateStr: string) {
-    if (dtnSaving || !dtnResult) return
-    setDtnSaving(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const tr = DTN_TRANSITIONS.find(x => x.key === dtnKey)
-      const mk = (name: string, imgs: any[], context: string) => ({
-        user_id: user.id,
-        name,
-        garment_ids: imgs.map((i: any) => i.id).filter(Boolean),
-        garment_names: imgs.map((i: any) => i.name),
-        image_urls: imgs.map((i: any) => i.image_url).filter(Boolean),
-        context: (context || '').toLowerCase(),
-        saved: true,
-      })
-      // Spara båda looken som outfits …
-      await supabase.from('outfits').insert([mk(`${tr?.fromLabel} (dag)`, dtnResult.dayImages, tr?.fromLabel || '')])
-      const { data: evng, error } = await supabase.from('outfits')
-        .insert([mk(`${tr?.fromLabel} → ${tr?.toLabel}`, dtnResult.eveningImages, tr?.toLabel || '')])
-        .select('id').single()
-      if (error) throw error
-      // … och lägg kvällslooken (festen) på valt datum i kalendern.
-      const { error: calErr } = await supabase.from('outfit_calendar').upsert(
-        { user_id: user.id, outfit_id: evng.id, date: dateStr },
-        { onConflict: 'user_id,date' })
-      if (calErr) throw calErr
-      setDtnShowDates(false)
-      toast('Sparat!', `Kvällslooken ligger på ${dtnDateLabel(dateStr).toLowerCase()}. Båda looken finns i Outfits.`)
-    } catch (e: any) {
-      showAlert(tt('Kunde inte spara'), e.message || tt('Försök igen.'))
-    } finally {
-      setDtnSaving(false)
-    }
-  }
-
   async function analyzeCouple() {
     if (!inspoBase64) { showAlert(tt('Välj en inspirationsbild först!')); return }
     if (!partner) return
@@ -572,14 +436,14 @@ export default function Inspiration() {
 
         {/* Tabs */}
         <View style={styles.tabRow}>
-          {(['analys', 'moodboard', 'dagtillfest'] as const).map(tab => (
+          {(['analys', 'moodboard', 'aterupptack'] as const).map(tab => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'analys' ? tt('AI-analys') : tab === 'moodboard' ? tt('Moodboard') : tt('Dag till fest')}
+                {tab === 'analys' ? tt('AI-analys') : tab === 'moodboard' ? tt('Moodboard') : tt('Återupptäck')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -766,117 +630,34 @@ export default function Inspiration() {
           </>
         )}
 
-        {activeTab === 'dagtillfest' && (
+        {activeTab === 'aterupptack' && (
           <>
-            <Text style={styles.dtnIntro}>{tt('Samma outfit – från dag till kväll. Välj en förvandling så visar jag vilka få plagg du byter ut.')}</Text>
-            <View style={styles.dtnChips}>
-              {DTN_TRANSITIONS.map(tr => (
-                <TouchableOpacity
-                  key={tr.key}
-                  style={[styles.dtnChip, dtnKey === tr.key && styles.dtnChipActive]}
-                  onPress={() => runDayToNight(tr, { vary: dtnKey === tr.key })}
-                  disabled={dtnLoading}
-                >
-                  <Text style={[styles.dtnChipText, dtnKey === tr.key && styles.dtnChipTextActive]}>{tt(tr.fromLabel)} → {tr.toLabel}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {dtnLoading && <ActivityIndicator color={t.primary} style={{ marginTop: 32 }} />}
-
-            {dtnResult && !dtnLoading && (
-              <>
-                {/* DAG */}
-                <Text style={styles.dtnHeading}>{tt('DAG')}</Text>
-                <Text style={styles.outfitName}>{dtnResult.dayName}</Text>
-                <View style={styles.outfitItems}>
-                  {dtnResult.dayImages.map((item: any, i: number) => (
-                    <View key={`d${i}`} style={styles.outfitItem}>
-                      {item.image_url ? <SignedImage path={item.image_url} style={styles.outfitItemImage} /> : <View style={styles.outfitItemEmptyBox} />}
-                      <Text style={styles.outfitItemName}>{item.name}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                {/* BYT UT */}
-                <Text style={styles.dtnHeading}>{tt('BYT UT')}</Text>
-                {dtnResult.swapImages.map((s: any, i: number) => (
-                  <View key={`s${i}`} style={styles.swapRow}>
-                    <View style={styles.swapItem}>
-                      {s.out?.image_url ? <SignedImage path={s.out.image_url} style={styles.swapImage} /> : <View style={styles.swapImageEmpty} />}
-                      <Text style={styles.swapName} numberOfLines={1}>{s.out?.name}</Text>
-                    </View>
-                    <Text style={styles.swapArrow}>→</Text>
-                    <View style={styles.swapItem}>
-                      {s.in?.image_url ? <SignedImage path={s.in.image_url} style={styles.swapImage} /> : <View style={styles.swapImageEmpty} />}
-                      <Text style={styles.swapName} numberOfLines={1}>{s.in?.name}</Text>
-                    </View>
-                  </View>
+            <Text style={styles.rediscoverIntro}>{tt('Kläder du sällan använder – ge dem nytt liv. Tryck på ett plagg så bygger Skrud en outfit runt det.')}</Text>
+            {!rediscoverLoaded ? (
+              <ActivityIndicator color={t.primary} style={{ marginTop: 32 }} />
+            ) : rediscover.length === 0 ? (
+              <Text style={styles.rediscoverEmpty}>{tt('Din garderob är tom än.')}</Text>
+            ) : (
+              <View style={styles.rediscoverGrid}>
+                {rediscover.map(g => (
+                  <TouchableOpacity key={g.id} style={styles.rediscoverItem} onPress={() => router.push(`/home?baseGarmentId=${g.id}`)}>
+                    {g.image_url
+                      ? <SignedImage path={g.image_url} style={styles.rediscoverImage} resizeMode="contain" transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                      : <View style={[styles.rediscoverImage, styles.outfitItemEmptyBox]} />}
+                    <Text style={styles.rediscoverName} numberOfLines={1}>{g.name}</Text>
+                    <Text style={styles.rediscoverWorn}>
+                      {(g.times_worn || 0) === 0
+                        ? tt('Aldrig buren')
+                        : `${tt('Buren')} ${g.times_worn} ${g.times_worn === 1 ? tt('gång') : tt('gånger')}`}
+                    </Text>
+                  </TouchableOpacity>
                 ))}
-                {dtnResult.keep?.length > 0 && (
-                  <Text style={styles.dtnKeep}>{tt('Behåll:')} {dtnResult.keep.join(' · ')}</Text>
-                )}
-
-                {/* KVÄLL */}
-                <Text style={styles.dtnHeading}>{tt('KVÄLL')}</Text>
-                <Text style={styles.outfitName}>{dtnResult.eveningName}</Text>
-                <View style={styles.outfitItems}>
-                  {dtnResult.eveningImages.map((item: any, i: number) => (
-                    <View key={`e${i}`} style={styles.outfitItem}>
-                      {item.image_url ? <SignedImage path={item.image_url} style={styles.outfitItemImage} /> : <View style={styles.outfitItemEmptyBox} />}
-                      <Text style={styles.outfitItemName}>{item.name}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                {dtnResult.tip ? (
-                  <View style={styles.dtnTipBox}><Text style={styles.dtnTipText}>{dtnResult.tip}</Text></View>
-                ) : null}
-
-                <TouchableOpacity
-                  style={styles.dtnShuffle}
-                  onPress={() => { const tr = DTN_TRANSITIONS.find(x => x.key === dtnKey); if (tr) runDayToNight(tr, { vary: true }) }}
-                  disabled={dtnLoading}
-                >
-                  <Ionicons name="shuffle" size={16} color={t.textPrimary} />
-                  <Text style={styles.dtnShuffleText}>{tt('Blanda om')}</Text>
-                </TouchableOpacity>
-
-                <View style={styles.dtnActions}>
-                  <TouchableOpacity style={styles.dtnActionBtn} onPress={shareDayToNight} disabled={dtnSharing}>
-                    <Text style={styles.dtnActionText}>{dtnSharing ? tt('Delar…') : tt('Dela')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.dtnActionBtn, styles.dtnActionBtnPrimary]} onPress={() => setDtnShowDates(v => !v)}>
-                    <Text style={[styles.dtnActionText, styles.dtnActionTextPrimary]}>{tt('Spara till kalender')}</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {dtnShowDates && (
-                  <>
-                    <Text style={styles.dtnKeep}>{tt('Välj dag:')}</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dtnDateChips}>
-                      {dtnNextDates(14).map(d => (
-                        <TouchableOpacity key={d} style={styles.dtnDateChip} disabled={dtnSaving} onPress={() => saveDayToNightToCalendar(d)}>
-                          <Text style={styles.dtnDateChipText}>{dtnDateLabel(d)}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </>
-                )}
-              </>
+              </View>
             )}
           </>
         )}
       </ScrollView>
 
-      {/* Dold dela-vy som fångas som bild */}
-      {dtnShareTarget && (
-        <View style={styles.hiddenShare} pointerEvents="none">
-          <View ref={dtnShareRef} collapsable={false}>
-            <DayToNightShareCard {...dtnShareTarget} />
-          </View>
-        </View>
-      )}
       <BottomNav />
     </SafeAreaView>
   )
@@ -923,33 +704,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitItemEmoji: { fontFamily: 'Lora_400Regular', fontSize: 28 },
   outfitItemName: { fontFamily: 'Lora_400Regular', fontSize: 9, color: t.textSecondary, textAlign: 'center' },
 
-  dtnIntro: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 16 },
-  dtnChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  dtnChip: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
-  dtnChipActive: { backgroundColor: t.primary, borderColor: t.primary },
-  dtnChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary },
-  dtnChipTextActive: { color: t.onPrimary },
-  dtnHeading: { fontFamily: 'Poppins_600SemiBold', fontSize: 9, color: t.textSecondary, letterSpacing: 2, marginTop: 24, marginBottom: 4 },
-  swapRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: t.border },
-  swapItem: { flex: 1, alignItems: 'center', gap: 4 },
-  swapImage: { width: 56, height: 56, borderRadius: 10 },
-  swapImageEmpty: { width: 56, height: 56, borderRadius: 10, backgroundColor: t.surface },
-  swapName: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textPrimary, textAlign: 'center' },
-  swapArrow: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.primary },
-  dtnKeep: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic', marginTop: 4 },
-  dtnTipBox: { backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 20 },
-  dtnTipText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary, lineHeight: 21 },
-  dtnShuffle: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, marginTop: 20 },
-  dtnShuffleText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
-  dtnActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  dtnActionBtn: { flex: 1, paddingVertical: 13, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
-  dtnActionBtnPrimary: { backgroundColor: t.primary, borderColor: t.primary },
-  dtnActionText: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },
-  dtnActionTextPrimary: { color: t.onPrimary },
-  dtnDateChips: { gap: 8, paddingVertical: 4, paddingRight: 8 },
-  dtnDateChip: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
-  dtnDateChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
-  hiddenShare: { position: 'absolute', left: -9999, top: 0 },
+  rediscoverIntro: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 16 },
+  rediscoverEmpty: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, fontStyle: 'italic', marginTop: 4 },
+  rediscoverGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  rediscoverItem: { width: '31%', alignItems: 'center' },
+  rediscoverImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: t.surface },
+  rediscoverName: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textPrimary, marginTop: 6, textAlign: 'center' },
+  rediscoverWorn: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, textAlign: 'center', marginTop: 2 },
   missingSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.surfaceMuted, gap: 10 },
   missingSectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   missingIcon: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },

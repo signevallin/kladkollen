@@ -1007,6 +1007,14 @@ const enBySource: Dict = {
   'Ett lager du lätt tar av när du blir varm.': 'A layer you can easily take off when you get warm.',
   'Ofta räcker det med en storlek upp.': 'Often one size up is enough.',
   'Sköna även när fötterna svullnar.': 'Comfortable even when your feet swell.',
+
+  // Återupptäck (Inspo-flik: styla sällan använda plagg)
+  'Återupptäck': 'Rediscover',
+  'Kläder du sällan använder – ge dem nytt liv. Tryck på ett plagg så bygger Skrud en outfit runt det.':
+    'Clothes you rarely wear – give them new life. Tap a garment and Skrud builds an outfit around it.',
+  'Din garderob är tom än.': 'Your wardrobe is still empty.',
+  'Aldrig buren': 'Never worn',
+  'gång': 'time',
 }
 
 Object.assign(en, enBySource)
