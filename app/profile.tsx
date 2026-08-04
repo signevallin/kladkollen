@@ -767,50 +767,49 @@ export default function Profile() {
           })}
           {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/partner' : '/paywall') })}
           {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/family' : '/paywall') })}
+          {renderRow('gravid', 'Gravidläge', {
+            icon: 'pregnant-woman',
+            value: pregnant ? (trimesterLabel(trimesterFromDueDate(dueDate || null)) || 'På') : undefined,
+            body: (
+              <>
+                <View style={styles.gravidToggleRow}>
+                  <Text style={[styles.hint, { flex: 1 }]}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
+                  <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
+                    <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
+                  </TouchableOpacity>
+                </View>
+                {pregnant && (
+                  <>
+                    <Text style={styles.gravidFieldLabel}>{tr('Beräknat födelsedatum (BF)')}</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder={tr('ÅÅÅÅ-MM-DD')}
+                      placeholderTextColor={t.placeholder}
+                      value={dueDate}
+                      onChangeText={setDueDate}
+                      maxLength={10}
+                    />
+                    {(() => {
+                      const tri = trimesterFromDueDate(dueDate || null)
+                      return tri ? <Text style={styles.hint}>{tr(trimesterLabel(tri))}</Text> : null
+                    })()}
+                    <Text style={styles.hint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
+                    <TouchableOpacity style={styles.restoreBtn} onPress={() => router.push('/pregnancy-wardrobe')}>
+                      <MaterialIcons name="checkroom" size={18} color={t.textPrimary} />
+                      <Text style={styles.restoreBtnText}>{tr('Gravidgarderob')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
+                      <MaterialIcons name="undo" size={18} color={t.textPrimary} />
+                      <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </>
+            ),
+          })}
         </View>
 
         {/* ── Min stil ── */}
-        {/* ── Gravidläge (nära Livssituation, en fas i livet) ── */}
-        <Text style={styles.sectionTitle}>{tr('Gravidläge')}</Text>
-        <View style={styles.listCard}>
-          <TouchableOpacity style={styles.pregnantRow} onPress={togglePregnant} activeOpacity={0.7}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowLabel}>{tr('Gravidläge')}</Text>
-              <Text style={styles.pregnantHint}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
-            </View>
-            <View style={[styles.toggle, pregnant && styles.toggleOn]}>
-              <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
-            </View>
-          </TouchableOpacity>
-
-          {pregnant && (
-            <View style={styles.pregnantBody}>
-              <Text style={styles.rowLabel}>{tr('Beräknat födelsedatum (BF)')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={tr('ÅÅÅÅ-MM-DD')}
-                placeholderTextColor={t.placeholder}
-                value={dueDate}
-                onChangeText={setDueDate}
-                maxLength={10}
-              />
-              {(() => {
-                const tri = trimesterFromDueDate(dueDate || null)
-                return tri ? <Text style={styles.pregnantHint}>{tr(trimesterLabel(tri))}</Text> : null
-              })()}
-              <Text style={styles.pregnantHint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
-              <TouchableOpacity style={styles.restoreBtn} onPress={() => router.push('/pregnancy-wardrobe')}>
-                <MaterialIcons name="checkroom" size={18} color={t.textPrimary} />
-                <Text style={styles.restoreBtnText}>{tr('Gravidgarderob')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
-                <MaterialIcons name="undo" size={18} color={t.textPrimary} />
-                <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
         {/* ── Min stil ── */}
         <Text style={styles.sectionTitle}>{tr('Min stil')}</Text>
         <View style={styles.listCard}>
@@ -1029,6 +1028,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 8 },
   hint: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 11, fontStyle: 'italic', marginBottom: 10, marginTop: 4 },
   input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surface, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginTop: 6 },
+  gravidToggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, marginBottom: 4 },
+  gravidFieldLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, marginTop: 12, marginBottom: 2 },
   pregnantRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   pregnantHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 19, marginTop: 6 },
   pregnantBody: { paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: t.borderSoft, paddingTop: 12 },
