@@ -156,37 +156,44 @@ export default function Profile() {
   }, [profileLoaded, name, avatar, gender, birthday, avoidNote, lifeMode, stylePrefs, colorPrefs,
       currentSeason, coldSensitivity, pregnant, dueDate, stilProfil, fargsatt, livsstil, contextNotes, musicGenres, styleRules])
 
+  // Skriver profildata till alla fält. Anropas både med cachad rad (direkt vid
+  // montering, för snabb rendering) och med den färska raden från nätet.
+  function applyProfile(data: any) {
+    setName(data.name || '')
+    setAvatar(data.avatar_url || null)
+    setGender(data.gender || '')
+    setBirthday(data.birthday || '')
+    setAvoidNote(data.avoid_note || '')
+    setLifeMode(data.life_mode || 'single')
+    setStylePrefs(data.style_prefs ? data.style_prefs.split(', ') : [])
+    setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
+    setCurrentSeason(data.current_season || '')
+    if (data.cold_sensitivity != null) setColdSensitivity(data.cold_sensitivity)
+    setPregnant(!!data.pregnant); cacheSet('profile.pregnant', !!data.pregnant)
+    setDueDate(data.due_date || '')
+    if (data.color_analysis) setColorAnalysis(data.color_analysis)
+    if (data.skin_tone) setSkinTone(data.skin_tone)
+    if (data.skin_undertone) setSkinUndertone(data.skin_undertone)
+    if (data.hair_color) setHairColor(data.hair_color)
+    if (data.eye_color) setEyeColor(data.eye_color)
+    if (data.contrast_level) setContrastLevel(data.contrast_level)
+    if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
+    if (data.fargsatt) setFargsatt(data.fargsatt)
+    if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
+    if (data.outfit_context_notes) setContextNotes(data.outfit_context_notes)
+    if (data.music_genres) setMusicGenres(data.music_genres.split(', ').filter(Boolean))
+    if (data.style_rules) setStyleRules(data.style_rules.split(', ').filter(Boolean))
+  }
+
   async function loadProfile() {
+    // Rita senast kända profil direkt så sidan inte känns långsam vid öppning.
+    const cached = cacheGet<any>('profile.row')
+    if (cached) applyProfile(cached)
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       setEmail(user.email || '')
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-      if (data) {
-        setName(data.name || '')
-        setAvatar(data.avatar_url || null)
-        setGender(data.gender || '')
-        setBirthday(data.birthday || '')
-        setAvoidNote(data.avoid_note || '')
-        setLifeMode(data.life_mode || 'single')
-        setStylePrefs(data.style_prefs ? data.style_prefs.split(', ') : [])
-        setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
-        setCurrentSeason(data.current_season || '')
-        if (data.cold_sensitivity != null) setColdSensitivity(data.cold_sensitivity)
-        setPregnant(!!data.pregnant); cacheSet('profile.pregnant', !!data.pregnant)
-        setDueDate(data.due_date || '')
-        if (data.color_analysis) setColorAnalysis(data.color_analysis)
-        if (data.skin_tone) setSkinTone(data.skin_tone)
-        if (data.skin_undertone) setSkinUndertone(data.skin_undertone)
-        if (data.hair_color) setHairColor(data.hair_color)
-        if (data.eye_color) setEyeColor(data.eye_color)
-        if (data.contrast_level) setContrastLevel(data.contrast_level)
-        if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
-        if (data.fargsatt) setFargsatt(data.fargsatt)
-        if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
-        if (data.outfit_context_notes) setContextNotes(data.outfit_context_notes)
-        if (data.music_genres) setMusicGenres(data.music_genres.split(', ').filter(Boolean))
-        if (data.style_rules) setStyleRules(data.style_rules.split(', ').filter(Boolean))
-      }
+      if (data) { applyProfile(data); cacheSet('profile.row', data) }
     }
     // Först nu får autospar-effekten börja skriva (annars sparar den tomma
     // defaultvärden över riktig data direkt vid montering).
@@ -763,6 +770,48 @@ export default function Profile() {
         </View>
 
         {/* ── Min stil ── */}
+        {/* ── Gravidläge (nära Livssituation, en fas i livet) ── */}
+        <Text style={styles.sectionTitle}>{tr('Gravidläge')}</Text>
+        <View style={styles.listCard}>
+          <TouchableOpacity style={styles.pregnantRow} onPress={togglePregnant} activeOpacity={0.7}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowLabel}>{tr('Gravidläge')}</Text>
+              <Text style={styles.pregnantHint}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
+            </View>
+            <View style={[styles.toggle, pregnant && styles.toggleOn]}>
+              <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
+            </View>
+          </TouchableOpacity>
+
+          {pregnant && (
+            <View style={styles.pregnantBody}>
+              <Text style={styles.rowLabel}>{tr('Beräknat födelsedatum (BF)')}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={tr('ÅÅÅÅ-MM-DD')}
+                placeholderTextColor={t.placeholder}
+                value={dueDate}
+                onChangeText={setDueDate}
+                maxLength={10}
+              />
+              {(() => {
+                const tri = trimesterFromDueDate(dueDate || null)
+                return tri ? <Text style={styles.pregnantHint}>{tr(trimesterLabel(tri))}</Text> : null
+              })()}
+              <Text style={styles.pregnantHint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
+              <TouchableOpacity style={styles.restoreBtn} onPress={() => router.push('/pregnancy-wardrobe')}>
+                <MaterialIcons name="checkroom" size={18} color={t.textPrimary} />
+                <Text style={styles.restoreBtnText}>{tr('Gravidgarderob')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
+                <MaterialIcons name="undo" size={18} color={t.textPrimary} />
+                <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* ── Min stil ── */}
         <Text style={styles.sectionTitle}>{tr('Min stil')}</Text>
         <View style={styles.listCard}>
           {renderRow('stil', 'Stil', {
@@ -921,47 +970,6 @@ export default function Profile() {
               </View>
             ),
           })}
-        </View>
-
-        {/* ── Gravidläge ── */}
-        <Text style={styles.sectionTitle}>{tr('Gravidläge')}</Text>
-        <View style={styles.listCard}>
-          <TouchableOpacity style={styles.pregnantRow} onPress={togglePregnant} activeOpacity={0.7}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowLabel}>{tr('Gravidläge')}</Text>
-              <Text style={styles.pregnantHint}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
-            </View>
-            <View style={[styles.toggle, pregnant && styles.toggleOn]}>
-              <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
-            </View>
-          </TouchableOpacity>
-
-          {pregnant && (
-            <View style={styles.pregnantBody}>
-              <Text style={styles.rowLabel}>{tr('Beräknat födelsedatum (BF)')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={tr('ÅÅÅÅ-MM-DD')}
-                placeholderTextColor={t.placeholder}
-                value={dueDate}
-                onChangeText={setDueDate}
-                maxLength={10}
-              />
-              {(() => {
-                const tri = trimesterFromDueDate(dueDate || null)
-                return tri ? <Text style={styles.pregnantHint}>{tr(trimesterLabel(tri))}</Text> : null
-              })()}
-              <Text style={styles.pregnantHint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
-              <TouchableOpacity style={styles.restoreBtn} onPress={() => router.push('/pregnancy-wardrobe')}>
-                <MaterialIcons name="checkroom" size={18} color={t.textPrimary} />
-                <Text style={styles.restoreBtnText}>{tr('Gravidgarderob')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
-                <MaterialIcons name="undo" size={18} color={t.textPrimary} />
-                <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* ── Skrud Premium ── */}
