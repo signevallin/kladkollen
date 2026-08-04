@@ -1,9 +1,9 @@
 # CLAUDE.md — projektminne för Skrud (kladkollen)
 
 Skrud är en svensk React Native/Expo-app (SDK 54, expo-router, TypeScript
-strict) – en digital garderob med AI-outfits, väder, set, tvätt, par/familj
-och Premium (RevenueCat). Backend: Supabase (auth, Postgres/RLS, RPCs) +
-edge-functions på Vercel.
+strict) – en digital garderob med AI-outfits, väder, set, tvätt, par/familj,
+gravidläge och Premium (RevenueCat). Backend: Supabase (auth, Postgres/RLS,
+RPCs) + edge-functions på Vercel.
 
 ## Använd kunskapsgrafen först (spara tokens)
 
@@ -41,3 +41,16 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
 - Info-/hjälpskärmar (terms, privacy, how-it-works) är svenska mallar.
 - Webb: `public/landing.html` (startsida) och `public/support.html`
   (Apple Support URL) – Skrud-branding, inga emojis.
+- **Gravidläge** (valfritt, privat – ingen hälsodata): togglas som en rad i
+  "Min information" i profilen (bredvid Livssituation). Data: `profiles.pregnant`
+  + `profiles.due_date`; `garments.maternity_friendly` + `garments.paused_pregnancy`
+  (migration `20260806_pregnancy.sql`). Logik i `utils/pregnancy.ts`
+  (`trimesterFromDueDate`, `pregnancyPromptContext`). När läget är på: pausade
+  plagg utesluts ur outfit-genereringen, AI-prompten blir magvänlig, upplevd
+  köldkänslighet sänks ett steg, och plaggvyn visar gravid-taggarna. Egen
+  skärm `app/pregnancy-wardrobe.tsx` (essentials-checklista → köplista +
+  återanvänd/låna ut). Par-flödet "Matcha" är inte gravidanpassat än.
+- Bild-miniatyrer: `SignedImage` tar en `transform`-prop (Supabase image
+  transform, kräver betald plan). Plagg använder `resize:'contain'` +
+  `format:'origin'` (bevarar transparens, beskär inte); avatarer `resize:'cover'`.
+  Detaljvyn och dela-korten lämnas i full upplösning.
