@@ -1,5 +1,6 @@
 import { Lora_400Regular, Lora_500Medium } from '@expo-google-fonts/lora'
 import { Poppins_600SemiBold, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Notifications from 'expo-notifications'
 import { Stack, router, usePathname } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
@@ -9,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
 import { registerForPush } from '../utils/push'
 import { scheduleSmartPush } from '../utils/smartPush'
+import { ONBOARDING_DONE_KEY } from './onboarding'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
 import { SettingsProvider } from '../utils/settings'
 import { EntitlementsProvider } from '../utils/entitlements'
@@ -28,6 +30,8 @@ function RootLayout() {
   const pathname = usePathname()
   const [ready, setReady] = useState(false)
   const [hasSession, setHasSession] = useState(false)
+  const [onboarded, setOnboarded] = useState<boolean | null>(null)
+  const sentToOnboarding = useRef(false)
   const [fontsLoaded, fontError] = useFonts({
     Poppins_600SemiBold,
     Poppins_700Bold,
@@ -43,15 +47,24 @@ function RootLayout() {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setHasSession(!!session)
     })
-    return () => sub.subscription.unsubscribe()
+    AsyncStorage.getItem(ONBOARDING_DONE_KEY)
+      .then(v => setOnboarded(!!v))
+      .catch(() => setOnboarded(true)) // vid fel: hoppa inte in i introt
   }, [])
 
   useEffect(() => {
-    if (!ready) return
+    if (!ready || onboarded === null) return
     if (!hasSession && !PUBLIC_ROUTES.includes(pathname)) {
       router.replace('/login')
+      return
     }
-  }, [ready, hasSession, pathname])
+    // Första gången en inloggad användare som inte sett introt landar: visa det
+    // en gång (styrs av en ref så vi inte studsar tillbaka efter att det klarats).
+    if (hasSession && !onboarded && !sentToOnboarding.current && pathname !== '/onboarding') {
+      sentToOnboarding.current = true
+      router.replace('/onboarding')
+    }
+  }, [ready, hasSession, onboarded, pathname])
 
   // Registrera för push när användaren är inloggad, och skicka den vidare
   // till rätt vy när en notis trycks på.
@@ -79,7 +92,7 @@ function RootLayout() {
     return () => sub.remove()
   }, [hasSession])
 
-  if (!ready || (!fontsLoaded && !fontError)) {
+  if (!ready || onboarded === null || (!fontsLoaded && !fontError)) {
     return <View style={{ flex: 1, backgroundColor: t.bg }} />
   }
 
@@ -90,6 +103,7 @@ function RootLayout() {
         {/* Flikskärmarna ligger i (tabs)-gruppen och hålls monterade där.
             Gruppen byts in utan slide; detaljsidor behåller sin slide. */}
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="profile" />
         <Stack.Screen name="stats" />
         <Stack.Screen name="wardrobe-analysis" />
