@@ -735,7 +735,7 @@ export default function Wardrobe() {
               {/* Bildväljare */}
               <TouchableOpacity style={styles.imagePicker} onPress={pickWishImage}>
                 {wishImage ? (
-                  <SignedImage path={wishImage} style={styles.imagePickerPreview} transform={{ width: 800, format: 'origin' }} />
+                  <SignedImage path={wishImage} style={styles.imagePickerPreview} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                 ) : (
                   <View style={styles.imagePickerInner}>
                     <Text style={styles.imagePickerText}>{tr('Lägg till bild (valfritt)')}</Text>
@@ -869,7 +869,7 @@ export default function Wardrobe() {
                 filteredSaleGarments.map((item: any) => (
                   <TouchableOpacity key={item.id} style={styles.salePickerItem} onPress={() => addToSale(item)}>
                     {item.image_url
-                      ? <SignedImage path={item.image_url} style={styles.salePickerImage} transform={{ width: 800, format: 'origin' }} />
+                      ? <SignedImage path={item.image_url} style={styles.salePickerImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                       : <View style={styles.salePickerImageEmpty} />
                     }
                     <View style={styles.salePickerInfo}>
@@ -1068,7 +1068,7 @@ export default function Wardrobe() {
               <TouchableOpacity style={styles.item} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 <View style={styles.itemImageWrap}>
                   {item.image_url
-                    ? <SignedImage path={item.image_url} style={[styles.itemImage, pregnant && item.paused_pregnancy && styles.itemPaused]} transform={{ width: 800, format: 'origin' }} />
+                    ? <SignedImage path={item.image_url} style={[styles.itemImage, pregnant && item.paused_pregnancy && styles.itemPaused]} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                     : null
                   }
                   {pregnant && item.maternity_friendly && (
@@ -1163,7 +1163,7 @@ export default function Wardrobe() {
                       <Text style={styles.priorityNum}>{index + 1}</Text>
                     </View>
                     {item.image_url
-                      ? <SignedImage path={item.image_url} style={styles.wishImage} transform={{ width: 800, format: 'origin' }} />
+                      ? <SignedImage path={item.image_url} style={styles.wishImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                       : <View style={styles.wishImageEmpty} />
                     }
                     <View style={styles.wishInfo}>
@@ -1236,7 +1236,7 @@ export default function Wardrobe() {
             forSale.map((item) => (
               <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 {item.image_url
-                  ? <SignedImage path={item.image_url} style={styles.saleImage} transform={{ width: 800, format: 'origin' }} />
+                  ? <SignedImage path={item.image_url} style={styles.saleImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                   : <View style={styles.saleImageEmpty} />
                 }
                 <View style={styles.saleInfo}>
@@ -1344,7 +1344,7 @@ export default function Wardrobe() {
               <TouchableOpacity key={item.id} style={[styles.saleItem, item.sold && styles.archivedItem]} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
                 <View style={styles.archImageWrap}>
                   {item.image_url
-                    ? <SignedImage path={item.image_url} style={[styles.saleImage, item.sold && { opacity: 0.6 }]} transform={{ width: 800, format: 'origin' }} />
+                    ? <SignedImage path={item.image_url} style={[styles.saleImage, item.sold && { opacity: 0.6 }]} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                     : <View style={styles.saleImageEmpty} />
                   }
                   {!item.sold && reasonFor(item.archive_reason) && (

@@ -770,7 +770,7 @@ export default function GarmentDetail() {
                 {setMembers.length > 0 && (
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.setMembers}>
                     {setMembers.map(m => (
-                      <View key={m.id} style={styles.setThumb}><SignedImage path={m.image_url} style={styles.setThumbImg} transform={{ width: 800, format: 'origin' }} /></View>
+                      <View key={m.id} style={styles.setThumb}><SignedImage path={m.image_url} style={styles.setThumbImg} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} /></View>
                     ))}
                   </ScrollView>
                 )}

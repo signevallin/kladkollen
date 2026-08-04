@@ -122,7 +122,7 @@ export default function PregnancyWardrobe() {
                 {maternity.map((g, i) => (
                   <View key={g.id} style={[styles.mgRow, i > 0 && styles.essentialBorder]}>
                     {g.image_url
-                      ? <SignedImage path={g.image_url} style={styles.mgThumb} resizeMode="contain" transform={{ width: 200, format: 'origin' }} />
+                      ? <SignedImage path={g.image_url} style={styles.mgThumb} resizeMode="contain" transform={{ width: 200, height: 200, resize: 'contain', format: 'origin' }} />
                       : <View style={[styles.mgThumb, styles.mgThumbEmpty]} />}
                     <Text style={styles.mgName} numberOfLines={1}>{g.name}</Text>
                     <TouchableOpacity style={[styles.lendPill, g.lendable && styles.lendPillOn]} onPress={() => toggleLend(g)}>
