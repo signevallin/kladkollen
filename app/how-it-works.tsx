@@ -47,6 +47,7 @@ const GROUPS: Group[] = [
       { icon: 'water-outline', label: 'Tvätt-markering', desc: 'Markera ett plagg som i tvätten – då föreslås det inte förrän det är rent.' },
       { icon: 'refresh-circle-outline', label: 'Töm tvätten', desc: 'Markera allt i tvätten som rent igen med ett tryck.' },
       { icon: 'albums-outline', label: 'Set-markering', desc: 'En liten markering visar att plagget hör till ett set.' },
+      { icon: 'stats-chart-outline', label: 'Statistik', desc: 'Överblick över din garderob – hur ofta du bär plaggen, mest använda färger och mer.' },
     ],
   },
   {
