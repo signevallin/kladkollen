@@ -364,7 +364,10 @@ export default function Home() {
       // Plagg i tvätten föreslås inte i genererade outfits. I gravidläget döljs
       // även pausade plagg (de som inte passar just nu).
       const activeGarments = garments.filter(g => !g.archived && !g.in_laundry && !(pregnant && g.paused_pregnancy))
-      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
+      // Gravida upplever ofta värme starkare – sänk den upplevda köldkänsligheten
+      // ett steg så förslagen blir svalare/luftigare.
+      const effectiveCold = pregnant ? Math.max(1, coldSensitivity - 1) : coldSensitivity
+      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, effectiveCold) : { summary: '', rules: '', requiresOuterwear: false }
 
       // Filtrera bort renodlade off-season-plagg (t.ex. vinterjacka på sommaren).
       // Faller tillbaka till hela garderoben om säsongsurvalet inte räcker för
@@ -610,7 +613,10 @@ export default function Home() {
     try {
       const ctx = CONTEXTS[selectedContext]
       const currentWeather = weather ?? { temp: 10, description: 'okänt', rain: false }
-      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
+      // Gravida upplever ofta värme starkare – sänk den upplevda köldkänsligheten
+      // ett steg så förslagen blir svalare/luftigare.
+      const effectiveCold = pregnant ? Math.max(1, coldSensitivity - 1) : coldSensitivity
+      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, effectiveCold) : { summary: '', rules: '', requiresOuterwear: false }
       const season = getCurrentSeason()
 
       const { data: theirs } = await supabase.rpc('partner_garments', { target: partner.id })

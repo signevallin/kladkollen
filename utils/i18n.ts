@@ -981,6 +981,32 @@ const enBySource: Dict = {
   'Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.':
     'Hidden from outfit suggestions until you bring it back. The garment is kept.',
   'Pausad under graviditeten': 'Paused during pregnancy',
+
+  // Gravidgarderob (pregnancy wardrobe / essentials)
+  'Gravidgarderob': 'Pregnancy wardrobe',
+  'Köp bara det du faktiskt behöver – och återanvänd dina gravidplagg nästa gång.':
+    'Buy only what you actually need – and reuse your maternity clothes next time.',
+  'Det du behöver': 'What you need',
+  'Du har': 'You have it',
+  'På köplistan': 'On your wishlist',
+  'Mina gravidplagg': 'My maternity clothes',
+  'Dina gravid-/amningsvänliga plagg samlade. De behåller taggen till nästa graviditet – och kan lånas ut.':
+    'Your maternity/nursing-friendly clothes in one place. They keep the tag for your next pregnancy – and can be lent out.',
+  'Inga plagg markerade som gravid-/amningsvänliga än. Markera dem inne på varje plagg.':
+    'No clothes marked as maternity/nursing-friendly yet. Mark them from each garment.',
+  'Kan lånas ut': 'Can be lent out',
+  'Töjbara byxor eller leggings': 'Stretchy trousers or leggings',
+  'Längre topp eller tunika': 'A longer top or tunic',
+  'Bekväm klänning': 'A comfortable dress',
+  'Stickad tröja eller cardigan': 'A knit or cardigan',
+  'Ytterplagg med plats för magen': 'Outerwear with room for the bump',
+  'Bekväma skor': 'Comfortable shoes',
+  'Med hög, mjuk resår över magen.': 'With a high, soft waistband over the bump.',
+  'Täcker magen även när den växer.': 'Covers the bump as it grows.',
+  'Empire-linje eller omlott växer med magen.': 'An empire line or wrap grows with the bump.',
+  'Ett lager du lätt tar av när du blir varm.': 'A layer you can easily take off when you get warm.',
+  'Ofta räcker det med en storlek upp.': 'Often one size up is enough.',
+  'Sköna även när fötterna svullnar.': 'Comfortable even when your feet swell.',
 }
 
 Object.assign(en, enBySource)
