@@ -1035,12 +1035,27 @@ export default function Home() {
               <View style={styles.baseSetChipsWrap}>
                 <Text style={styles.baseSetChipsLabel}>{tr('Set')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.baseSetChipsRow}>
-                  {cfg.sets.map(s => (
-                    <TouchableOpacity key={s.id} style={styles.baseSetChip} onPress={() => { cfg.onSelectSet?.(s); cfg.onClose() }}>
-                      <Ionicons name="albums-outline" size={14} color={t.textSecondary} />
-                      <Text style={styles.baseSetChipText} numberOfLines={1}>{s.name}</Text>
-                    </TouchableOpacity>
-                  ))}
+                  {cfg.sets.map(s => {
+                    const members = garments.filter(g => g.set_id === s.id && !g.archived && !g.in_laundry)
+                    const thumbs = members.slice(0, 3)
+                    return (
+                      <TouchableOpacity key={s.id} style={styles.baseSetChip} onPress={() => { cfg.onSelectSet?.(s); cfg.onClose() }}>
+                        {thumbs.length > 0
+                          ? (
+                            <View style={styles.baseSetThumbs}>
+                              {thumbs.map(g => (
+                                g.image_url
+                                  ? <SignedImage key={g.id} path={g.image_url} style={styles.baseSetThumb} resizeMode="contain" />
+                                  : <View key={g.id} style={[styles.baseSetThumb, styles.baseSetThumbEmpty]} />
+                              ))}
+                            </View>
+                          )
+                          : <Ionicons name="albums-outline" size={14} color={t.textSecondary} />
+                        }
+                        <Text style={styles.baseSetChipText} numberOfLines={1}>{s.name}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
                 </ScrollView>
               </View>
             )}
@@ -1693,8 +1708,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseSetChipsWrap: { marginBottom: 16 },
   baseSetChipsLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginBottom: 8, marginLeft: 2 },
   baseSetChipsRow: { gap: 8, paddingRight: 8 },
-  baseSetChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.surfaceMuted, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: t.border },
+  baseSetChip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.surfaceMuted, borderRadius: 20, paddingLeft: 6, paddingRight: 14, paddingVertical: 6, borderWidth: 1, borderColor: t.border },
   baseSetChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, maxWidth: 160 },
+  baseSetThumbs: { flexDirection: 'row', gap: 3 },
+  baseSetThumb: { width: 30, height: 30, borderRadius: 8, backgroundColor: t.surface },
+  baseSetThumbEmpty: { backgroundColor: t.border },
   baseSearchInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: t.textPrimary, fontSize: 15, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
   baseFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   baseChip: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
