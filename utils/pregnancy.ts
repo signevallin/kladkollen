@@ -45,7 +45,8 @@ export function pregnancyPromptContext(pregnant: boolean, tri: Trimester | null)
     triNote,
     'Välj bekväma, magvänliga plagg: töjbara/mjuka material, plats över magen,',
     '(t.ex. empire-linje, omlott, oversize, resår i midjan). Undvik hårt sittande',
-    'midjor och stramande plagg. Lager-på-lager är bra eftersom kroppstemperaturen',
-    'ofta svänger. Finns gravid-/amningsvänliga plagg i garderoben – prioritera dem.',
+    'midjor och stramande plagg. Många gravida blir varmare än vanligt – välj',
+    'gärna andningsbara, luftiga material och lager som lätt kan tas av. Finns',
+    'gravid-/amningsvänliga plagg i garderoben – prioritera dem.',
   ].join(' ')
 }

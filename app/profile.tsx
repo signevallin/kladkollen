@@ -952,6 +952,10 @@ export default function Profile() {
                 return tri ? <Text style={styles.pregnantHint}>{tr(trimesterLabel(tri))}</Text> : null
               })()}
               <Text style={styles.pregnantHint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
+              <TouchableOpacity style={styles.restoreBtn} onPress={() => router.push('/pregnancy-wardrobe')}>
+                <MaterialIcons name="checkroom" size={18} color={t.textPrimary} />
+                <Text style={styles.restoreBtnText}>{tr('Gravidgarderob')}</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
                 <MaterialIcons name="undo" size={18} color={t.textPrimary} />
                 <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
