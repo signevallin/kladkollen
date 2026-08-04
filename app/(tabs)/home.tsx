@@ -1184,7 +1184,7 @@ export default function Home() {
             accessibilityRole="button"
           >
             {userAvatar
-              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" transform={{ width: 800, format: 'origin' }} />
+              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" transform={{ width: 120, height: 120, resize: 'cover' }} />
               : null
             }
           </TouchableOpacity>

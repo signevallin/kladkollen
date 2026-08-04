@@ -3175,7 +3175,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "app/profile.tsx",
-      "source_location": "L996",
+      "source_location": "L1004",
       "_origin": "ast",
       "id": "app_profile_makestyles",
       "community": 13,
@@ -4531,8 +4531,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_dependencies_expo_apple_authentication",
-      "community": 37,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -4542,8 +4542,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "expo_apple_authentication",
-      "community": 37,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -4553,8 +4553,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "package_dependencies_expo_audio",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 37,
+      "community_name": "expo-audio",
       "norm_label": "expo-audio"
     },
     {
@@ -4564,8 +4564,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "expo_audio",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 37,
+      "community_name": "expo-audio",
       "norm_label": "expo-audio"
     },
     {
@@ -22944,7 +22944,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/profile.tsx",
-      "source_location": "L996",
+      "source_location": "L1004",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_profile",
@@ -23576,7 +23576,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/profile.tsx",
-      "source_location": "L414",
+      "source_location": "L421",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_profile_profile",
@@ -23588,7 +23588,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/profile.tsx",
-      "source_location": "L415",
+      "source_location": "L422",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_profile_profile",
@@ -23684,7 +23684,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/profile.tsx",
-      "source_location": "L899",
+      "source_location": "L948",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_profile_profile",
@@ -23696,7 +23696,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/profile.tsx",
-      "source_location": "L620",
+      "source_location": "L627",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_profile_profile",
@@ -23720,7 +23720,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/profile.tsx",
-      "source_location": "L951",
+      "source_location": "L798",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_profile_profile",
@@ -23732,7 +23732,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/profile.tsx",
-      "source_location": "L952",
+      "source_location": "L799",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_profile_profile",
@@ -32918,5 +32918,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "eab25b63da060307facc2ee0aab116eba2aa7f41"
+  "built_at_commit": "156fd0645a65c35c5da108650ebb863bd4005c1a"
 }

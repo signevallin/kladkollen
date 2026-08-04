@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-04)
 
 ## Corpus Check
-- 161 files · ~426,718 words
+- 161 files · ~426,785 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `eab25b63`
+- Built from commit: `156fd064`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -51,7 +51,7 @@
 - revenuecat-webhook.ts
 - eslint.config.js
 - vercel.json
-- expo-apple-authentication
+- expo-audio
 - expo-background-task
 - expo-calendar
 - expo-camera
@@ -224,7 +224,7 @@ Nodes (12): Home(), makeStyles(), DTN_TRANSITIONS, Inspiration(), makeStyles(), 
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-audio, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-apple-authentication, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.27

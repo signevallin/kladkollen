@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/home.tsx": {
-    "mtime": 1785878365.1628513,
-    "ast_hash": "fbb0d8a38edc0004cf618bfc2797e61a",
+    "mtime": 1785878878.1628816,
+    "ast_hash": "fa22850d103443d8551cb770a0646931",
     "semantic_hash": ""
   },
   "app/(tabs)/inspiration.tsx": {
@@ -265,8 +265,8 @@
     "semantic_hash": ""
   },
   "app/profile.tsx": {
-    "mtime": 1785878485.6148584,
-    "ast_hash": "931335708c18c7790dcae28a84c3a613",
+    "mtime": 1785878959.7668865,
+    "ast_hash": "1db0ed6cbf6137563fd444cd7a29d86d",
     "semantic_hash": ""
   },
   "app/reset-password.tsx": {
