@@ -1,6 +1,7 @@
 {
   "routes": [
     { "src": "^/$", "dest": "/landing.html" },
+    { "src": "^/support/?$", "dest": "/support.html" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],

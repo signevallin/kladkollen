@@ -120,6 +120,7 @@ function RootLayout() {
         <Stack.Screen name="reset-password" />
         <Stack.Screen name="privacy" />
         <Stack.Screen name="terms" />
+        <Stack.Screen name="how-it-works" />
       </Stack>
       <ToastHost />
     </>

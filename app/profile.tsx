@@ -907,6 +907,7 @@ export default function Profile() {
         {/* ── Om Skrud ── */}
         <Text style={styles.sectionTitle}>{tr('Om Skrud')}</Text>
         <View style={styles.listCard}>
+          {renderRow('safunkar', 'Så funkar Skrud', { icon: 'help-outline', onPress: () => router.push('/how-it-works') })}
           {renderRow('villkor', 'Användarvillkor', { icon: 'description', onPress: () => router.push('/terms') })}
           {renderRow('integritet', 'Integritetspolicy', { icon: 'privacy-tip', onPress: () => router.push('/privacy') })}
         </View>
