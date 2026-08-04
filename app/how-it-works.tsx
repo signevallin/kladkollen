@@ -14,7 +14,8 @@ import { goBack } from '../utils/nav'
 // texten, i stället för en påhittad ikon. En översiktlig variant av samma
 // innehåll finns som webbsida (public/support.html).
 type Item = { lib?: 'ion' | 'mat'; icon?: string; pill?: string; label: string; desc: string }
-type Group = { key: string; title: string; items: Item[] }
+// variant 'tips' = rådgivande lista (bockar), inte knappar i appen.
+type Group = { key: string; title: string; variant?: 'tips'; items: Item[] }
 
 const GROUPS: Group[] = [
   {
@@ -67,6 +68,18 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    key: 'photo',
+    title: 'Fototips – så blir plaggen bäst',
+    variant: 'tips',
+    items: [
+      { label: 'Bra, jämnt ljus', desc: 'Fota gärna i dagsljus. Undvik blixt och hårda skuggor.' },
+      { label: 'Enfärgad bakgrund', desc: 'Lägg plagget på ett slätt, enfärgat underlag som kontrasterar mot färgen – då tas bakgrunden bort snyggt.' },
+      { label: 'Platta ut plagget', desc: 'Släta ut veck och lägg plagget så hela formen syns.' },
+      { label: 'Ett plagg i taget', desc: 'Fota ett plagg åt gången, rakt framifrån eller ovanifrån, och fyll bilden med plagget.' },
+      { label: 'Naturlig färg', desc: 'Se till att färgen ser rätt ut – färgad belysning lurar AI:ns färganalys.' },
+    ],
+  },
+  {
     key: 'profile',
     title: 'Profil & inställningar',
     items: [
@@ -107,7 +120,20 @@ export default function HowItWorks() {
                 <Text style={styles.cardTitle}>{g.title}</Text>
                 <Ionicons name={isOpen ? 'chevron-up' : 'chevron-down'} size={20} color={t.textFaint} />
               </TouchableOpacity>
-              {isOpen && (
+              {isOpen && g.variant === 'tips' && (
+                <View style={styles.itemList}>
+                  {g.items.map(it => (
+                    <View key={it.label} style={styles.tipRow}>
+                      <Ionicons name="checkmark-circle" size={18} color={t.primary} style={styles.tipIcon} />
+                      <View style={styles.itemText}>
+                        <Text style={styles.itemLabel}>{it.label}</Text>
+                        <Text style={styles.itemDesc}>{it.desc}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {isOpen && g.variant !== 'tips' && (
                 <View style={styles.itemList}>
                   {g.items.map(it => (
                     <View key={it.label} style={styles.item}>
@@ -158,6 +184,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   iconChip: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   pillChip: { minWidth: 40, maxWidth: 96, minHeight: 40, borderRadius: 12, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, paddingHorizontal: 8, paddingVertical: 4 },
   pillChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11.5, color: t.primary, textAlign: 'center' },
+  tipRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 10, borderTopWidth: 1, borderTopColor: t.borderSoft },
+  tipIcon: { marginTop: 2 },
   itemText: { flex: 1 },
   itemLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 14.5, color: t.textPrimary, marginBottom: 3 },
   itemDesc: { fontFamily: 'Lora_400Regular', fontSize: 13.5, color: t.textSecondary, lineHeight: 20 },
