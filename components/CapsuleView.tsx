@@ -168,7 +168,7 @@ export default function CapsuleView() {
                       {outfit.map((piece: any, j: number) => (
                         <View key={j} style={styles.outfitPiece}>
                           {piece.image_url
-                            ? <SignedImage path={piece.image_url} style={styles.outfitPieceImage} />
+                            ? <SignedImage path={piece.image_url} style={styles.outfitPieceImage} transform={{ width: 800, format: 'origin' }} />
                             : <View style={styles.outfitPieceEmpty} />}
                           <Text style={styles.outfitPieceName} numberOfLines={1}>{piece.name}</Text>
                           <Text style={styles.outfitPieceCat}>{piece.category}</Text>
@@ -195,7 +195,7 @@ export default function CapsuleView() {
                   activeOpacity={0.7}
                 >
                   {item.image_url
-                    ? <SignedImage path={item.image_url} style={[styles.capsuleGridImage, !isSelected && styles.capsuleGridImageDim]} />
+                    ? <SignedImage path={item.image_url} style={[styles.capsuleGridImage, !isSelected && styles.capsuleGridImageDim]} transform={{ width: 800, format: 'origin' }} />
                     : <View style={[styles.capsuleGridImageEmpty, !isSelected && { opacity: 0.35 }]} />}
                   {isSelected && (
                     <View style={styles.capsuleCheckBadge}><Text style={styles.capsuleCheckText}>✓</Text></View>

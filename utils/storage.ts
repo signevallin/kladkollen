@@ -53,6 +53,9 @@ export type ImageTransform = {
   height?: number
   resize?: 'cover' | 'contain' | 'fill'
   quality?: number
+  // 'origin' behåller originalformatet – viktigt för urklippta plagg så att
+  // transparensen bevaras (annars kan en platta läggas bakom).
+  format?: 'origin'
 }
 
 /**

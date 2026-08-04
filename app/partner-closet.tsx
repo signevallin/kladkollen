@@ -215,7 +215,7 @@ export default function PartnerCloset() {
                       <View style={styles.calDate}><Text style={styles.calDateText}>{fmtDate(e.date)}</Text></View>
                       <View style={styles.calImages}>
                         {(e.outfit.image_urls || []).slice(0, 4).map((url: string, j: number) => (
-                          <SignedImage key={j} path={url} style={styles.calImg} resizeMode="contain" />
+                          <SignedImage key={j} path={url} style={styles.calImg} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
                         ))}
                       </View>
                       <Text style={styles.calName} numberOfLines={1}>{e.outfit.name}</Text>

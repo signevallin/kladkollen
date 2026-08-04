@@ -42,7 +42,7 @@ export default function SignedImage({ path, style, flat, resizeMode, contentFit,
   // direkt (ingen tom ruta + extra render per bild).
   const uri = useMemo(
     () => (path ? imageUrl(path, transform) : null),
-    [path, transform?.width, transform?.height, transform?.resize, transform?.quality],
+    [path, transform?.width, transform?.height, transform?.resize, transform?.quality, transform?.format],
   )
 
   if (!uri) return <View style={style} />

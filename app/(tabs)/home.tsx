@@ -1045,7 +1045,7 @@ export default function Home() {
                             <View style={styles.baseSetThumbs}>
                               {thumbs.map(g => (
                                 g.image_url
-                                  ? <SignedImage key={g.id} path={g.image_url} style={styles.baseSetThumb} resizeMode="contain" />
+                                  ? <SignedImage key={g.id} path={g.image_url} style={styles.baseSetThumb} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
                                   : <View key={g.id} style={[styles.baseSetThumb, styles.baseSetThumbEmpty]} />
                               ))}
                             </View>
@@ -1126,7 +1126,7 @@ export default function Home() {
                 renderItem={({ item: g }) => (
                   <TouchableOpacity style={styles.swapAlt} onPress={() => { cfg.onSelect(g); cfg.onClose() }}>
                     {g.image_url
-                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
+                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
                       : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
                     }
                     <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
@@ -1171,7 +1171,7 @@ export default function Home() {
             accessibilityRole="button"
           >
             {userAvatar
-              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" />
+              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" transform={{ width: 800, format: 'origin' }} />
               : null
             }
           </TouchableOpacity>
@@ -1241,7 +1241,7 @@ export default function Home() {
             <View style={styles.optionRow}>
               <View style={styles.optionLeft}>
                 {baseGarment.image_url
-                  ? <SignedImage path={baseGarment.image_url} style={styles.baseThumb} resizeMode="contain" />
+                  ? <SignedImage path={baseGarment.image_url} style={styles.baseThumb} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
                   : <View style={[styles.baseThumb, styles.baseThumbEmpty]} />}
                 <View style={{ flex: 1 }}>
                   <Text style={styles.optionText}>{tr('Utgår från plagg')}</Text>
@@ -1327,7 +1327,7 @@ export default function Home() {
                   accessibilityRole="button"
                 >
                   {item.image_url
-                    ? <SignedImage path={item.image_url} style={styles.outfitImage} />
+                    ? <SignedImage path={item.image_url} style={styles.outfitImage} transform={{ width: 800, format: 'origin' }} />
                     : <View style={styles.outfitImageEmpty} />
                   }
                   <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
@@ -1436,7 +1436,7 @@ export default function Home() {
                       accessibilityRole="button"
                     >
                       {item.image_url
-                        ? <SignedImage path={item.image_url} style={styles.outfitImage} />
+                        ? <SignedImage path={item.image_url} style={styles.outfitImage} transform={{ width: 800, format: 'origin' }} />
                         : <View style={styles.outfitImageEmpty} />}
                       <View style={styles.swapBadge}><Text style={styles.swapBadgeText}>⇄</Text></View>
                       <Text style={styles.outfitItemName}>{item.name}</Text>
@@ -1555,7 +1555,7 @@ export default function Home() {
                     onPress={() => swapIndex !== null && replaceItem(swapIndex, g)}
                   >
                     {g.image_url
-                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
+                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
                       : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
                     }
                     <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
@@ -1605,7 +1605,7 @@ export default function Home() {
                     onPress={() => coupleSwap && replaceCoupleItem(coupleSwap.person, coupleSwap.index, g)}
                   >
                     {g.image_url
-                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" />
+                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" transform={{ width: 800, format: 'origin' }} />
                       : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
                     }
                     <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
