@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-05)
 
 ## Corpus Check
-- 172 files · ~436,703 words
+- 172 files · ~436,801 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f5e9c747`
+- Built from commit: `6c0e1adb`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -60,7 +60,7 @@
 - expo-file-system
 - expo-font
 - @expo-google-fonts/lora
-- @expo-google-fonts/poppins
+- expo-apple-authentication
 - expo-haptics
 - expo-image
 - expo-image-manipulator
@@ -234,7 +234,7 @@ Nodes (5): AppleMusicBadge(), makeStyles(), SongCard(), SongData, SpotifyFullLog
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-apple-authentication, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-crypto, @expo-google-fonts/poppins, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.27
