@@ -10,25 +10,24 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Animated,
-  FlatList,
-  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View
 } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../../components/BottomNav'
-import { CATEGORIES, COLOR_HEX, COLOR_NAMES, OUTFIT_CONTEXTS, SEASONS, STYLE_RULES, SUBCATEGORIES } from '../../utils/constants'
+import { OUTFIT_CONTEXTS, STYLE_RULES } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
 import { useSettings } from '../../utils/settings'
 import { loadPartner } from '../../utils/household'
 import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import SongCard from '../../components/SongCard'
+import GarmentPicker from '../../components/home/GarmentPicker'
+import SwapSheet from '../../components/home/SwapSheet'
 import { supabase } from '../../supabase'
 import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
@@ -95,13 +94,6 @@ export default function Home() {
   const [baseSet, setBaseSet] = useState<{ id: string; name: string; members: any[] } | null>(null)
   const [sets, setSets] = useState<GarmentSet[]>([])
   const [showBasePicker, setShowBasePicker] = useState(false)
-  const [baseSearch, setBaseSearch] = useState('')
-  // Filter i plagg-väljaren (enkelval, 'Alla' = inget filter).
-  const [baseCat, setBaseCat] = useState('Alla')
-  const [baseType, setBaseType] = useState('Alla')
-  const [baseColor, setBaseColor] = useState('Alla')
-  const [baseSeason, setBaseSeason] = useState('Alla')
-  const [baseFilterOpen, setBaseFilterOpen] = useState<string | null>(null)
   // Lägg till ytterligare plagg i en genererad outfit. person=null → singel-
   // outfiten, person=0/1 → par-outfitens person. Max 3 tillagda plagg.
   const [addTarget, setAddTarget] = useState<{ person: number | null } | null>(null)
@@ -975,13 +967,10 @@ export default function Home() {
     (coupleSwapCategory ? g.category === coupleSwapCategory : true)
   )
 
-  function resetPickerFilters() {
-    setBaseSearch(''); setBaseFilterOpen(null)
-    setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla')
-  }
-  function closeBasePicker() { setShowBasePicker(false); resetPickerFilters() }
-  function openAddPicker(person: number | null) { resetPickerFilters(); setAddTarget({ person }) }
-  function closeAddPicker() { setAddTarget(null); resetPickerFilters() }
+  // GarmentPicker äger sitt eget filter-tillstånd och nollställer det själv vid stängning.
+  function closeBasePicker() { setShowBasePicker(false) }
+  function openAddPicker(person: number | null) { setAddTarget({ person }) }
+  function closeAddPicker() { setAddTarget(null) }
 
   // Lägger till valt plagg i rätt outfit (singel eller en av par-personerna).
   function addItemToOutfit(g: any) {
@@ -1009,166 +998,6 @@ export default function Home() {
   const activeGarmentsForPicker = garments.filter(g => !g.archived && !g.for_sale && !g.in_laundry)
 
   const activeCtx = CONTEXTS[selectedContext]
-
-  // Återanvändbar plagg-väljare (samma UI för utgångsplagg och "lägg till plagg").
-  function renderGarmentPicker(cfg: { visible: boolean; title: string; pool: any[]; onSelect: (g: any) => void; onClose: () => void; accessoriesFirst?: boolean; sets?: GarmentSet[]; onSelectSet?: (s: GarmentSet) => void }) {
-    const typeOptions = baseCat !== 'Alla' && SUBCATEGORIES[baseCat]
-      ? SUBCATEGORIES[baseCat]
-      : Array.from(new Set(cfg.pool.map(g => g.subcategory).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), 'sv'))
-    const chips = [
-      { key: 'category', label: tr('Kategori'), value: baseCat },
-      { key: 'type', label: tr('Typ'), value: baseType },
-      { key: 'color', label: tr('Färg'), value: baseColor },
-      { key: 'season', label: tr('Säsong'), value: baseSeason },
-    ]
-    const optionsFor = (key: string): string[] =>
-      key === 'category' ? ['Alla', ...CATEGORIES]
-        : key === 'type' ? ['Alla', ...typeOptions]
-        : key === 'color' ? ['Alla', ...COLOR_NAMES]
-        : ['Alla', ...SEASONS]
-    const valueFor = (key: string) =>
-      key === 'category' ? baseCat : key === 'type' ? baseType : key === 'color' ? baseColor : baseSeason
-    const setValue = (key: string, v: string) => {
-      if (key === 'category') { setBaseCat(v); setBaseType('Alla') }
-      else if (key === 'type') setBaseType(v)
-      else if (key === 'color') setBaseColor(v)
-      else setBaseSeason(v)
-      setBaseFilterOpen(null)
-    }
-    const anyActive = baseCat !== 'Alla' || baseType !== 'Alla' || baseColor !== 'Alla' || baseSeason !== 'Alla'
-    const q = baseSearch.trim().toLowerCase()
-    let items = cfg.pool.filter(g =>
-      !g.archived && !g.for_sale &&
-      (!q || g.name?.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)) &&
-      (baseCat === 'Alla' || g.category === baseCat) &&
-      (baseType === 'Alla' || g.subcategory === baseType) &&
-      (baseColor === 'Alla' || g.color === baseColor) &&
-      (baseSeason === 'Alla' || g.season?.includes(baseSeason))
-    )
-    if (cfg.accessoriesFirst) {
-      // Smycken och accessoarer överst (vanligast att vilja lägga till).
-      const rank = (g: any) => g.category === 'Smycken' ? 0 : g.category === 'Accessoarer' ? 1 : 2
-      items = [...items].sort((a, b) => rank(a) - rank(b))
-    }
-    return (
-      <Modal visible={cfg.visible} animationType="slide" transparent onRequestClose={cfg.onClose}>
-        <View style={styles.swapOverlay}>
-          <View style={styles.swapSheet}>
-            <View style={styles.swapHeader}>
-              <Text style={styles.swapTitle}>{cfg.title}</Text>
-              <TouchableOpacity onPress={cfg.onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityLabel={tr('Stäng')} accessibilityRole="button">
-                <Text style={styles.swapClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            {cfg.sets && cfg.sets.length > 0 && (
-              <View style={styles.baseSetChipsWrap}>
-                <Text style={styles.baseSetChipsLabel}>{tr('Set')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.baseSetChipsRow}>
-                  {cfg.sets.map(s => {
-                    const members = garments.filter(g => g.set_id === s.id && !g.archived && !g.in_laundry)
-                    const thumbs = members.slice(0, 3)
-                    return (
-                      <TouchableOpacity key={s.id} style={styles.baseSetChip} onPress={() => { cfg.onSelectSet?.(s); cfg.onClose() }}>
-                        {thumbs.length > 0
-                          ? (
-                            <View style={styles.baseSetThumbs}>
-                              {thumbs.map(g => (
-                                g.image_url
-                                  ? <SignedImage key={g.id} path={g.image_url} style={styles.baseSetThumb} resizeMode="contain" transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                                  : <View key={g.id} style={[styles.baseSetThumb, styles.baseSetThumbEmpty]} />
-                              ))}
-                            </View>
-                          )
-                          : <Ionicons name="albums-outline" size={14} color={t.textSecondary} />
-                        }
-                        <Text style={styles.baseSetChipText} numberOfLines={1}>{s.name}</Text>
-                      </TouchableOpacity>
-                    )
-                  })}
-                </ScrollView>
-              </View>
-            )}
-
-            <TextInput
-              style={styles.baseSearchInput}
-              placeholder={tr('Sök plagg eller färg...')}
-              placeholderTextColor={t.textSecondary}
-              value={baseSearch}
-              onChangeText={setBaseSearch}
-            />
-
-            <View style={styles.baseFilterRow}>
-              {chips.map(c => {
-                const on = c.value !== 'Alla'
-                return (
-                  <TouchableOpacity
-                    key={c.key}
-                    style={[styles.baseChip, (on || baseFilterOpen === c.key) && styles.baseChipActive]}
-                    onPress={() => setBaseFilterOpen(baseFilterOpen === c.key ? null : c.key)}
-                  >
-                    <Text style={[styles.baseChipText, (on || baseFilterOpen === c.key) && styles.baseChipTextActive]} numberOfLines={1}>
-                      {on ? tr(c.value) : c.label} ▾
-                    </Text>
-                  </TouchableOpacity>
-                )
-              })}
-              {anyActive && (
-                <TouchableOpacity
-                  style={styles.baseChipClear}
-                  onPress={() => { setBaseCat('Alla'); setBaseType('Alla'); setBaseColor('Alla'); setBaseSeason('Alla'); setBaseFilterOpen(null) }}
-                >
-                  <Text style={styles.baseChipClearText}>{tr('Rensa')}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {baseFilterOpen && (
-              <View style={styles.baseOptionsRow}>
-                {optionsFor(baseFilterOpen).map(opt => {
-                  const active = valueFor(baseFilterOpen) === opt
-                  return (
-                    <TouchableOpacity
-                      key={opt}
-                      style={[styles.baseOption, active && styles.baseOptionActive]}
-                      onPress={() => setValue(baseFilterOpen, opt)}
-                    >
-                      {baseFilterOpen === 'color' && COLOR_HEX[opt] && (
-                        <View style={[styles.baseColorDot, { backgroundColor: COLOR_HEX[opt] }]} />
-                      )}
-                      <Text style={[styles.baseOptionText, active && styles.baseOptionTextActive]}>{tr(opt)}</Text>
-                    </TouchableOpacity>
-                  )
-                })}
-              </View>
-            )}
-
-            {items.length === 0 ? (
-              <View style={styles.swapEmpty}>
-                <Text style={styles.swapEmptyText}>{tr('Inga plagg matchar filtren')}</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={items}
-                numColumns={3}
-                keyExtractor={g => g.id}
-                keyboardShouldPersistTaps="handled"
-                renderItem={({ item: g }) => (
-                  <TouchableOpacity style={styles.swapAlt} onPress={() => { cfg.onSelect(g); cfg.onClose() }}>
-                    {g.image_url
-                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
-                    }
-                    <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-          </View>
-        </View>
-      </Modal>
-    )
-  }
 
   // Set som har minst ett användbart plagg (för utgångsset-valet).
   const availableSets = sets.filter(s => garments.some(g => g.set_id === s.id && !g.archived && !g.in_laundry))
@@ -1527,125 +1356,49 @@ export default function Home() {
       </ScrollView>
 
       {/* Välj utgångsplagg att bygga outfiten kring */}
-      {renderGarmentPicker({
-        visible: showBasePicker,
-        title: tr('Utgå från ett plagg/set'),
-        pool: activeGarmentsForPicker,
-        onSelect: (g) => { setBaseGarment(g); setBaseSet(null) },
-        onClose: closeBasePicker,
-        sets: availableSets,
-        onSelectSet: chooseBaseSet,
-      })}
+      <GarmentPicker
+        visible={showBasePicker}
+        title={tr('Utgå från ett plagg/set')}
+        pool={activeGarmentsForPicker}
+        garments={garments}
+        onSelect={(g) => { setBaseGarment(g); setBaseSet(null) }}
+        onClose={closeBasePicker}
+        sets={availableSets}
+        onSelectSet={chooseBaseSet}
+      />
 
       {/* Lägg till ytterligare plagg i en genererad outfit */}
-      {renderGarmentPicker({
-        visible: addTarget !== null,
-        title: tr('Lägg till plagg'),
-        pool: addPickerPool,
-        onSelect: addItemToOutfit,
-        onClose: closeAddPicker,
-        accessoriesFirst: true,
-      })}
+      <GarmentPicker
+        visible={addTarget !== null}
+        title={tr('Lägg till plagg')}
+        pool={addPickerPool}
+        garments={garments}
+        onSelect={addItemToOutfit}
+        onClose={closeAddPicker}
+        accessoriesFirst
+      />
 
       {/* Byt ut plagg i outfiten */}
-      <Modal visible={swapIndex !== null} animationType="slide" transparent onRequestClose={() => setSwapIndex(null)}>
-        <View style={styles.swapOverlay}>
-          <View style={styles.swapSheet}>
-            <View style={styles.swapHeader}>
-              <Text style={styles.swapTitle}>{tr('Byt ut')}{swapItem ? ` ${swapItem.name}` : ''}</Text>
-              <TouchableOpacity
-                onPress={() => setSwapIndex(null)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel={tr('Stäng')}
-                accessibilityRole="button"
-              >
-                <Text style={styles.swapClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.swapRemoveBtn}
-              onPress={() => swapIndex !== null && removeItem(swapIndex)}
-            >
-              <Text style={styles.swapRemoveText}>{tr('Ta bort ur outfiten')}</Text>
-            </TouchableOpacity>
-
-            {swapAlternatives.length === 0 ? (
-              <View style={styles.swapEmpty}>
-                <Text style={styles.swapEmptyText}>{tr('Inga andra plagg i samma kategori')}</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={swapAlternatives}
-                numColumns={3}
-                keyExtractor={g => g.id}
-                renderItem={({ item: g }) => (
-                  <TouchableOpacity
-                    style={styles.swapAlt}
-                    onPress={() => swapIndex !== null && replaceItem(swapIndex, g)}
-                  >
-                    {g.image_url
-                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
-                    }
-                    <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-          </View>
-        </View>
-      </Modal>
+      <SwapSheet
+        visible={swapIndex !== null}
+        title={`${tr('Byt ut')}${swapItem ? ` ${swapItem.name}` : ''}`}
+        alternatives={swapAlternatives}
+        emptyText={tr('Inga andra plagg i samma kategori')}
+        onClose={() => setSwapIndex(null)}
+        onRemove={() => swapIndex !== null && removeItem(swapIndex)}
+        onReplace={(g) => swapIndex !== null && replaceItem(swapIndex, g)}
+      />
 
       {/* Byt ut plagg i par-outfiten */}
-      <Modal visible={coupleSwap !== null} animationType="slide" transparent onRequestClose={() => setCoupleSwap(null)}>
-        <View style={styles.swapOverlay}>
-          <View style={styles.swapSheet}>
-            <View style={styles.swapHeader}>
-              <Text style={styles.swapTitle}>{tr('Byt ut')}{coupleSwapItem ? ` ${coupleSwapItem.name}` : ''}</Text>
-              <TouchableOpacity
-                onPress={() => setCoupleSwap(null)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel={tr('Stäng')}
-                accessibilityRole="button"
-              >
-                <Text style={styles.swapClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.swapRemoveBtn}
-              onPress={() => coupleSwap && removeCoupleItem(coupleSwap.person, coupleSwap.index)}
-            >
-              <Text style={styles.swapRemoveText}>{tr('Ta bort ur outfiten')}</Text>
-            </TouchableOpacity>
-
-            {coupleSwapAlternatives.length === 0 ? (
-              <View style={styles.swapEmpty}>
-                <Text style={styles.swapEmptyText}>{tr('Inga andra plagg i samma kategori')}</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={coupleSwapAlternatives}
-                numColumns={3}
-                keyExtractor={g => g.id}
-                renderItem={({ item: g }) => (
-                  <TouchableOpacity
-                    style={styles.swapAlt}
-                    onPress={() => coupleSwap && replaceCoupleItem(coupleSwap.person, coupleSwap.index, g)}
-                  >
-                    {g.image_url
-                      ? <SignedImage path={g.image_url} style={styles.swapAltImage} resizeMode="contain" transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                      : <View style={[styles.swapAltImage, styles.swapAltEmpty]} />
-                    }
-                    <Text style={styles.swapAltName} numberOfLines={1}>{g.name}</Text>
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-          </View>
-        </View>
-      </Modal>
+      <SwapSheet
+        visible={coupleSwap !== null}
+        title={`${tr('Byt ut')}${coupleSwapItem ? ` ${coupleSwapItem.name}` : ''}`}
+        alternatives={coupleSwapAlternatives}
+        emptyText={tr('Inga andra plagg i samma kategori')}
+        onClose={() => setCoupleSwap(null)}
+        onRemove={() => coupleSwap && removeCoupleItem(coupleSwap.person, coupleSwap.index)}
+        onReplace={(g) => coupleSwap && replaceCoupleItem(coupleSwap.person, coupleSwap.index, g)}
+      />
 
       {/* Dold vy som fångas som bild vid delning. Placeras utanför skärmen. */}
       {outfit && (
@@ -1735,47 +1488,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseThumb: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface },
   baseThumbEmpty: { borderWidth: 1, borderColor: t.border },
   baseSetIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
-  baseSetChipsWrap: { marginBottom: 16 },
-  baseSetChipsLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginBottom: 8, marginLeft: 2 },
-  baseSetChipsRow: { gap: 8, paddingRight: 8 },
-  baseSetChip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.surfaceMuted, borderRadius: 20, paddingLeft: 6, paddingRight: 14, paddingVertical: 6, borderWidth: 1, borderColor: t.border },
-  baseSetChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, maxWidth: 160 },
-  baseSetThumbs: { flexDirection: 'row', gap: 3 },
-  baseSetThumb: { width: 30, height: 30, borderRadius: 8, backgroundColor: t.surface },
-  baseSetThumbEmpty: { backgroundColor: t.border },
-  baseSearchInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, color: t.textPrimary, fontSize: 15, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
-  baseFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  baseChip: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
-  baseChipActive: { backgroundColor: t.primary, borderColor: t.primary },
-  baseChipText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 12 },
-  baseChipTextActive: { color: t.onPrimary },
-  baseChipClear: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 20 },
-  baseChipClearText: { fontFamily: 'Lora_500Medium', color: t.primary, fontSize: 12 },
-  baseOptionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
-  baseOption: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 7, paddingHorizontal: 12, borderRadius: 18, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
-  baseOptionActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
-  baseOptionText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12 },
-  baseOptionTextActive: { color: t.onPrimary },
-  baseColorDot: { width: 14, height: 14, borderRadius: 7, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
   swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   addItemBox: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center' },
   addItemCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   swapBadgeText: { color: t.onPrimary, fontSize: 12, fontFamily: 'Poppins_700Bold' },
-
-  // Byt-ut-modal
-  swapOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  swapSheet: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '88%' },
-  swapHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  swapTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary, flex: 1 },
-  swapClose: { color: t.textSecondary, fontSize: 20 },
-  swapRemoveBtn: { backgroundColor: t.surfaceMuted, borderRadius: t.radius.md, padding: 12, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: t.border },
-  swapRemoveText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 14 },
-  swapEmpty: { padding: 28, alignItems: 'center' },
-  swapEmptyText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
-  swapAlt: { flex: 1 / 3, margin: 4, alignItems: 'center', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 8, borderWidth: 1, borderColor: t.border },
-  swapAltImage: { width: '100%', aspectRatio: 1, borderRadius: 8 },
-  swapAltEmpty: { alignItems: 'center', justifyContent: 'center' },
-  swapAltName: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 10, marginTop: 4, textAlign: 'center' },
   outfitImageEmpty: { width: 80, height: 80, borderRadius: 14, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center' },
   outfitItemName: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, textAlign: 'center', width: 80 },
   outfitActions: { flexDirection: 'row', gap: 8 },
