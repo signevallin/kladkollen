@@ -67,9 +67,9 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   nu oanvända imports/konstanter/stilar.
 - **Verifiera refaktoreringar med `npx tsc --noEmit`.** Kör `npm ci
   --ignore-scripts` först om `node_modules` saknas i en färsk container.
-  Baslinjen är ren så när som på ett känt fel i `api/remove-background.ts` –
-  jämför mot det. (`noUnusedLocals` är av, så oanvända imports/stilar fångas
-  inte av tsc – rensa dem manuellt med grep.)
+  Baslinjen är helt ren (0 fel) – varje fel du ser är ditt eget att åtgärda.
+  (`noUnusedLocals` är av, så oanvända imports/stilar fångas inte av tsc –
+  rensa dem manuellt med grep.)
 
 ## Övrigt värt att minnas
 - i18n är nycklad på svenska källsträngar: `tr('Svensk text')`. Övriga språk

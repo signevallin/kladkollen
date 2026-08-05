@@ -1,6 +1,11 @@
 import { json, requireUser } from './_utils'
 
-export const config = { runtime: 'edge' }
+// Node-runtime i stället för Edge: bakgrundsborttagningen väntar på Replicate
+// (rembg har långsam kallstart), och Edge-runtimens korta hårda tidsgräns gav
+// ett opakt "internal server error" (plattforms-timeout). Node tillåter
+// maxDuration. Handlern använder bara webb-standard-API:er (fetch/btoa/Response)
+// som finns i Node 18+, så koden är oförändrad.
+export const config = { runtime: 'nodejs', maxDuration: 60 }
 
 // Väletablerad öppen bakgrundsborttagningsmodell (rembg). Kan bytas via env.
 const DEFAULT_MODEL = 'cjwbw/rembg'
@@ -39,10 +44,10 @@ export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
   }
-  const auth = await requireUser(request)
-  if (auth instanceof Response) return auth
-
   try {
+    const auth = await requireUser(request)
+    if (auth instanceof Response) return auth
+
     const { base64 } = (await request.json()) as any
     if (!base64) return json({ error: 'Bild saknas' }, 400)
 
@@ -54,7 +59,7 @@ export default async function handler(request: Request): Promise<Response> {
     // 1) Hämta modellens senaste version (fungerar oavsett om modellen har en
     //    default-version satt – till skillnad mot models-by-name-endpointen).
     //    Cacheas mellan anrop så flerbildsuppladdningar gör färre API-anrop.
-    let version = cachedVersion?.model === model ? cachedVersion.version : null
+    let version = cachedVersion && cachedVersion.model === model ? cachedVersion.version : null
     if (!version) {
       const modelRes = await fetch(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders })
       if (modelRes.status === 404) {
@@ -112,6 +117,9 @@ export default async function handler(request: Request): Promise<Response> {
     if (!imgRes.ok) return json({ error: 'Kunde inte hämta resultatbilden' }, 502)
     return json({ base64: arrayBufferToBase64(await imgRes.arrayBuffer()) })
   } catch (e: any) {
-    return json({ error: e.message }, 500)
+    // Logga hela felet så det syns i Vercel-loggarna – annars får klienten bara
+    // ett opakt 500 utan spår att felsöka från.
+    console.error('remove-background failed:', e?.stack || e?.message || e)
+    return json({ error: e?.message || 'Bakgrundsborttagning misslyckades' }, 500)
   }
 }
