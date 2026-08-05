@@ -12,7 +12,16 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '2. Vilka uppgifter samlar vi in?',
-    body: 'Kontouppgifter: emailadress och lösenord (lösenordet lagras krypterat hos vår driftleverantör Supabase).\n\nInnehåll du själv lägger in: foton på plagg, profilbild, garderobsdata, outfits, köplista, moodboard och stilpreferenser.\n\nValfria uppgifter för färganalys: foto eller uppgifter om hudton, hårfärg och ögonfärg som du själv anger.\n\nPlats: om du tillåter platsåtkomst används din position endast för att hämta aktuellt väder. Positionen sparas inte.',
+    body: 'Kontouppgifter: e-postadress och lösenord (lösenordet lagras krypterat hos vår driftleverantör Supabase).\n\n' +
+      'Profil- och preferensuppgifter som du själv anger för att förbättra förslagen: namn, kön, födelsedatum, hur snabbt du fryser, livssituation, stil- och färgpreferenser, stilregler, musikgenrer, säsong samt fritextnoteringar (t.ex. sådant du vill undvika eller egna önskemål per tillfälle).\n\n' +
+      'Innehåll du lägger in: foton på plagg och profilbild, garderobsdata (kategori, färg, storlek, märke, pris och var plagget förvaras), outfits, köp- och säljlista, kalender med planerade outfits, reseplaner (destination och datum), moodboard/inspirationsbilder samt hur ofta och när du använder plaggen och dina betyg på outfits.\n\n' +
+      'Valfri färganalys: ett foto eller uppgifter du själv anger om hudton, undertone, hår- och ögonfärg.\n\n' +
+      'Valfritt gravidläge: om du aktiverar det sparas att du är gravid samt ett beräknat datum, enbart för att anpassa förslagen. Ingen annan hälsodata samlas in.\n\n' +
+      'Hushåll och familj (valfritt, Premium): om du kopplar ihop dig med en partner eller lägger till familjemedlemmar sparas deras namn, eventuell avatar och för barn födelsedatum, kön och aktuell storlek. Lägg bara in uppgifter om andra personer om du har rätt att göra det.\n\n' +
+      'Aviseringar (valfritt): slår du på notiser sparar vi en enhetsidentifierare (push-token) och din senast kända position för att kunna skicka väderbaserade påminnelser. Stänger du av notiser tas detta bort.\n\n' +
+      'Plats: när du är i appen används din position i realtid för att hämta aktuellt väder och sparas då inte. (Undantag: väderaviseringar ovan.)\n\n' +
+      'Köp: köp av Premium hanteras av App Store respektive Google Play och vår prenumerationsleverantör RevenueCat, som lagrar en app-användaridentifierare och din prenumerationsstatus. Vi ser aldrig dina kort- eller betaluppgifter.\n\n' +
+      'Import av kvitton (valfritt): använder du import via e-post eller butik behandlar vi innehållet i de kvitton du vidarebefordrar för att skapa plagg i din garderob.',
   },
   {
     title: '3. Hur används uppgifterna?',
@@ -32,7 +41,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '7. Ändringar',
-    body: 'Vi kan uppdatera denna policy. Väsentliga ändringar meddelas i appen. Senast uppdaterad: juli 2026.',
+    body: 'Vi kan uppdatera denna policy. Väsentliga ändringar meddelas i appen. Senast uppdaterad: augusti 2026.',
   },
 ]
 
