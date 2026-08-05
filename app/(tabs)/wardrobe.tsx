@@ -124,7 +124,8 @@ export default function Wardrobe() {
   }, [isPerson, activeTab])
 
   async function fetchGarments() {
-    const { data } = await supabase.from('garments').select('*')
+    // Deterministisk basordning; display-sorten nedan har dessutom id-tiebreak.
+    const { data } = await supabase.from('garments').select('*').order('created_at', { ascending: false })
     if (data) {
       // Barn-läge: visa bara det barnets plagg. Annars mina egna (person_id null);
       // barnens plagg ligger i respektive barns garderob.
@@ -263,18 +264,22 @@ export default function Wardrobe() {
         g.name.toLowerCase().includes(q) || g.color?.toLowerCase().includes(q)
       )
     }
-    // Sortering (kopiera först så vi inte muterar garments)
+    // Sortering (kopiera först så vi inte muterar garments). Alla grenar har ett
+    // stabilt id-tiebreak så rutnätet aldrig kastas om beroende på hämtnings-
+    // ordningen – t.ex. när man öppnat ett plagg och en autospar bumpat raden,
+    // vilket annars ändrade den godtyckliga DB-ordningen för lika sorteringsvärden.
     const sorted = [...result]
+    const byId = (a: any, b: any) => String(a.id).localeCompare(String(b.id))
     switch (sortBy) {
-      case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name, 'sv')); break
-      case 'most': sorted.sort((a, b) => (b.times_worn || 0) - (a.times_worn || 0)); break
-      case 'least': sorted.sort((a, b) => (a.times_worn || 0) - (b.times_worn || 0)); break
+      case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name, 'sv') || byId(a, b)); break
+      case 'most': sorted.sort((a, b) => ((b.times_worn || 0) - (a.times_worn || 0)) || byId(a, b)); break
+      case 'least': sorted.sort((a, b) => ((a.times_worn || 0) - (b.times_worn || 0)) || byId(a, b)); break
       case 'color': sorted.sort((a, b) => {
         const ai = COLOR_ORDER.indexOf(a.color), bi = COLOR_ORDER.indexOf(b.color)
-        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+        return ((ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)) || byId(a, b)
       }); break
       default: sorted.sort((a, b) => // recent
-        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+        (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()) || byId(a, b))
     }
     return sorted
   }, [garments, activeCategories, activeSeasons, activeColors, activeTypes, activeSizes, laundryFilter, search, sortBy])
