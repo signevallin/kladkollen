@@ -53,7 +53,7 @@ export default function NotificationsSettings() {
     const { data } = await supabase.from('profiles').select('notif_enabled, notif_prefs').eq('id', user.id).single()
     if (data) {
       setEnabled(data.notif_enabled ?? true)
-      setPrefs({ ...DEFAULT_PREFS, ...(data.notif_prefs || {}) })
+      setPrefs({ ...DEFAULT_PREFS, ...((data.notif_prefs as unknown as Partial<NotifPrefs>) || {}) })
     }
     setLoading(false)
   }

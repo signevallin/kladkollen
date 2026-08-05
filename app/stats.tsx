@@ -150,9 +150,9 @@ export default function Stats() {
     // Räkna bara nuvarande kontexter (Jobb/Ledig/Fest). Äldre outfits kan ha
     // värden från det gamla humör-systemet (Lugn, Power osv) – de hoppas över
     // här men räknas fortfarande i betygsbaserad statistik (Power Pieces m.m.).
-    const withMood = outfits.filter(o => o.mood && CTX_META[o.mood])
+    const withMood = outfits.filter((o): o is typeof o & { mood: string } => !!o.mood && !!CTX_META[o.mood])
     setHasStyleData(withMood.length > 0 || outfits.some(o => o.rating !== null))
-    const rated = outfits.filter(o => o.rating !== null)
+    const rated = outfits.filter((o): o is typeof o & { rating: number } => o.rating !== null)
     setRatedCount(rated.length)
 
     const { data: gData } = await supabase.from('garments').select('id, name, image_url, color')
@@ -223,7 +223,7 @@ export default function Stats() {
     // ── Color Psychology + Vinnande kombination (färggrupp × kontext) ──
     const colorGroupRatings: Record<string, { sum: number; count: number }> = {}
     const comboRatings: Record<string, { sum: number; count: number }> = {}
-    rated.filter(o => o.garment_ids?.length > 0).forEach(o => {
+    rated.filter(o => (o.garment_ids?.length ?? 0) > 0).forEach(o => {
       const usedGroups = new Set<string>()
       ;(o.garment_ids || []).forEach((id: string) => {
         const color = colorById.get(id)

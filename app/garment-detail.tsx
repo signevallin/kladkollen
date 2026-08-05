@@ -60,7 +60,10 @@ export default function GarmentDetail() {
   const styles = makeStyles(t)
   const { currency, toBaseSEK, fromBaseSEK, t: tr, lang } = useSettings()
   const locale = localeFor(lang)
-  const { id, wishlistId } = useLocalSearchParams()
+  // Normalisera params till strängar (expo-router kan ge string[] vid dubbletter).
+  const rawParams = useLocalSearchParams()
+  const id = Array.isArray(rawParams.id) ? rawParams.id[0] : rawParams.id
+  const wishlistId = Array.isArray(rawParams.wishlistId) ? rawParams.wishlistId[0] : rawParams.wishlistId
   const isWishlistItem = !!wishlistId && !id
 
   const back = () => goBack('/wardrobe')
@@ -133,7 +136,7 @@ export default function GarmentDetail() {
   async function fetchGarment() {
     const { data } = await supabase.from('garments').select('*').eq('id', id).single()
     if (data) {
-      setName(data.name); setCategory(data.category); setSubcategory(data.subcategory || ''); setColor(data.color || '')
+      setName(data.name); setCategory(data.category || ''); setSubcategory(data.subcategory || ''); setColor(data.color || '')
       setSeasons(data.season ? data.season.split(', ') : [])
       setTimesWorn(data.times_worn || 0); setLastWorn(data.last_worn); setImageUrl(data.image_url)
       setSize(data.size || ''); setFit(data.fit || ''); setLocation(data.location || ''); setLendable(!!data.lendable)
