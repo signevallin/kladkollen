@@ -41,6 +41,9 @@ const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
 const COLORS = ['Alla', ...COLOR_NAMES]
 
+// Kategorier som inte tvättas – ingen tvättikon/tvätt-toggle på dessa plagg.
+const NO_LAUNDRY_CATEGORIES = ['Skor', 'Smycken']
+
 const SORT_OPTIONS: { key: string; label: string }[] = [
   { key: 'recent', label: 'Senast tillagd' },
   { key: 'name', label: 'A–Ö' },
@@ -703,15 +706,18 @@ export default function Wardrobe() {
                       <Ionicons name="swap-horizontal" size={14} color={t.onPrimary} />
                     </View>
                   )}
-                  <TouchableOpacity
-                    style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
-                    onPress={() => toggleLaundry(item)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    accessibilityLabel={item.in_laundry ? `${tr('Ta ur tvätten')}: ${item.name}` : `${tr('Lägg i tvätten')}: ${item.name}`}
-                    accessibilityRole="button"
-                  >
-                    <MaterialIcons name="local-laundry-service" size={14} color={item.in_laundry ? t.onPrimary : t.textSecondary} />
-                  </TouchableOpacity>
+                  {/* Skor och smycken tvättas inte – ingen tvättikon på dem. */}
+                  {!NO_LAUNDRY_CATEGORIES.includes(item.category) && (
+                    <TouchableOpacity
+                      style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
+                      onPress={() => toggleLaundry(item)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityLabel={item.in_laundry ? `${tr('Ta ur tvätten')}: ${item.name}` : `${tr('Lägg i tvätten')}: ${item.name}`}
+                      accessibilityRole="button"
+                    >
+                      <MaterialIcons name="local-laundry-service" size={14} color={item.in_laundry ? t.onPrimary : t.textSecondary} />
+                    </TouchableOpacity>
+                  )}
                   {item.set_id && (
                     <View style={styles.setBadge} accessibilityLabel={tr('Ingår i ett set')}>
                       <MaterialIcons name="link" size={13} color={t.onPrimary} />
