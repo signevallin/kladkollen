@@ -32,7 +32,7 @@ import { cacheGet } from '../utils/cache'
 import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
-import { createSet, fetchSets, fetchSetMembers, setGarmentSet, type GarmentSet, type SetMember } from '../utils/sets'
+import GarmentSetSection from '../components/garment-detail/GarmentSetSection'
 import { useSettings } from '../utils/settings'
 import { localeFor } from '../utils/i18n'
 import { resolveImageUrl, uploadUserImage } from '../utils/storage'
@@ -97,12 +97,9 @@ export default function GarmentDetail() {
   const [showReasonPicker, setShowReasonPicker] = useState(false)
   const [sold, setSold] = useState(false)
 
-  // Set: plagg som hör ihop (co-ord, kostym ...). Ett plagg tillhör högst ett set.
-  const [setId, setSetId] = useState<string | null>(null)
-  const [allSets, setAllSets] = useState<GarmentSet[]>([])
-  const [setMembers, setSetMembers] = useState<SetMember[]>([])
-  const [showSetPicker, setShowSetPicker] = useState(false)
-  const [newSetName, setNewSetName] = useState('')
+  // Set: plagg som hör ihop (co-ord, kostym ...). Ett plagg tillhör högst ett
+  // set. Hela set-hanteringen bor i components/garment-detail/GarmentSetSection.
+  const [initialSetId, setInitialSetId] = useState<string | null>(null)
 
   // Autospar: alla ändringar sparas automatiskt med kort fördröjning.
   const [loaded, setLoaded] = useState(false)
@@ -147,10 +144,9 @@ export default function GarmentDetail() {
       setPersonId(data.person_id || null)
       setSizeCm(data.size_cm ?? null)
       setFamilyStatus((data.status as any) || 'in_use')
-      setSetId(data.set_id || null)
+      setInitialSetId(data.set_id || null)
       setLoaded(true)
     }
-    fetchSets().then(setAllSets)
     // Egna märken för autocomplete
     const { data: all } = await supabase.from('garments').select('brand')
     if (all) setOwnBrands([...new Set(all.map((g: any) => g.brand).filter(Boolean))] as string[])
@@ -160,34 +156,6 @@ export default function GarmentDetail() {
     try { setChildren((await loadPeople()).filter(p => p.type === 'child')) } catch { /* inget hushåll än */ }
   }
 
-  // Ladda set-medlemmar när plaggets set ändras.
-  useEffect(() => {
-    if (setId) fetchSetMembers(setId).then(setSetMembers)
-    else setSetMembers([])
-  }, [setId])
-
-  const currentSetName = allSets.find(s => s.id === setId)?.name || ''
-
-  async function joinSet(sid: string) {
-    if (!id) return
-    await setGarmentSet(String(id), sid)
-    setSetId(sid)
-    setShowSetPicker(false)
-  }
-  async function createAndJoinSet() {
-    if (!id || !newSetName.trim()) return
-    const s = await createSet(newSetName.trim())
-    if (!s) { showAlert(tr('Något gick fel')); return }
-    setAllSets(prev => [s, ...prev])
-    setNewSetName('')
-    await joinSet(s.id)
-  }
-  async function leaveSet() {
-    if (!id) return
-    await setGarmentSet(String(id), null)
-    setSetId(null)
-    setSetMembers([])
-  }
 
   async function saveFields() {
     try {
@@ -762,33 +730,7 @@ export default function GarmentDetail() {
         )}
 
         {!isWishlistItem && loaded && (
-          <View style={styles.setSection}>
-            <Text style={styles.setLabel}>{tr('Set')}</Text>
-            {setId ? (
-              <>
-                {!!currentSetName && <Text style={styles.setName}>{currentSetName}</Text>}
-                {setMembers.length > 0 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.setMembers}>
-                    {setMembers.map(m => (
-                      <View key={m.id} style={styles.setThumb}><SignedImage path={m.image_url} style={styles.setThumbImg} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} /></View>
-                    ))}
-                  </ScrollView>
-                )}
-                <TouchableOpacity style={styles.setPrimaryBtn} onPress={() => router.push(`/home?styleSet=${setId}` as any)}>
-                  <Ionicons name="sparkles-outline" size={16} color={t.onPrimary} />
-                  <Text style={styles.setPrimaryText}>{tr('Styla hela setet')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.setSecondaryBtn} onPress={leaveSet}>
-                  <Text style={styles.setSecondaryText}>{tr('Ta bort ur set')}</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <TouchableOpacity style={styles.setSecondaryBtn} onPress={() => setShowSetPicker(true)}>
-                <Ionicons name="link-outline" size={16} color={t.textPrimary} />
-                <Text style={styles.setSecondaryText}>{tr('Lägg till i set')}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <GarmentSetSection garmentId={String(id)} initialSetId={initialSetId} />
         )}
 
         <Text style={styles.autosaveHint}>{tr('Ändringar sparas automatiskt')}</Text>
@@ -810,33 +752,6 @@ export default function GarmentDetail() {
         <TouchableOpacity style={styles.deleteButton} onPress={isWishlistItem ? deleteWishlistItem : deleteGarment}>
           <Text style={styles.deleteButtonText}>{isWishlistItem ? tr('Ta bort från köplistan') : tr('Ta bort plagg')}</Text>
         </TouchableOpacity>
-
-        <Modal visible={showSetPicker} transparent animationType="fade" onRequestClose={() => setShowSetPicker(false)}>
-          <TouchableOpacity style={styles.reasonBackdrop} activeOpacity={1} onPress={() => setShowSetPicker(false)}>
-            <TouchableOpacity activeOpacity={1} style={styles.setModalCard}>
-              <Text style={styles.setModalTitle}>{tr('Lägg till i set')}</Text>
-              <TextInput
-                style={styles.setInput}
-                placeholder={tr('Namn på nytt set')}
-                placeholderTextColor={t.placeholder}
-                value={newSetName}
-                onChangeText={setNewSetName}
-              />
-              <TouchableOpacity style={[styles.setPrimaryBtn, !newSetName.trim() && styles.setBtnDisabled]} onPress={createAndJoinSet} disabled={!newSetName.trim()}>
-                <Text style={styles.setPrimaryText}>{tr('Skapa set')}</Text>
-              </TouchableOpacity>
-              {allSets.length > 0 && <Text style={styles.setModalSub}>{tr('Eller välj befintligt:')}</Text>}
-              <ScrollView style={{ maxHeight: 220 }}>
-                {allSets.map(s => (
-                  <TouchableOpacity key={s.id} style={styles.setRow} onPress={() => joinSet(s.id)}>
-                    <Ionicons name="albums-outline" size={16} color={t.textSecondary} />
-                    <Text style={styles.setRowText}>{s.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
       </ScrollView>
     </SafeAreaView>
   )
@@ -905,21 +820,4 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   deleteButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 16 },
 
   // Set-sektion
-  setSection: { marginTop: 20, marginBottom: 4 },
-  setLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, marginBottom: 8 },
-  setName: { fontFamily: 'Lora_400Regular', fontSize: 15, color: t.textSecondary, marginBottom: 8 },
-  setMembers: { gap: 8, paddingVertical: 2 },
-  setThumb: { width: 56, height: 56, borderRadius: 10, overflow: 'hidden', backgroundColor: t.surfaceMuted },
-  setThumbImg: { width: '100%', height: '100%' },
-  setPrimaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: t.primary, borderRadius: 14, paddingVertical: 13, marginTop: 12 },
-  setPrimaryText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.onPrimary },
-  setSecondaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: 'transparent', borderRadius: 14, paddingVertical: 12, marginTop: 8, borderWidth: 1, borderColor: t.border },
-  setSecondaryText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary },
-  setBtnDisabled: { opacity: 0.5 },
-  setModalCard: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22, paddingBottom: 34 },
-  setModalTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textPrimary, marginBottom: 14 },
-  setModalSub: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 16, marginBottom: 8 },
-  setInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 13, color: t.textPrimary, fontSize: 15, borderWidth: 1, borderColor: t.border },
-  setRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
-  setRowText: { fontFamily: 'Lora_400Regular', fontSize: 15, color: t.textPrimary },
 })
