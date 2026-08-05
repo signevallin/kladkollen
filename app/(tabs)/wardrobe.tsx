@@ -35,6 +35,7 @@ import SaleAddModal from '../../components/wardrobe/SaleAddModal'
 import ArchiveView from '../../components/wardrobe/ArchiveView'
 import WishlistTab from '../../components/wardrobe/WishlistTab'
 import SaleTab from '../../components/wardrobe/SaleTab'
+import ListFilterBar from '../../components/wardrobe/ListFilterBar'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
@@ -85,6 +86,10 @@ export default function Wardrobe() {
   const [activeTab, setActiveTab] = useState('nuvarande')
   const [showSearch, setShowSearch] = useState(false)
   const [showFilterPanel, setShowFilterPanel] = useState(false)
+  // Filter för köp-/säljlistan (kategori + färg). Ligger här så garderobens
+  // header-filter (uppe till höger) kan styra dem – precis som i garderoben.
+  const [listCat, setListCat] = useState('Alla')
+  const [listColor, setListColor] = useState('Alla')
   const [sortBy, setSortBy] = useState('recent')
   const [showArchive, setShowArchive] = useState(false)
 
@@ -405,6 +410,15 @@ export default function Wardrobe() {
   }
 
   const hasActiveFilters = activeCategories.size > 0 || activeSeasons.size > 0 || activeColors.size > 0 || activeTypes.size > 0 || activeSizes.size > 0 || laundryFilter !== 'all' || search !== ''
+  // Aktiv köp-/säljlista + om det finns något att filtrera på (mer än en
+  // kategori eller färg). Styr om header-filterknappen visas för de flikarna.
+  const listItems = activeTab === 'köp' ? wishlist : activeTab === 'sälj' ? forSale : []
+  const listCanFilter = useMemo(() => {
+    const cats = new Set(listItems.map(i => i.category).filter(Boolean))
+    const cols = new Set(listItems.map(i => i.color).filter(Boolean))
+    return cats.size > 1 || cols.size > 1
+  }, [listItems])
+  const listFilterActive = listCat !== 'Alla' || listColor !== 'Alla'
   const laundryCount = garments.filter(g => g.in_laundry).length
   // Etikett för filter-chippen: inget val → filternamnet, ett val → värdet,
   // flera val → "Filternamn (antal)".
@@ -528,6 +542,17 @@ export default function Wardrobe() {
               <MaterialIcons name="tune" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
+          {/* Köp-/säljlistan: samma filterknapp uppe till höger som i garderoben. */}
+          {(activeTab === 'köp' || activeTab === 'sälj') && !showArchive && listCanFilter && (
+            <TouchableOpacity
+              style={[styles.iconBtn, (showFilterPanel || listFilterActive) && styles.iconBtnActive]}
+              onPress={() => setShowFilterPanel(s => !s)}
+              accessibilityLabel={tr('Filter')}
+              accessibilityRole="button"
+            >
+              <MaterialIcons name="tune" size={20} color={t.onPrimary} />
+            </TouchableOpacity>
+          )}
           {(activeTab === 'nuvarande' || activeTab === 'sälj') && (
             <TouchableOpacity
               style={[styles.iconBtn, showArchive && styles.iconBtnActive]}
@@ -559,7 +584,7 @@ export default function Wardrobe() {
           <TouchableOpacity
             key={id}
             style={[styles.tab, activeTab === id && styles.tabActive]}
-            onPress={() => { setActiveTab(id); setShowArchive(false) }}
+            onPress={() => { setActiveTab(id); setShowArchive(false); setShowFilterPanel(false); setListCat('Alla'); setListColor('Alla') }}
           >
             <Text style={[styles.tabText, activeTab === id && styles.tabTextActive]}>{label}</Text>
           </TouchableOpacity>
@@ -730,11 +755,26 @@ export default function Wardrobe() {
         </>
       )}
 
+      {/* Filterpanel för köp/sälj – togglas av samma filterknapp i headern. */}
+      {showFilterPanel && !showArchive && (activeTab === 'köp' || activeTab === 'sälj') && (
+        <View style={styles.listFilterWrap}>
+          <ListFilterBar
+            items={listItems}
+            category={listCat}
+            color={listColor}
+            onCategory={setListCat}
+            onColor={setListColor}
+          />
+        </View>
+      )}
+
       {/* KÖP */}
       {activeTab === 'köp' && (
         <WishlistTab
           wishlist={wishlist}
           outfitCounts={outfitCounts}
+          cat={listCat}
+          color={listColor}
           onMove={moveWishItem}
           onOpenLink={openWishLink}
           onBought={markWishBought}
@@ -744,7 +784,7 @@ export default function Wardrobe() {
 
       {/* SÄLJ */}
       {activeTab === 'sälj' && !showArchive && (
-        <SaleTab forSale={forSale} onSold={markAsSold} onRemove={removeFromSale} />
+        <SaleTab forSale={forSale} cat={listCat} color={listColor} onSold={markAsSold} onRemove={removeFromSale} />
       )}
 
       {/* ARKIV – nås från både Garderob- och Sälj-fliken */}
@@ -777,6 +817,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tabText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 13 },
   tabTextActive: { color: t.onPrimary, fontWeight: '600' },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
+  listFilterWrap: { paddingHorizontal: 16 },
   searchContainer: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: t.border },
   searchInput: { flex: 1, fontFamily: 'Lora_400Regular', paddingVertical: 12, color: t.textPrimary, fontSize: 14 },
   searchClear: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, paddingLeft: 8 },
