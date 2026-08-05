@@ -34,17 +34,42 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
 (`supabase/migrations/*.sql`).
 
 ## Kodstruktur & refaktorering
-- Stora skärmar bryts ned i delkomponenter. `wardrobe.tsx` (var 1626 rader) är
-  uppdelad i `components/wardrobe/`: `WishlistAddModals`, `SaleAddModal`,
-  `ArchiveView` (äger egen state, parent skickar data + `onAdded`/`onRefresh`),
-  samt presentationskomponenterna `WishlistTab`/`SaleTab` (parent äger data +
-  handlers). Mönster: co-lokalisera modal-/vy-state i komponenten, håll
-  data-fetch i skärmen. Följ samma mönster när andra stora skärmar delas upp
-  (kandidater: home.tsx, my-outfit.tsx, profile.tsx, stats.tsx, garment-detail.tsx).
+- Stora skärmar bryts ned i delkomponenter, samlade i `components/<skärm>/`.
+  Två mönster används:
+  - **Egen state (fetchar/sparar själv):** komponenten äger sin state och
+    data-fetch, parent säger bara vad som ska visas och får en signal tillbaka.
+  - **Presentation (parent äger data):** komponenten tar emot data + handlers
+    som props och renderar bara.
+- Redan uppdelat:
+  - `components/wardrobe/` – `WishlistAddModals`, `SaleAddModal`, `ArchiveView`
+    (egen state; parent skickar data + `onAdded`/`onRefresh`), samt
+    presentationskomponenterna `WishlistTab`/`SaleTab`. (wardrobe.tsx 1626→985)
+  - `components/profile/ColorAnalysis.tsx` – hela färganalysen; laddar egen
+    profildata, äger input-/resultat-state, sparar själv, `onAnalyzed`-signal
+    till profilraden. (profile.tsx 1138→779)
+  - `components/home/GarmentPicker.tsx` (plagg-/set-väljaren, äger eget
+    filter-/söktillstånd) + `SwapSheet.tsx` (byt-ut-arket, presentation –
+    används för både singel- och par-outfit). (home.tsx 1800→1516)
+  - `components/my-outfit/CreateOutfitView.tsx` – hela skapa/ändra-outfit-
+    helskärmen; äger create-state, härleder filtrerad lista via `useMemo`,
+    sparar själv. Parent styr bara `creating` + `editOutfit` (null = ny). (1335→1130)
+  - `components/add-garment/DraftCard.tsx` – redigerbart plaggkort i
+    granska-steget (presentation). `GarmentDraft`-typen exporteras från
+    `app/add-garment.tsx`. (796→574)
+  - `components/garment-detail/GarmentSetSection.tsx` – set-funktionen (välj/
+    skapa/lämna set + väljarmodal); egen state, sparar via `utils/sets`,
+    parent skickar `garmentId` + `initialSetId`. (924→822)
+- `stats.tsx` lämnas medvetet odelad: sammanhållen dashboard där varje sektion
+  är en unik visualisering knuten till många beroende beräknade värden – att
+  dela den blir omflyttning med stor prop-yta utan att ta bort duplicering.
+- Vid uppdelning: co-lokalisera modal-/vy-state i komponenten, håll data-fetch
+  i skärmen (om inte komponenten äger hela delfunktionen), och rensa parentens
+  nu oanvända imports/konstanter/stilar.
 - **Verifiera refaktoreringar med `npx tsc --noEmit`.** Kör `npm ci
   --ignore-scripts` först om `node_modules` saknas i en färsk container.
   Baslinjen är ren så när som på ett känt fel i `api/remove-background.ts` –
-  jämför mot det.
+  jämför mot det. (`noUnusedLocals` är av, så oanvända imports/stilar fångas
+  inte av tsc – rensa dem manuellt med grep.)
 
 ## Övrigt värt att minnas
 - i18n är nycklad på svenska källsträngar: `tr('Svensk text')`. Övriga språk
