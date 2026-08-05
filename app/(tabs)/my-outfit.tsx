@@ -66,6 +66,9 @@ export default function MyOutfits() {
   // Vilken outfit som redigeras (null = ny). Create-vyn (CreateOutfitView) äger
   // resten av skapa-state själv.
   const [editOutfit, setEditOutfit] = useState<any | null>(null)
+  // Datum att lägga en nyskapad outfit på direkt (när man bygger outfit från
+  // ett kalenderdatum). null = spara bara i outfit-listan som vanligt.
+  const [assignAfterCreate, setAssignAfterCreate] = useState<string | null>(null)
 
   // Öppnar skapa-outfit direkt när man kommer från "Lägg till outfit" i plusmenyn.
   useEffect(() => {
@@ -603,8 +606,13 @@ function isPast(date: Date) {
         wishlist={wishlist}
         editOutfit={editOutfit}
         locale={locale}
-        onClose={() => { setCreating(false); setEditOutfit(null) }}
-        onSaved={fetchOutfits}
+        onClose={() => { setCreating(false); setEditOutfit(null); setAssignAfterCreate(null) }}
+        onSaved={async (outfit) => {
+          // Byggd från ett kalenderdatum? Lägg den nya outfiten direkt på dagen.
+          const date = assignAfterCreate
+          if (date && outfit) await assignOutfitToDay(outfit, date)
+          fetchOutfits()
+        }}
       />
     )
   }
@@ -626,10 +634,22 @@ function isPast(date: Date) {
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Bygg en ny outfit (välj plagg direkt) och lägg den på dagen. */}
+              <TouchableOpacity
+                style={styles.pickerCreateBtn}
+                onPress={() => {
+                  const date = selectedDate
+                  setShowOutfitPicker(false); setSelectedDate(null)
+                  setEditOutfit(null); setAssignAfterCreate(date); setCreating(true)
+                }}
+              >
+                <Ionicons name="add" size={18} color={t.onPrimary} />
+                <Text style={styles.pickerCreateBtnText}>{tr('Skapa ny outfit')}</Text>
+              </TouchableOpacity>
               {outfits.length === 0 ? (
                 <View style={styles.emptyTab}>
-                  <Text style={styles.emptyTabText}>{tr('Inga outfits sparade ännu')}</Text>
-                  <Text style={styles.emptyTabHint}>{tr('Skapa en outfit i Outfits-fliken först')}</Text>
+                  <Text style={styles.emptyTabText}>{tr('Inga sparade outfits ännu')}</Text>
+                  <Text style={styles.emptyTabHint}>{tr('Bygg en ny outfit ovan – eller välj en sparad här sen.')}</Text>
                 </View>
               ) : (
                 outfits.map((outfit: any) => (
@@ -1135,8 +1155,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   weekdayRow: { flexDirection: 'row', marginBottom: 4 },
   weekdayLabel: { fontFamily: 'Poppins_600SemiBold', flex: 1, textAlign: 'center', fontSize: 11, color: t.textFaint },
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  dayCell: { width: '14.28%', aspectRatio: 0.6, padding: 2, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
-  dayCellToday: { borderWidth: 1.5, borderColor: t.primary },
+  // Innehållet top-justeras så datumsiffran hamnar på samma nivå i alla celler
+  // (annars centreras den och en dag med outfit-bild trycker upp siffran medan
+  // en tom dag får den längre ner). Transparent kant på basen så dagens kant
+  // inte förskjuter layouten relativt grannarna.
+  dayCell: { width: '14.28%', aspectRatio: 0.6, padding: 2, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', borderRadius: 8, borderWidth: 1.5, borderColor: 'transparent' },
+  dayCellToday: { borderColor: t.primary },
   // Burna outfits (dagar som passerat) = varm brun ton. Planerade (idag/framåt)
   // = samma ljusblå som plusknappen (fast, oavsett tema).
   dayCellWorn: { backgroundColor: t.primaryActive + '33' },
@@ -1165,6 +1189,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary, flex: 1 },
   modalClose: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textSecondary, paddingLeft: 12 },
+  pickerCreateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: t.primary, borderRadius: 16, paddingVertical: 14, marginBottom: 14 },
+  pickerCreateBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
   outfitPickerItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: t.border },
   outfitPickerImages: { flexDirection: 'row', gap: 4 },
   outfitPickerImage: { width: 48, height: 48, borderRadius: 10 },
