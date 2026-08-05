@@ -23,6 +23,15 @@ const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send'
 
 function today(): string { return new Date().toISOString().slice(0, 10) }
 
+// Delar upp en lista i mindre bitar. Används för att batcha .in()-frågor så
+// URL:en inte blir för lång när användarantalet växer.
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
+const ID_CHUNK = 200
+
 function daysSince(dateStr: string | null): number {
   if (!dateStr) return Infinity
   const d = new Date(dateStr).getTime()
@@ -218,33 +227,51 @@ export default async function handler(request: Request): Promise<Response> {
     .eq('notif_enabled', true)
 
   const day = today()
-  const messages: any[] = []
-  let considered = 0
+  const slotTag = `${day}:${slot}`
 
-  for (const p of (profiles || []) as Profile[]) {
-    if (!p.push_token) continue
-    // Max en notis per slot och dag (dedup lagras som "YYYY-MM-DD:slot").
-    if (p.last_notif_date === `${day}:${slot}`) continue
-    considered++
+  // Kandidater: har push-token och har inte redan fått en notis den här sloten
+  // idag (max en notis per slot och dag, dedup lagras som "YYYY-MM-DD:slot").
+  const candidates = ((profiles || []) as Profile[]).filter(
+    p => p.push_token && p.last_notif_date !== slotTag
+  )
+  const ids = candidates.map(p => p.id)
 
-    const { data: garments } = await admin
+  // Batcha plagg-hämtningen: EN fråga per id-batch i stället för en per
+  // användare. Gruppera i minnet på user_id.
+  const garmentsByUser = new Map<string, Garment[]>()
+  for (const idsChunk of chunk(ids, ID_CHUNK)) {
+    const { data } = await admin
       .from('garments')
-      .select('id, name, brand, color, category, season, price, times_worn, last_worn, created_at')
-      .eq('user_id', p.id)
+      .select('user_id, id, name, brand, color, category, season, price, times_worn, last_worn, created_at')
+      .in('user_id', idsChunk)
       .eq('archived', false)
+    for (const g of (data || []) as (Garment & { user_id: string })[]) {
+      const arr = garmentsByUser.get(g.user_id)
+      if (arr) arr.push(g); else garmentsByUser.set(g.user_id, [g])
+    }
+  }
 
-    let hasOutfitToday = false
-    if (slot === 'evening') {
+  // Kväll: batcha kalender-kollen på samma sätt → set med user_id som redan
+  // loggat en outfit idag.
+  const hasOutfitSet = new Set<string>()
+  if (slot === 'evening') {
+    for (const idsChunk of chunk(ids, ID_CHUNK)) {
       const { data: cal } = await admin
         .from('outfit_calendar')
-        .select('date')
-        .eq('user_id', p.id)
+        .select('user_id')
+        .in('user_id', idsChunk)
         .eq('date', day)
-        .limit(1)
-      hasOutfitToday = !!(cal && cal.length)
+      for (const c of (cal || []) as { user_id: string }[]) hasOutfitSet.add(c.user_id)
     }
+  }
 
-    const notif = await buildNotif(slot, p, (garments || []) as Garment[], hasOutfitToday)
+  const messages: any[] = []
+  // Samla vilka användare som fick vilken notistyp, så dedup-uppdateringen kan
+  // göras som en fråga per notistyp (max ~8) i stället för en per användare.
+  const notifiedByKind = new Map<string, string[]>()
+
+  for (const p of candidates) {
+    const notif = await buildNotif(slot, p, garmentsByUser.get(p.id) || [], hasOutfitSet.has(p.id))
     if (!notif) continue
 
     messages.push({
@@ -254,15 +281,25 @@ export default async function handler(request: Request): Promise<Response> {
       body: notif.body,
       data: { route: notif.route, kind: notif.kind },
     })
-    await admin.from('profiles').update({
-      last_notif_date: `${day}:${slot}`,
-      last_notif_kind: notif.kind,
-    }).eq('id', p.id)
+    const arr = notifiedByKind.get(notif.kind)
+    if (arr) arr.push(p.id); else notifiedByKind.set(notif.kind, [p.id])
   }
 
   if (messages.length) await sendBatch(messages)
 
-  return new Response(JSON.stringify({ ok: true, slot, considered, sent: messages.length }), {
+  // Batcha dedup-uppdateringen: en update per notistyp (och id-batch) i stället
+  // för en per användare.
+  await Promise.all(
+    [...notifiedByKind.entries()].flatMap(([kind, kindIds]) =>
+      chunk(kindIds, ID_CHUNK).map(idsChunk =>
+        admin.from('profiles')
+          .update({ last_notif_date: slotTag, last_notif_kind: kind })
+          .in('id', idsChunk)
+      )
+    )
+  )
+
+  return new Response(JSON.stringify({ ok: true, slot, considered: candidates.length, sent: messages.length }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   })
