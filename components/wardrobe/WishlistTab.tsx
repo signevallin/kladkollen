@@ -1,32 +1,31 @@
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import SignedImage from '../SignedImage'
-import ListFilterBar from './ListFilterBar'
 import { COLOR_HEX } from '../../utils/constants'
 import { useSettings } from '../../utils/settings'
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 
 // Köplistan (visning). Presentationskomponent – wardrobe.tsx äger datan och
-// skickar in handlers, så det stora render-blocket flyttar ut ur skärmen.
+// skickar in handlers samt filter-state (kategori/färg styrs från garderobens
+// header-filter), så det stora render-blocket flyttar ut ur skärmen.
 type Props = {
   wishlist: any[]
   outfitCounts: Record<string, number>
+  cat: string
+  color: string
   onMove: (index: number, direction: 'up' | 'down') => void
   onOpenLink: (item: any) => void
   onBought: (item: any) => void
   onDelete: (item: any) => void
 }
 
-export default function WishlistTab({ wishlist, outfitCounts, onMove, onOpenLink, onBought, onDelete }: Props) {
+export default function WishlistTab({ wishlist, outfitCounts, cat, color, onMove, onOpenLink, onBought, onDelete }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, formatPrice } = useSettings()
 
-  const [cat, setCat] = useState('Alla')
-  const [color, setColor] = useState('Alla')
   const filterActive = cat !== 'Alla' || color !== 'Alla'
   const visible = wishlist.filter(i =>
     (cat === 'Alla' || i.category === cat) && (color === 'Alla' || i.color === color)
@@ -47,7 +46,6 @@ export default function WishlistTab({ wishlist, outfitCounts, onMove, onOpenLink
               {formatPrice(visible.reduce((s, w) => s + (Number(w.price) || 0), 0))}
             </Text>
           </View>
-          <ListFilterBar items={wishlist} category={cat} color={color} onCategory={setCat} onColor={setColor} />
           {!filterActive && <Text style={styles.wishHint}>{tr('Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera')}</Text>}
           {visible.length === 0 ? (
             <View style={styles.emptyTab}>

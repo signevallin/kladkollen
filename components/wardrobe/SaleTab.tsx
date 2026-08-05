@@ -1,26 +1,25 @@
 import { router } from 'expo-router'
-import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import SignedImage from '../SignedImage'
-import ListFilterBar from './ListFilterBar'
 import { useSettings } from '../../utils/settings'
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 
-// Säljlistan (visning). Presentationskomponent – parent äger datan/handlers.
+// Säljlistan (visning). Presentationskomponent – parent äger datan/handlers och
+// filter-state (kategori/färg styrs från garderobens header-filter).
 type Props = {
   forSale: any[]
+  cat: string
+  color: string
   onSold: (item: any) => void
   onRemove: (item: any) => void
 }
 
-export default function SaleTab({ forSale, onSold, onRemove }: Props) {
+export default function SaleTab({ forSale, cat, color, onSold, onRemove }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
 
-  const [cat, setCat] = useState('Alla')
-  const [color, setColor] = useState('Alla')
   const visible = forSale.filter(i =>
     (cat === 'Alla' || i.category === cat) && (color === 'Alla' || i.color === color)
   )
@@ -34,7 +33,6 @@ export default function SaleTab({ forSale, onSold, onRemove }: Props) {
         </View>
       ) : (
         <>
-          <ListFilterBar items={forSale} category={cat} color={color} onCategory={setCat} onColor={setColor} />
           {visible.length === 0 ? (
             <View style={styles.emptyTab}>
               <Text style={styles.emptyTabText}>{tr('Inga plagg matchar filtren')}</Text>
