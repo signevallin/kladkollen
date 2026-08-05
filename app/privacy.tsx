@@ -1,6 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { goBack } from '../utils/nav'
+import { useSettings } from '../utils/settings'
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native'
 
 // OBS: Detta är en mall. Låt en jurist granska texten och fyll i
@@ -48,17 +49,18 @@ const SECTIONS: { title: string; body: string }[] = [
 export default function Privacy() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/')}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Integritetspolicy</Text>
+        <Text style={styles.title}>{tr('Integritetspolicy')}</Text>
         {SECTIONS.map(s => (
           <Text key={s.title}>
-            <Text style={styles.heading}>{'\n'}{s.title}{'\n'}</Text>
-            <Text style={styles.body}>{s.body}{'\n'}</Text>
+            <Text style={styles.heading}>{'\n'}{tr(s.title)}{'\n'}</Text>
+            <Text style={styles.body}>{tr(s.body)}{'\n'}</Text>
           </Text>
         ))}
       </ScrollView>
