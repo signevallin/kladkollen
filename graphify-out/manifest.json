@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "app/add-garment.tsx": {
-    "mtime": 1785443715.2731066,
-    "ast_hash": "1224c5a2ad196b21ce42426aaf1c6050",
+    "mtime": 1785918802.2767773,
+    "ast_hash": "414e0fde68e02e37c9d06f4ba69b9c9e",
     "semantic_hash": ""
   },
   "app/family.tsx": {
@@ -927,6 +927,11 @@
   "components/my-outfit/CreateOutfitView.tsx": {
     "mtime": 1785918044.77677,
     "ast_hash": "4f8066f6cbb89308d5e37b020187372e",
+    "semantic_hash": ""
+  },
+  "components/add-garment/DraftCard.tsx": {
+    "mtime": 1785918651.752776,
+    "ast_hash": "44dadc56cb712fae7ac2ad0f76e8633f",
     "semantic_hash": ""
   }
 }
