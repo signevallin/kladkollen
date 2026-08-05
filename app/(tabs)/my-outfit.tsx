@@ -737,7 +737,7 @@ function isPast(date: Date) {
                   <View style={styles.dayDetailEmpty}>
                     <Text style={styles.dayDetailEmptyText}>{tr('Ingen outfit planerad')}</Text>
                     <TouchableOpacity style={styles.dayDetailAddBtn} onPress={() => { setDayDetailDate(null); setSelectedDate(dayDetailDate); setShowOutfitPicker(true) }}>
-                      <Text style={styles.dayDetailAddBtnText}>＋ Välj outfit</Text>
+                      <Text style={styles.dayDetailAddBtnText}>＋ {tr('Välj outfit')}</Text>
                     </TouchableOpacity>
                   </View>
                 )}

@@ -443,11 +443,11 @@ export default function Profile() {
             icon: 'ac-unit', value: coldLabel,
             body: (
               <>
-                <Text style={styles.hint}>Påverkar hur mycket AI:n tar hänsyn till vädret – fryser du lätt föreslås varmare lager.</Text>
+                <Text style={styles.hint}>{tr('Påverkar hur mycket AI:n tar hänsyn till vädret – fryser du lätt föreslås varmare lager.')}</Text>
                 <View style={styles.pills}>
                   {COLD_LEVELS.map(l => (
                     <TouchableOpacity key={l.v} style={[styles.pill, coldSensitivity === l.v && styles.pillActive]} onPress={() => setColdSensitivity(l.v)}>
-                      <Text style={[styles.pillText, coldSensitivity === l.v && styles.pillTextActive]}>{l.label}</Text>
+                      <Text style={[styles.pillText, coldSensitivity === l.v && styles.pillTextActive]}>{tr(l.label)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -455,10 +455,10 @@ export default function Profile() {
             ),
           })}
           {renderRow('musik', 'Musik', {
-            icon: 'music-note', value: musicGenres.length ? `${musicGenres.length} valda` : undefined,
+            icon: 'music-note', value: musicGenres.length ? `${musicGenres.length} ${tr('valda')}` : undefined,
             body: (
               <>
-                <Text style={styles.hint}>Outfitens låtförslag hämtas ur dina genrer.</Text>
+                <Text style={styles.hint}>{tr('Outfitens låtförslag hämtas ur dina genrer.')}</Text>
                 {pillGroup(MUSIC_GENRES as unknown as string[], musicGenres, toggle(setMusicGenres))}
               </>
             ),
@@ -467,11 +467,11 @@ export default function Profile() {
             icon: 'favorite-border', value: lifeMode === 'family' ? 'Familj' : lifeMode === 'couple' ? 'Partner' : 'Singel',
             body: (
               <>
-                <Text style={styles.hint}>Anpassar appen efter var i livet du är.</Text>
+                <Text style={styles.hint}>{tr('Anpassar appen efter var i livet du är.')}</Text>
                 <View style={styles.pills}>
                   {([['single', 'Singel'], ['couple', 'Partner'], ['family', 'Familj']] as const).map(([v, lbl]) => (
                     <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => setLifeMode(v)}>
-                      <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{lbl}</Text>
+                      <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{tr(lbl)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -528,23 +528,23 @@ export default function Profile() {
         <Text style={styles.sectionTitle}>{tr('Min stil')}</Text>
         <View style={styles.listCard}>
           {renderRow('stil', 'Stil', {
-            icon: 'checkroom', value: stylePrefs.length ? `${stylePrefs.length} valda` : undefined,
+            icon: 'checkroom', value: stylePrefs.length ? `${stylePrefs.length} ${tr('valda')}` : undefined,
             body: (
               <>
-                <Text style={styles.hint}>Välj en eller flera</Text>
+                <Text style={styles.hint}>{tr('Välj en eller flera')}</Text>
                 {pillGroup(STYLES, stylePrefs, toggle(setStylePrefs))}
               </>
             ),
           })}
           {renderRow('stilregler', 'Stilregler', {
-            icon: 'rule', value: styleRules.length ? `${styleRules.length} valda` : undefined,
+            icon: 'rule', value: styleRules.length ? `${styleRules.length} ${tr('valda')}` : undefined,
             body: (
               <>
-                <Text style={styles.hint}>Regler AI:n följer när den sätter ihop en outfit.</Text>
+                <Text style={styles.hint}>{tr('Regler AI:n följer när den sätter ihop en outfit.')}</Text>
                 <View style={styles.pills}>
                   {STYLE_RULES.map(r => (
                     <TouchableOpacity key={r.key} style={[styles.pill, styleRules.includes(r.key) && styles.pillActive]} onPress={() => toggle(setStyleRules)(r.key)}>
-                      <Text style={[styles.pillText, styleRules.includes(r.key) && styles.pillTextActive]}>{r.label}</Text>
+                      <Text style={[styles.pillText, styleRules.includes(r.key) && styles.pillTextActive]}>{tr(r.label)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -555,26 +555,26 @@ export default function Profile() {
             icon: 'tune',
             body: (
               <>
-                <Text style={styles.subLabel}>Stilriktning</Text>
+                <Text style={styles.subLabel}>{tr('Stilriktning')}</Text>
                 {pillGroup(STIL_PROFIL, stilProfil, toggle(setStilProfil))}
 
-                <Text style={styles.subLabel}>Färgprofil</Text>
+                <Text style={styles.subLabel}>{tr('Färgprofil')}</Text>
                 <View style={styles.pills}>
                   {COLOR_PROFILES.map(c => (
                     <TouchableOpacity key={c} style={[styles.pill, fargsatt === c && styles.pillActive]} onPress={() => setFargsatt(prev => prev === c ? '' : c)}>
-                      <Text style={[styles.pillText, fargsatt === c && styles.pillTextActive]}>{c}</Text>
+                      <Text style={[styles.pillText, fargsatt === c && styles.pillTextActive]}>{tr(c)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
 
-                <Text style={styles.subLabel}>Livsstil</Text>
+                <Text style={styles.subLabel}>{tr('Livsstil')}</Text>
                 {pillGroup(LIFESTYLE, livsstil, toggle(setLivsstil))}
 
-                <Text style={styles.subLabel}>Kommentar per tillfälle</Text>
-                <Text style={styles.hint}>Egen instruktion per tillfälle – AI:n väger in den vid outfit-förslag.</Text>
+                <Text style={styles.subLabel}>{tr('Kommentar per tillfälle')}</Text>
+                <Text style={styles.hint}>{tr('Egen instruktion per tillfälle – AI:n väger in den vid outfit-förslag.')}</Text>
                 {OUTFIT_CONTEXTS.map(ctx => (
                   <View key={ctx.label} style={styles.contextNoteGroup}>
-                    <Text style={styles.contextNoteLabel}>{ctx.label}</Text>
+                    <Text style={styles.contextNoteLabel}>{tr(ctx.label)}</Text>
                     <TextInput
                       style={styles.contextNoteInput}
                       placeholder={tr('T.ex. "gärna kjol", "aldrig klänning"...')}
@@ -589,7 +589,7 @@ export default function Profile() {
             ),
           })}
           {renderRow('favfarg', 'Favoritfärger', {
-            icon: 'palette', value: colorPrefs.length ? `${colorPrefs.length} valda` : undefined,
+            icon: 'palette', value: colorPrefs.length ? `${colorPrefs.length} ${tr('valda')}` : undefined,
             body: (
               <View style={styles.colorGrid}>
                 {COLOR_OPTIONS.map(c => {
@@ -612,7 +612,7 @@ export default function Profile() {
             icon: 'block', value: avoidNote ? '✓' : undefined,
             body: (
               <>
-                <Text style={styles.hint}>Skriv sådant AI:n ska undvika – färger, plagg eller stilar (t.ex. "aldrig gult", "inga korta kjolar").</Text>
+                <Text style={styles.hint}>{tr('Skriv sådant AI:n ska undvika – färger, plagg eller stilar (t.ex. "aldrig gult", "inga korta kjolar").')}</Text>
                 <TextInput
                   style={[styles.input, { minHeight: 60 }]}
                   placeholder={tr('Det här vill jag undvika...')}
@@ -651,7 +651,7 @@ export default function Profile() {
               <View style={styles.pills}>
                 {([['C', 'Celsius (°C)'], ['F', 'Fahrenheit (°F)']] as const).map(([u, lbl]) => (
                   <TouchableOpacity key={u} style={[styles.pill, tempUnit === u && styles.pillActive]} onPress={() => setTempUnit(u)}>
-                    <Text style={[styles.pillText, tempUnit === u && styles.pillTextActive]}>{lbl}</Text>
+                    <Text style={[styles.pillText, tempUnit === u && styles.pillTextActive]}>{tr(lbl)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
