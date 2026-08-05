@@ -130,8 +130,8 @@
     "semantic_hash": ""
   },
   "api/remove-background.ts": {
-    "mtime": 1785443715.2686284,
-    "ast_hash": "09411ef742c822441ef286143bd72a9d",
+    "mtime": 1785938739.2660937,
+    "ast_hash": "6ddd17059425261788e65a245aca5cd0",
     "semantic_hash": ""
   },
   "api/revenuecat-webhook.ts": {
@@ -165,18 +165,18 @@
     "semantic_hash": ""
   },
   "app/(tabs)/inspiration.tsx": {
-    "mtime": 1785880421.8389735,
-    "ast_hash": "570277719498d864019752dbb7599208",
+    "mtime": 1785939000.2981093,
+    "ast_hash": "01538df898f41bcbe95fdd5c41a486dc",
     "semantic_hash": ""
   },
   "app/(tabs)/my-outfit.tsx": {
-    "mtime": 1785933817.7260842,
-    "ast_hash": "6f47760128c2cb9abac40de0820d3e3f",
+    "mtime": 1785939472.1501374,
+    "ast_hash": "349c85b79ebd1ca102b4b1b1e1d56231",
     "semantic_hash": ""
   },
   "app/(tabs)/wardrobe.tsx": {
-    "mtime": 1785932177.0701015,
-    "ast_hash": "b26500fe8cab5af8d08e69e0429094bd",
+    "mtime": 1785939240.3421235,
+    "ast_hash": "6fcc3ea8ad35d6998028b5f524bd8759",
     "semantic_hash": ""
   },
   "app/+html.tsx": {
@@ -260,13 +260,13 @@
     "semantic_hash": ""
   },
   "app/privacy.tsx": {
-    "mtime": 1785443715.2806284,
-    "ast_hash": "9cb3b0d91ad64ac0c83762ad3cf6d400",
+    "mtime": 1785937579.4860249,
+    "ast_hash": "20c8f7b31e6fa47583d4d2b8d26c2376",
     "semantic_hash": ""
   },
   "app/profile.tsx": {
-    "mtime": 1785917264.4499888,
-    "ast_hash": "aaa47cc5eb5728e586d4ea172915cb2e",
+    "mtime": 1785938204.122062,
+    "ast_hash": "9297196a4d582d1879e552e2252d3982",
     "semantic_hash": ""
   },
   "app/reset-password.tsx": {
@@ -650,23 +650,23 @@
     "semantic_hash": ""
   },
   "utils/i18n.de.json": {
-    "mtime": 1785932871.866094,
-    "ast_hash": "3daf29717154af08050be29a89e40702",
+    "mtime": 1785939518.848236,
+    "ast_hash": "72d65f9d814b13cbed7767fabca8208b",
     "semantic_hash": ""
   },
   "utils/i18n.es.json": {
-    "mtime": 1785932871.869236,
-    "ast_hash": "915a06a3e164ed8e923ed7b1ecff127b",
+    "mtime": 1785939518.850888,
+    "ast_hash": "5e666f4043d9cc79e532de6557490753",
     "semantic_hash": ""
   },
   "utils/i18n.fr.json": {
-    "mtime": 1785932871.8740942,
-    "ast_hash": "5f0fddc9084e2d73f500878e4721ad16",
+    "mtime": 1785939518.8527582,
+    "ast_hash": "a6a842b846219430be000234392ce7c1",
     "semantic_hash": ""
   },
   "utils/i18n.ts": {
-    "mtime": 1785932871.8620942,
-    "ast_hash": "a7f2b46fa2e42e80e3c3ed25d2c3c7ec",
+    "mtime": 1785939518.8469512,
+    "ast_hash": "5738a86d09c57105fd948f630dadd0b9",
     "semantic_hash": ""
   },
   "utils/id.ts": {
@@ -755,8 +755,8 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1785868820.4594347,
-    "ast_hash": "5ec70b1475ef19e790864a5d52a65123",
+    "mtime": 1785937989.7420492,
+    "ast_hash": "ca472bafa8d80d288d1c8a508d8c4e9c",
     "semantic_hash": ""
   },
   "README.md": {
@@ -875,8 +875,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1785932925.2140937,
-    "ast_hash": "c57bcefc6b96f78dcf68bc3f4d6290f3",
+    "mtime": 1785938772.8060958,
+    "ast_hash": "6b2e699a6689225a44e0277bea02fd40",
     "semantic_hash": ""
   },
   "app/pregnancy-wardrobe.tsx": {
@@ -937,6 +937,11 @@
   "components/garment-detail/GarmentSetSection.tsx": {
     "mtime": 1785918996.3527792,
     "ast_hash": "19fa692bf5e21751e3dc1568e55f3e00",
+    "semantic_hash": ""
+  },
+  "public/privacy.html": {
+    "mtime": 1785938034.866052,
+    "ast_hash": "0b43753a5476110b52fcf2a2643059a8",
     "semantic_hash": ""
   }
 }

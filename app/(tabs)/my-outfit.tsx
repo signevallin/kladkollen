@@ -1,7 +1,7 @@
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import * as Sharing from 'expo-sharing'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -21,6 +21,8 @@ import BottomNav from '../../components/BottomNav'
 import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import CreateOutfitView from '../../components/my-outfit/CreateOutfitView'
+import GarmentPicker from '../../components/home/GarmentPicker'
+import SwapSheet from '../../components/home/SwapSheet'
 import { supabase } from '../../supabase'
 import { cacheGet, cacheSet } from '../../utils/cache'
 import { showAlert, showConfirm } from '../../utils/alert'
@@ -95,6 +97,9 @@ export default function MyOutfits() {
   const [tripResult, setTripResult] = useState<any | null>(null)
   const [tripChecked, setTripChecked] = useState<Record<string, boolean>>({})
   const [scheduleOutfit, setScheduleOutfit] = useState<any | null>(null)
+  // Byt ut / lägg till plagg i en reseoutfit (samma UI som på hemskärmen).
+  const [tripSwap, setTripSwap] = useState<{ oi: number; ii: number } | null>(null)
+  const [tripAddTarget, setTripAddTarget] = useState<{ oi: number } | null>(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -499,6 +504,62 @@ function isPast(date: Date) {
     showAlert(tr('Inlagd i kalendern!'), `${name} ${tr('ligger nu på')} ${new Date(date + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}.`)
   }
 
+  // Sparar en ändrad reseplan lokalt och speglar den till DB (för partnervyn).
+  async function persistTripResult(next: any) {
+    setTripResult(next)
+    await AsyncStorage.setItem(TRIP_KEY, JSON.stringify(next)).catch(() => {})
+    syncLocalTripToDb()
+  }
+
+  // Efter resan: lägg alla plagg som ingick (outfits + packlista) i tvätten
+  // med ett tryck. Namnen matchas mot garderoben via matchGarment.
+  function washTripGarments() {
+    if (!tripResult) return
+    const names: string[] = [
+      ...(tripResult.outfits || []).flatMap((o: any) => o.items || []),
+      ...(tripResult.packingList || []),
+    ]
+    const ids = Array.from(new Set(names.map(n => matchGarment(n)?.id).filter(Boolean))) as string[]
+    if (ids.length === 0) {
+      showAlert(tr('Inga plagg att tvätta'), tr('Reseplanen matchar inga plagg i din garderob.')); return
+    }
+    showConfirm(
+      tr('Lägg allt i tvätten'),
+      `${tr('Markera')} ${ids.length} ${tr('plagg från resan som i tvätten?')}`,
+      async () => {
+        const { error } = await supabase.from('garments').update({ in_laundry: true }).in('id', ids)
+        if (error) { showAlert(tr('Något gick fel'), error.message); return }
+        setGarments(prev => prev.map(g => ids.includes(g.id) ? { ...g, in_laundry: true } : g))
+        showAlert(tr('Klart!'), `${ids.length} ${tr('plagg ligger nu i tvätten.')}`)
+      },
+      tr('Lägg i tvätten'),
+    )
+  }
+
+  // Byt ut / ta bort / lägg till plagg i en reseoutfit. Items lagras som namn;
+  // matchGarment löser bilderna. Ändringen sparas och speglas.
+  function replaceTripItem(oi: number, ii: number, garment: any) {
+    if (!tripResult) return
+    const outfits = tripResult.outfits.map((o: any, i: number) =>
+      i !== oi ? o : { ...o, items: (o.items || []).map((n: string, j: number) => j === ii ? garment.name : n) })
+    persistTripResult({ ...tripResult, outfits })
+    setTripSwap(null)
+  }
+  function removeTripItem(oi: number, ii: number) {
+    if (!tripResult) return
+    const outfits = tripResult.outfits.map((o: any, i: number) =>
+      i !== oi ? o : { ...o, items: (o.items || []).filter((_: string, j: number) => j !== ii) })
+    persistTripResult({ ...tripResult, outfits })
+    setTripSwap(null)
+  }
+  function addTripItem(oi: number, garment: any) {
+    if (!tripResult) return
+    const outfits = tripResult.outfits.map((o: any, i: number) =>
+      i !== oi ? o : { ...o, items: [...(o.items || []), garment.name] })
+    persistTripResult({ ...tripResult, outfits })
+    setTripAddTarget(null)
+  }
+
   async function resetTrip() {
     setTripResult(null)
     setTripChecked({})
@@ -513,6 +574,26 @@ function isPast(date: Date) {
 
   // Day detail modal
   const dayDetailEntry = dayDetailDate ? calendarEntries[dayDetailDate] : null
+
+  // Byt-ut-arket för en reseoutfit: alternativ i samma kategori som inte redan
+  // används i outfiten (och som inte är arkiverade/sålda/i tvätten).
+  const tripSwapItemName: string | null = tripSwap ? (tripResult?.outfits?.[tripSwap.oi]?.items?.[tripSwap.ii] ?? null) : null
+  const tripSwapGarment = tripSwapItemName ? matchGarment(tripSwapItemName) : null
+  const tripSwapUsed = new Set(
+    (tripSwap ? tripResult?.outfits?.[tripSwap.oi]?.items || [] : []).map((n: string) => (n || '').toLowerCase())
+  )
+  const tripSwapAlternatives = tripSwap ? garments.filter(g =>
+    !g.archived && !g.for_sale && !g.in_laundry &&
+    !tripSwapUsed.has((g.name || '').toLowerCase()) &&
+    (tripSwapGarment?.category ? g.category === tripSwapGarment.category : true)
+  ) : []
+  // Lägg-till-väljaren: aktiva plagg som inte redan finns i outfiten.
+  const tripAddUsed = new Set(
+    (tripAddTarget ? tripResult?.outfits?.[tripAddTarget.oi]?.items || [] : []).map((n: string) => (n || '').toLowerCase())
+  )
+  const tripAddPool = tripAddTarget ? garments.filter(g =>
+    !g.archived && !g.for_sale && !g.in_laundry && !tripAddUsed.has((g.name || '').toLowerCase())
+  ) : []
 
   // Skapa/ändra outfit – egen helskärmsvy.
   if (creating) {
@@ -914,10 +995,18 @@ function isPast(date: Date) {
                         <View style={styles.outfitImages}>
                           {(o.items || []).map((name: string, j: number) => {
                             const m = matchGarment(name)
-                            return m?.image_url
-                              ? <SignedImage key={j} path={m.image_url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                              : <View key={j} style={styles.outfitImageEmpty} />
+                            return (
+                              <TouchableOpacity key={j} style={styles.tripItemWrap} onPress={() => setTripSwap({ oi: i, ii: j })} accessibilityLabel={`${tr('Byt ut')} ${name}`}>
+                                {m?.image_url
+                                  ? <SignedImage path={m.image_url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                                  : <View style={styles.outfitImageEmpty} />}
+                                <View style={styles.tripSwapBadge}><Text style={styles.tripSwapBadgeText}>⇄</Text></View>
+                              </TouchableOpacity>
+                            )
                           })}
+                          <TouchableOpacity style={styles.tripAddBox} onPress={() => setTripAddTarget({ oi: i })} accessibilityLabel={tr('Lägg till plagg')}>
+                            <View style={styles.tripAddCircle}><Ionicons name="add" size={18} color={t.onPrimary} /></View>
+                          </TouchableOpacity>
                         </View>
                         <Text style={styles.outfitGarments}>{(o.items || []).join(' · ')}</Text>
                         <TouchableOpacity style={styles.tripCalBtn} onPress={() => setScheduleOutfit(o)}>
@@ -967,6 +1056,12 @@ function isPast(date: Date) {
                   </>
                 )}
 
+                {/* Hemkommen? Lägg allt du haft med i tvätten på en gång. */}
+                <TouchableOpacity style={styles.tripWashBtn} onPress={washTripGarments}>
+                  <MaterialIcons name="local-laundry-service" size={18} color={t.onPrimary} />
+                  <Text style={styles.tripWashBtnText}>{tr('Lägg allt i tvätten')}</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.tripResetBtn} onPress={resetTrip}>
                   <Text style={styles.tripResetBtnText}>{tr('Planera en ny resa')}</Text>
                 </TouchableOpacity>
@@ -975,6 +1070,28 @@ function isPast(date: Date) {
           </>
         )}
       </ScrollView>
+
+      {/* Byt ut ett plagg i en reseoutfit */}
+      <SwapSheet
+        visible={tripSwap !== null}
+        title={`${tr('Byt ut')}${tripSwapItemName ? ` ${tripSwapItemName}` : ''}`}
+        alternatives={tripSwapAlternatives}
+        emptyText={tr('Inga andra plagg i samma kategori')}
+        onClose={() => setTripSwap(null)}
+        onRemove={() => tripSwap && removeTripItem(tripSwap.oi, tripSwap.ii)}
+        onReplace={(g) => tripSwap && replaceTripItem(tripSwap.oi, tripSwap.ii, g)}
+      />
+
+      {/* Lägg till ett plagg i en reseoutfit */}
+      <GarmentPicker
+        visible={tripAddTarget !== null}
+        title={tr('Lägg till plagg')}
+        pool={tripAddPool}
+        garments={garments}
+        onSelect={(g) => tripAddTarget && addTripItem(tripAddTarget.oi, g)}
+        onClose={() => setTripAddTarget(null)}
+        accessoriesFirst
+      />
 
       {/* Dold, varumärkt dela-vy som fångas som bild och delas. */}
       {shareTarget && (
@@ -1130,6 +1247,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tripResetBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textSecondary, fontSize: 15 },
   tripCalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4, paddingVertical: 10, borderRadius: 12, backgroundColor: t.surface, borderWidth: 1, borderColor: t.primary },
   tripCalBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 14 },
+  tripItemWrap: { width: 70, height: 70 },
+  tripSwapBadge: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  tripSwapBadgeText: { color: t.onPrimary, fontSize: 11, fontFamily: 'Poppins_700Bold' },
+  tripAddBox: { width: 70, height: 70, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, borderStyle: 'dashed', backgroundColor: t.surface },
+  tripAddCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  tripWashBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: t.primary, borderRadius: 16, paddingVertical: 14, marginTop: 24 },
+  tripWashBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
   dayPickRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15, paddingHorizontal: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
   dayPickText: { fontFamily: 'Lora_500Medium', fontSize: 15, color: t.textPrimary, textTransform: 'capitalize' },
 

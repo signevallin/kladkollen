@@ -41,8 +41,11 @@ const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
 const COLORS = ['Alla', ...COLOR_NAMES]
 
-// Kategorier som inte tvättas – ingen tvättikon/tvätt-toggle på dessa plagg.
-const NO_LAUNDRY_CATEGORIES = ['Skor', 'Smycken']
+// Plagg som inte tvättas – ingen tvättikon/tvätt-toggle. Skor, smycken och
+// väskor är hela kategorier; skärp (subkategorin Bälte) ligger under Accessoarer
+// (vars övriga plagg, t.ex. halsdukar, fortfarande tvättas).
+const NO_LAUNDRY_CATEGORIES = ['Skor', 'Smycken', 'Väskor']
+const NO_LAUNDRY_SUBCATEGORIES = ['Bälte']
 
 const SORT_OPTIONS: { key: string; label: string }[] = [
   { key: 'recent', label: 'Senast tillagd' },
@@ -711,8 +714,8 @@ export default function Wardrobe() {
                       <Ionicons name="swap-horizontal" size={14} color={t.onPrimary} />
                     </View>
                   )}
-                  {/* Skor och smycken tvättas inte – ingen tvättikon på dem. */}
-                  {!NO_LAUNDRY_CATEGORIES.includes(item.category) && (
+                  {/* Skor, smycken, väskor och skärp tvättas inte – ingen tvättikon. */}
+                  {!NO_LAUNDRY_CATEGORIES.includes(item.category) && !NO_LAUNDRY_SUBCATEGORIES.includes(item.subcategory) && (
                     <TouchableOpacity
                       style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
                       onPress={() => toggleLaundry(item)}
