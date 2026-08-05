@@ -5,6 +5,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  FlatList,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -116,25 +117,26 @@ export default function PartnerCloset() {
     setSubTab(tab === 'garderob' ? 'garderob' : 'kalender')
   }
 
-  const garmentGrid = (list: any[], empty: string) => (
-    list.length === 0
-      ? <Text style={styles.empty}>{empty}</Text>
-      : <View style={styles.grid}>
-          {list.map(g => (
-            <View key={g.id} style={styles.gCard}>
-              <View>
-                {g.image_url ? <SignedImage path={g.image_url} style={styles.gImg} /> : <View style={styles.gImgEmpty} />}
-                {g.lendable && (
-                  <View style={styles.lendBadge}>
-                    <Ionicons name="swap-horizontal" size={12} color={t.onPrimary} />
-                  </View>
-                )}
-              </View>
-              <Text style={styles.gName} numberOfLines={1}>{g.name}</Text>
-            </View>
-          ))}
-        </View>
+  // Ett plaggkort i rutnätet. Renderas i en FlatList (garderob/sälj) så bara
+  // synliga plagg monteras/laddas – viktigt när partnern har hundratals plagg.
+  const renderGarmentCard = ({ item: g }: { item: any }) => (
+    <View style={styles.gCard}>
+      <View>
+        {g.image_url ? <SignedImage path={g.image_url} style={styles.gImg} transform={{ width: 400, height: 400, resize: 'contain', format: 'origin' }} /> : <View style={styles.gImgEmpty} />}
+        {g.lendable && (
+          <View style={styles.lendBadge}>
+            <Ionicons name="swap-horizontal" size={12} color={t.onPrimary} />
+          </View>
+        )}
+      </View>
+      <Text style={styles.gName} numberOfLines={1}>{g.name}</Text>
+    </View>
   )
+
+  // Garderob- och säljflikarna visar ett stort rutnät → virtualiserad FlatList.
+  // Övriga flikar (listor/kalender/resa) är korta och ligger kvar i en ScrollView.
+  const gridList = activeSub === 'garderob' ? active : activeSub === 'salj' ? forSale : null
+  const gridEmpty = activeSub === 'salj' ? tr('Inget till salu.') : tr('Inga plagg i garderoben.')
 
   return (
     <SafeAreaView style={styles.container}>
@@ -164,20 +166,30 @@ export default function PartnerCloset() {
         </ScrollView>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {loading ? (
-          <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
-        ) : (
+      {loading ? (
+        <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
+      ) : gridList ? (
+        <FlatList
+          data={gridList}
+          keyExtractor={g => g.id}
+          numColumns={3}
+          columnWrapperStyle={styles.gridRow}
+          contentContainerStyle={styles.scroll}
+          renderItem={renderGarmentCard}
+          ListEmptyComponent={<Text style={styles.empty}>{gridEmpty}</Text>}
+          removeClippedSubviews
+          initialNumToRender={18}
+          windowSize={7}
+        />
+      ) : (
+        <ScrollView contentContainerStyle={styles.scroll}>
           <>
-            {activeSub === 'garderob' && garmentGrid(active, tr('Inga plagg i garderoben.'))}
-            {activeSub === 'salj' && garmentGrid(forSale, tr('Inget till salu.'))}
-
             {activeSub === 'kop' && (
               wishlist.length === 0
                 ? <Text style={styles.empty}>{tr('Tom köplista.')}</Text>
                 : wishlist.map(w => (
                     <View key={w.id} style={styles.wishRow}>
-                      {w.image_url ? <SignedImage path={w.image_url} style={styles.wishImg} /> : <View style={styles.wishImgEmpty} />}
+                      {w.image_url ? <SignedImage path={w.image_url} style={styles.wishImg} transform={{ width: 400, height: 400, resize: 'contain', format: 'origin' }} /> : <View style={styles.wishImgEmpty} />}
                       <View style={{ flex: 1 }}>
                         <Text style={styles.wishName} numberOfLines={1}>{w.name}</Text>
                         <Text style={styles.wishMeta}>{[w.brand, tr(w.subcategory || w.category || '')].filter(Boolean).join(' · ')}</Text>
@@ -200,7 +212,7 @@ export default function PartnerCloset() {
                         </TouchableOpacity>
                       </View>
                       <View style={styles.outfitImages}>
-                        {(o.image_urls || []).map((url: string, i: number) => <SignedImage key={i} path={url} style={styles.outfitImg} />)}
+                        {(o.image_urls || []).map((url: string, i: number) => <SignedImage key={i} path={url} style={styles.outfitImg} transform={{ width: 400, height: 400, resize: 'contain', format: 'origin' }} />)}
                       </View>
                       {o.garment_names && <Text style={styles.outfitGarments}>{o.garment_names.join(' · ')}</Text>}
                     </View>
@@ -248,8 +260,8 @@ export default function PartnerCloset() {
                 )
             )}
           </>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   )
 }
@@ -276,8 +288,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   empty: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, textAlign: 'center', marginTop: 40, fontStyle: 'italic' },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  gCard: { width: '30%', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 8, borderWidth: 1, borderColor: t.border },
+  gridRow: { justifyContent: 'space-between', marginBottom: 10 },
+  gCard: { width: '31%', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 8, borderWidth: 1, borderColor: t.border },
   lendBadge: { position: 'absolute', top: -4, right: -4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   gImg: { width: '100%', height: 80, borderRadius: 10, marginBottom: 4 },
   gImgEmpty: { width: '100%', height: 80, borderRadius: 10, backgroundColor: t.surface, marginBottom: 4 },
