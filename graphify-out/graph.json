@@ -32,8 +32,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "tests_brands_test",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "brands.test.ts"
     },
     {
@@ -66,7 +66,7 @@
       "_origin": "ast",
       "id": "tests_pregnancy_test",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "pregnancy.test.ts"
     },
     {
@@ -77,7 +77,7 @@
       "_origin": "ast",
       "id": "tests_pregnancy_test_now",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "now"
     },
     {
@@ -88,7 +88,7 @@
       "_origin": "ast",
       "id": "tests_pregnancy_test_dueinweeks",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "dueinweeks()"
     },
     {
@@ -132,7 +132,7 @@
       "_origin": "ast",
       "id": "tests_storage_test",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "storage.test.ts"
     },
     {
@@ -384,8 +384,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_analyze_garment",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "analyze-garment.ts"
     },
     {
@@ -395,8 +395,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_analyze_garment_config",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "config"
     },
     {
@@ -406,8 +406,8 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "api_analyze_garment_subcategory_hint",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "subcategory_hint"
     },
     {
@@ -417,8 +417,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "api_analyze_garment_handler",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "handler()"
     },
     {
@@ -1660,8 +1660,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "ref_expo_router",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "expo-router"
     },
     {
@@ -1770,8 +1770,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_layout",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "(tabs)/_layout.tsx"
     },
     {
@@ -1781,8 +1781,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "app_tabs_layout_tabslayout",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "tabslayout()"
     },
     {
@@ -1836,8 +1836,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_tabs_inspiration",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 137,
+      "community_name": "inspiration.tsx",
       "norm_label": "inspiration.tsx"
     },
     {
@@ -2064,7 +2064,7 @@
       "label": "PUBLIC_ROUTES",
       "file_type": "code",
       "source_file": "app/_layout.tsx",
-      "source_location": "L25",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "app_layout_public_routes",
       "community": 4,
@@ -2075,7 +2075,7 @@
       "label": "RootLayout()",
       "file_type": "code",
       "source_file": "app/_layout.tsx",
-      "source_location": "L27",
+      "source_location": "L28",
       "_origin": "ast",
       "id": "app_layout_rootlayout",
       "community": 4,
@@ -2086,7 +2086,7 @@
       "label": "Layout()",
       "file_type": "code",
       "source_file": "app/_layout.tsx",
-      "source_location": "L131",
+      "source_location": "L133",
       "_origin": "ast",
       "id": "app_layout_layout",
       "community": 4,
@@ -2100,8 +2100,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_add_garment",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "add-garment.tsx"
     },
     {
@@ -2111,8 +2111,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "app_add_garment_compressimage",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "compressimage()"
     },
     {
@@ -2122,8 +2122,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "app_add_garment_garmentdraft",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "garmentdraft"
     },
     {
@@ -2133,8 +2133,8 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "app_add_garment_familystatus",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "familystatus"
     },
     {
@@ -2144,8 +2144,8 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "app_add_garment_family_status_labels",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "family_status_labels"
     },
     {
@@ -2155,8 +2155,8 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "app_add_garment_addgarment",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "addgarment()"
     },
     {
@@ -2166,8 +2166,8 @@
       "source_location": "L510",
       "_origin": "ast",
       "id": "app_add_garment_makestyles",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -2232,7 +2232,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_garment_detail",
-      "community": 30,
+      "community": 14,
       "community_name": "garment-detail.tsx",
       "norm_label": "garment-detail.tsx"
     },
@@ -2243,7 +2243,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "app_garment_detail_sizes",
-      "community": 30,
+      "community": 14,
       "community_name": "garment-detail.tsx",
       "norm_label": "sizes"
     },
@@ -2254,7 +2254,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "app_garment_detail_blobtobase64",
-      "community": 30,
+      "community": 14,
       "community_name": "garment-detail.tsx",
       "norm_label": "blobtobase64()"
     },
@@ -2276,8 +2276,8 @@
       "source_location": "L760",
       "_origin": "ast",
       "id": "app_garment_detail_makestyles",
-      "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community": 10,
+      "community_name": "home.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -2287,8 +2287,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_how_it_works",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "how-it-works.tsx"
     },
     {
@@ -2298,8 +2298,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "app_how_it_works_item",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "item"
     },
     {
@@ -2309,8 +2309,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_how_it_works_group",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "group"
     },
     {
@@ -2320,8 +2320,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "app_how_it_works_groups",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "groups"
     },
     {
@@ -2331,8 +2331,8 @@
       "source_location": "L97",
       "_origin": "ast",
       "id": "app_how_it_works_howitworks",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "howitworks()"
     },
     {
@@ -2342,8 +2342,8 @@
       "source_location": "L172",
       "_origin": "ast",
       "id": "app_how_it_works_makestyles",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -2353,8 +2353,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_import_email",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 30,
+      "community_name": "import-email.tsx",
       "norm_label": "import-email.tsx"
     },
     {
@@ -2364,8 +2364,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "app_import_email_pending",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 30,
+      "community_name": "import-email.tsx",
       "norm_label": "pending"
     },
     {
@@ -2375,8 +2375,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "app_import_email_importemail",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 30,
+      "community_name": "import-email.tsx",
       "norm_label": "importemail()"
     },
     {
@@ -2386,8 +2386,8 @@
       "source_location": "L297",
       "_origin": "ast",
       "id": "app_import_email_makestyles",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 30,
+      "community_name": "import-email.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -2463,8 +2463,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_index",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "index.tsx"
     },
     {
@@ -2474,7 +2474,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "app_index_index",
-      "community": 138,
+      "community": 5,
       "community_name": "useTheme",
       "norm_label": "index()"
     },
@@ -2518,8 +2518,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_login",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "login.tsx"
     },
     {
@@ -2529,8 +2529,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_login_method",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "method"
     },
     {
@@ -2540,8 +2540,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "app_login_c",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "c"
     },
     {
@@ -2551,8 +2551,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "app_login_tiles",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "tiles"
     },
     {
@@ -2562,8 +2562,8 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "app_login_col_left",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "col_left"
     },
     {
@@ -2573,8 +2573,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "app_login_col_right",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "col_right"
     },
     {
@@ -2584,8 +2584,8 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "app_login_width_screen_w",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "{ width: screen_w }"
     },
     {
@@ -2595,8 +2595,8 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "app_login_login",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "login()"
     },
     {
@@ -2606,8 +2606,8 @@
       "source_location": "L385",
       "_origin": "ast",
       "id": "app_login_styles",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "styles"
     },
     {
@@ -2683,8 +2683,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_onboarding",
-      "community": 42,
-      "community_name": "settings.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "onboarding.tsx"
     },
     {
@@ -2705,8 +2705,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "app_onboarding_slide",
-      "community": 42,
-      "community_name": "settings.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "slide"
     },
     {
@@ -2716,8 +2716,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "app_onboarding_slides",
-      "community": 42,
-      "community_name": "settings.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "slides"
     },
     {
@@ -2727,8 +2727,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "app_onboarding_onboarding",
-      "community": 42,
-      "community_name": "settings.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "onboarding()"
     },
     {
@@ -2738,8 +2738,8 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "app_onboarding_makestyles",
-      "community": 42,
-      "community_name": "settings.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -2749,8 +2749,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_partner_closet",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "partner-closet.tsx"
     },
     {
@@ -2760,8 +2760,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "app_partner_closet_partnercloset",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "partnercloset()"
     },
     {
@@ -2771,8 +2771,8 @@
       "source_location": "L269",
       "_origin": "ast",
       "id": "app_partner_closet_makestyles",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "makestyles()"
     },
     {
@@ -2782,8 +2782,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_partner",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "partner.tsx"
     },
     {
@@ -2793,8 +2793,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "app_partner_member",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "member"
     },
     {
@@ -2804,8 +2804,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "app_partner_partner",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "partner()"
     },
     {
@@ -2815,8 +2815,8 @@
       "source_location": "L210",
       "_origin": "ast",
       "id": "app_partner_makestyles",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "makestyles()"
     },
     {
@@ -2826,8 +2826,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_paywall",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "paywall.tsx"
     },
     {
@@ -2837,8 +2837,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "app_paywall_benefits",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "benefits"
     },
     {
@@ -2848,8 +2848,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "app_paywall_paywall",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "paywall()"
     },
     {
@@ -2859,8 +2859,8 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "app_paywall_makestyles",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -2871,7 +2871,7 @@
       "_origin": "ast",
       "id": "app_pregnancy_wardrobe",
       "community": 39,
-      "community_name": "pregnancy-wardrobe.tsx",
+      "community_name": "goBack",
       "norm_label": "pregnancy-wardrobe.tsx"
     },
     {
@@ -2882,7 +2882,7 @@
       "_origin": "ast",
       "id": "app_pregnancy_wardrobe_essential",
       "community": 39,
-      "community_name": "pregnancy-wardrobe.tsx",
+      "community_name": "goBack",
       "norm_label": "essential"
     },
     {
@@ -2893,7 +2893,7 @@
       "_origin": "ast",
       "id": "app_pregnancy_wardrobe_essentials",
       "community": 39,
-      "community_name": "pregnancy-wardrobe.tsx",
+      "community_name": "goBack",
       "norm_label": "essentials"
     },
     {
@@ -2904,7 +2904,7 @@
       "_origin": "ast",
       "id": "app_pregnancy_wardrobe_mg",
       "community": 39,
-      "community_name": "pregnancy-wardrobe.tsx",
+      "community_name": "goBack",
       "norm_label": "mg"
     },
     {
@@ -2915,7 +2915,7 @@
       "_origin": "ast",
       "id": "app_pregnancy_wardrobe_wish",
       "community": 39,
-      "community_name": "pregnancy-wardrobe.tsx",
+      "community_name": "goBack",
       "norm_label": "wish"
     },
     {
@@ -2926,7 +2926,7 @@
       "_origin": "ast",
       "id": "app_pregnancy_wardrobe_pregnancywardrobe",
       "community": 39,
-      "community_name": "pregnancy-wardrobe.tsx",
+      "community_name": "goBack",
       "norm_label": "pregnancywardrobe()"
     },
     {
@@ -2937,7 +2937,7 @@
       "_origin": "ast",
       "id": "app_pregnancy_wardrobe_makestyles",
       "community": 39,
-      "community_name": "pregnancy-wardrobe.tsx",
+      "community_name": "goBack",
       "norm_label": "makestyles()"
     },
     {
@@ -2991,7 +2991,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_profile",
-      "community": 13,
+      "community": 37,
       "community_name": "profile.tsx",
       "norm_label": "profile.tsx"
     },
@@ -3002,7 +3002,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "app_profile_styles",
-      "community": 13,
+      "community": 37,
       "community_name": "profile.tsx",
       "norm_label": "styles"
     },
@@ -3014,7 +3014,7 @@
       "_origin": "ast",
       "id": "app_profile_cold_levels",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "cold_levels"
     },
     {
@@ -3024,7 +3024,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_profile_genders",
-      "community": 13,
+      "community": 37,
       "community_name": "profile.tsx",
       "norm_label": "genders"
     },
@@ -3035,7 +3035,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "app_profile_stil_profil",
-      "community": 13,
+      "community": 37,
       "community_name": "profile.tsx",
       "norm_label": "stil_profil"
     },
@@ -3046,7 +3046,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "app_profile_color_profiles",
-      "community": 13,
+      "community": 37,
       "community_name": "profile.tsx",
       "norm_label": "color_profiles"
     },
@@ -3057,7 +3057,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "app_profile_lifestyle",
-      "community": 13,
+      "community": 37,
       "community_name": "profile.tsx",
       "norm_label": "lifestyle"
     },
@@ -3069,7 +3069,7 @@
       "_origin": "ast",
       "id": "app_profile_theme_options",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "theme_options"
     },
     {
@@ -3080,7 +3080,7 @@
       "_origin": "ast",
       "id": "app_profile_profile",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "profile()"
     },
     {
@@ -3091,7 +3091,7 @@
       "_origin": "ast",
       "id": "app_profile_makestyles",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -3101,8 +3101,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_reset_password",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "reset-password.tsx"
     },
     {
@@ -3112,8 +3112,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "app_reset_password_resetpassword",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "resetpassword()"
     },
     {
@@ -3123,8 +3123,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "app_reset_password_makestyles",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "makestyles()"
     },
     {
@@ -3376,8 +3376,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_addgarmentchooser",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "addgarmentchooser.tsx"
     },
     {
@@ -3387,8 +3387,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "components_addgarmentchooser_addgarmentchooser",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "addgarmentchooser()"
     },
     {
@@ -3398,8 +3398,8 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "components_addgarmentchooser_makestyles",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -3431,8 +3431,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_bottomnav",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "bottomnav.tsx"
     },
     {
@@ -3442,8 +3442,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "components_bottomnav_tabs",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "tabs"
     },
     {
@@ -3453,8 +3453,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "components_bottomnav_addoptions",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "addoptions"
     },
     {
@@ -3464,8 +3464,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "components_bottomnav_bottomnav",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "bottomnav()"
     },
     {
@@ -3475,8 +3475,8 @@
       "source_location": "L125",
       "_origin": "ast",
       "id": "components_bottomnav_makestyles",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 12,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -3486,8 +3486,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_brandinput",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "brandinput.tsx"
     },
     {
@@ -3497,8 +3497,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_brandinput_brandinput",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "brandinput()"
     },
     {
@@ -3508,8 +3508,8 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "components_brandinput_makestyles",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -3520,7 +3520,7 @@
       "_origin": "ast",
       "id": "components_button",
       "community": 5,
-      "community_name": "Button.tsx",
+      "community_name": "useTheme",
       "norm_label": "button.tsx"
     },
     {
@@ -3531,7 +3531,7 @@
       "_origin": "ast",
       "id": "components_button_variant",
       "community": 5,
-      "community_name": "Button.tsx",
+      "community_name": "useTheme",
       "norm_label": "variant"
     },
     {
@@ -3542,7 +3542,7 @@
       "_origin": "ast",
       "id": "components_button_props",
       "community": 5,
-      "community_name": "Button.tsx",
+      "community_name": "useTheme",
       "norm_label": "props"
     },
     {
@@ -3553,7 +3553,7 @@
       "_origin": "ast",
       "id": "components_button_button",
       "community": 5,
-      "community_name": "Button.tsx",
+      "community_name": "useTheme",
       "norm_label": "button()"
     },
     {
@@ -3564,7 +3564,7 @@
       "_origin": "ast",
       "id": "components_button_styles",
       "community": 5,
-      "community_name": "Button.tsx",
+      "community_name": "useTheme",
       "norm_label": "styles"
     },
     {
@@ -3574,8 +3574,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_capsuleview",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "capsuleview.tsx"
     },
     {
@@ -3585,7 +3585,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "components_capsuleview_capsuleview",
-      "community": 138,
+      "community": 5,
       "community_name": "useTheme",
       "norm_label": "capsuleview()"
     },
@@ -3596,8 +3596,63 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "components_capsuleview_makestyles",
-      "community": 138,
+      "community": 5,
       "community_name": "useTheme",
+      "norm_label": "makestyles()"
+    },
+    {
+      "label": "ConfirmDialog.tsx",
+      "file_type": "code",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_confirmdialog",
+      "community": 4,
+      "community_name": "notifications.tsx",
+      "norm_label": "confirmdialog.tsx"
+    },
+    {
+      "label": "ConfirmRequest",
+      "file_type": "code",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "components_confirmdialog_confirmrequest",
+      "community": 4,
+      "community_name": "notifications.tsx",
+      "norm_label": "confirmrequest"
+    },
+    {
+      "label": "confirmDialog()",
+      "file_type": "code",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "components_confirmdialog_confirmdialog",
+      "community": 137,
+      "community_name": "inspiration.tsx",
+      "norm_label": "confirmdialog()"
+    },
+    {
+      "label": "ConfirmHost()",
+      "file_type": "code",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "components_confirmdialog_confirmhost",
+      "community": 4,
+      "community_name": "notifications.tsx",
+      "norm_label": "confirmhost()"
+    },
+    {
+      "label": "makeStyles()",
+      "file_type": "code",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "components_confirmdialog_makestyles",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -3640,8 +3695,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_daytonightsharecard",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 1,
+      "community_name": "useSettings",
       "norm_label": "daytonightsharecard.tsx"
     },
     {
@@ -3651,8 +3706,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_daytonightsharecard_daytonightsharecard",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 1,
+      "community_name": "useSettings",
       "norm_label": "daytonightsharecard()"
     },
     {
@@ -3662,8 +3717,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "components_daytonightsharecard_makestyles",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 1,
+      "community_name": "useSettings",
       "norm_label": "makestyles()"
     },
     {
@@ -3673,8 +3728,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_googleicon",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "googleicon.tsx"
     },
     {
@@ -3684,8 +3739,8 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "components_googleicon_googleicon",
-      "community": 14,
-      "community_name": "login.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "googleicon()"
     },
     {
@@ -3750,8 +3805,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_querystate",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "querystate.tsx"
     },
     {
@@ -3761,8 +3816,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_querystate_props",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "props"
     },
     {
@@ -3772,8 +3827,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "components_querystate_querystate",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "querystate()"
     },
     {
@@ -3783,8 +3838,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "components_querystate_makestyles",
-      "community": 9,
-      "community_name": "ThemeProvider.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "makestyles()"
     },
     {
@@ -3794,8 +3849,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_signedimage",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "signedimage.tsx"
     },
     {
@@ -3805,8 +3860,8 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "components_signedimage_resizemode",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "resizemode"
     },
     {
@@ -3816,8 +3871,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "components_signedimage_props",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "props"
     },
     {
@@ -3827,8 +3882,8 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "components_signedimage_resize_to_fit",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "resize_to_fit"
     },
     {
@@ -3838,8 +3893,8 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "components_signedimage_signedimage",
-      "community": 138,
-      "community_name": "useTheme",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "signedimage()"
     },
     {
@@ -3915,8 +3970,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_toast",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 9,
+      "community_name": "ThemeProvider.tsx",
       "norm_label": "toast.tsx"
     },
     {
@@ -3926,8 +3981,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "components_toast_toastvariant",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 9,
+      "community_name": "ThemeProvider.tsx",
       "norm_label": "toastvariant"
     },
     {
@@ -3937,8 +3992,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_toast_toastdata",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 9,
+      "community_name": "ThemeProvider.tsx",
       "norm_label": "toastdata"
     },
     {
@@ -3948,8 +4003,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "components_toast_toast",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 137,
+      "community_name": "inspiration.tsx",
       "norm_label": "toast()"
     },
     {
@@ -3959,8 +4014,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "components_toast_toasthost",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "toasthost()"
     },
     {
@@ -3970,8 +4025,8 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "components_toast_makestyles",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -3981,8 +4036,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_toggle",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "toggle.tsx"
     },
     {
@@ -3992,8 +4047,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_toggle_toggle",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "toggle()"
     },
     {
@@ -4003,8 +4058,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "components_toggle_styles",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 5,
+      "community_name": "useTheme",
       "norm_label": "styles"
     },
     {
@@ -4014,8 +4069,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_add_garment_draftcard",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "draftcard.tsx"
     },
     {
@@ -4025,8 +4080,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "components_add_garment_draftcard_sizes",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "sizes"
     },
     {
@@ -4036,8 +4091,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "components_add_garment_draftcard_family_status_labels",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "family_status_labels"
     },
     {
@@ -4047,8 +4102,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "components_add_garment_draftcard_props",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "props"
     },
     {
@@ -4058,8 +4113,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "components_add_garment_draftcard_draftcard",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "draftcard()"
     },
     {
@@ -4069,8 +4124,8 @@
       "source_location": "L224",
       "_origin": "ast",
       "id": "components_add_garment_draftcard_makestyles",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -4124,8 +4179,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_home_garmentpicker",
-      "community": 8,
-      "community_name": "my-outfit.tsx",
+      "community": 135,
+      "community_name": "GarmentSetSection.tsx",
       "norm_label": "garmentpicker.tsx"
     },
     {
@@ -4135,8 +4190,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "components_home_garmentpicker_props",
-      "community": 8,
-      "community_name": "my-outfit.tsx",
+      "community": 135,
+      "community_name": "GarmentSetSection.tsx",
       "norm_label": "props"
     },
     {
@@ -4146,8 +4201,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "components_home_garmentpicker_garmentpicker",
-      "community": 8,
-      "community_name": "my-outfit.tsx",
+      "community": 135,
+      "community_name": "GarmentSetSection.tsx",
       "norm_label": "garmentpicker()"
     },
     {
@@ -4157,8 +4212,8 @@
       "source_location": "L201",
       "_origin": "ast",
       "id": "components_home_garmentpicker_makestyles",
-      "community": 8,
-      "community_name": "my-outfit.tsx",
+      "community": 135,
+      "community_name": "GarmentSetSection.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -4169,7 +4224,7 @@
       "_origin": "ast",
       "id": "components_home_swapsheet",
       "community": 138,
-      "community_name": "useTheme",
+      "community_name": "SwapSheet.tsx",
       "norm_label": "swapsheet.tsx"
     },
     {
@@ -4180,7 +4235,7 @@
       "_origin": "ast",
       "id": "components_home_swapsheet_props",
       "community": 138,
-      "community_name": "useTheme",
+      "community_name": "SwapSheet.tsx",
       "norm_label": "props"
     },
     {
@@ -4191,7 +4246,7 @@
       "_origin": "ast",
       "id": "components_home_swapsheet_swapsheet",
       "community": 138,
-      "community_name": "useTheme",
+      "community_name": "SwapSheet.tsx",
       "norm_label": "swapsheet()"
     },
     {
@@ -4202,7 +4257,7 @@
       "_origin": "ast",
       "id": "components_home_swapsheet_makestyles",
       "community": 138,
-      "community_name": "useTheme",
+      "community_name": "SwapSheet.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -4301,7 +4356,7 @@
       "_origin": "ast",
       "id": "components_profile_coloranalysis",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "coloranalysis.tsx"
     },
     {
@@ -4312,7 +4367,7 @@
       "_origin": "ast",
       "id": "components_profile_coloranalysis_coloritem",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "coloritem"
     },
     {
@@ -4323,7 +4378,7 @@
       "_origin": "ast",
       "id": "components_profile_coloranalysis_coloranalysisdata",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "coloranalysisdata"
     },
     {
@@ -4334,7 +4389,7 @@
       "_origin": "ast",
       "id": "components_profile_coloranalysis_strategy_labels",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "strategy_labels"
     },
     {
@@ -4345,7 +4400,7 @@
       "_origin": "ast",
       "id": "components_profile_coloranalysis_props",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "props"
     },
     {
@@ -4356,7 +4411,7 @@
       "_origin": "ast",
       "id": "components_profile_coloranalysis_coloranalysis",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "coloranalysis()"
     },
     {
@@ -4367,7 +4422,7 @@
       "_origin": "ast",
       "id": "components_profile_coloranalysis_makestyles",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -4377,8 +4432,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "archiveview.tsx"
     },
     {
@@ -4388,8 +4443,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_categories",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "categories"
     },
     {
@@ -4399,8 +4454,8 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_seasons",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "seasons"
     },
     {
@@ -4410,8 +4465,8 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_colors",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "colors"
     },
     {
@@ -4421,8 +4476,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_color_order",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "color_order"
     },
     {
@@ -4432,8 +4487,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_sort_options",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "sort_options"
     },
     {
@@ -4443,8 +4498,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_sort_label",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "sort_label"
     },
     {
@@ -4454,8 +4509,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_props",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "props"
     },
     {
@@ -4465,8 +4520,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_archiveview",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "archiveview()"
     },
     {
@@ -4476,8 +4531,8 @@
       "source_location": "L224",
       "_origin": "ast",
       "id": "components_wardrobe_archiveview_makestyles",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "makestyles()"
     },
     {
@@ -4619,8 +4674,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_wardrobe_wishlistaddmodals",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 137,
+      "community_name": "inspiration.tsx",
       "norm_label": "wishlistaddmodals.tsx"
     },
     {
@@ -4630,8 +4685,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "components_wardrobe_wishlistaddmodals_props",
-      "community": 19,
-      "community_name": "wardrobe.tsx",
+      "community": 137,
+      "community_name": "inspiration.tsx",
       "norm_label": "props"
     },
     {
@@ -5180,8 +5235,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "package_dependencies_expo_audio",
-      "community": 37,
-      "community_name": "expo-audio",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-audio"
     },
     {
@@ -5191,8 +5246,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "expo_audio",
-      "community": 37,
-      "community_name": "expo-audio",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-audio"
     },
     {
@@ -5290,8 +5345,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "package_dependencies_expo_constants",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 140,
+      "community_name": "expo-constants",
       "norm_label": "expo-constants"
     },
     {
@@ -5301,8 +5356,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "expo_constants",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 140,
+      "community_name": "expo-constants",
       "norm_label": "expo-constants"
     },
     {
@@ -6280,8 +6335,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "supabase",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "supabase.ts"
     },
     {
@@ -6291,8 +6346,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "supabase_supabase",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "supabase"
     },
     {
@@ -7479,7 +7534,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "theme_themeprovider_usetheme",
-      "community": 138,
+      "community": 5,
       "community_name": "useTheme",
       "norm_label": "usetheme()"
     },
@@ -7754,30 +7809,30 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_alert",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 137,
+      "community_name": "inspiration.tsx",
       "norm_label": "alert.ts"
     },
     {
       "label": "showAlert()",
       "file_type": "code",
       "source_file": "utils/alert.ts",
-      "source_location": "L10",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "utils_alert_showalert",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 137,
+      "community_name": "inspiration.tsx",
       "norm_label": "showalert()"
     },
     {
       "label": "showConfirm()",
       "file_type": "code",
       "source_file": "utils/alert.ts",
-      "source_location": "L14",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "utils_alert_showconfirm",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 137,
+      "community_name": "inspiration.tsx",
       "norm_label": "showconfirm()"
     },
     {
@@ -7787,8 +7842,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_api",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 46,
+      "community_name": "wardrobe-analysis.tsx",
       "norm_label": "api.ts"
     },
     {
@@ -7799,7 +7854,7 @@
       "_origin": "ast",
       "id": "utils_api_setapilang",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "setapilang()"
     },
     {
@@ -7809,8 +7864,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "utils_api_apipost",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 46,
+      "community_name": "wardrobe-analysis.tsx",
       "norm_label": "apipost()"
     },
     {
@@ -7820,8 +7875,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_archivereasons",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "archivereasons.ts"
     },
     {
@@ -7831,8 +7886,8 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "utils_archivereasons_archivereason",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "archivereason"
     },
     {
@@ -7842,8 +7897,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "utils_archivereasons_archive_reasons",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "archive_reasons"
     },
     {
@@ -7853,8 +7908,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "utils_archivereasons_reasonfor",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 42,
+      "community_name": "ArchiveView.tsx",
       "norm_label": "reasonfor()"
     },
     {
@@ -7864,8 +7919,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_brands",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "brands.ts"
     },
     {
@@ -7875,8 +7930,8 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "utils_brands_common_brands",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "common_brands"
     },
     {
@@ -7897,8 +7952,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "utils_brands_brandsuggestions",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "brandsuggestions()"
     },
     {
@@ -7908,8 +7963,8 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "utils_brands_parseprice",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "parseprice()"
     },
     {
@@ -7963,8 +8018,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "utils_cache_cacheclear",
-      "community": 13,
-      "community_name": "profile.tsx",
+      "community": 10,
+      "community_name": "home.tsx",
       "norm_label": "cacheclear()"
     },
     {
@@ -8238,8 +8293,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_constants",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "constants.ts"
     },
     {
@@ -8249,8 +8304,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "utils_constants_categories",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "categories"
     },
     {
@@ -8260,8 +8315,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "utils_constants_subcategories",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 135,
+      "community_name": "GarmentSetSection.tsx",
       "norm_label": "subcategories"
     },
     {
@@ -8271,20 +8326,20 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "utils_constants_no_laundry_categories",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "no_laundry_categories"
     },
     {
-      "label": "NO_LAUNDRY_SUBCATEGORIES",
+      "label": "WASHABLE_SUBCATEGORIES",
       "file_type": "code",
       "source_file": "utils/constants.ts",
       "source_location": "L33",
       "_origin": "ast",
-      "id": "utils_constants_no_laundry_subcategories",
-      "community": 15,
-      "community_name": "stats.tsx",
-      "norm_label": "no_laundry_subcategories"
+      "id": "utils_constants_washable_subcategories",
+      "community": 136,
+      "community_name": "constants.ts",
+      "norm_label": "washable_subcategories"
     },
     {
       "label": "isWashable()",
@@ -8293,26 +8348,26 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "utils_constants_iswashable",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "iswashable()"
     },
     {
       "label": "COLOR_OPTIONS",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L41",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "utils_constants_color_options",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "color_options"
     },
     {
       "label": "COLOR_NAMES",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L62",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "utils_constants_color_names",
       "community": 0,
@@ -8323,7 +8378,7 @@
       "label": "COLOR_HEX",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L63",
+      "source_location": "L65",
       "_origin": "ast",
       "id": "utils_constants_color_hex",
       "community": 141,
@@ -8334,62 +8389,62 @@
       "label": "SEASONS",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L65",
+      "source_location": "L67",
       "_origin": "ast",
       "id": "utils_constants_seasons",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "seasons"
     },
     {
       "label": "FITS",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L68",
+      "source_location": "L70",
       "_origin": "ast",
       "id": "utils_constants_fits",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "fits"
     },
     {
       "label": "STYLE_RULES",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L72",
+      "source_location": "L74",
       "_origin": "ast",
       "id": "utils_constants_style_rules",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 46,
+      "community_name": "wardrobe-analysis.tsx",
       "norm_label": "style_rules"
     },
     {
       "label": "OUTFIT_CONTEXTS",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L87",
+      "source_location": "L89",
       "_origin": "ast",
       "id": "utils_constants_outfit_contexts",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "outfit_contexts"
     },
     {
       "label": "MUSIC_GENRES",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L97",
+      "source_location": "L99",
       "_origin": "ast",
       "id": "utils_constants_music_genres",
-      "community": 15,
-      "community_name": "stats.tsx",
+      "community": 136,
+      "community_name": "constants.ts",
       "norm_label": "music_genres"
     },
     {
       "label": "COLOR_GROUPS",
       "file_type": "code",
       "source_file": "utils/constants.ts",
-      "source_location": "L103",
+      "source_location": "L105",
       "_origin": "ast",
       "id": "utils_constants_color_groups",
       "community": 15,
@@ -8403,8 +8458,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_entitlements",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "entitlements.tsx"
     },
     {
@@ -8414,8 +8469,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "utils_entitlements_free_ai_per_week",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "free_ai_per_week"
     },
     {
@@ -8425,8 +8480,8 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "utils_entitlements_entitlementsctx",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "entitlementsctx"
     },
     {
@@ -8436,8 +8491,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "utils_entitlements_ctx",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "ctx"
     },
     {
@@ -8447,8 +8502,8 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "utils_entitlements_entitlementsprovider",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "entitlementsprovider()"
     },
     {
@@ -8459,7 +8514,7 @@
       "_origin": "ast",
       "id": "utils_entitlements_useentitlements",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "useentitlements()"
     },
     {
@@ -8469,8 +8524,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_household",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 37,
+      "community_name": "profile.tsx",
       "norm_label": "household.ts"
     },
     {
@@ -8480,7 +8535,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "utils_household_partner",
-      "community": 13,
+      "community": 37,
       "community_name": "profile.tsx",
       "norm_label": "partner"
     },
@@ -8503,7 +8558,7 @@
       "_origin": "ast",
       "id": "utils_i18n",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "i18n.ts"
     },
     {
@@ -8514,7 +8569,7 @@
       "_origin": "ast",
       "id": "utils_i18n_langs",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "langs"
     },
     {
@@ -8525,7 +8580,7 @@
       "_origin": "ast",
       "id": "utils_i18n_lang",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "lang"
     },
     {
@@ -8536,7 +8591,7 @@
       "_origin": "ast",
       "id": "utils_i18n_locales",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "locales"
     },
     {
@@ -8558,7 +8613,7 @@
       "_origin": "ast",
       "id": "utils_i18n_dict",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "dict"
     },
     {
@@ -8569,7 +8624,7 @@
       "_origin": "ast",
       "id": "utils_i18n_sv",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "sv"
     },
     {
@@ -8580,7 +8635,7 @@
       "_origin": "ast",
       "id": "utils_i18n_en",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "en"
     },
     {
@@ -8591,7 +8646,7 @@
       "_origin": "ast",
       "id": "utils_i18n_enbysource",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "enbysource"
     },
     {
@@ -8602,7 +8657,7 @@
       "_origin": "ast",
       "id": "utils_i18n_translations",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "translations"
     },
     {
@@ -8613,7 +8668,7 @@
       "_origin": "ast",
       "id": "utils_i18n_translate",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "translate()"
     },
     {
@@ -8624,7 +8679,7 @@
       "_origin": "ast",
       "id": "utils_id",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "id.ts"
     },
     {
@@ -8635,7 +8690,7 @@
       "_origin": "ast",
       "id": "utils_id_newimageid",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "newimageid()"
     },
     {
@@ -8645,8 +8700,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_image",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "image.ts"
     },
     {
@@ -8656,8 +8711,8 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "utils_image_pngtowebp",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "pngtowebp()"
     },
     {
@@ -8667,8 +8722,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "utils_image_downscaleforupload",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "downscaleforupload()"
     },
     {
@@ -8678,8 +8733,8 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "utils_image_base64tobytes",
-      "community": 2,
-      "community_name": "family.tsx",
+      "community": 14,
+      "community_name": "garment-detail.tsx",
       "norm_label": "base64tobytes()"
     },
     {
@@ -8690,7 +8745,7 @@
       "_origin": "ast",
       "id": "utils_imagepicker",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "imagepicker.ts"
     },
     {
@@ -8701,7 +8756,7 @@
       "_origin": "ast",
       "id": "utils_imagepicker_canceled",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "canceled"
     },
     {
@@ -8712,7 +8767,7 @@
       "_origin": "ast",
       "id": "utils_imagepicker_asksource",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "asksource()"
     },
     {
@@ -8723,7 +8778,7 @@
       "_origin": "ast",
       "id": "utils_imagepicker_pickimagesmart",
       "community": 137,
-      "community_name": "ColorAnalysis.tsx",
+      "community_name": "inspiration.tsx",
       "norm_label": "pickimagesmart()"
     },
     {
@@ -8777,8 +8832,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_nav",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "nav.ts"
     },
     {
@@ -8788,8 +8843,8 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "utils_nav_goback",
-      "community": 1,
-      "community_name": "useSettings",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "goback()"
     },
     {
@@ -8899,7 +8954,7 @@
       "_origin": "ast",
       "id": "utils_pregnancy",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "pregnancy.ts"
     },
     {
@@ -8910,7 +8965,7 @@
       "_origin": "ast",
       "id": "utils_pregnancy_trimester",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "trimester"
     },
     {
@@ -8921,7 +8976,7 @@
       "_origin": "ast",
       "id": "utils_pregnancy_trimesterfromduedate",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "trimesterfromduedate()"
     },
     {
@@ -8932,7 +8987,7 @@
       "_origin": "ast",
       "id": "utils_pregnancy_trimesterlabel",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "trimesterlabel()"
     },
     {
@@ -8943,7 +8998,7 @@
       "_origin": "ast",
       "id": "utils_pregnancy_pregnancypromptcontext",
       "community": 13,
-      "community_name": "profile.tsx",
+      "community_name": "entitlements.tsx",
       "norm_label": "pregnancypromptcontext()"
     },
     {
@@ -8953,8 +9008,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_purchases",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "purchases.ts"
     },
     {
@@ -8964,8 +9019,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "utils_purchases_premium_entitlement",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "premium_entitlement"
     },
     {
@@ -8975,8 +9030,8 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "utils_purchases_purchasesavailable",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "purchasesavailable"
     },
     {
@@ -8986,8 +9041,8 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "utils_purchases_purchasepackage",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "purchasepackage"
     },
     {
@@ -8997,8 +9052,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "utils_purchases_configurepurchases",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "configurepurchases()"
     },
     {
@@ -9008,8 +9063,8 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "utils_purchases_isprofrominfo",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "isprofrominfo()"
     },
     {
@@ -9019,8 +9074,8 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "utils_purchases_prountilfrominfo",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "prountilfrominfo()"
     },
     {
@@ -9030,8 +9085,8 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "utils_purchases_getcustomerinfo",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "getcustomerinfo()"
     },
     {
@@ -9041,8 +9096,8 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "utils_purchases_identifypurchases",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "identifypurchases()"
     },
     {
@@ -9052,8 +9107,8 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "utils_purchases_getpackages",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "getpackages()"
     },
     {
@@ -9063,8 +9118,8 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "utils_purchases_restorepurchases",
-      "community": 4,
-      "community_name": "notifications.tsx",
+      "community": 13,
+      "community_name": "entitlements.tsx",
       "norm_label": "restorepurchases()"
     },
     {
@@ -9162,8 +9217,8 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "utils_sentry_captureerror",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "captureerror()"
     },
     {
@@ -9250,7 +9305,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_settings",
-      "community": 42,
+      "community": 27,
       "community_name": "settings.tsx",
       "norm_label": "settings.tsx"
     },
@@ -9261,7 +9316,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "utils_settings_currencycode",
-      "community": 42,
+      "community": 27,
       "community_name": "settings.tsx",
       "norm_label": "currencycode"
     },
@@ -9272,7 +9327,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "utils_settings_tempunit",
-      "community": 42,
+      "community": 27,
       "community_name": "settings.tsx",
       "norm_label": "tempunit"
     },
@@ -9283,8 +9338,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "utils_settings_currencies",
-      "community": 13,
-      "community_name": "profile.tsx",
+      "community": 27,
+      "community_name": "settings.tsx",
       "norm_label": "currencies"
     },
     {
@@ -9294,7 +9349,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "utils_settings_fallback_rates",
-      "community": 42,
+      "community": 27,
       "community_name": "settings.tsx",
       "norm_label": "fallback_rates"
     },
@@ -9306,7 +9361,7 @@
       "_origin": "ast",
       "id": "utils_settings_formatwithcurrency",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "formatwithcurrency()"
     },
     {
@@ -9316,7 +9371,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "utils_settings_settingsctx",
-      "community": 42,
+      "community": 27,
       "community_name": "settings.tsx",
       "norm_label": "settingsctx"
     },
@@ -9327,7 +9382,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "utils_settings_ctx",
-      "community": 42,
+      "community": 27,
       "community_name": "settings.tsx",
       "norm_label": "ctx"
     },
@@ -9339,7 +9394,7 @@
       "_origin": "ast",
       "id": "utils_settings_settingsprovider",
       "community": 27,
-      "community_name": "i18n.ts",
+      "community_name": "settings.tsx",
       "norm_label": "settingsprovider()"
     },
     {
@@ -9581,7 +9636,7 @@
       "_origin": "ast",
       "id": "utils_storage",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "storage.ts"
     },
     {
@@ -9592,7 +9647,7 @@
       "_origin": "ast",
       "id": "utils_storage_uploaduserimage",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "uploaduserimage()"
     },
     {
@@ -9603,7 +9658,7 @@
       "_origin": "ast",
       "id": "utils_storage_storagepathfrom",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "storagepathfrom()"
     },
     {
@@ -9614,7 +9669,7 @@
       "_origin": "ast",
       "id": "utils_storage_resolveimageurl",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "resolveimageurl()"
     },
     {
@@ -9624,8 +9679,8 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "utils_storage_imagetransform",
-      "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community": 39,
+      "community_name": "goBack",
       "norm_label": "imagetransform"
     },
     {
@@ -9636,7 +9691,7 @@
       "_origin": "ast",
       "id": "utils_storage_imageurl",
       "community": 30,
-      "community_name": "garment-detail.tsx",
+      "community_name": "import-email.tsx",
       "norm_label": "imageurl()"
     },
     {
@@ -9646,8 +9701,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_trip",
-      "community": 136,
-      "community_name": "trip.ts",
+      "community": 8,
+      "community_name": "my-outfit.tsx",
       "norm_label": "trip.ts"
     },
     {
@@ -9657,8 +9712,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "utils_trip_georesult",
-      "community": 136,
-      "community_name": "trip.ts",
+      "community": 8,
+      "community_name": "my-outfit.tsx",
       "norm_label": "georesult"
     },
     {
@@ -9668,8 +9723,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "utils_trip_geocodedestination",
-      "community": 136,
-      "community_name": "trip.ts",
+      "community": 8,
+      "community_name": "my-outfit.tsx",
       "norm_label": "geocodedestination()"
     },
     {
@@ -9679,8 +9734,8 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "utils_trip_tripweather",
-      "community": 136,
-      "community_name": "trip.ts",
+      "community": 8,
+      "community_name": "my-outfit.tsx",
       "norm_label": "tripweather"
     },
     {
@@ -9690,8 +9745,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "utils_trip_ymd",
-      "community": 136,
-      "community_name": "trip.ts",
+      "community": 8,
+      "community_name": "my-outfit.tsx",
       "norm_label": "ymd()"
     },
     {
@@ -9701,8 +9756,8 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "utils_trip_fetchtripweather",
-      "community": 136,
-      "community_name": "trip.ts",
+      "community": 8,
+      "community_name": "my-outfit.tsx",
       "norm_label": "fetchtripweather()"
     },
     {
@@ -9712,8 +9767,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "utils_usequery",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "usequery.ts"
     },
     {
@@ -9723,8 +9778,8 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "utils_usequery_queryresult",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "queryresult"
     },
     {
@@ -9734,8 +9789,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "utils_usequery_options",
-      "community": 10,
-      "community_name": "home.tsx",
+      "community": 4,
+      "community_name": "notifications.tsx",
       "norm_label": "options"
     },
     {
@@ -9745,8 +9800,8 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "utils_usequery_usequery",
-      "community": 21,
-      "community_name": "import-purchases.tsx",
+      "community": 2,
+      "community_name": "family.tsx",
       "norm_label": "usequery()"
     },
     {
@@ -17621,7 +17676,7 @@
       "relation": "indirect_call",
       "confidence": "INFERRED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L146",
+      "source_location": "L148",
       "weight": 1.0,
       "_origin": "ast",
       "context": "argument",
@@ -17633,7 +17688,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout",
@@ -17644,7 +17699,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout",
@@ -17673,6 +17728,30 @@
       "_origin": "ast",
       "source": "app_layout",
       "target": "app_onboarding_onboarding_done_key",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/_layout.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app_layout",
+      "target": "components_confirmdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/_layout.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app_layout",
+      "target": "components_confirmdialog_confirmhost",
       "confidence_score": 1.0
     },
     {
@@ -17824,7 +17903,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout",
@@ -17836,7 +17915,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout",
@@ -17848,7 +17927,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout",
@@ -17909,7 +17988,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/_layout.tsx",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout_rootlayout",
@@ -17920,7 +17999,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout_rootlayout",
@@ -17932,7 +18011,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout_rootlayout",
@@ -17944,7 +18023,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L74",
+      "source_location": "L75",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout_rootlayout",
@@ -17956,7 +18035,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/_layout.tsx",
-      "source_location": "L76",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_layout_rootlayout",
@@ -26184,6 +26263,194 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "components_confirmdialog_confirmdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "components_confirmdialog_confirmhost",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "components_confirmdialog_confirmrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L70",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "components_confirmdialog_makestyles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "theme_theme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "theme_theme_theme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "theme_themeprovider",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "theme_themeprovider_usetheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "utils_settings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog",
+      "target": "utils_settings_usesettings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "utils/alert.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "utils_alert",
+      "target": "components_confirmdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "utils/alert.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "utils_alert",
+      "target": "components_confirmdialog_confirmdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "utils/alert.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "utils_alert_showconfirm",
+      "target": "components_confirmdialog_confirmdialog"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog_confirmhost",
+      "target": "components_confirmdialog_makestyles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog_confirmhost",
+      "target": "theme_themeprovider_usetheme"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ConfirmDialog.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "components_confirmdialog_confirmhost",
+      "target": "utils_settings_usesettings"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "components/CropModal.tsx",
       "source_location": "L23",
       "weight": 1.0,
@@ -27374,7 +27641,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "utils/alert.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_alert_showalert",
@@ -33201,7 +33468,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/alert.ts",
-      "source_location": "L10",
+      "source_location": "L11",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_alert",
@@ -33212,7 +33479,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/alert.ts",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_alert",
@@ -34111,7 +34378,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L103",
+      "source_location": "L105",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34122,7 +34389,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L63",
+      "source_location": "L65",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34133,7 +34400,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L62",
+      "source_location": "L64",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34144,7 +34411,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L41",
+      "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34155,7 +34422,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L68",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34177,7 +34444,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L97",
+      "source_location": "L99",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34199,18 +34466,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L33",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "utils_constants",
-      "target": "utils_constants_no_laundry_subcategories",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "utils/constants.ts",
-      "source_location": "L87",
+      "source_location": "L89",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34221,7 +34477,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L65",
+      "source_location": "L67",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34232,7 +34488,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/constants.ts",
-      "source_location": "L72",
+      "source_location": "L74",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants",
@@ -34251,12 +34507,23 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "utils/constants.ts",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "utils_constants",
+      "target": "utils_constants_washable_subcategories",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "references",
       "context": "call",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "utils/constants.ts",
-      "source_location": "L37",
+      "source_location": "L39",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants_iswashable",
@@ -34268,11 +34535,11 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "utils/constants.ts",
-      "source_location": "L37",
+      "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_constants_iswashable",
-      "target": "utils_constants_no_laundry_subcategories"
+      "target": "utils_constants_washable_subcategories"
     },
     {
       "relation": "contains",
@@ -36708,5 +36975,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "5a432c61911612c7e91791da12c2c276085f9065"
+  "built_at_commit": "16a0c99d036f163cdf6e00846e22906df6252ad6"
 }

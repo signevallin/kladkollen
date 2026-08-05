@@ -15,6 +15,7 @@ import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider
 import { SettingsProvider } from '../utils/settings'
 import { EntitlementsProvider } from '../utils/entitlements'
 import { ToastHost } from '../components/Toast'
+import { ConfirmHost } from '../components/ConfirmDialog'
 import { initSentry, wrapWithSentry } from '../utils/sentry'
 import '../global.css'
 
@@ -124,6 +125,7 @@ function RootLayout() {
         <Stack.Screen name="pregnancy-wardrobe" />
       </Stack>
       <ToastHost />
+      <ConfirmHost />
     </>
   )
 }

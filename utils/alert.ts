@@ -1,5 +1,6 @@
 import { Alert, Platform } from 'react-native'
 import { toast } from '../components/Toast'
+import { confirmDialog } from '../components/ConfirmDialog'
 
 // Titlar som signalerar ett fel/varning snarare än en bekräftelse – används
 // för att välja rätt utseende (röd ruta + varningsikon) på toasten.
@@ -18,6 +19,10 @@ export function showConfirm(
   confirmText: string = 'OK',
   destructive: boolean = false
 ) {
+  // Temaanpassad in-app-dialog (samma överallt). Faller tillbaka på systemets
+  // ruta bara om <ConfirmHost/> inte hunnit monteras.
+  if (confirmDialog({ title, message, onConfirm, confirmText, destructive })) return
+
   if (Platform.OS === 'web') {
     if (window.confirm(message ? `${title}\n${message}` : title)) {
       onConfirm()
