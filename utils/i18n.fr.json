@@ -1003,5 +1003,12 @@
  "Obegränsad AI och delad garderob för par och familj.": "IA illimitée et garde-robe partagée pour les couples et les familles.",
  "Styr påminnelser, till exempel regnvarningar.": "Gère les rappels, comme les alertes de pluie.",
  "Vill du flytta plagget till säljlistan? Det tas då bort ur garderoben.": "Déplacer ce vêtement vers la liste de vente ? Il sera alors retiré de ta garde-robe.",
- "Plagget ligger nu i säljlistan": "Le vêtement est maintenant dans ta liste de vente"
+ "Plagget ligger nu i säljlistan": "Le vêtement est maintenant dans ta liste de vente",
+ "Inga plagg att tvätta": "Rien à laver",
+ "Reseplanen matchar inga plagg i din garderob.": "Le plan de voyage ne correspond à aucun vêtement de ta garde-robe.",
+ "Lägg allt i tvätten": "Tout mettre au lavage",
+ "Markera": "Marquer",
+ "plagg från resan som i tvätten?": "vêtements du voyage comme au lavage ?",
+ "Klart!": "Terminé !",
+ "plagg ligger nu i tvätten.": "vêtements sont maintenant au lavage."
 }

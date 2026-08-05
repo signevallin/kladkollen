@@ -1091,6 +1091,15 @@ const enBySource: Dict = {
   // Återupptäck – sälj direkt
   "Vill du flytta plagget till säljlistan? Det tas då bort ur garderoben.": "Move this garment to the sale list? It will be removed from your wardrobe.",
   "Plagget ligger nu i säljlistan": "The garment is now in your sale list",
+
+  // Resa – tvätta allt + byt/lägg till
+  "Inga plagg att tvätta": "Nothing to wash",
+  "Reseplanen matchar inga plagg i din garderob.": "The trip plan doesn't match any garments in your wardrobe.",
+  "Lägg allt i tvätten": "Put everything in the laundry",
+  "Markera": "Mark",
+  "plagg från resan som i tvätten?": "garments from the trip as in the laundry?",
+  "Klart!": "Done!",
+  "plagg ligger nu i tvätten.": "garments are now in the laundry.",
 }
 
 Object.assign(en, enBySource)
