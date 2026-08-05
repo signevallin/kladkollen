@@ -1,6 +1,8 @@
 import { router } from 'expo-router'
+import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import SignedImage from '../SignedImage'
+import ListFilterBar from './ListFilterBar'
 import { useSettings } from '../../utils/settings'
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
@@ -17,6 +19,12 @@ export default function SaleTab({ forSale, onSold, onRemove }: Props) {
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
 
+  const [cat, setCat] = useState('Alla')
+  const [color, setColor] = useState('Alla')
+  const visible = forSale.filter(i =>
+    (cat === 'Alla' || i.category === cat) && (color === 'Alla' || i.color === color)
+  )
+
   return (
     <ScrollView contentContainerStyle={styles.saleScroll}>
       {forSale.length === 0 ? (
@@ -25,7 +33,13 @@ export default function SaleTab({ forSale, onSold, onRemove }: Props) {
           <Text style={styles.emptyTabHint}>{tr('Tryck ＋ för att lägga ut plagg du inte använder')}</Text>
         </View>
       ) : (
-        forSale.map((item) => (
+        <>
+          <ListFilterBar items={forSale} category={cat} color={color} onCategory={setCat} onColor={setColor} />
+          {visible.length === 0 ? (
+            <View style={styles.emptyTab}>
+              <Text style={styles.emptyTabText}>{tr('Inga plagg matchar filtren')}</Text>
+            </View>
+          ) : visible.map((item) => (
           <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
             {item.image_url
               ? <SignedImage path={item.image_url} style={styles.saleImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
@@ -44,7 +58,8 @@ export default function SaleTab({ forSale, onSold, onRemove }: Props) {
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
-        ))
+          ))}
+        </>
       )}
     </ScrollView>
   )
