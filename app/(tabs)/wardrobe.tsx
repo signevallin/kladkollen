@@ -4,7 +4,6 @@ import type { Theme } from '../../theme/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
-import { goBack } from '../../utils/nav'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   FlatList,
@@ -515,12 +514,8 @@ export default function Wardrobe() {
 
       <View style={styles.header}>
         <View style={styles.headerTitleWrap}>
-          {isPerson && (
-            <TouchableOpacity onPress={() => goBack('/profile')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel={tr('Tillbaka')}>
-              <MaterialIcons name="arrow-back" size={24} color={t.textPrimary} />
-            </TouchableOpacity>
-          )}
-          <Text style={styles.title} numberOfLines={1}>{isPerson ? `${personName || tr('Barnet')}${tr('s garderob')}` : tr('Min garderob')}</Text>
+          {/* Barn-läge: ingen bakåtknapp – man byter vy via bottom-nav. */}
+          <Text style={styles.title} numberOfLines={1}>{isPerson ? (personName || tr('Barnet')) : tr('Min garderob')}</Text>
         </View>
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
