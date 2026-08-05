@@ -1182,7 +1182,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   // (annars centreras den och en dag med outfit-bild trycker upp siffran medan
   // en tom dag får den längre ner). Transparent kant på basen så dagens kant
   // inte förskjuter layouten relativt grannarna.
-  dayCell: { width: '14.28%', aspectRatio: 0.6, padding: 2, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', borderRadius: 8, borderWidth: 1.5, borderColor: 'transparent' },
+  dayCell: { width: '14.28%', aspectRatio: 0.78, padding: 2, paddingTop: 6, alignItems: 'center', justifyContent: 'flex-start', borderRadius: 8, borderWidth: 1.5, borderColor: 'transparent' },
   dayCellToday: { borderColor: t.primary },
   // Burna outfits (dagar som passerat) = varm brun ton. Planerade (idag/framåt)
   // = samma ljusblå som plusknappen (fast, oavsett tema).
@@ -1192,9 +1192,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dayNumberToday: { color: t.textSecondary, fontWeight: '700' },
   dayNumberPast: { color: t.textFaint },
   dayNumberPlanned: { color: '#2B2320' },
-  dayCellGrid: { width: 48, height: 48, flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'center' },
-  dayCellImage: { width: 46, height: 46, borderRadius: 8 },
-  dayCellImageSmall: { width: 23, height: 23, borderRadius: 5 },
+  dayCellGrid: { width: 44, height: 44, flexDirection: 'row', flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'center' },
+  dayCellImage: { width: 42, height: 42, borderRadius: 8 },
+  dayCellImageSmall: { width: 21, height: 21, borderRadius: 5 },
   dayCellOutfitDot: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textPrimary },
   dayCellPlus: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint },
   calendarLegend: { flexDirection: 'row', gap: 16, justifyContent: 'center', marginTop: 12 },
