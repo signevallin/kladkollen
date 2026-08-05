@@ -467,7 +467,7 @@ export default function Profile() {
             icon: 'favorite-border', value: lifeMode === 'family' ? 'Familj' : lifeMode === 'couple' ? 'Partner' : 'Singel',
             body: (
               <>
-                <Text style={styles.hint}>Anpassar appen efter var i livet du är. Fler lägen kommer.</Text>
+                <Text style={styles.hint}>Anpassar appen efter var i livet du är.</Text>
                 <View style={styles.pills}>
                   {([['single', 'Singel'], ['couple', 'Partner'], ['family', 'Familj']] as const).map(([v, lbl]) => (
                     <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => setLifeMode(v)}>
