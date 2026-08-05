@@ -50,11 +50,27 @@ export default function Inspiration() {
     const { data } = await supabase
       .from('garments')
       .select('id, name, category, image_url, times_worn')
-      .is('person_id', null).eq('archived', false).eq('in_laundry', false)
+      .is('person_id', null).eq('archived', false).eq('in_laundry', false).eq('for_sale', false)
       .order('times_worn', { ascending: true, nullsFirst: true })
       .limit(12)
     setRediscover(data || [])
     setRediscoverLoaded(true)
+  }
+
+  // Snabb väg att sälja ett plagg man inte längre vill ha, direkt från
+  // Återupptäck. Flyttar det till säljlistan och tar bort det ur listan.
+  function sellRediscover(g: any) {
+    showConfirm(
+      tt('Lägg i säljlistan'),
+      tt('Vill du flytta plagget till säljlistan? Det tas då bort ur garderoben.'),
+      async () => {
+        const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', g.id)
+        if (error) { showAlert(tt('Något gick fel'), error.message); return }
+        setRediscover(prev => prev.filter(x => x.id !== g.id))
+        toast(tt('Plagget ligger nu i säljlistan'))
+      },
+      tt('Lägg i säljlistan'),
+    )
   }
 
   useEffect(() => {
@@ -650,6 +666,17 @@ export default function Inspiration() {
                         ? tt('Aldrig buren')
                         : `${tt('Buren')} ${g.times_worn} ${g.times_worn === 1 ? tt('gång') : tt('gånger')}`}
                     </Text>
+                    {/* Vill man inte ha plagget kvar – flytta det till säljlistan direkt härifrån. */}
+                    <TouchableOpacity
+                      style={styles.rediscoverSellBtn}
+                      onPress={() => sellRediscover(g)}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${tt('Sälj')}: ${g.name}`}
+                    >
+                      <Ionicons name="pricetag-outline" size={12} color={t.textSecondary} />
+                      <Text style={styles.rediscoverSellText}>{tt('Sälj')}</Text>
+                    </TouchableOpacity>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -711,6 +738,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   rediscoverImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: t.surface },
   rediscoverName: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textPrimary, marginTop: 6, textAlign: 'center' },
   rediscoverWorn: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, textAlign: 'center', marginTop: 2 },
+  rediscoverSellBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 6, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  rediscoverSellText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: t.textSecondary },
   missingSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.surfaceMuted, gap: 10 },
   missingSectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   missingIcon: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
