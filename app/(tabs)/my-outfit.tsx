@@ -24,6 +24,7 @@ import CreateOutfitView from '../../components/my-outfit/CreateOutfitView'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { supabase } from '../../supabase'
+import { isWashable } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
 import { showAlert, showConfirm } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
@@ -515,14 +516,17 @@ function isPast(date: Date) {
   }
 
   // Efter resan: lägg alla plagg som ingick (outfits + packlista) i tvätten
-  // med ett tryck. Namnen matchas mot garderoben via matchGarment.
+  // med ett tryck. Namnen matchas mot garderoben via matchGarment. Plagg som
+  // inte tvättas (skor, smycken, väskor, skärp) hoppas över.
   function washTripGarments() {
     if (!tripResult) return
     const names: string[] = [
       ...(tripResult.outfits || []).flatMap((o: any) => o.items || []),
       ...(tripResult.packingList || []),
     ]
-    const ids = Array.from(new Set(names.map(n => matchGarment(n)?.id).filter(Boolean))) as string[]
+    const ids = Array.from(new Set(
+      names.map(n => matchGarment(n)).filter(g => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
+    )) as string[]
     if (ids.length === 0) {
       showAlert(tr('Inga plagg att tvätta'), tr('Reseplanen matchar inga plagg i din garderob.')); return
     }
@@ -540,26 +544,45 @@ function isPast(date: Date) {
   }
 
   // Byt ut / ta bort / lägg till plagg i en reseoutfit. Items lagras som namn;
-  // matchGarment löser bilderna. Ändringen sparas och speglas.
+  // matchGarment löser bilderna. Ändringen sparas och speglas – och packlistan
+  // hålls i synk (AI:ns extra-tips som inte är outfit-plagg rörs inte).
+  function usedInOutfits(name: string, outfits: any[]): boolean {
+    const target = (name || '').toLowerCase()
+    return outfits.some((o: any) => (o.items || []).some((n: string) => (n || '').toLowerCase() === target))
+  }
+  // Uppdaterar packlistan: tar bort ett borttaget plagg (om det inte används i
+  // någon annan outfit) och lägger till ett nytt (om det inte redan finns).
+  function syncPacking(list: string[], outfits: any[], removed: string | null, added: string | null): string[] {
+    let pl = [...(list || [])]
+    if (removed && !usedInOutfits(removed, outfits)) pl = pl.filter(n => (n || '').toLowerCase() !== removed.toLowerCase())
+    if (added && !pl.some(n => (n || '').toLowerCase() === added.toLowerCase())) pl = [...pl, added]
+    return pl
+  }
+
   function replaceTripItem(oi: number, ii: number, garment: any) {
     if (!tripResult) return
+    const oldName = tripResult.outfits?.[oi]?.items?.[ii] ?? null
     const outfits = tripResult.outfits.map((o: any, i: number) =>
       i !== oi ? o : { ...o, items: (o.items || []).map((n: string, j: number) => j === ii ? garment.name : n) })
-    persistTripResult({ ...tripResult, outfits })
+    const packingList = syncPacking(tripResult.packingList, outfits, oldName, garment.name)
+    persistTripResult({ ...tripResult, outfits, packingList })
     setTripSwap(null)
   }
   function removeTripItem(oi: number, ii: number) {
     if (!tripResult) return
+    const oldName = tripResult.outfits?.[oi]?.items?.[ii] ?? null
     const outfits = tripResult.outfits.map((o: any, i: number) =>
       i !== oi ? o : { ...o, items: (o.items || []).filter((_: string, j: number) => j !== ii) })
-    persistTripResult({ ...tripResult, outfits })
+    const packingList = syncPacking(tripResult.packingList, outfits, oldName, null)
+    persistTripResult({ ...tripResult, outfits, packingList })
     setTripSwap(null)
   }
   function addTripItem(oi: number, garment: any) {
     if (!tripResult) return
     const outfits = tripResult.outfits.map((o: any, i: number) =>
       i !== oi ? o : { ...o, items: [...(o.items || []), garment.name] })
-    persistTripResult({ ...tripResult, outfits })
+    const packingList = syncPacking(tripResult.packingList, outfits, null, garment.name)
+    persistTripResult({ ...tripResult, outfits, packingList })
     setTripAddTarget(null)
   }
 
