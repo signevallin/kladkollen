@@ -4,6 +4,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { goBack } from '../utils/nav'
+import { useSettings } from '../utils/settings'
 
 // "Så funkar Skrud" – en interaktiv guide där varje knapp/ikon i appen
 // förklaras. Grupperad per skärm och hopfällbar så man snabbt hittar rätt.
@@ -96,6 +97,7 @@ const GROUPS: Group[] = [
 export default function HowItWorks() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   // Första gruppen öppen från start; övriga hopfällda.
   const [open, setOpen] = useState<string[]>([GROUPS[0].key])
 
@@ -107,17 +109,17 @@ export default function HowItWorks() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/profile')}>
-          <Text style={styles.backButtonText}>← Tillbaka</Text>
+          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Så funkar Skrud</Text>
-        <Text style={styles.lede}>Tryck på ett avsnitt för att se vad varje knapp och ikon betyder.</Text>
+        <Text style={styles.title}>{tr('Så funkar Skrud')}</Text>
+        <Text style={styles.lede}>{tr('Tryck på ett avsnitt för att se vad varje knapp och ikon betyder.')}</Text>
 
         {GROUPS.map(g => {
           const isOpen = open.includes(g.key)
           return (
             <View key={g.key} style={styles.card}>
               <TouchableOpacity style={styles.cardHeader} activeOpacity={0.7} onPress={() => toggle(g.key)}>
-                <Text style={styles.cardTitle}>{g.title}</Text>
+                <Text style={styles.cardTitle}>{tr(g.title)}</Text>
                 <Ionicons name={isOpen ? 'chevron-up' : 'chevron-down'} size={20} color={t.textFaint} />
               </TouchableOpacity>
               {isOpen && g.variant === 'tips' && (
@@ -126,8 +128,8 @@ export default function HowItWorks() {
                     <View key={it.label} style={styles.tipRow}>
                       <Ionicons name="checkmark-circle" size={18} color={t.primary} style={styles.tipIcon} />
                       <View style={styles.itemText}>
-                        <Text style={styles.itemLabel}>{it.label}</Text>
-                        <Text style={styles.itemDesc}>{it.desc}</Text>
+                        <Text style={styles.itemLabel}>{tr(it.label)}</Text>
+                        <Text style={styles.itemDesc}>{tr(it.desc)}</Text>
                       </View>
                     </View>
                   ))}
@@ -138,7 +140,7 @@ export default function HowItWorks() {
                   {g.items.map(it => (
                     <View key={it.label} style={styles.item}>
                       {it.pill
-                        ? <View style={styles.pillChip}><Text style={styles.pillChipText} numberOfLines={2}>{it.pill}</Text></View>
+                        ? <View style={styles.pillChip}><Text style={styles.pillChipText} numberOfLines={2}>{tr(it.pill)}</Text></View>
                         : (
                           <View style={styles.iconChip}>
                             {it.lib === 'mat'
@@ -147,8 +149,8 @@ export default function HowItWorks() {
                           </View>
                         )}
                       <View style={styles.itemText}>
-                        <Text style={styles.itemLabel}>{it.label}</Text>
-                        <Text style={styles.itemDesc}>{it.desc}</Text>
+                        <Text style={styles.itemLabel}>{tr(it.label)}</Text>
+                        <Text style={styles.itemDesc}>{tr(it.desc)}</Text>
                       </View>
                     </View>
                   ))}
@@ -159,8 +161,8 @@ export default function HowItWorks() {
         })}
 
         <View style={styles.helpBox}>
-          <Text style={styles.helpTitle}>Behöver du mer hjälp?</Text>
-          <Text style={styles.helpText}>Hör av dig till oss på hej@kladkollen.se så hjälper vi dig.</Text>
+          <Text style={styles.helpTitle}>{tr('Behöver du mer hjälp?')}</Text>
+          <Text style={styles.helpText}>{tr('Hör av dig till oss på hej@kladkollen.se så hjälper vi dig.')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

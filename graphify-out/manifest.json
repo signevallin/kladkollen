@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "app/how-it-works.tsx": {
-    "mtime": 1785875144.255189,
-    "ast_hash": "85e8136f27613aa3f6f22804b644362e",
+    "mtime": 1785932551.2500975,
+    "ast_hash": "265e2f2d62e07b3718db94fbe945cc8b",
     "semantic_hash": ""
   },
   "app/import-email.tsx": {
@@ -650,23 +650,23 @@
     "semantic_hash": ""
   },
   "utils/i18n.de.json": {
-    "mtime": 1785913906.9508798,
-    "ast_hash": "195a4180ac89d76c656c4b5b7dd27878",
+    "mtime": 1785932871.866094,
+    "ast_hash": "3daf29717154af08050be29a89e40702",
     "semantic_hash": ""
   },
   "utils/i18n.es.json": {
-    "mtime": 1785913906.9534352,
-    "ast_hash": "f04c400b286777354be01f56e0188929",
+    "mtime": 1785932871.869236,
+    "ast_hash": "915a06a3e164ed8e923ed7b1ecff127b",
     "semantic_hash": ""
   },
   "utils/i18n.fr.json": {
-    "mtime": 1785913906.9559236,
-    "ast_hash": "2d6e0044ad7eaa81f766c834fa43b1a8",
+    "mtime": 1785932871.8740942,
+    "ast_hash": "5f0fddc9084e2d73f500878e4721ad16",
     "semantic_hash": ""
   },
   "utils/i18n.ts": {
-    "mtime": 1785913899.5466208,
-    "ast_hash": "57d866b1decf84bc173539ac5dd47318",
+    "mtime": 1785932871.8620942,
+    "ast_hash": "a7f2b46fa2e42e80e3c3ed25d2c3c7ec",
     "semantic_hash": ""
   },
   "utils/id.ts": {
@@ -875,8 +875,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1785919543.6087844,
-    "ast_hash": "89be23fbafeb73b1d7a1e7b2315e5349",
+    "mtime": 1785932925.2140937,
+    "ast_hash": "c57bcefc6b96f78dcf68bc3f4d6290f3",
     "semantic_hash": ""
   },
   "app/pregnancy-wardrobe.tsx": {
