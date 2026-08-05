@@ -33,6 +33,19 @@ Arbetsflöde:
 Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
 (`supabase/migrations/*.sql`).
 
+## Kodstruktur & refaktorering
+- Stora skärmar bryts ned i delkomponenter. `wardrobe.tsx` (var 1626 rader) är
+  uppdelad i `components/wardrobe/`: `WishlistAddModals`, `SaleAddModal`,
+  `ArchiveView` (äger egen state, parent skickar data + `onAdded`/`onRefresh`),
+  samt presentationskomponenterna `WishlistTab`/`SaleTab` (parent äger data +
+  handlers). Mönster: co-lokalisera modal-/vy-state i komponenten, håll
+  data-fetch i skärmen. Följ samma mönster när andra stora skärmar delas upp
+  (kandidater: home.tsx, my-outfit.tsx, profile.tsx, stats.tsx, garment-detail.tsx).
+- **Verifiera refaktoreringar med `npx tsc --noEmit`.** Kör `npm ci
+  --ignore-scripts` först om `node_modules` saknas i en färsk container.
+  Baslinjen är ren så när som på ett känt fel i `api/remove-background.ts` –
+  jämför mot det.
+
 ## Övrigt värt att minnas
 - i18n är nycklad på svenska källsträngar: `tr('Svensk text')`. Övriga språk
   (en/de/es/fr) ligger i `utils/i18n.ts` (en via `enBySource`) och
