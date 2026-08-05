@@ -76,7 +76,9 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   (en/de/es/fr) ligger i `utils/i18n.ts` (en via `enBySource`) och
   `utils/i18n.*.json`. Saknad nyckel faller tillbaka på svenskan.
 - Tema via `useTheme()`/`theme/theme.ts`; inställningar via `useSettings()`.
-- Info-/hjälpskärmar (terms, privacy, how-it-works) är svenska mallar.
+- Info-/hjälpskärmar terms/privacy är svenska mallar. `how-it-works.tsx`
+  ("Så funkar Skrud") är däremot översatt via `tr()` – GROUPS-datan är svensk
+  källtext som wrappas i `tr()` vid render, med en\/de\/es\/fr-nycklar i i18n.
 - Webb: `public/landing.html` (startsida) och `public/support.html`
   (Apple Support URL) – Skrud-branding, inga emojis.
 - **Gravidläge** (valfritt, privat – ingen hälsodata): togglas som en rad i
