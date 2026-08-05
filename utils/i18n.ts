@@ -1100,6 +1100,11 @@ const enBySource: Dict = {
   "plagg från resan som i tvätten?": "garments from the trip as in the laundry?",
   "Klart!": "Done!",
   "plagg ligger nu i tvätten.": "garments are now in the laundry.",
+
+  // Kalender – skapa outfit direkt på ett datum
+  "Skapa ny outfit": "Create new outfit",
+  "Inga sparade outfits ännu": "No saved outfits yet",
+  "Bygg en ny outfit ovan – eller välj en sparad här sen.": "Build a new outfit above – or pick a saved one here later.",
 }
 
 Object.assign(en, enBySource)

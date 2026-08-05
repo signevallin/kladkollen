@@ -24,7 +24,9 @@ type Props = {
   editOutfit: any | null
   locale: string
   onClose: () => void
-  onSaved: () => void
+  // Får den nyskapade outfiten (med id) vid ny outfit, inget vid redigering –
+  // så parent t.ex. kan lägga den direkt på ett datum i kalendern.
+  onSaved: (outfit?: any) => void
 }
 
 export default function CreateOutfitView({ garments, wishlist, editOutfit, locale, onClose, onSaved }: Props) {
@@ -75,18 +77,23 @@ export default function CreateOutfitView({ garments, wishlist, editOutfit, local
     const garmentNames = selectedGarments.map(g => g.name)
     const imageUrls = selectedGarments.map(g => g.image_url).filter(Boolean)
 
-    const error = editingId
-      ? (await supabase.from('outfits').update({ name, garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls }).eq('id', editingId)).error
-      : (await supabase.from('outfits').insert([{
-          user_id: user?.id, name, garment_ids: garmentIds, garment_names: garmentNames,
-          image_urls: imageUrls, style: activeStyle !== 'Alla' ? activeStyle : null,
-        }])).error
+    let savedOutfit: any = null
+    let error: any = null
+    if (editingId) {
+      error = (await supabase.from('outfits').update({ name, garment_ids: garmentIds, garment_names: garmentNames, image_urls: imageUrls }).eq('id', editingId)).error
+    } else {
+      const res = await supabase.from('outfits').insert([{
+        user_id: user?.id, name, garment_ids: garmentIds, garment_names: garmentNames,
+        image_urls: imageUrls, style: activeStyle !== 'Alla' ? activeStyle : null,
+      }]).select().single()
+      error = res.error; savedOutfit = res.data
+    }
 
     if (error) {
       showAlert(tr('Något gick fel'), error.message)
     } else {
       showAlert(editingId ? tr('Outfit uppdaterad!') : tr('Outfit sparad!'))
-      onSaved()
+      onSaved(savedOutfit)
       onClose()
     }
   }
