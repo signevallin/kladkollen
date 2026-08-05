@@ -18,7 +18,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../../components/BottomNav'
 import SignedImage from '../../components/SignedImage'
 import { captureRef } from 'react-native-view-shot'
@@ -674,7 +673,6 @@ export default function Inspiration() {
                       accessibilityRole="button"
                       accessibilityLabel={`${tt('Sälj')}: ${g.name}`}
                     >
-                      <Ionicons name="pricetag-outline" size={12} color={t.textSecondary} />
                       <Text style={styles.rediscoverSellText}>{tt('Sälj')}</Text>
                     </TouchableOpacity>
                   </TouchableOpacity>
@@ -738,8 +736,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   rediscoverImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: t.surface },
   rediscoverName: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textPrimary, marginTop: 6, textAlign: 'center' },
   rediscoverWorn: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, textAlign: 'center', marginTop: 2 },
-  rediscoverSellBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 6, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
-  rediscoverSellText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: t.textSecondary },
+  rediscoverSellBtn: { alignItems: 'center', justifyContent: 'center', marginTop: 6, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: t.primary },
+  rediscoverSellText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: t.onPrimary },
   missingSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.surfaceMuted, gap: 10 },
   missingSectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   missingIcon: { fontFamily: 'Lora_400Regular', fontSize: 22, marginTop: 2 },
