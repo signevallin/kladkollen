@@ -84,6 +84,14 @@ export default function Profile() {
 
   // Vilken listrad som är utfälld (dragspel). Bara en i taget.
   const [expanded, setExpanded] = useState<string | null>(null)
+  // Hopfällda sektioner. Inställningar och Om Skrud (de minst använda) är
+  // ihopfällda som standard så profilen känns kortare vid öppning.
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(['installningar', 'omskrud']))
+  const toggleSection = (key: string) => setCollapsedSections(prev => {
+    const next = new Set(prev)
+    if (next.has(key)) next.delete(key); else next.add(key)
+    return next
+  })
 
   // Stilprofil
   const [stilProfil, setStilProfil] = useState<string[]>([])
@@ -319,6 +327,23 @@ export default function Profile() {
     )
   }
 
+  // Hopfällbar sektionsrubrik: tryck för att fälla ihop/ut hela kortet nedanför.
+  const sectionHeader = (key: string, title: string) => {
+    const collapsed = collapsedSections.has(key)
+    return (
+      <TouchableOpacity
+        style={styles.sectionHeaderRow}
+        activeOpacity={0.7}
+        onPress={() => { setExpanded(null); toggleSection(key) }}
+        accessibilityRole="button"
+        accessibilityLabel={tr(title)}
+      >
+        <Text style={styles.sectionHeaderTitle}>{tr(title)}</Text>
+        <MaterialIcons name={collapsed ? 'expand-more' : 'expand-less'} size={20} color={t.textFaint} />
+      </TouchableOpacity>
+    )
+  }
+
   const pillGroup = (options: string[], selected: string[], onToggle: (v: string) => void) => (
     <View style={styles.pills}>
       {options.map(o => (
@@ -392,7 +417,8 @@ export default function Profile() {
         )}
 
         {/* ── Min information ── */}
-        <Text style={styles.sectionTitle}>{tr('Min information')}</Text>
+        {sectionHeader('info', 'Min information')}
+        {!collapsedSections.has('info') && (
         <View style={styles.listCard}>
           {renderRow('namn', 'Namn', {
             icon: 'person-outline', value: name,
@@ -522,10 +548,11 @@ export default function Profile() {
           {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/partner' : '/paywall') })}
           {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/family' : '/paywall') })}
         </View>
+        )}
 
         {/* ── Min stil ── */}
-        {/* ── Min stil ── */}
-        <Text style={styles.sectionTitle}>{tr('Min stil')}</Text>
+        {sectionHeader('stil', 'Min stil')}
+        {!collapsedSections.has('stil') && (
         <View style={styles.listCard}>
           {renderRow('stil', 'Stil', {
             icon: 'checkroom', value: stylePrefs.length ? `${stylePrefs.length} ${tr('valda')}` : undefined,
@@ -629,9 +656,11 @@ export default function Profile() {
             body: <ColorAnalysis onAnalyzed={() => setHasColorAnalysis(true)} />,
           })}
         </View>
+        )}
 
         {/* ── Inställningar ── */}
-        <Text style={styles.sectionTitle}>{tr('Inställningar')}</Text>
+        {sectionHeader('installningar', 'Inställningar')}
+        {!collapsedSections.has('installningar') && (
         <View style={styles.listCard}>
           {renderRow('valuta', 'Valuta', {
             icon: 'attach-money', value: currency,
@@ -684,9 +713,11 @@ export default function Profile() {
             ),
           })}
         </View>
+        )}
 
         {/* ── Skrud Premium ── */}
-        <Text style={styles.sectionTitle}>{tr('Skrud Premium')}</Text>
+        {sectionHeader('premium', 'Skrud Premium')}
+        {!collapsedSections.has('premium') && (
         <View style={styles.listCard}>
           {renderRow('premium', 'Skrud Premium', {
             icon: 'workspace-premium',
@@ -694,14 +725,17 @@ export default function Profile() {
             onPress: () => router.push('/paywall'),
           })}
         </View>
+        )}
 
         {/* ── Om Skrud ── */}
-        <Text style={styles.sectionTitle}>{tr('Om Skrud')}</Text>
+        {sectionHeader('omskrud', 'Om Skrud')}
+        {!collapsedSections.has('omskrud') && (
         <View style={styles.listCard}>
           {renderRow('safunkar', 'Så funkar Skrud', { icon: 'help-outline', onPress: () => router.push('/how-it-works') })}
           {renderRow('villkor', 'Användarvillkor', { icon: 'description', onPress: () => router.push('/terms') })}
           {renderRow('integritet', 'Integritetspolicy', { icon: 'privacy-tip', onPress: () => router.push('/privacy') })}
         </View>
+        )}
 
         <Text style={styles.autosaveHint}>
           {saveState === 'saving' ? tr('Sparar…') : saveState === 'saved' ? tr('Ändringar sparas automatiskt ✓') : tr('Ändringar sparas automatiskt')}
@@ -732,6 +766,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   householdName: { fontFamily: 'Lora_500Medium', fontSize: 12, color: t.textSecondary, marginTop: 6, textAlign: 'center' },
 
   sectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase', marginTop: 22, marginBottom: 10, marginLeft: 4 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 22, marginBottom: 10, paddingHorizontal: 4 },
+  sectionHeaderTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase' },
   listCard: { backgroundColor: t.surfaceMuted, borderRadius: 18, borderWidth: 1, borderColor: t.border, overflow: 'hidden' },
   rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 15, paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
   rowLabel: { flex: 1, fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
