@@ -1087,6 +1087,10 @@ const enBySource: Dict = {
   "Skrud Premium": "Skrud Premium",
   "Obegränsad AI och delad garderob för par och familj.": "Unlimited AI and a shared wardrobe for couples and families.",
   "Styr påminnelser, till exempel regnvarningar.": "Manage reminders, such as rain alerts.",
+
+  // Återupptäck – sälj direkt
+  "Vill du flytta plagget till säljlistan? Det tas då bort ur garderoben.": "Move this garment to the sale list? It will be removed from your wardrobe.",
+  "Plagget ligger nu i säljlistan": "The garment is now in your sale list",
 }
 
 Object.assign(en, enBySource)
