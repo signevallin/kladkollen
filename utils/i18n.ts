@@ -963,6 +963,7 @@ const enBySource: Dict = {
     'Start with your own wardrobe. Share it with your partner. Gather the whole family\'s clothes in one place – the same app, wherever you are in life.',
 
   // Gravidläge (pregnancy mode)
+  'Gravid': 'Pregnant',
   'Gravidläge': 'Pregnancy mode',
   'Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.':
     'Adapts outfits to your bump and lets you pause clothes that don\'t fit right now.',
