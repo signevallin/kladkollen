@@ -194,7 +194,8 @@ export default function MyOutfits() {
     const { error } = await supabase.rpc('adjust_garment_wear', {
       p_ids: garmentIds,
       p_delta: delta,
-      p_date: wearDate ?? null,
+      // Utelämna datumet när det saknas så RPC:n använder sitt default (idag).
+      p_date: wearDate ?? undefined,
     })
     if (error) throw error
   }

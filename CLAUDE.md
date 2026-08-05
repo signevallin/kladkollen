@@ -71,6 +71,19 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   (`noUnusedLocals` är av, så oanvända imports/stilar fångas inte av tsc –
   rensa dem manuellt med grep.)
 
+## Databastyper
+- `types/supabase.ts` är **autogenererad** från prod-schemat (redigera inte för
+  hand). Regenerera vid schemaändringar:
+  `npx supabase gen types typescript --project-id <ref> --schema public > types/supabase.ts`.
+- `types/models.ts` är den enda källan för domäntyper: `Garment`, `Outfit`,
+  `WishItem`, `Profile` m.fl. (tunna alias över `Tables<'…'>`). Importera dem
+  därifrån i stället för att skriva `any` när du hanterar tabellrader.
+- `supabase`-klienten är typad med `createClient<Database>` – alla `.from()`-
+  frågor returnerar därför schema-typade rader och felstavade kolumnnamn/
+  fältnamn (t.ex. `archive_reason`) fångas av `tsc` i stället för av testare.
+  JSON-kolumner (`color_analysis`, `notif_prefs`, `outfit_context_notes`) är
+  `Json` – casta vid gränsen (`as unknown as …`) när du läser/skriver dem.
+
 ## Övrigt värt att minnas
 - i18n är nycklad på svenska källsträngar: `tr('Svensk text')`. Övriga språk
   (en/de/es/fr) ligger i `utils/i18n.ts` (en via `enBySource`) och

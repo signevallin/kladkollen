@@ -165,7 +165,7 @@ export default function Home() {
       const name = profile?.name || user.email?.split('@')[0] || ''
       setUserName(name); cacheSet('home.userName', name)
       setUserAvatar(profile?.avatar_url || null); cacheSet('home.userAvatar', profile?.avatar_url || null)
-      setContextNotes(profile?.outfit_context_notes || {})
+      setContextNotes((profile?.outfit_context_notes as unknown as Record<string, string>) || {})
       setMusicGenres(profile?.music_genres || '')
       if (profile?.cold_sensitivity != null) setColdSensitivity(profile.cold_sensitivity)
       setStyleRuleKeys(profile?.style_rules ? profile.style_rules.split(', ').filter(Boolean) : [])
@@ -363,8 +363,8 @@ export default function Home() {
 
       const recentGarments = recentOutfits?.slice(0, 5).flatMap(o => o.garment_names || []) || []
 
-      const likedOutfits = recentOutfits?.filter(o => o.rating >= 4).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
-      const dislikedOutfits = recentOutfits?.filter(o => o.rating <= 2 && o.rating !== null).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
+      const likedOutfits = recentOutfits?.filter(o => o.rating != null && o.rating >= 4).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
+      const dislikedOutfits = recentOutfits?.filter(o => o.rating != null && o.rating <= 2).map(o => o.garment_names?.join(', ')).filter(Boolean) || []
       const feedbackStr = [
         likedOutfits.length > 0 ? `Användaren GILLADE dessa kombinationer: ${likedOutfits.slice(0, 3).join(' | ')}` : '',
         dislikedOutfits.length > 0 ? `Användaren GILLADE INTE dessa: ${dislikedOutfits.slice(0, 3).join(' | ')}` : '',

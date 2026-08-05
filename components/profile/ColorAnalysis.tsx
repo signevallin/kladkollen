@@ -7,6 +7,7 @@ import { pickImageSmart } from '../../utils/imagePicker'
 import { useSettings } from '../../utils/settings'
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
+import type { Json } from '../../types/models'
 
 // Färganalysen (färgprofil) – ett självständigt block som bröts ut ur
 // profile.tsx. Laddar sin egen data, äger all input-/resultat-state och
@@ -55,16 +56,13 @@ export default function ColorAnalysis({ onAnalyzed }: Props) {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      // Färgprofilen lagras som JSON i kolumnen color_analysis. (Formulärets
+      // enskilda fält är bara indata till analysen – de har ingen egen kolumn.)
       const { data } = await supabase.from('profiles')
-        .select('color_analysis, skin_tone, skin_undertone, hair_color, eye_color, contrast_level')
+        .select('color_analysis')
         .eq('id', user.id).single()
       if (!data) return
-      if (data.color_analysis) setColorAnalysis(data.color_analysis)
-      if (data.skin_tone) setSkinTone(data.skin_tone)
-      if (data.skin_undertone) setSkinUndertone(data.skin_undertone)
-      if (data.hair_color) setHairColor(data.hair_color)
-      if (data.eye_color) setEyeColor(data.eye_color)
-      if (data.contrast_level) setContrastLevel(data.contrast_level)
+      if (data.color_analysis) setColorAnalysis(data.color_analysis as unknown as ColorAnalysisData)
     })()
   }, [])
 
@@ -92,10 +90,7 @@ export default function ColorAnalysis({ onAnalyzed }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         await supabase.from('profiles').update({
-          color_analysis: parsed,
-          ...(inputMode === 'form' && {
-            skin_tone: skinTone, skin_undertone: skinUndertone, hair_color: hairColor, eye_color: eyeColor, contrast_level: contrastLevel,
-          }),
+          color_analysis: parsed as unknown as Json,
         }).eq('id', user.id)
       }
       onAnalyzed?.()
