@@ -34,6 +34,8 @@ import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, SEASONS as SEASON_
 import WishlistAddModals from '../../components/wardrobe/WishlistAddModals'
 import SaleAddModal from '../../components/wardrobe/SaleAddModal'
 import ArchiveView from '../../components/wardrobe/ArchiveView'
+import WishlistTab from '../../components/wardrobe/WishlistTab'
+import SaleTab from '../../components/wardrobe/SaleTab'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
@@ -727,149 +729,19 @@ export default function Wardrobe() {
 
       {/* KÖP */}
       {activeTab === 'köp' && (
-        <ScrollView contentContainerStyle={styles.wishScroll}>
-          {wishlist.length === 0 ? (
-            <View style={styles.emptyTab}>
-              <Text style={styles.emptyTabText}>{tr('Köplistan är tom')}</Text>
-              <Text style={styles.emptyTabHint}>{tr('Tryck ＋ för att lägga till plagg du drömmer om')}</Text>
-            </View>
-          ) : (
-            <>
-              <View style={styles.wishTotalCard}>
-                <Text style={styles.wishTotalLabel}>{tr('Önskelistans värde')}</Text>
-                <Text style={styles.wishTotalValue}>
-                  {formatPrice(wishlist.reduce((s, w) => s + (Number(w.price) || 0), 0))}
-                </Text>
-              </View>
-              <Text style={styles.wishHint}>{tr('Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera')}</Text>
-              {wishlist.map((item, index) => {
-                const count = outfitCounts[item.id] || 0
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.wishItem}
-                    onPress={() => router.push(`/garment-detail?wishlistId=${item.id}`)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.reorderCol}>
-                      <TouchableOpacity
-                        style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
-                        onPress={() => moveWishItem(index, 'up')}
-                        disabled={index === 0}
-                        hitSlop={{ top: 10, bottom: 6, left: 10, right: 10 }}
-                        accessibilityLabel={tr('Flytta upp')}
-                        accessibilityRole="button"
-                      >
-                        <Text style={styles.arrowText}>▲</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.dragDots}>⠿</Text>
-                      <TouchableOpacity
-                        style={[styles.arrowBtn, index === wishlist.length - 1 && styles.arrowBtnDisabled]}
-                        onPress={() => moveWishItem(index, 'down')}
-                        disabled={index === wishlist.length - 1}
-                        hitSlop={{ top: 6, bottom: 10, left: 10, right: 10 }}
-                        accessibilityLabel={tr('Flytta ner')}
-                        accessibilityRole="button"
-                      >
-                        <Text style={styles.arrowText}>▼</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.priorityBadge}>
-                      <Text style={styles.priorityNum}>{index + 1}</Text>
-                    </View>
-                    {item.image_url
-                      ? <SignedImage path={item.image_url} style={styles.wishImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                      : <View style={styles.wishImageEmpty} />
-                    }
-                    <View style={styles.wishInfo}>
-                      <Text style={styles.wishName}>{item.name}</Text>
-                      {item.brand ? <Text style={styles.wishBrand} numberOfLines={1}>{item.brand}</Text> : null}
-                      {item.price != null ? <Text style={styles.wishPrice}>{formatPrice(item.price)}</Text> : null}
-                      <View style={styles.wishMeta}>
-                        {item.category ? <Text style={styles.wishMetaText}>{tr(item.category)}</Text> : null}
-                        {item.color ? (
-                          <View style={styles.wishColorMeta}>
-                            <View style={[styles.wishColorDot, { backgroundColor: COLOR_HEX[item.color] || t.surfaceMuted }]} />
-                            <Text style={styles.wishMetaText}>{tr(item.color)}</Text>
-                          </View>
-                        ) : null}
-                        {item.season ? <Text style={styles.wishMetaText}>· {tr(item.season)}</Text> : null}
-                      </View>
-                      {count > 0 && (
-                        <View style={styles.outfitBadge}>
-                          <Text style={styles.outfitBadgeText}>{count} outfit{count !== 1 ? 's' : ''}</Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.wishActions}>
-                      {item.url ? (
-                        <TouchableOpacity
-                          style={styles.buyBtn}
-                          onPress={() => openWishLink(item)}
-                          accessibilityLabel={`${tr('Köp')} ${item.name}`}
-                          accessibilityRole="button"
-                        >
-                          <Ionicons name="bag-handle-outline" size={13} color={t.onPrimary} />
-                          <Text style={styles.buyBtnText}>{tr('Köp')}</Text>
-                        </TouchableOpacity>
-                      ) : null}
-                      <TouchableOpacity
-                        style={styles.boughtBtn}
-                        onPress={() => markWishBought(item)}
-                        accessibilityLabel={`${tr('Markera som köpt')}: ${item.name}`}
-                        accessibilityRole="button"
-                      >
-                        <Text style={styles.boughtBtnText}>{tr('Köpt')}</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.deleteBtn}
-                        onPress={() => deleteWishItem(item)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        accessibilityLabel={`${tr('Ta bort')} ${item.name}`}
-                        accessibilityRole="button"
-                      >
-                        <Text style={styles.deleteBtnText}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </TouchableOpacity>
-                )
-              })}
-            </>
-          )}
-        </ScrollView>
+        <WishlistTab
+          wishlist={wishlist}
+          outfitCounts={outfitCounts}
+          onMove={moveWishItem}
+          onOpenLink={openWishLink}
+          onBought={markWishBought}
+          onDelete={deleteWishItem}
+        />
       )}
 
       {/* SÄLJ */}
       {activeTab === 'sälj' && !showArchive && (
-        <ScrollView contentContainerStyle={styles.saleScroll}>
-          {forSale.length === 0 ? (
-            <View style={styles.emptyTab}>
-              <Text style={styles.emptyTabText}>{tr('Inga plagg till salu')}</Text>
-              <Text style={styles.emptyTabHint}>{tr('Tryck ＋ för att lägga ut plagg du inte använder')}</Text>
-            </View>
-          ) : (
-            forSale.map((item) => (
-              <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
-                {item.image_url
-                  ? <SignedImage path={item.image_url} style={styles.saleImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                  : <View style={styles.saleImageEmpty} />
-                }
-                <View style={styles.saleInfo}>
-                  <Text style={styles.saleName}>{item.name}</Text>
-                  <Text style={styles.saleCategory}>{tr(item.category)}{item.size ? ` · ${item.size}` : ''}</Text>
-                </View>
-                <View style={styles.saleActions}>
-                  <TouchableOpacity style={styles.soldBtn} onPress={() => markAsSold(item)}>
-                    <Text style={styles.soldBtnText}>{tr('Såld ✓')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.removeBtn} onPress={() => removeFromSale(item)}>
-                    <Text style={styles.removeBtnText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </ScrollView>
+        <SaleTab forSale={forSale} onSold={markAsSold} onRemove={removeFromSale} />
       )}
 
       {/* ARKIV – nås från både Garderob- och Sälj-fliken */}
