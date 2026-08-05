@@ -102,8 +102,25 @@ export default function MyOutfits() {
       fetchGarments()
       fetchWishlist()
       fetchCalendarEntries()
+      // Spegla ev. lokal resa till DB vid varje fokus (självläkande) så en
+      // sambo kan se den i läsläge – även resor planerade innan speglingen
+      // fanns eller på en annan enhet.
+      syncLocalTripToDb()
     }, [])
   )
+
+  // Speglar en lokalt sparad resa till databasen. Körs vid varje fokus och
+  // direkt efter att en ny resa genererats.
+  async function syncLocalTripToDb() {
+    try {
+      const raw = await AsyncStorage.getItem(TRIP_KEY)
+      if (!raw) return
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { error } = await supabase.from('trips').upsert({ user_id: user.id, data: JSON.parse(raw), updated_at: new Date().toISOString() })
+      if (error) console.warn('Kunde inte spegla resan till databasen:', error.message)
+    } catch { /* ignorera – nästa fokus försöker igen */ }
+  }
 
   // Ladda ev. sparad reseplan (och avprickning) en gång så den överlever
   // flikbyten och appstarter.
@@ -111,14 +128,7 @@ export default function MyOutfits() {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(TRIP_KEY)
-        if (raw) {
-          const parsed = JSON.parse(raw)
-          setTripResult(parsed)
-          // Spegla ev. lokalt sparad resa (t.ex. planerad före denna spegling
-          // fanns) till databasen så en sambo kan se den i läsläge.
-          const { data: { user } } = await supabase.auth.getUser()
-          if (user) supabase.from('trips').upsert({ user_id: user.id, data: parsed, updated_at: new Date().toISOString() }).then(() => {}, () => {})
-        }
+        if (raw) setTripResult(JSON.parse(raw))
         const chk = await AsyncStorage.getItem(TRIP_CHECK_KEY)
         if (chk) setTripChecked(JSON.parse(chk))
       } catch { /* ignorera */ }
@@ -437,8 +447,7 @@ function isPast(date: Date) {
       await AsyncStorage.setItem(TRIP_KEY, JSON.stringify(result)).catch(() => {})
       await AsyncStorage.removeItem(TRIP_CHECK_KEY).catch(() => {})
       // Spegla resan till databasen så en ev. sambo kan se den (read-only).
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) supabase.from('trips').upsert({ user_id: user.id, data: result, updated_at: new Date().toISOString() }).then(() => {}, () => {})
+      await syncLocalTripToDb()
     } catch (e: any) {
       showAlert(tr('Något gick fel'), e.message)
     } finally {
