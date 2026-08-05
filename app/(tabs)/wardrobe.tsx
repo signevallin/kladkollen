@@ -30,7 +30,7 @@ import { useSettings } from '../../utils/settings'
 import { localeFor } from '../../utils/i18n'
 import { affiliateUrl } from '../../utils/affiliate'
 import * as WebBrowser from 'expo-web-browser'
-import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, SEASONS as SEASON_LIST } from '../../utils/constants'
+import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, SEASONS as SEASON_LIST, isWashable } from '../../utils/constants'
 import WishlistAddModals from '../../components/wardrobe/WishlistAddModals'
 import SaleAddModal from '../../components/wardrobe/SaleAddModal'
 import ArchiveView from '../../components/wardrobe/ArchiveView'
@@ -40,12 +40,6 @@ import SaleTab from '../../components/wardrobe/SaleTab'
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
 const COLORS = ['Alla', ...COLOR_NAMES]
-
-// Plagg som inte tvättas – ingen tvättikon/tvätt-toggle. Skor, smycken och
-// väskor är hela kategorier; skärp (subkategorin Bälte) ligger under Accessoarer
-// (vars övriga plagg, t.ex. halsdukar, fortfarande tvättas).
-const NO_LAUNDRY_CATEGORIES = ['Skor', 'Smycken', 'Väskor']
-const NO_LAUNDRY_SUBCATEGORIES = ['Bälte']
 
 const SORT_OPTIONS: { key: string; label: string }[] = [
   { key: 'recent', label: 'Senast tillagd' },
@@ -715,7 +709,7 @@ export default function Wardrobe() {
                     </View>
                   )}
                   {/* Skor, smycken, väskor och skärp tvättas inte – ingen tvättikon. */}
-                  {!NO_LAUNDRY_CATEGORIES.includes(item.category) && !NO_LAUNDRY_SUBCATEGORIES.includes(item.subcategory) && (
+                  {isWashable(item) && (
                     <TouchableOpacity
                       style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
                       onPress={() => toggleLaundry(item)}

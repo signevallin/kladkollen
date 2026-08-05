@@ -25,6 +25,18 @@ export const SUBCATEGORIES: Record<string, string[]> = {
   'Smycken': ['Örhängen', 'Halsband', 'Armband', 'Ring', 'Klocka', 'Fotlänk'],
 }
 
+// Plagg som inte tvättas – ingen tvättikon/tvätt-toggle och de ska inte hamna i
+// tvätten via "lägg allt i tvätten". Skor, smycken och väskor är hela
+// kategorier; skärp (subkategorin Bälte) ligger under Accessoarer, vars övriga
+// plagg (t.ex. halsdukar) fortfarande tvättas.
+export const NO_LAUNDRY_CATEGORIES = ['Skor', 'Smycken', 'Väskor']
+export const NO_LAUNDRY_SUBCATEGORIES = ['Bälte']
+// Hjälpare: ska plagget kunna läggas i tvätten?
+export function isWashable(garment: { category?: string | null; subcategory?: string | null } | null | undefined): boolean {
+  if (!garment) return false
+  return !NO_LAUNDRY_CATEGORIES.includes(garment.category || '') && !NO_LAUNDRY_SUBCATEGORIES.includes(garment.subcategory || '')
+}
+
 // Ordnad färglista med hex – ordningen används i väljare, filter och sortering.
 export const COLOR_OPTIONS: { name: string; hex: string }[] = [
   { name: 'Svart', hex: '#1A1A1A' },
