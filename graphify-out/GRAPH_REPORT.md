@@ -1,41 +1,42 @@
 # Graph Report - kladkollen  (2026-08-05)
 
 ## Corpus Check
-- 169 files · ~429,126 words
+- 170 files · ~429,414 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 927 nodes · 2150 edges · 134 communities (61 shown, 73 thin omitted)
+- 932 nodes · 2173 edges · 140 communities (67 shown, 73 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.68)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d6d64209`
+- Built from commit: `bd394328`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - requireUser
-- garment-detail.tsx
+- ArchiveView.tsx
 - family.tsx
 - expo
-- notifications.tsx
-- Theme
+- app/_layout.tsx
+- goBack
 - scripts
 - Skrud – Marknadsföringsplaybook
 - entitlements.tsx
-- useTheme
-- inspiration.tsx
+- home.tsx
+- showAlert
 - ThemeProvider.tsx
-- Button.tsx
-- profile.tsx
+- inspiration.tsx
+- useTheme
+- my-outfit.tsx
 - stats.tsx
-- SaleAddModal.tsx
+- profile.tsx
 - dependencies
 - send-notifications.ts
-- wardrobe.tsx
+- useSettings
 - 1. App Privacy ("nutrition label")
-- import-purchases.tsx
+- WishlistAddModals.tsx
 - include
 - expo-camera
 - manifest.json
@@ -44,6 +45,7 @@
 - settings.tsx
 - affiliate.ts
 - Skrud Premium – aktivera köpen
+- login.tsx
 - Klädkollen 🍒
 - 20260724b_partner_view.sql
 - revenuecat-webhook.ts
@@ -52,6 +54,7 @@
 - expo-audio
 - expo-background-task
 - expo-calendar
+- SongCard.tsx
 - expo-clipboard
 - expo-constants
 - expo-file-system
@@ -121,60 +124,64 @@
 - garments
 - garments
 - profiles
-- add-garment.tsx
+- pregnancy-wardrobe.tsx
+- pregnancy.ts
+- how-it-works.tsx
+- garment-detail.tsx
+- weather.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `useTheme()` - 93 edges
-2. `useSettings()` - 73 edges
-3. `Theme` - 42 edges
+1. `useTheme()` - 95 edges
+2. `useSettings()` - 75 edges
+3. `Theme` - 43 edges
 4. `requireUser()` - 35 edges
-5. `goBack()` - 35 edges
-6. `supabase` - 34 edges
+5. `supabase` - 35 edges
+6. `goBack()` - 35 edges
 7. `json()` - 33 edges
 8. `expo-router` - 29 edges
-9. `showAlert()` - 28 edges
-10. `clip()` - 24 edges
+9. `showAlert()` - 29 edges
+10. `SignedImage()` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Family()` --indirect_call--> `child()`  [INFERRED]
   app/family.tsx → __tests__/sizeReminders.test.ts
 - `Index()` --calls--> `useTheme()`  [EXTRACTED]
   app/index.tsx → theme/ThemeProvider.tsx
+- `Locations()` --indirect_call--> `fetchLocations()`  [INFERRED]
+  app/locations.tsx → utils/locations.ts
 - `Login()` --calls--> `useSettings()`  [EXTRACTED]
   app/login.tsx → utils/settings.tsx
-- `Button()` --calls--> `useTheme()`  [EXTRACTED]
-  components/Button.tsx → theme/ThemeProvider.tsx
 - `Home()` --calls--> `useTheme()`  [EXTRACTED]
   app/(tabs)/home.tsx → theme/ThemeProvider.tsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (134 total, 73 thin omitted)
+## Communities (140 total, 73 thin omitted)
 
 ### Community 0 - "requireUser"
 Cohesion: 0.08
 Nodes (62): config, config, handler(), handler(), config, config, dedupeItems(), handler() (+54 more)
 
-### Community 1 - "garment-detail.tsx"
-Cohesion: 0.07
-Nodes (38): config, handler(), SUBCATEGORY_HINT, GarmentDetail(), makeStyles(), SIZES, GarmentPicker(), makeStyles() (+30 more)
+### Community 1 - "ArchiveView.tsx"
+Cohesion: 0.08
+Nodes (30): config, handler(), SUBCATEGORY_HINT, CATEGORIES, COLORS, CreateOutfitView(), makeStyles(), Props (+22 more)
 
 ### Community 2 - "family.tsx"
 Cohesion: 0.10
-Nodes (40): daysSince(), handler(), sendBatch(), today(), Family(), loadChildren(), makeStyles(), reminderLabel() (+32 more)
+Nodes (39): daysSince(), handler(), sendBatch(), today(), Family(), loadChildren(), makeStyles(), reminderLabel() (+31 more)
 
 ### Community 3 - "expo"
 Cohesion: 0.05
 Nodes (42): backgroundColor, backgroundImage, foregroundImage, monochromeImage, adaptiveIcon, edgeToEdgeEnabled, package, predictiveBackGestureEnabled (+34 more)
 
-### Community 4 - "notifications.tsx"
-Cohesion: 0.08
-Nodes (38): PUBLIC_ROUTES, RootLayout(), CATEGORIES, makeStyles(), NotificationsSettings(), pad(), TIME_PRESETS, makeStyles() (+30 more)
+### Community 4 - "app/_layout.tsx"
+Cohesion: 0.09
+Nodes (29): PUBLIC_ROUTES, RootLayout(), makeStyles(), Onboarding(), ONBOARDING_DONE_KEY, Slide, SLIDES, ThemeProvider() (+21 more)
 
-### Community 5 - "Theme"
+### Community 5 - "goBack"
 Cohesion: 0.13
-Nodes (21): Group, GROUPS, HowItWorks(), Item, makeStyles(), makeStyles(), PartnerCloset(), Essential (+13 more)
+Nodes (18): makeStyles(), PartnerCloset(), makeStyles(), Member, Partner(), makeStyles(), Privacy(), SECTIONS (+10 more)
 
 ### Community 6 - "scripts"
 Cohesion: 0.07
@@ -185,36 +192,40 @@ Cohesion: 0.08
 Nodes (25): 10. Vad vi mäter (och varför), 11. Prioriterad att-göra-lista, 1. Positionering i en mening, 2.1 Sälj lugnet – inte AI:n, 2.2 Ta bort tröskeln – led med import, inte kameran, 2.3 En app för alla faser i livet, 2. Den strategiska kärnan (läs detta först), 3. Produkten i korthet (fakta att luta budskapet mot) (+17 more)
 
 ### Community 8 - "entitlements.tsx"
-Cohesion: 0.23
-Nodes (17): BENEFITS, makeStyles(), Paywall(), Ctx, EntitlementsCtx, EntitlementsProvider(), useEntitlements(), configurePurchases() (+9 more)
+Cohesion: 0.21
+Nodes (18): BENEFITS, makeStyles(), Paywall(), Ctx, EntitlementsCtx, EntitlementsProvider(), FREE_AI_PER_WEEK, useEntitlements() (+10 more)
 
-### Community 9 - "useTheme"
-Cohesion: 0.16
-Nodes (20): makeStyles(), ResetPassword(), CropModal(), makeStyles(), DayToNightShareCard(), makeStyles(), makeStyles(), Props (+12 more)
+### Community 9 - "home.tsx"
+Cohesion: 0.15
+Nodes (17): INTENSITY_LABELS, GarmentPicker(), makeStyles(), Props, makeStyles(), Props, SwapSheet(), makeStyles() (+9 more)
 
-### Community 10 - "inspiration.tsx"
-Cohesion: 0.13
-Nodes (21): makeStyles(), Member, Partner(), Inspiration(), makeStyles(), ColorAnalysis(), ColorAnalysisData, ColorItem (+13 more)
+### Community 10 - "showAlert"
+Cohesion: 0.24
+Nodes (10): ColorAnalysis(), ColorAnalysisData, ColorItem, makeStyles(), Props, STRATEGY_LABELS, showAlert(), askSource() (+2 more)
 
 ### Community 11 - "ThemeProvider.tsx"
-Cohesion: 0.19
-Nodes (11): CapsuleView(), makeStyles(), darkColors, darkTheme, lightColors, lightTheme, radius, ThemeColors (+3 more)
+Cohesion: 0.15
+Nodes (16): CapsuleView(), makeStyles(), CropModal(), makeStyles(), DayToNightShareCard(), makeStyles(), darkColors, darkTheme (+8 more)
 
-### Community 13 - "Button.tsx"
-Cohesion: 0.40
-Nodes (4): Button(), Props, styles, Variant
+### Community 12 - "inspiration.tsx"
+Cohesion: 0.25
+Nodes (12): Home(), makeStyles(), Inspiration(), makeStyles(), cacheClear(), cacheGet(), cacheSet(), store (+4 more)
 
-### Community 14 - "profile.tsx"
-Cohesion: 0.06
-Nodes (48): COLD_LEVELS, COLOR_PROFILES, GENDERS, LIFESTYLE, makeStyles(), Profile(), STIL_PROFIL, STYLES (+40 more)
+### Community 13 - "useTheme"
+Cohesion: 0.16
+Nodes (14): Locations(), makeStyles(), makeStyles(), ResetPassword(), Button(), Props, styles, Variant (+6 more)
+
+### Community 14 - "my-outfit.tsx"
+Cohesion: 0.20
+Nodes (13): makeStyles(), monthLabel(), MyOutfits(), STYLE_TAGS, weekdayLabels(), showConfirm(), apiPost(), captureError() (+5 more)
 
 ### Community 15 - "stats.tsx"
-Cohesion: 0.13
-Nodes (16): COLOR_EMOJIS, ColorInsight, CTX_META, makeStyles(), MoodROI, MoodStat, PIE_PALETTE, PowerPiece (+8 more)
+Cohesion: 0.17
+Nodes (11): COLOR_EMOJIS, ColorInsight, CTX_META, makeStyles(), MoodROI, MoodStat, PIE_PALETTE, PowerPiece (+3 more)
 
-### Community 16 - "SaleAddModal.tsx"
-Cohesion: 0.60
-Nodes (4): makeStyles(), Props, SaleAddModal(), localeFor()
+### Community 16 - "profile.tsx"
+Cohesion: 0.22
+Nodes (11): COLD_LEVELS, COLOR_PROFILES, GENDERS, LIFESTYLE, makeStyles(), Profile(), STIL_PROFIL, STYLES (+3 more)
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
@@ -224,17 +235,17 @@ Nodes (13): expo, expo-apple-authentication, expo-crypto, @expo/metro-runtime, e
 Cohesion: 0.27
 Nodes (11): buildNotif(), currentSeason(), daysSince(), describe(), Garment, getWeather(), handler(), Notif (+3 more)
 
-### Community 19 - "wardrobe.tsx"
+### Community 19 - "useSettings"
 Cohesion: 0.14
-Nodes (19): CATEGORIES, COLOR_ORDER, COLORS, makeStyles(), SEASONS, SORT_LABEL, SORT_OPTIONS, Wardrobe() (+11 more)
+Nodes (22): CATEGORIES, COLOR_ORDER, COLORS, makeStyles(), SEASONS, SORT_LABEL, SORT_OPTIONS, Wardrobe() (+14 more)
 
 ### Community 20 - "1. App Privacy ("nutrition label")"
 Cohesion: 0.17
 Nodes (11): 1. App Privacy ("nutrition label"), 2. App Review Information, 3. Checklista före inlämning, Data som samlas in, Data Used to Track You, Privacy Policy URL, Review Notes (klistra in i "Notes"), Sign-In krävs (+3 more)
 
-### Community 21 - "import-purchases.tsx"
-Cohesion: 0.14
-Nodes (18): ImportedItem, ImportPurchases(), makeStyles(), storeLogoUrl(), STORES, Props, RESIZE_TO_FIT, ResizeMode (+10 more)
+### Community 21 - "WishlistAddModals.tsx"
+Cohesion: 0.67
+Nodes (3): makeStyles(), Props, WishlistAddModals()
 
 ### Community 22 - "include"
 Cohesion: 0.18
@@ -253,8 +264,8 @@ Cohesion: 0.40
 Nodes (4): Använd kunskapsgrafen först (spara tokens), CLAUDE.md — projektminne för Skrud (kladkollen), Kodstruktur & refaktorering, Övrigt värt att minnas
 
 ### Community 27 - "settings.tsx"
-Cohesion: 0.07
-Nodes (32): C, COL_LEFT, COL_RIGHT, Login(), Method, styles, TILES, { width: SCREEN_W } (+24 more)
+Cohesion: 0.14
+Nodes (18): setApiLang(), Dict, en, enBySource, Lang, LANGS, LOCALES, sv (+10 more)
 
 ### Community 28 - "affiliate.ts"
 Cohesion: 0.50
@@ -264,6 +275,10 @@ Nodes (3): affiliateConfigured, affiliateUrl(), NETWORK
 Cohesion: 0.29
 Nodes (6): Justera gränsen, Modell, Möjliga framtida Premium-grindar (ej gjorda än), Skrud Premium – aktivera köpen, Steg för att gå live, Vad som redan är byggt
 
+### Community 30 - "login.tsx"
+Cohesion: 0.20
+Nodes (9): C, COL_LEFT, COL_RIGHT, Login(), Method, styles, TILES, { width: SCREEN_W } (+1 more)
+
 ### Community 31 - "Klädkollen 🍒"
 Cohesion: 0.33
 Nodes (5): Arkitektur, Bygga för butikerna, Klädkollen 🍒, Kom igång, Miljövariabler
@@ -271,6 +286,10 @@ Nodes (5): Arkitektur, Bygga för butikerna, Klädkollen 🍒, Kom igång, Milj�
 ### Community 33 - "revenuecat-webhook.ts"
 Cohesion: 0.67
 Nodes (3): config, handler(), jsonResponse()
+
+### Community 40 - "SongCard.tsx"
+Cohesion: 0.36
+Nodes (5): AppleMusicBadge(), makeStyles(), SongCard(), SongData, SpotifyFullLogo()
 
 ### Community 55 - "20260804_premium.sql"
 Cohesion: 0.53
@@ -284,29 +303,45 @@ Nodes (4): outfit_likes, auth, outfits, toggle_outfit_like()
 Cohesion: 0.67
 Nodes (3): api_rate_limits, bump_rate_limit(), auth
 
-### Community 138 - "add-garment.tsx"
-Cohesion: 0.13
-Nodes (21): AddGarment(), FAMILY_STATUS_LABELS, FamilyStatus, GarmentDraft, makeStyles(), SIZES, ImportEmail(), makeStyles() (+13 more)
+### Community 135 - "pregnancy-wardrobe.tsx"
+Cohesion: 0.33
+Nodes (6): Essential, ESSENTIALS, makeStyles(), MG, PregnancyWardrobe(), Wish
+
+### Community 136 - "pregnancy.ts"
+Cohesion: 0.43
+Nodes (5): dueInWeeks(), NOW, pregnancyPromptContext(), Trimester, trimesterFromDueDate()
+
+### Community 137 - "how-it-works.tsx"
+Cohesion: 0.40
+Nodes (5): Group, GROUPS, HowItWorks(), Item, makeStyles()
+
+### Community 138 - "garment-detail.tsx"
+Cohesion: 0.06
+Nodes (57): AddGarment(), FAMILY_STATUS_LABELS, FamilyStatus, GarmentDraft, makeStyles(), SIZES, GarmentDetail(), makeStyles() (+49 more)
+
+### Community 139 - "weather.ts"
+Cohesion: 0.53
+Nodes (4): buildWeatherContext(), DayForecast, summarizeDayForecast(), WeatherInput
 
 ## Knowledge Gaps
-- **319 isolated node(s):** `AuthedUser`, `hits`, `FREE_AI_PER_WEEK`, `LANG_NAMES`, `config` (+314 more)
+- **321 isolated node(s):** `AuthedUser`, `hits`, `FREE_AI_PER_WEEK`, `LANG_NAMES`, `config` (+316 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **73 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `expo-router` connect `wardrobe.tsx` to `garment-detail.tsx`, `family.tsx`, `expo`, `notifications.tsx`, `Theme`, `entitlements.tsx`, `useTheme`, `add-garment.tsx`, `inspiration.tsx`, `(tabs)/_layout.tsx`, `ThemeProvider.tsx`, `profile.tsx`, `stats.tsx`, `import-purchases.tsx`, `settings.tsx`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
-- **Why does `plugins` connect `expo` to `wardrobe.tsx`?**
+- **Why does `expo-router` connect `goBack` to `ArchiveView.tsx`, `family.tsx`, `expo`, `app/_layout.tsx`, `pregnancy-wardrobe.tsx`, `entitlements.tsx`, `home.tsx`, `garment-detail.tsx`, `ThemeProvider.tsx`, `inspiration.tsx`, `useTheme`, `my-outfit.tsx`, `stats.tsx`, `profile.tsx`, `useSettings`, `WishlistAddModals.tsx`, `login.tsx`?**
+  _High betweenness centrality (0.061) - this node is a cross-community bridge._
+- **Why does `plugins` connect `expo` to `goBack`?**
   _High betweenness centrality (0.054) - this node is a cross-community bridge._
 - **What connects `AuthedUser`, `hits`, `FREE_AI_PER_WEEK` to the rest of the system?**
-  _319 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _321 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `requireUser` be split into smaller, more focused modules?**
   _Cohesion score 0.08037974683544304 - nodes in this community are weakly interconnected._
-- **Should `garment-detail.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.0730804810360777 - nodes in this community are weakly interconnected._
+- **Should `ArchiveView.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.07899159663865546 - nodes in this community are weakly interconnected._
 - **Should `family.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.09693877551020408 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09929078014184398 - nodes in this community are weakly interconnected._
 - **Should `expo` be split into smaller, more focused modules?**
   _Cohesion score 0.046511627906976744 - nodes in this community are weakly interconnected._
