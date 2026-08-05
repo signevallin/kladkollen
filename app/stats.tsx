@@ -550,7 +550,10 @@ export default function Stats() {
               </View>
               <View style={styles.heroCardHalf}>
                 <View style={styles.heroLaundryTop}>
-                  <Text style={styles.heroNumberSm}>{garments.filter(g => g.in_laundry).length}</Text>
+                  {/* Räkna bara plagg som faktiskt ligger i garderoben – plagg
+                      på säljlistan (for_sale) visas inte i garderobens tvättfilter,
+                      så de ska inte heller räknas här. */}
+                  <Text style={styles.heroNumberSm}>{garments.filter(g => g.in_laundry && !g.for_sale).length}</Text>
                   <MaterialIcons name="local-laundry-service" size={22} color={t.onPrimary} style={{ opacity: 0.85 }} />
                 </View>
                 <Text style={styles.heroLabel}>{tt('i tvätten')}</Text>
