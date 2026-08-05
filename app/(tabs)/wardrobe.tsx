@@ -3,7 +3,6 @@ import type { Theme } from '../../theme/theme'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
-import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { goBack } from '../../utils/nav'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -25,23 +24,19 @@ import AddGarmentChooser from '../../components/AddGarmentChooser'
 import SignedImage from '../../components/SignedImage'
 import { supabase } from '../../supabase'
 import { showAlert, showConfirm } from '../../utils/alert'
-import { apiPost } from '../../utils/api'
 import { newImageId } from '../../utils/id'
-import { uploadUserImage } from '../../utils/storage'
 import { cacheGet, cacheSet } from '../../utils/cache'
-import { pickImageSmart } from '../../utils/imagePicker'
 import { ARCHIVE_REASONS, reasonFor } from '../../utils/archiveReasons'
-import { parsePrice } from '../../utils/brands'
 import { useSettings } from '../../utils/settings'
 import { localeFor } from '../../utils/i18n'
 import { affiliateUrl } from '../../utils/affiliate'
 import * as WebBrowser from 'expo-web-browser'
-import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, COLOR_OPTIONS, SEASONS as SEASON_LIST, SUBCATEGORIES } from '../../utils/constants'
+import { CATEGORIES as CATEGORY_LIST, COLOR_HEX, COLOR_NAMES, SEASONS as SEASON_LIST } from '../../utils/constants'
+import WishlistAddModals from '../../components/wardrobe/WishlistAddModals'
+import SaleAddModal from '../../components/wardrobe/SaleAddModal'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
-const WISH_CATEGORIES = CATEGORY_LIST
 const SEASONS = ['Alla', ...SEASON_LIST]
-const WISH_SEASONS = SEASON_LIST
 const COLORS = ['Alla', ...COLOR_NAMES]
 
 const SORT_OPTIONS: { key: string; label: string }[] = [
@@ -111,26 +106,11 @@ export default function Wardrobe() {
   const [capsuleSaved, setCapsuleSaved] = useState(false)
 
   // Wishlist modal
-  const [showAddWish, setShowAddWish] = useState(false)
-  const [wishName, setWishName] = useState('')
-  const [wishBrand, setWishBrand] = useState('')
-  const [wishPrice, setWishPrice] = useState('')
-  const [wishCategory, setWishCategory] = useState('')
-  const [wishSubcategory, setWishSubcategory] = useState('')
-  const [wishColor, setWishColor] = useState('')
-  const [wishSeasons, setWishSeasons] = useState<string[]>([])
-  const [wishImage, setWishImage] = useState<string | null>(null)
-  const [wishLink, setWishLink] = useState('')
-  const [savingWish, setSavingWish] = useState(false)
   const [showAddChooser, setShowAddChooser] = useState(false)
   const [showWishChooser, setShowWishChooser] = useState(false)
-  const [showWishUrl, setShowWishUrl] = useState(false)
-  const [wishUrl, setWishUrl] = useState('')
-  const [fetchingUrl, setFetchingUrl] = useState(false)
 
   // Sale modal
   const [showAddSale, setShowAddSale] = useState(false)
-  const [saleSearch, setSaleSearch] = useState('')
   const [saleGarments, setSaleGarments] = useState<any[]>([])
 
   useFocusEffect(
@@ -264,103 +244,12 @@ export default function Wardrobe() {
     setOutfitCounts(counts)
   }
 
-  // --- Wishlist image ---
-  async function pickWishImage() {
-    const result = await pickImageSmart({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.8,
-    })
-    if (!result.canceled) setWishImage(result.assets[0].uri)
-  }
-
-  async function uploadWishImage(uri: string) {
-    const response = await fetch(uri)
-    const arrayBuffer = await response.arrayBuffer()
-    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
-  }
-
-  // Hämtar produktinfo från en länk och förifyller köp-formuläret.
-  async function parseWishUrl() {
-    const url = wishUrl.trim()
-    if (!url) return
-    setFetchingUrl(true)
-    try {
-      const data = await apiPost('/api/parse-url', { url })
-      if (data.error) throw new Error(data.error)
-      setWishName(data.name || '')
-      setWishImage(data.imageUrl || null)
-      setWishLink(url) // spara produktlänken så vi kan visa en Köp-knapp
-      setShowWishUrl(false)
-      setShowWishChooser(false)
-      setWishUrl('')
-      setShowAddWish(true)
-    } catch (e: any) {
-      showAlert(tr('Kunde inte hämta länken'), e.message || tr('Försök med en annan länk.'))
-    } finally {
-      setFetchingUrl(false)
-    }
-  }
-
-  async function addWishItem() {
-    if (!wishName.trim()) { showAlert(tr('Fyll i ett namn!')); return }
-    setSavingWish(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      let imageUrl: string | null = null
-      if (wishImage) {
-        try { imageUrl = await uploadWishImage(wishImage) }
-        catch { imageUrl = /^https?:\/\//.test(wishImage) ? wishImage : null }
-      }
-      const { error } = await supabase.from('wishlist').insert([{
-        user_id: user.id,
-        name: wishName.trim(),
-        brand: wishBrand.trim() || null,
-        price: toBaseSEK(parsePrice(wishPrice)),
-        category: wishCategory || null,
-        subcategory: wishSubcategory || null,
-        color: wishColor || null,
-        season: wishSeasons.join(', ') || null,
-        image_url: imageUrl,
-        url: wishLink.trim() || null,
-        sort_order: wishlist.length,
-      }])
-      if (error) throw error
-      closeWishModal()
-      fetchWishlist()
-    } catch (error: any) {
-      showAlert(tr('Något gick fel'), error.message)
-    } finally {
-      setSavingWish(false)
-    }
-  }
-
-  function closeWishModal() {
-    setShowAddWish(false)
-    setWishName(''); setWishBrand(''); setWishPrice(''); setWishCategory(''); setWishSubcategory(''); setWishColor(''); setWishSeasons([]); setWishImage(null); setWishLink('')
-  }
-
   // Öppnar produktlänken (affiliate-spårad om konfigurerat) i in-app-webbläsaren.
   async function openWishLink(item: any) {
     const link = affiliateUrl(item.url)
     if (!link) return
     try { await WebBrowser.openBrowserAsync(link) } catch { /* ignorera */ }
   }
-
-  // --- Sale ---
-  async function addToSale(item: any) {
-    await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
-    showAlert(`${item.name} ${tr('är nu till salu!')}`)
-    setShowAddSale(false)
-    setSaleSearch('')
-    fetchGarments()
-  }
-
-  const filteredSaleGarments = (saleSearch.trim()
-    ? saleGarments.filter(g => g.name.toLowerCase().includes(saleSearch.toLowerCase()))
-    : saleGarments
-  ).sort((a, b) => (a.times_worn || 0) - (b.times_worn || 0))
 
   // --- Wardrobe filters ---
   // Härleds från garderoben + aktiva filter så att listan alltid speglar
@@ -661,235 +550,21 @@ export default function Wardrobe() {
       {/* Garderob: välj hur man lägger till plagg (delad valruta med hemskärmen) */}
       <AddGarmentChooser visible={showAddChooser} onClose={() => setShowAddChooser(false)} person={isPerson ? person : undefined} personName={isPerson ? personName : undefined} />
 
-      {/* Köp: välj hur man lägger till */}
-      <Modal visible={showWishChooser} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{tr('Lägg till på köplistan')}</Text>
-              <TouchableOpacity onPress={() => setShowWishChooser(false)}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); closeWishModal(); setShowAddWish(true) }}>
-              <Text style={styles.wishChoiceTitle}>{tr('Välj foto')}</Text>
-              <Text style={styles.wishChoiceHint}>{tr('Ta eller välj en bild och fyll i detaljerna själv')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); router.push('/import-purchases?target=wishlist') }}>
-              <Text style={styles.wishChoiceTitle}>{tr('Importera via butiker')}</Text>
-              <Text style={styles.wishChoiceHint}>{tr('Bläddra i en butik och lägg köpta/önskade plagg på köplistan')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { setShowWishChooser(false); setShowWishUrl(true) }}>
-              <Text style={styles.wishChoiceTitle}>{tr('Via URL')}</Text>
-              <Text style={styles.wishChoiceHint}>{tr('Klistra in en produktlänk – namn och bild hämtas automatiskt')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Köplistan: valruta + URL + formulär (egen komponent) */}
+      <WishlistAddModals
+        chooserVisible={showWishChooser}
+        onChooserClose={() => setShowWishChooser(false)}
+        wishlistCount={wishlist.length}
+        onAdded={fetchWishlist}
+      />
 
-      {/* Köp: lägg till via URL */}
-      <Modal visible={showWishUrl} animationType="slide" transparent>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{tr('Lägg till via URL')}</Text>
-              <TouchableOpacity onPress={() => { setShowWishUrl(false); setWishUrl('') }}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalLabel}>{tr('Produktlänk')}</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="https://..."
-              placeholderTextColor={t.placeholder}
-              value={wishUrl}
-              onChangeText={setWishUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-            />
-            <TouchableOpacity style={[styles.modalSaveBtn, (!wishUrl.trim() || fetchingUrl) && { opacity: 0.5 }]} onPress={parseWishUrl} disabled={!wishUrl.trim() || fetchingUrl}>
-              <Text style={styles.modalSaveBtnText}>{fetchingUrl ? tr('Hämtar...') : tr('Hämta produkt')}</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      {/* Add wishlist modal */}
-      <Modal visible={showAddWish} animationType="slide" transparent>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{tr('Lägg till på köplistan')}</Text>
-              <TouchableOpacity
-                onPress={closeWishModal}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel={tr('Stäng')}
-                accessibilityRole="button"
-              >
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
-              {/* Bildväljare */}
-              <TouchableOpacity style={styles.imagePicker} onPress={pickWishImage}>
-                {wishImage ? (
-                  <SignedImage path={wishImage} style={styles.imagePickerPreview} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                ) : (
-                  <View style={styles.imagePickerInner}>
-                    <Text style={styles.imagePickerText}>{tr('Lägg till bild (valfritt)')}</Text>
-                  </View>
-                )}
-                {wishImage && (
-                  <View style={styles.imageOverlay}>
-                    <Text style={styles.imageOverlayText}>{tr('Byt foto')}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              <Text style={styles.modalLabel}>{tr('Namn *')}</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder={tr('t.ex. Svart kappa')}
-                placeholderTextColor={t.placeholder}
-                value={wishName}
-                onChangeText={setWishName}
-              />
-
-              <Text style={styles.modalLabel}>{tr('Märke')}</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder={tr('t.ex. Arket')}
-                placeholderTextColor={t.placeholder}
-                value={wishBrand}
-                onChangeText={setWishBrand}
-              />
-
-              <Text style={styles.modalLabel}>{tr('Kategori')}</Text>
-              <View style={styles.pillsWrap}>
-                {WISH_CATEGORIES.map(c => (
-                  <TouchableOpacity key={c} style={[styles.pill, wishCategory === c && styles.pillActive]} onPress={() => { setWishCategory(wishCategory === c ? '' : c); setWishSubcategory('') }}>
-                    <Text style={[styles.pillText, wishCategory === c && styles.pillTextActive]}>{tr(c)}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {wishCategory && SUBCATEGORIES[wishCategory] && (
-                <>
-                  <Text style={styles.modalLabel}>{tr('Typ')}</Text>
-                  <View style={styles.pillsWrap}>
-                    {SUBCATEGORIES[wishCategory].map(sub => (
-                      <TouchableOpacity key={sub} style={[styles.pill, wishSubcategory === sub && styles.pillActive]} onPress={() => setWishSubcategory(wishSubcategory === sub ? '' : sub)}>
-                        <Text style={[styles.pillText, wishSubcategory === sub && styles.pillTextActive]}>{tr(sub)}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </>
-              )}
-
-              <Text style={styles.modalLabel}>{tr('Färg')}</Text>
-              <View style={styles.wishSwatchGrid}>
-                {COLOR_OPTIONS.map(c => (
-                  <TouchableOpacity key={c.name} style={[styles.wishSwatch, { backgroundColor: c.hex }, wishColor === c.name && styles.wishSwatchActive]} onPress={() => setWishColor(wishColor === c.name ? '' : c.name)}>
-                    {wishColor === c.name && <Text style={styles.wishSwatchCheck}>✓</Text>}
-                  </TouchableOpacity>
-                ))}
-              </View>
-              {wishColor ? <Text style={styles.wishSwatchSelected}>{tr('Vald färg:')} {tr(wishColor)}</Text> : null}
-
-              <Text style={styles.modalLabel}>{tr('Säsong')}</Text>
-              <View style={styles.pillsWrap}>
-                {WISH_SEASONS.map(s => (
-                  <TouchableOpacity key={s} style={[styles.pill, wishSeasons.includes(s) && styles.pillActive]} onPress={() => setWishSeasons(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}>
-                    <Text style={[styles.pillText, wishSeasons.includes(s) && styles.pillTextActive]}>{tr(s)}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.modalLabel}>{tr('Pris')} ({currency})</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder={tr('t.ex. 299')}
-                placeholderTextColor={t.placeholder}
-                value={wishPrice}
-                onChangeText={setWishPrice}
-                keyboardType="numeric"
-              />
-
-              <Text style={styles.modalLabel}>{tr('Produktlänk (valfritt)')}</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="https://..."
-                placeholderTextColor={t.placeholder}
-                value={wishLink}
-                onChangeText={setWishLink}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-              />
-
-              <TouchableOpacity style={styles.modalSaveBtn} onPress={addWishItem} disabled={savingWish}>
-                <Text style={styles.modalSaveBtnText}>{savingWish ? tr('Sparar...') : tr('Lägg till')}</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      {/* Add to sale modal */}
-      <Modal visible={showAddSale} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{tr('Lägg till till salu')}</Text>
-              <TouchableOpacity
-                onPress={() => { setShowAddSale(false); setSaleSearch('') }}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel={tr('Stäng')}
-                accessibilityRole="button"
-              >
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              style={styles.modalInput}
-              placeholder={tr('Sök plagg...')}
-              placeholderTextColor={t.placeholder}
-              value={saleSearch}
-              onChangeText={setSaleSearch}
-            />
-            <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 8 }}>
-              {filteredSaleGarments.length === 0 ? (
-                <View style={styles.emptyTab}>
-                  <Text style={styles.emptyTabText}>{tr('Inga plagg att lägga till')}</Text>
-                  <Text style={styles.emptyTabHint}>{tr('Alla plagg är redan till salu eller garderoben är tom')}</Text>
-                </View>
-              ) : (
-                filteredSaleGarments.map((item: any) => (
-                  <TouchableOpacity key={item.id} style={styles.salePickerItem} onPress={() => addToSale(item)}>
-                    {item.image_url
-                      ? <SignedImage path={item.image_url} style={styles.salePickerImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                      : <View style={styles.salePickerImageEmpty} />
-                    }
-                    <View style={styles.salePickerInfo}>
-                      <Text style={styles.salePickerName}>{item.name}</Text>
-                      <Text style={styles.salePickerCategory}>{tr(item.category)}{item.color ? ` · ${tr(item.color)}` : ''}</Text>
-                      <Text style={styles.salePickerStat}>{tr('Använd')} {item.times_worn || 0} {tr('gånger')}</Text>
-                      <Text style={styles.salePickerStat}>
-                        {item.last_worn ? `${tr('Senast använd:')} ${new Date(item.last_worn).toLocaleDateString(localeFor(lang))}` : tr('Aldrig använd')}
-                      </Text>
-                    </View>
-                    <View style={styles.addSaleBtn}>
-                      <Text style={styles.addSaleBtnText}>＋</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      {/* Lägg till till salu (egen komponent) */}
+      <SaleAddModal
+        visible={showAddSale}
+        onClose={() => setShowAddSale(false)}
+        candidates={saleGarments}
+        onAdded={fetchGarments}
+      />
 
       <View style={styles.header}>
         <View style={styles.headerTitleWrap}>
