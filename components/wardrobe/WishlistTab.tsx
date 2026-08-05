@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import SignedImage from '../SignedImage'
+import ListFilterBar from './ListFilterBar'
 import { COLOR_HEX } from '../../utils/constants'
 import { useSettings } from '../../utils/settings'
 import { useTheme } from '../../theme/ThemeProvider'
@@ -23,6 +25,13 @@ export default function WishlistTab({ wishlist, outfitCounts, onMove, onOpenLink
   const styles = makeStyles(t)
   const { t: tr, formatPrice } = useSettings()
 
+  const [cat, setCat] = useState('Alla')
+  const [color, setColor] = useState('Alla')
+  const filterActive = cat !== 'Alla' || color !== 'Alla'
+  const visible = wishlist.filter(i =>
+    (cat === 'Alla' || i.category === cat) && (color === 'Alla' || i.color === color)
+  )
+
   return (
     <ScrollView contentContainerStyle={styles.wishScroll}>
       {wishlist.length === 0 ? (
@@ -35,23 +44,33 @@ export default function WishlistTab({ wishlist, outfitCounts, onMove, onOpenLink
           <View style={styles.wishTotalCard}>
             <Text style={styles.wishTotalLabel}>{tr('Önskelistans värde')}</Text>
             <Text style={styles.wishTotalValue}>
-              {formatPrice(wishlist.reduce((s, w) => s + (Number(w.price) || 0), 0))}
+              {formatPrice(visible.reduce((s, w) => s + (Number(w.price) || 0), 0))}
             </Text>
           </View>
-          <Text style={styles.wishHint}>{tr('Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera')}</Text>
-          {wishlist.map((item, index) => {
+          <ListFilterBar items={wishlist} category={cat} color={color} onCategory={setCat} onColor={setColor} />
+          {!filterActive && <Text style={styles.wishHint}>{tr('Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera')}</Text>}
+          {visible.length === 0 ? (
+            <View style={styles.emptyTab}>
+              <Text style={styles.emptyTabText}>{tr('Inga plagg matchar filtren')}</Text>
+            </View>
+          ) : visible.map((item) => {
+            const index = wishlist.indexOf(item)
             const count = outfitCounts[item.id] || 0
             return (
               <TouchableOpacity key={item.id} style={styles.wishItem} onPress={() => router.push(`/garment-detail?wishlistId=${item.id}`)} activeOpacity={0.8}>
-                <View style={styles.reorderCol}>
-                  <TouchableOpacity style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]} onPress={() => onMove(index, 'up')} disabled={index === 0} hitSlop={{ top: 10, bottom: 6, left: 10, right: 10 }} accessibilityLabel={tr('Flytta upp')} accessibilityRole="button">
-                    <Text style={styles.arrowText}>▲</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.dragDots}>⠿</Text>
-                  <TouchableOpacity style={[styles.arrowBtn, index === wishlist.length - 1 && styles.arrowBtnDisabled]} onPress={() => onMove(index, 'down')} disabled={index === wishlist.length - 1} hitSlop={{ top: 6, bottom: 10, left: 10, right: 10 }} accessibilityLabel={tr('Flytta ner')} accessibilityRole="button">
-                    <Text style={styles.arrowText}>▼</Text>
-                  </TouchableOpacity>
-                </View>
+                {/* Ompriotering funkar bara i den ofiltrerade listan (index avser
+                    hela köplistan) – dölj pilarna när ett filter är aktivt. */}
+                {!filterActive && (
+                  <View style={styles.reorderCol}>
+                    <TouchableOpacity style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]} onPress={() => onMove(index, 'up')} disabled={index === 0} hitSlop={{ top: 10, bottom: 6, left: 10, right: 10 }} accessibilityLabel={tr('Flytta upp')} accessibilityRole="button">
+                      <Text style={styles.arrowText}>▲</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.dragDots}>⠿</Text>
+                    <TouchableOpacity style={[styles.arrowBtn, index === wishlist.length - 1 && styles.arrowBtnDisabled]} onPress={() => onMove(index, 'down')} disabled={index === wishlist.length - 1} hitSlop={{ top: 6, bottom: 10, left: 10, right: 10 }} accessibilityLabel={tr('Flytta ner')} accessibilityRole="button">
+                      <Text style={styles.arrowText}>▼</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
                 <View style={styles.priorityBadge}><Text style={styles.priorityNum}>{index + 1}</Text></View>
                 {item.image_url
                   ? <SignedImage path={item.image_url} style={styles.wishImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
