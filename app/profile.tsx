@@ -762,51 +762,52 @@ export default function Profile() {
                     </TouchableOpacity>
                   ))}
                 </View>
+                {/* Gravid är ett eget val (kan kombineras med ovan). När det slås
+                    på dyker en egen "Gravidläge"-rad upp nedanför. */}
+                <View style={styles.gravidToggleRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.gravidFieldLabel, { marginTop: 0 }]}>{tr('Gravid')}</Text>
+                    <Text style={styles.hint}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
+                  </View>
+                  <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
+                    <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
+                  </TouchableOpacity>
+                </View>
+              </>
+            ),
+          })}
+          {pregnant && renderRow('gravidlage', 'Gravidläge', {
+            icon: 'pregnant-woman',
+            value: trimesterLabel(trimesterFromDueDate(dueDate || null)) || undefined,
+            body: (
+              <>
+                <Text style={styles.gravidFieldLabel}>{tr('Beräknat födelsedatum (BF)')}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={tr('ÅÅÅÅ-MM-DD')}
+                  placeholderTextColor={t.placeholder}
+                  value={dueDate}
+                  onChangeText={setDueDate}
+                  maxLength={10}
+                />
+                {(() => {
+                  const tri = trimesterFromDueDate(dueDate || null)
+                  return tri ? <Text style={styles.hint}>{tr(trimesterLabel(tri))}</Text> : null
+                })()}
+                <Text style={styles.hint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
+                <TouchableOpacity style={styles.restoreBtn} onPress={() => router.push('/pregnancy-wardrobe')}>
+                  <MaterialIcons name="checkroom" size={18} color={t.textPrimary} />
+                  <Text style={styles.restoreBtnText}>{tr('Gravidgarderob')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
+                  <MaterialIcons name="undo" size={18} color={t.textPrimary} />
+                  <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
+                </TouchableOpacity>
               </>
             ),
           })}
           {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/partner' : '/paywall') })}
           {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/family' : '/paywall') })}
-          {renderRow('gravid', 'Gravidläge', {
-            icon: 'pregnant-woman',
-            value: pregnant ? (trimesterLabel(trimesterFromDueDate(dueDate || null)) || 'På') : undefined,
-            body: (
-              <>
-                <View style={styles.gravidToggleRow}>
-                  <Text style={[styles.hint, { flex: 1 }]}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
-                  <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
-                    <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
-                  </TouchableOpacity>
-                </View>
-                {pregnant && (
-                  <>
-                    <Text style={styles.gravidFieldLabel}>{tr('Beräknat födelsedatum (BF)')}</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder={tr('ÅÅÅÅ-MM-DD')}
-                      placeholderTextColor={t.placeholder}
-                      value={dueDate}
-                      onChangeText={setDueDate}
-                      maxLength={10}
-                    />
-                    {(() => {
-                      const tri = trimesterFromDueDate(dueDate || null)
-                      return tri ? <Text style={styles.hint}>{tr(trimesterLabel(tri))}</Text> : null
-                    })()}
-                    <Text style={styles.hint}>{tr('Markera plagg som gravid-/amningsvänliga eller pausa dem inne på varje plagg.')}</Text>
-                    <TouchableOpacity style={styles.restoreBtn} onPress={() => router.push('/pregnancy-wardrobe')}>
-                      <MaterialIcons name="checkroom" size={18} color={t.textPrimary} />
-                      <Text style={styles.restoreBtnText}>{tr('Gravidgarderob')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.restoreBtn} onPress={restorePausedGarments}>
-                      <MaterialIcons name="undo" size={18} color={t.textPrimary} />
-                      <Text style={styles.restoreBtnText}>{tr('Ta tillbaka pausade plagg')}</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </>
-            ),
-          })}
         </View>
 
         {/* ── Min stil ── */}
