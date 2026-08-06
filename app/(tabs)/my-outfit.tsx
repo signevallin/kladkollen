@@ -396,9 +396,16 @@ function isPast(date: Date) {
     setSharing(true)
     const names: string[] = outfit.garment_names || []
     const urls: string[] = outfit.image_urls || []
+    const ids: string[] = outfit.garment_ids || []
+    // Härled kategori per plagg (via id först, annars namnmatchning) så dela-
+    // kollaget kan placera överdelar överst, underdelar under och accessoarer
+    // vid sidorna. Utan kategori hamnar allt i mittkolumnen.
     const items = names.length
-      ? names.map((name, i) => ({ name, image_url: urls[i] ?? null }))
-      : urls.map((url) => ({ name: '', image_url: url }))
+      ? names.map((name, i) => {
+          const g = (ids[i] && dispGarments.find(x => x.id === ids[i])) || matchGarment(name)
+          return { name, image_url: urls[i] ?? g?.image_url ?? null, category: g?.category ?? null }
+        })
+      : urls.map((url) => ({ name: '', image_url: url, category: null }))
     setShareTarget({ outfitName: outfit.name, itemsWithImages: items })
     try {
       // Ge den dolda dela-vyn ett ögonblick att rita klart bilderna.

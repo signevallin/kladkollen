@@ -580,7 +580,9 @@ export default function Home() {
     }
     return (names || []).map((n: string) => {
       const m = find(n)
-      return { name: n, image_url: m?.image_url || null, id: m?.id || null }
+      // category följer med så dela-kollaget kan placera överdelar/underdelar/
+      // accessoarer rätt (utan den hamnar allt i mittkolumnen).
+      return { name: n, image_url: m?.image_url || null, id: m?.id || null, category: m?.category || null }
     })
   }
 
