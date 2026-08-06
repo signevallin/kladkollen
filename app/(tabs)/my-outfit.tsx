@@ -21,7 +21,6 @@ import BottomNav from '../../components/BottomNav'
 import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import CreateOutfitView from '../../components/my-outfit/CreateOutfitView'
-import PartnerOutfitsView from '../../components/my-outfit/PartnerOutfitsView'
 import PersonSwitcher from '../../components/PersonSwitcher'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
@@ -59,6 +58,7 @@ export default function MyOutfits() {
   const { tab, create, partner, partnerName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string }>()
   // Partner-läge: visa partnerns outfits (läsläge) i stället för mina egna.
   const isPartner = !!partner
+  const readOnly = isPartner
   const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'resa'>(
     create ? 'outfits' : tab === 'resa' ? 'resa' : tab === 'outfits' ? 'outfits' : 'kalender'
   )
@@ -109,8 +109,17 @@ export default function MyOutfits() {
   const [tripSwap, setTripSwap] = useState<{ oi: number; ii: number } | null>(null)
   const [tripAddTarget, setTripAddTarget] = useState<{ oi: number } | null>(null)
 
+  // Partner-läge (läsläge): partnerns data hålls i egen state så den egna aldrig
+  // skrivs över. Rendern väljer "disp*"-varianten nedan utifrån isPartner, så
+  // designen blir exakt densamma som i det egna läget.
+  const [partnerOutfits, setPartnerOutfits] = useState<any[]>([])
+  const [partnerGarments, setPartnerGarments] = useState<any[]>([])
+  const [partnerCalendar, setPartnerCalendar] = useState<Record<string, any>>({})
+  const [partnerTrip, setPartnerTrip] = useState<any | null>(null)
+
   useFocusEffect(
     useCallback(() => {
+      if (isPartner) { loadPartnerData(); return }
       fetchOutfits()
       fetchGarments()
       fetchWishlist()
@@ -119,8 +128,31 @@ export default function MyOutfits() {
       // sambo kan se den i läsläge – även resor planerade innan speglingen
       // fanns eller på en annan enhet.
       syncLocalTripToDb()
-    }, [])
+    }, [isPartner, partner])
   )
+
+  // Hämtar partnerns outfits/plagg/kalender/resa via household-vaktade RPC:er.
+  async function loadPartnerData() {
+    if (!partner) return
+    const [o, g, c, tp] = await Promise.all([
+      supabase.rpc('partner_outfits', { target: partner }),
+      supabase.rpc('partner_garments', { target: partner }),
+      supabase.rpc('partner_calendar', { target: partner }),
+      supabase.rpc('partner_trip', { target: partner }),
+    ])
+    const all = (o.data || []) as any[]
+    setPartnerOutfits(all.filter(x => x.saved))
+    setPartnerGarments((g.data || []) as any[])
+    // Bygg kalender-map i samma form som egen (entry.outfits.image_urls).
+    const byId: Record<string, any> = Object.fromEntries(all.map(x => [x.id, x]))
+    const map: Record<string, any> = {}
+    ;(c.data || []).forEach((row: any) => { const ou = byId[row.outfit_id]; if (ou) map[row.date] = { ...row, outfits: ou } })
+    setPartnerCalendar(map)
+    setPartnerTrip(tp.data || null)
+    // "Gillade av partner"-markeringar hör till min egen vy – inte partnerns.
+    setPartnerLikedIds(new Set())
+    setShowOnlyLiked(false)
+  }
 
   // Speglar en lokalt sparad resa till databasen. Körs vid varje fokus och
   // direkt efter att en ny resa genererats.
@@ -305,8 +337,15 @@ function isPast(date: Date) {
   const calendarDays = getCalendarDays()
   const today = new Date()
 
+  // Vilken datamängd rendern visar. I partner-läge (läsläge) visas partnerns
+  // data, annars den egna – men SAMMA JSX/design används för båda.
+  const dispOutfits = isPartner ? partnerOutfits : outfits
+  const dispGarments = isPartner ? partnerGarments : garments
+  const dispCalendarEntries = isPartner ? partnerCalendar : calendarEntries
+  const dispTrip = isPartner ? partnerTrip : tripResult
+
   // Outfit functions
-  const filteredOutfits = outfits.filter(o => {
+  const filteredOutfits = dispOutfits.filter(o => {
     if (activeStyleFilter !== 'Alla' && o.style !== activeStyleFilter) return false
     if (showOnlyLiked && !partnerLikedIds.has(o.id)) return false
     return true
@@ -372,10 +411,10 @@ function isPast(date: Date) {
   function matchGarment(name: string) {
     const target = (name || '').trim().toLowerCase()
     if (!target) return null
-    let m = garments.find(g => (g.name || '').trim().toLowerCase() === target)
-    if (!m) m = garments.find(g => (g.name || '').toLowerCase().includes(target))
+    let m = dispGarments.find(g => (g.name || '').trim().toLowerCase() === target)
+    if (!m) m = dispGarments.find(g => (g.name || '').toLowerCase().includes(target))
     if (!m) {
-      m = garments
+      m = dispGarments
         .filter(g => g.name && target.includes(g.name.toLowerCase()))
         .sort((a, b) => b.name.length - a.name.length)[0]
     }
@@ -604,7 +643,7 @@ function isPast(date: Date) {
   }
 
   // Day detail modal
-  const dayDetailEntry = dayDetailDate ? calendarEntries[dayDetailDate] : null
+  const dayDetailEntry = dayDetailDate ? dispCalendarEntries[dayDetailDate] : null
 
   // Byt-ut-arket för en reseoutfit: alternativ i samma kategori som inte redan
   // används i outfiten (och som inte är arkiverade/sålda/i tvätten).
@@ -645,23 +684,6 @@ function isPast(date: Date) {
     )
   }
 
-
-  // Partner-läge: partnerns outfits/kalender/resa i läsläge. Egen enkel vy så
-  // den editerbara outfit-logiken hålls helt separat.
-  if (isPartner) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.topArea}>
-          <View style={styles.headerRow}>
-            <PersonSwitcher scope="outfits" meLabel={tr('Mina outfits')} current={{ kind: 'partner', id: partner }} />
-          </View>
-          <Text style={styles.readonlyNote}>👁 {tr('Läsläge – du kan titta men inte ändra')}</Text>
-        </View>
-        <PartnerOutfitsView targetId={partner} />
-        <BottomNav />
-      </SafeAreaView>
-    )
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -796,8 +818,9 @@ function isPast(date: Date) {
       {/* ── Header + Tabs (always visible, outside ScrollView) ── */}
       <View style={styles.topArea}>
         <View style={styles.headerRow}>
-          <PersonSwitcher scope="outfits" meLabel={tr('Mina outfits')} current={{ kind: 'me' }} />
+          <PersonSwitcher scope="outfits" meLabel={tr('Mina outfits')} current={isPartner ? { kind: 'partner', id: partner } : { kind: 'me' }} />
         </View>
+        {isPartner && <Text style={styles.readonlyNote}>👁 {tr('Läsläge – du kan titta men inte ändra')}</Text>}
 
         <View style={styles.tabRow}>
           {(['kalender', 'outfits', 'resa'] as const).map(tb => (
@@ -837,14 +860,15 @@ function isPast(date: Date) {
               {calendarDays.map((day, index) => {
                 if (!day) return <View key={`empty-${index}`} style={styles.dayCell} />
                 const ds = dateStr(day)
-                const entry = calendarEntries[ds]
+                const entry = dispCalendarEntries[ds]
                 const todayStyle = isToday(day)
                 const pastStyle = isPast(day)
                 return (
                   <TouchableOpacity
                     key={ds}
                     style={[styles.dayCell, todayStyle && styles.dayCellToday, entry && (pastStyle ? styles.dayCellWorn : styles.dayCellPlanned)]}
-                    onPress={() => setDayDetailDate(ds)}
+                    activeOpacity={readOnly ? 1 : 0.2}
+                    onPress={() => { if (!readOnly) setDayDetailDate(ds) }}
                   >
                     <Text style={[styles.dayNumber, todayStyle && styles.dayNumberToday, pastStyle && !entry && styles.dayNumberPast, entry && !pastStyle && styles.dayNumberPlanned]}>
                       {day.getDate()}
@@ -863,7 +887,8 @@ function isPast(date: Date) {
                         </View>
                       ) : <Text style={styles.dayCellOutfitDot}>●</Text>
                     ) : (
-                      <Text style={styles.dayCellPlus}>＋</Text>
+                      // Läsläge: ingen "+"-ledtråd på tomma dagar (kan inte lägga till).
+                      !readOnly ? <Text style={styles.dayCellPlus}>＋</Text> : null
                     )}
                   </TouchableOpacity>
                 )
@@ -910,16 +935,22 @@ function isPast(date: Date) {
               </View>
             </ScrollView>
 
-            {outfits.length === 0 ? (
+            {dispOutfits.length === 0 ? (
               <View style={styles.empty}>
-                <Text style={styles.emptyText}>{tr('Inga outfits sparade än!')}{'\n'}{tr('Skapa din första eller generera via AI')}</Text>
-                <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/home')}>
-                  <Text style={styles.goBtnText}>{tr('Generera med AI')}</Text>
-                </TouchableOpacity>
+                {readOnly ? (
+                  <Text style={styles.emptyText}>{tr('Inga sparade outfits.')}</Text>
+                ) : (
+                  <>
+                    <Text style={styles.emptyText}>{tr('Inga outfits sparade än!')}{'\n'}{tr('Skapa din första eller generera via AI')}</Text>
+                    <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/home')}>
+                      <Text style={styles.goBtnText}>{tr('Generera med AI')}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             ) : (
               filteredOutfits.map((outfit: any) => (
-                <TouchableOpacity key={outfit.id} style={styles.outfitCard} onPress={() => wearOutfit(outfit)} onLongPress={() => deleteOutfit(outfit.id)}>
+                <TouchableOpacity key={outfit.id} style={styles.outfitCard} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) wearOutfit(outfit) }} onLongPress={readOnly ? undefined : () => deleteOutfit(outfit.id)}>
                   <View style={styles.outfitCardHeader}>
                     <View style={styles.outfitNameWrap}>
                       {partnerLikedIds.has(outfit.id) && (
@@ -937,14 +968,16 @@ function isPast(date: Date) {
                       >
                         <Ionicons name="share-outline" size={20} color={t.primary} />
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => startEditOutfit(outfit)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        accessibilityLabel={tr('Ändra outfit')}
-                        accessibilityRole="button"
-                      >
-                        <Ionicons name="create-outline" size={20} color={t.primary} />
-                      </TouchableOpacity>
+                      {!readOnly && (
+                        <TouchableOpacity
+                          onPress={() => startEditOutfit(outfit)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          accessibilityLabel={tr('Ändra outfit')}
+                          accessibilityRole="button"
+                        >
+                          <Ionicons name="create-outline" size={20} color={t.primary} />
+                        </TouchableOpacity>
+                      )}
                       <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString(locale)}</Text>
                     </View>
                   </View>
@@ -956,7 +989,7 @@ function isPast(date: Date) {
                       <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
                     ))}
                   </View>
-                  <Text style={styles.holdToDelete}>{tr('Håll inne för att ta bort · Tryck för att registrera som använd')}</Text>
+                  {!readOnly && <Text style={styles.holdToDelete}>{tr('Håll inne för att ta bort · Tryck för att registrera som använd')}</Text>}
                 </TouchableOpacity>
               ))
             )}
@@ -966,7 +999,10 @@ function isPast(date: Date) {
         {/* RESA */}
         {activeTab === 'resa' && (
           <>
-            {!tripResult ? (
+            {!dispTrip ? (
+              readOnly ? (
+                <View style={styles.empty}><Text style={styles.emptyText}>{tr('Ingen planerad resa.')}</Text></View>
+              ) : (
               <View>
                 <Text style={styles.tripIntro}>{tr('Vart och när ska du resa? Jag kollar upp vädret på plats och sätter ihop vad du ska packa – med outfits och en packlista ur din egen garderob.')}</Text>
 
@@ -1043,41 +1079,46 @@ function isPast(date: Date) {
                 </TouchableOpacity>
                 {tripLoading && <Text style={styles.tripLoadingHint}>{tr('Kollar vädret och packar väskan…')}</Text>}
               </View>
+              )
             ) : (
               <View>
                 <View style={styles.tripHeaderCard}>
-                  <Text style={styles.tripDest}>{tripResult.destinationLabel}</Text>
-                  <Text style={styles.tripDates}>{tripResult.dateLabel} · {tripResult.days} dagar</Text>
-                  {!!tripResult.climateNote && <Text style={styles.tripClimate}>{tripResult.climateNote}</Text>}
+                  <Text style={styles.tripDest}>{dispTrip.destinationLabel}</Text>
+                  <Text style={styles.tripDates}>{dispTrip.dateLabel} · {dispTrip.days} dagar</Text>
+                  {!!dispTrip.climateNote && <Text style={styles.tripClimate}>{dispTrip.climateNote}</Text>}
                 </View>
 
-                {tripResult.outfits.length > 0 && (
+                {dispTrip.outfits.length > 0 && (
                   <>
                     <Text style={styles.tripSectionTitle}>{tr('Outfits att ta med')}</Text>
-                    {tripResult.outfits.map((o: any, i: number) => (
+                    {dispTrip.outfits.map((o: any, i: number) => (
                       <View key={i} style={styles.outfitCard}>
                         <Text style={styles.outfitName}>{o.name}</Text>
                         <View style={styles.outfitImages}>
                           {(o.items || []).map((name: string, j: number) => {
                             const m = matchGarment(name)
                             return (
-                              <TouchableOpacity key={j} style={styles.tripItemWrap} onPress={() => setTripSwap({ oi: i, ii: j })} accessibilityLabel={`${tr('Byt ut')} ${name}`}>
+                              <TouchableOpacity key={j} style={styles.tripItemWrap} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) setTripSwap({ oi: i, ii: j }) }} accessibilityLabel={`${tr('Byt ut')} ${name}`}>
                                 {m?.image_url
                                   ? <SignedImage path={m.image_url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                                   : <View style={styles.outfitImageEmpty} />}
-                                <View style={styles.tripSwapBadge}><Text style={styles.tripSwapBadgeText}>⇄</Text></View>
+                                {!readOnly && <View style={styles.tripSwapBadge}><Text style={styles.tripSwapBadgeText}>⇄</Text></View>}
                               </TouchableOpacity>
                             )
                           })}
-                          <TouchableOpacity style={styles.tripAddBox} onPress={() => setTripAddTarget({ oi: i })} accessibilityLabel={tr('Lägg till plagg')}>
-                            <View style={styles.tripAddCircle}><Ionicons name="add" size={18} color={t.onPrimary} /></View>
-                          </TouchableOpacity>
+                          {!readOnly && (
+                            <TouchableOpacity style={styles.tripAddBox} onPress={() => setTripAddTarget({ oi: i })} accessibilityLabel={tr('Lägg till plagg')}>
+                              <View style={styles.tripAddCircle}><Ionicons name="add" size={18} color={t.onPrimary} /></View>
+                            </TouchableOpacity>
+                          )}
                         </View>
                         <Text style={styles.outfitGarments}>{(o.items || []).join(' · ')}</Text>
-                        <TouchableOpacity style={styles.tripCalBtn} onPress={() => setScheduleOutfit(o)}>
-                          <Ionicons name="calendar-outline" size={16} color={t.primary} />
-                          <Text style={styles.tripCalBtnText}>{tr('Lägg i kalender')}</Text>
-                        </TouchableOpacity>
+                        {!readOnly && (
+                          <TouchableOpacity style={styles.tripCalBtn} onPress={() => setScheduleOutfit(o)}>
+                            <Ionicons name="calendar-outline" size={16} color={t.primary} />
+                            <Text style={styles.tripCalBtnText}>{tr('Lägg i kalender')}</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
                     ))}
                   </>
@@ -1085,11 +1126,11 @@ function isPast(date: Date) {
 
                 <Text style={styles.tripSectionTitle}>{tr('Packlista')}</Text>
                 <View style={styles.packCard}>
-                  {tripResult.packingList.map((name: string, i: number) => {
+                  {(dispTrip.packingList || []).map((name: string, i: number) => {
                     const m = matchGarment(name)
                     const checked = !!tripChecked[name]
                     return (
-                      <TouchableOpacity key={i} style={styles.packRow} onPress={() => toggleTripCheck(name)}>
+                      <TouchableOpacity key={i} style={styles.packRow} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) toggleTripCheck(name) }}>
                         <View style={[styles.packCheck, checked && styles.packCheckOn]}>
                           {checked && <Text style={styles.packCheckMark}>✓</Text>}
                         </View>
@@ -1102,14 +1143,14 @@ function isPast(date: Date) {
                   })}
                 </View>
 
-                {tripResult.extras.length > 0 && (
+                {(dispTrip.extras || []).length > 0 && (
                   <>
                     <Text style={styles.tripSectionTitle}>{tr('Glöm inte')}</Text>
                     <View style={styles.packCard}>
-                      {tripResult.extras.map((name: string, i: number) => {
+                      {(dispTrip.extras || []).map((name: string, i: number) => {
                         const checked = !!tripChecked[name]
                         return (
-                          <TouchableOpacity key={i} style={styles.packRow} onPress={() => toggleTripCheck(name)}>
+                          <TouchableOpacity key={i} style={styles.packRow} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) toggleTripCheck(name) }}>
                             <View style={[styles.packCheck, checked && styles.packCheckOn]}>
                               {checked && <Text style={styles.packCheckMark}>✓</Text>}
                             </View>
@@ -1121,15 +1162,20 @@ function isPast(date: Date) {
                   </>
                 )}
 
-                {/* Hemkommen? Lägg allt du haft med i tvätten på en gång. */}
-                <TouchableOpacity style={styles.tripWashBtn} onPress={washTripGarments}>
-                  <MaterialIcons name="local-laundry-service" size={18} color={t.onPrimary} />
-                  <Text style={styles.tripWashBtnText}>{tr('Lägg allt i tvätten')}</Text>
-                </TouchableOpacity>
+                {/* Ändra-/tvätt-/nollställ-åtgärder är dolda i läsläge (partnerns resa). */}
+                {!readOnly && (
+                  <>
+                    {/* Hemkommen? Lägg allt du haft med i tvätten på en gång. */}
+                    <TouchableOpacity style={styles.tripWashBtn} onPress={washTripGarments}>
+                      <MaterialIcons name="local-laundry-service" size={18} color={t.onPrimary} />
+                      <Text style={styles.tripWashBtnText}>{tr('Lägg allt i tvätten')}</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.tripResetBtn} onPress={resetTrip}>
-                  <Text style={styles.tripResetBtnText}>{tr('Planera en ny resa')}</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={styles.tripResetBtn} onPress={resetTrip}>
+                      <Text style={styles.tripResetBtnText}>{tr('Planera en ny resa')}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             )}
           </>
