@@ -15,6 +15,22 @@ const SOFT = '#6C4D38' // dämpad brun (varumärke/undertext)
 // shorts i mitten nedtill, allt annat vid sidorna.
 const UPPER = ['Toppar', 'Tröjor', 'Klänningar', 'Sovkläder', 'Underkläder', 'Badkläder']
 const LOWER = ['Byxor', 'Shorts', 'Kjolar']
+// Reserv: gissa placering ur plaggnamnet när kategori saknas (t.ex. äldre
+// sparade outfits eller plagg som inte matchat garderoben), så kollaget aldrig
+// faller tillbaka på en enda vertikal rad.
+const LOWER_KW = /\b(kjol|byx|jeans|shorts|chinos|leggings|mjukis|kostymbyx)/i
+const UPPER_KW = /\b(klänning|topp|blus|skjorta|tröj|t-shirt|tshirt|linne|pik[ée]|body|sweatshirt|hoodie|kofta|polo|collegetr)/i
+// Rollen för ett plagg: kategori först, annars gissning ur namnet.
+function roleOf(it: any): 'upper' | 'lower' | 'side' {
+  const cat = it?.category || ''
+  if (UPPER.includes(cat)) return 'upper'
+  if (LOWER.includes(cat)) return 'lower'
+  if (cat) return 'side' // känd kategori som inte är över-/underdel
+  const n = (it?.name || '').toLowerCase()
+  if (LOWER_KW.test(n)) return 'lower'
+  if (UPPER_KW.test(n)) return 'upper'
+  return 'side'
+}
 const IMG_TRANSFORM = { width: 800, height: 800, resize: 'contain' as const, format: 'origin' as const }
 
 export default function OutfitShareCard({
@@ -26,9 +42,9 @@ export default function OutfitShareCard({
   const { t: tr } = useSettings()
   const items: any[] = (outfit?.itemsWithImages || []).filter((it: any) => it?.image_url)
 
-  const uppers = items.filter(i => UPPER.includes(i.category || ''))
-  const lowers = items.filter(i => LOWER.includes(i.category || ''))
-  const sides = items.filter(i => !UPPER.includes(i.category || '') && !LOWER.includes(i.category || ''))
+  const uppers = items.filter(i => roleOf(i) === 'upper')
+  const lowers = items.filter(i => roleOf(i) === 'lower')
+  const sides = items.filter(i => roleOf(i) === 'side')
 
   // Om inget hamnar i mitten (t.ex. bara accessoarer) – lägg allt i mitten.
   const centerHasContent = uppers.length > 0 || lowers.length > 0
