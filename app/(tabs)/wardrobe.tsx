@@ -555,15 +555,19 @@ export default function Wardrobe() {
 
       <View style={styles.header}>
         <View style={styles.headerTitleWrap}>
-          {/* Personväljare: byt mellan din egen, partnerns och barnens garderob.
-              Man byter vy via bottom-nav/dropdown – ingen bakåtknapp behövs. */}
-          <PersonSwitcher
-            scope="wardrobe"
-            meLabel={tr('Min garderob')}
-            current={isPartner ? { kind: 'partner', id: partner } : isPerson ? { kind: 'child', id: person } : { kind: 'me' }}
-          />
+          <Text style={styles.title} numberOfLines={1}>
+            {isPartner ? (partnerName || tr('Partner')) : isPerson ? (personName || tr('Barnet')) : tr('Min garderob')}
+          </Text>
+          {/* Läsläge (partner) markeras med ett litet hänglås i stället för en
+              textrad, så den standardiserade designen inte störs. */}
+          {isPartner && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
         </View>
         <View style={styles.headerButtons}>
+          {/* Kompakt personväljare (avatar) – byt mellan egen/partner/barn. */}
+          <PersonSwitcher
+            scope="wardrobe"
+            current={isPartner ? { kind: 'partner', id: partner } : isPerson ? { kind: 'child', id: person } : { kind: 'me' }}
+          />
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
               style={[styles.iconBtn, (showFilterPanel || hasActiveFilters) && styles.iconBtnActive]}
@@ -609,9 +613,6 @@ export default function Wardrobe() {
           )}
         </View>
       </View>
-      {isPartner && (
-        <Text style={styles.readonlyNote}>👁 {tr('Läsläge – du kan titta men inte ändra')}</Text>
-      )}
 
       <View style={styles.tabRow}>
         {[
@@ -851,7 +852,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
   headerTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  readonlyNote: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, fontStyle: 'italic', paddingHorizontal: 24, marginTop: -4, marginBottom: 8 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.onPrimary },

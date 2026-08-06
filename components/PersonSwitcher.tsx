@@ -21,11 +21,12 @@ type Props = {
   scope: 'wardrobe' | 'outfits'
   // Vald person just nu, härledd av föräldern ur sina params.
   current: { kind: 'me' | 'partner' | 'child'; id?: string }
-  // Rubriken som visas när "Jag" är vald (t.ex. "Min garderob" / "Mina outfits").
-  meLabel: string
 }
 
-export default function PersonSwitcher({ scope, current, meLabel }: Props) {
+// Kompakt avatar-knapp (samma storlek som övriga header-ikoner) som öppnar en
+// lista där man byter person. Rubriken visar föräldern själv – väljaren tar
+// bara plats som en liten rund knapp, så titeln aldrig trängs undan.
+export default function PersonSwitcher({ scope, current }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
@@ -83,15 +84,13 @@ export default function PersonSwitcher({ scope, current, meLabel }: Props) {
     }))
   }
 
-  // Ingen att växla mellan (ensam användare, inget hushåll) → visa bara rubriken.
+  // Ingen att växla mellan (ensam användare, inget hushåll) → visa ingen knapp.
   const hasChoices = members.length > 1
-  // Triggern visar meLabel ("Min garderob"/"Mina outfits") för mig själv,
-  // annars personens namn. Listan visar alltid "Jag" för mig.
-  const currentLabel = current.kind === 'me' ? meLabel : (members.find(m => m.active)?.label || meLabel)
+  if (!hasChoices) return null
 
-  if (!hasChoices) {
-    return <Text style={styles.plainTitle} numberOfLines={1}>{meLabel}</Text>
-  }
+  const activeMember = members.find(m => m.active)
+  const activeAvatar = activeMember?.avatar ?? null
+  const activeIcon = activeMember?.icon ?? 'person'
 
   return (
     <>
@@ -101,8 +100,10 @@ export default function PersonSwitcher({ scope, current, meLabel }: Props) {
         accessibilityRole="button"
         accessibilityLabel={tr('Byt person')}
       >
-        <Text style={styles.triggerText} numberOfLines={1}>{currentLabel}</Text>
-        <MaterialIcons name="expand-more" size={22} color={t.textSecondary} />
+        {activeAvatar
+          ? <SignedImage path={activeAvatar} style={styles.triggerAvatar} resizeMode="cover" transform={{ width: 96, height: 96, resize: 'cover' }} />
+          : <View style={styles.triggerPlaceholder}><MaterialIcons name={activeIcon} size={20} color={t.onPrimary} /></View>}
+        <View style={styles.chevronBadge}><MaterialIcons name="expand-more" size={13} color={t.onPrimary} /></View>
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -130,9 +131,11 @@ export default function PersonSwitcher({ scope, current, meLabel }: Props) {
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
-  plainTitle: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
-  trigger: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
-  triggerText: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, flexShrink: 1 },
+  // Kompakt rund knapp i samma storlek som header-ikonerna (40).
+  trigger: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  triggerAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: t.border },
+  triggerPlaceholder: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
+  chevronBadge: { position: 'absolute', right: -2, bottom: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.bg },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-start', paddingTop: 120, paddingHorizontal: 24 },
   sheet: { backgroundColor: t.surface, borderRadius: 22, padding: 12, borderWidth: 1, borderColor: t.border },
   sheetTitle: { fontFamily: 'Poppins_700Bold', fontSize: 13, letterSpacing: 1, textTransform: 'uppercase', color: t.textSecondary, marginHorizontal: 8, marginTop: 4, marginBottom: 8 },
