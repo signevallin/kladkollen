@@ -1090,5 +1090,21 @@
  "Kommer den fram fungerar push på den här enheten.": "Si llega, las notificaciones push funcionan en este dispositivo.",
  "Kunde inte skicka testnotis": "No se pudo enviar la notificación de prueba",
  "Sälj vidare": "Revender",
- "{n} att sälja": "{n} para vender"
+ "{n} att sälja": "{n} para vender",
+ "Insikter": "Perspectivas",
+ "Vad din garderob berättar om dig.": "Lo que tu armario dice de ti.",
+ "Fortsätt använda garderoben och logga outfits så lär jag känna din stil – dina insikter dyker upp här.": "Sigue usando tu armario y registrando looks para que conozca tu estilo: tus perspectivas aparecerán aquí.",
+ "Du bär {p}% av garderoben mest – de står för 70 % av all användning.": "Usas sobre todo el {p}% de tu armario: representan el 70 % de todo el uso.",
+ "{n} plagg har vilat i över ett år – kanske dags att sälja eller styla om?": "{n} prendas llevan más de un año sin usarse: ¿quizá sea hora de vender o recombinar?",
+ "Det ligger ungefär {v} i plagg du inte burit på ett år.": "Hay unos {v} en prendas que no te has puesto en un año.",
+ "Bäst köp: dina {cat} kostar bara ungefär {v} per användning.": "Mejor compra: tus {cat} cuestan solo unos {v} por uso.",
+ "Du verkar trivas bäst i {color} – de outfitsen får dina högsta betyg.": "Pareces sentirte mejor con {color}: esos looks reciben tus mejores valoraciones.",
+ "Du äger {n} {cat} men bär dem sällan.": "Tienes {n} {cat} pero rara vez los usas.",
+ "Ditt mest burna plagg: {name} ({n} gånger).": "Tu prenda más usada: {name} ({n} veces).",
+ "Du loggar flest outfits på {season}.": "Registras más looks en {season}.",
+ "Din go-to outfit \"{name}\" har du burit {n} gånger.": "Tu look recurrente «{name}» lo has usado {n} veces.",
+ "våren": "primavera",
+ "sommaren": "verano",
+ "hösten": "otoño",
+ "vintern": "invierno"
 }

@@ -16,6 +16,7 @@ import {
 import Svg, { Circle, G } from 'react-native-svg'
 import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
+import InsightsTab from '../components/stats/InsightsTab'
 import { supabase } from '../supabase'
 import { normalizeBrand } from '../utils/brands'
 import { showAlert } from '../utils/alert'
@@ -107,7 +108,7 @@ export default function Stats() {
   // Barn-läge: statistik för ett visst barn (öppnas från barnets garderob).
   const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
   const isPerson = !!person
-  const [activeTab, setActiveTab] = useState<'stil' | 'garderob'>('garderob')
+  const [activeTab, setActiveTab] = useState<'stil' | 'garderob' | 'insikter'>('garderob')
 
   // Garderob
   const [garments, setGarments] = useState<any[]>([])
@@ -124,10 +125,20 @@ export default function Stats() {
   const [hasStyleData, setHasStyleData] = useState(false)
   const [mostWornCat, setMostWornCat] = useState('Alla')
 
+  // Insikter: rå outfit-data + kalender (för att härleda personliga slutsatser).
+  const [outfitsRaw, setOutfitsRaw] = useState<any[]>([])
+  const [calendar, setCalendar] = useState<{ date: string; outfit_id: string | null }[]>([])
+
   useFocusEffect(useCallback(() => { fetchAll() }, []))
 
   async function fetchAll() {
-    await Promise.all([fetchGarmentStats(), fetchStyleStats()])
+    await Promise.all([fetchGarmentStats(), fetchStyleStats(), fetchCalendar()])
+  }
+
+  async function fetchCalendar() {
+    // Insikterna om säsong/återkommande outfits utgår från loggade dagar.
+    const { data } = await supabase.from('outfit_calendar').select('date, outfit_id')
+    setCalendar(data || [])
   }
 
   async function fetchGarmentStats() {
@@ -143,8 +154,9 @@ export default function Stats() {
   async function fetchStyleStats() {
     const { data: outfits } = await supabase
       .from('outfits')
-      .select('mood, context, garment_names, garment_ids, rating, created_at')
+      .select('id, mood, context, garment_names, garment_ids, rating, created_at')
       .order('created_at', { ascending: true })
+    setOutfitsRaw(outfits || [])
     if (!outfits || outfits.length === 0) return
 
     // Räkna bara nuvarande kontexter (Jobb/Ledig/Fest). Äldre outfits kan ha
@@ -367,10 +379,10 @@ export default function Stats() {
         {/* "Min stil" (humör/betyg) är per person – bara garderobsstatistik i barn-läge. */}
         {!isPerson && (
           <View style={styles.tabRow}>
-            {(['garderob', 'stil'] as const).map(tab => (
+            {(['garderob', 'stil', 'insikter'] as const).map(tab => (
               <TouchableOpacity key={tab} style={[styles.tab, activeTab === tab && styles.tabActive]} onPress={() => setActiveTab(tab)}>
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab === 'stil' ? tt('Min stil') : tt('Min garderob')}
+                  {tab === 'stil' ? tt('Min stil') : tab === 'insikter' ? tt('Insikter') : tt('Min garderob')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -538,6 +550,11 @@ export default function Stats() {
               )}
             </>
           )
+        )}
+
+        {/* ── INSIKTER ── */}
+        {!isPerson && activeTab === 'insikter' && (
+          <InsightsTab garments={garments} outfits={outfitsRaw} calendar={calendar} />
         )}
 
         {/* ── MIN GARDEROB ── */}
