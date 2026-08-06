@@ -263,7 +263,7 @@ export default function Inspiration() {
       }
       const itemsWithImages = parsed.items.map((itemName: string) => {
         const match = findMatch(itemName)
-        return { name: itemName, image_url: match?.image_url || null, id: match?.id || null }
+        return { name: itemName, image_url: match?.image_url || null, id: match?.id || null, category: match?.category || null }
       })
       setOutfit({ ...parsed, missing: missingArray, itemsWithImages })
       setSavedInspo(false)
@@ -313,7 +313,7 @@ export default function Inspiration() {
     }
     return (names || []).map((n: string) => {
       const m = find(n)
-      return { name: n, image_url: m?.image_url || null, id: m?.id || null }
+      return { name: n, image_url: m?.image_url || null, id: m?.id || null, category: m?.category || null }
     })
   }
 
