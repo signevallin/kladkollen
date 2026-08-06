@@ -3,6 +3,9 @@ import { createClient } from '@supabase/supabase-js'
 // Körs av Vercel Cron (morgon + kväll). Bygger en personlig notis per
 // användare utifrån deras garderob + väder och skickar via Expo Push.
 // Node-runtime (inte edge): behöver service role och loopar över användare.
+// maxDuration höjs så väder-/push-anropen hinner klart innan funktionen
+// dödas (annars skickas inga notiser alls – allt skickas i slutet av körningen).
+export const config = { runtime: 'nodejs', maxDuration: 60 }
 
 type Garment = {
   id: string; name: string | null; brand: string | null; color: string | null
@@ -173,7 +176,7 @@ async function buildNotif(
     return {
       kind: 'ootd',
       title: 'Dagens outfit väntar 👀',
-      body: 'Öppna Klädkollen för ett outfitförslag anpassat efter vädret.',
+      body: 'Öppna Skrud för ett outfitförslag anpassat efter vädret.',
       route: '/home',
     }
   }
