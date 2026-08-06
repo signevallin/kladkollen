@@ -3,6 +3,7 @@ import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import SignedImage from './SignedImage'
+import { supabase } from '../supabase'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
@@ -31,6 +32,8 @@ export default function PersonSwitcher({ scope, current, meLabel }: Props) {
 
   const [partner, setPartner] = useState<Partner | null>(() => cacheGet<Partner | null>('household.partner') ?? null)
   const [children, setChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
+  // Min egen profilbild (seedas ur hemskärmens cache så "Jag" får rätt avatar direkt).
+  const [myAvatar, setMyAvatar] = useState<string | null>(() => cacheGet<string | null>('home.userAvatar') ?? null)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -39,6 +42,13 @@ export default function PersonSwitcher({ scope, current, meLabel }: Props) {
       const kids = ppl.filter(p => p.type === 'child')
       setChildren(kids); cacheSet('household.children', kids)
     }).catch(() => {})
+    // Hämta min egen avatar så "Jag"-raden visar profilbilden i stället för en ikon.
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single()
+      if (data?.avatar_url) { setMyAvatar(data.avatar_url); cacheSet('home.userAvatar', data.avatar_url) }
+    })().catch(() => {})
   }, [])
 
   type Member = { key: string; label: string; avatar: string | null; icon: any; select: () => void; active: boolean }
@@ -47,7 +57,7 @@ export default function PersonSwitcher({ scope, current, meLabel }: Props) {
   members.push({
     key: 'me',
     label: tr('Jag'),
-    avatar: null,
+    avatar: myAvatar,
     icon: 'person',
     active: current.kind === 'me',
     select: () => router.setParams({ person: '', personName: '', partner: '', partnerName: '' }),
