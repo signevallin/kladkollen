@@ -160,6 +160,7 @@ const enBySource: Dict = {
   'Vill ha på mig idag': 'Wear today',
   'Lånar:': 'Borrowing:',
   'Jag': 'Me',
+  'Byt person': 'Switch person',
   'partner': 'partner',
 
   // Plagg-väljare / byt-ut-modal (hemskärmen)
