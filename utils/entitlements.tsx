@@ -28,7 +28,11 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const [isPro, setIsPro] = useState(false)
   const [loading, setLoading] = useState(true)
   const [packages, setPackages] = useState<PurchasePackage[]>([])
-  const [creditsLeft, setCreditsLeft] = useState<number>(FREE_AI_PER_WEEK)
+  // Utgå från -1 (obegränsat/Premium) tills vi läst det riktiga värdet, så
+  // gratis-kvoten ("3 av 3") inte blinkar till vid inloggning/appstart innan
+  // Premium-statusen hunnit laddas. readCredits sätter sedan rätt värde: -1
+  // för Premium (då förblir kvoten dold), annars antal kvar (då visas den).
+  const [creditsLeft, setCreditsLeft] = useState<number>(-1)
   const [purchasesDebug, setPurchasesDebug] = useState<string>(purchasesAvailable ? 'laddar…' : 'SDK/nyckel av')
 
   // Läser pro-status ur databasen (entitlements.pro_until, satt av webhooken) –
