@@ -36,6 +36,7 @@ import ArchiveView from '../../components/wardrobe/ArchiveView'
 import WishlistTab from '../../components/wardrobe/WishlistTab'
 import SaleTab from '../../components/wardrobe/SaleTab'
 import ListFilterBar from '../../components/wardrobe/ListFilterBar'
+import PersonSwitcher from '../../components/PersonSwitcher'
 
 const CATEGORIES = ['Alla', ...CATEGORY_LIST]
 const SEASONS = ['Alla', ...SEASON_LIST]
@@ -59,8 +60,12 @@ export default function Wardrobe() {
   const { formatPrice, currency, toBaseSEK, t: tr, lang } = useSettings()
   // Barn-läge: öppnas med ?person=<id> från Mitt hushåll → visar barnets
   // garderob (samma vy, filter, arkiv, sälj) i stället för mina egna plagg.
-  const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
+  const { person, personName, partner, partnerName } = useLocalSearchParams<{ person?: string; personName?: string; partner?: string; partnerName?: string }>()
   const isPerson = !!person
+  // Partner-läge: samma design som garderoben men skrivskyddat (partnerns plagg
+  // hämtas via household-vaktade RPC:er, man kan titta men inte ändra).
+  const isPartner = !!partner
+  const readOnly = isPartner
   // Seedas från cachen så garderoben ritas direkt vid flikbyte, medan en
   // uppdatering hämtas i bakgrunden.
   const [garments, setGarments] = useState<any[]>(() => cacheGet('wardrobe.garments') ?? [])
@@ -115,8 +120,8 @@ export default function Wardrobe() {
     useCallback(() => {
       fetchGarments()
       fetchWishlist()
-      loadCapsule()
-    }, [person])
+      if (!isPartner) loadCapsule()
+    }, [person, partner])
   )
 
   // Köp-fliken finns inte i barn-läge – hamna aldrig på den.
@@ -124,7 +129,23 @@ export default function Wardrobe() {
     if (isPerson && activeTab === 'köp') setActiveTab('nuvarande')
   }, [isPerson, activeTab])
 
+  // Arkivet är inte tillgängligt i partner-läge (läsläge) – stäng det om man
+  // byter till partnern medan arkivet var öppet.
+  useEffect(() => {
+    if (isPartner && showArchive) setShowArchive(false)
+  }, [isPartner, showArchive])
+
   async function fetchGarments() {
+    // Partner-läge: hämta via household-vaktad RPC (läsläge). Skriver inte till
+    // cachen så min egen garderob inte skrivs över.
+    if (isPartner) {
+      const { data } = await supabase.rpc('partner_garments', { target: partner })
+      const mine = data || []
+      setGarments(mine.filter(g => !g.archived && !g.for_sale))
+      setForSale(mine.filter(g => g.for_sale))
+      setArchived(mine.filter(g => g.archived && !g.for_sale))
+      return
+    }
     // Deterministisk basordning; display-sorten nedan har dessutom id-tiebreak.
     const { data } = await supabase.from('garments').select('*').order('created_at', { ascending: false })
     if (data) {
@@ -190,6 +211,12 @@ export default function Wardrobe() {
   }
 
   async function fetchWishlist() {
+    // Partner-läge: partnerns köplista via RPC (läsläge, ingen outfit-räkning).
+    if (isPartner) {
+      const { data } = await supabase.rpc('partner_wishlist', { target: partner })
+      setWishlist(data || [])
+      return
+    }
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { data } = await supabase
@@ -528,8 +555,13 @@ export default function Wardrobe() {
 
       <View style={styles.header}>
         <View style={styles.headerTitleWrap}>
-          {/* Barn-läge: ingen bakåtknapp – man byter vy via bottom-nav. */}
-          <Text style={styles.title} numberOfLines={1}>{isPerson ? (personName || tr('Barnet')) : tr('Min garderob')}</Text>
+          {/* Personväljare: byt mellan din egen, partnerns och barnens garderob.
+              Man byter vy via bottom-nav/dropdown – ingen bakåtknapp behövs. */}
+          <PersonSwitcher
+            scope="wardrobe"
+            meLabel={tr('Min garderob')}
+            current={isPartner ? { kind: 'partner', id: partner } : isPerson ? { kind: 'child', id: person } : { kind: 'me' }}
+          />
         </View>
         <View style={styles.headerButtons}>
           {activeTab === 'nuvarande' && (
@@ -553,7 +585,7 @@ export default function Wardrobe() {
               <MaterialIcons name="tune" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
-          {(activeTab === 'nuvarande' || activeTab === 'sälj') && (
+          {!isPartner && (activeTab === 'nuvarande' || activeTab === 'sälj') && (
             <TouchableOpacity
               style={[styles.iconBtn, showArchive && styles.iconBtnActive]}
               onPress={() => setShowArchive(v => !v)}
@@ -563,16 +595,23 @@ export default function Wardrobe() {
               <MaterialIcons name="inventory-2" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => router.push(isPerson ? `/stats?person=${person}&personName=${encodeURIComponent(personName || '')}` : '/stats')}
-            accessibilityLabel={tr('Statistik')}
-            accessibilityRole="button"
-          >
-            <MaterialIcons name="insights" size={20} color={t.onPrimary} />
-          </TouchableOpacity>
+          {/* Statistiken utgår från egna/barnens rader (person_id) – finns inte
+              för partnern, så dölj knappen i partner-läge. */}
+          {!isPartner && (
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => router.push(isPerson ? `/stats?person=${person}&personName=${encodeURIComponent(personName || '')}` : '/stats')}
+              accessibilityLabel={tr('Statistik')}
+              accessibilityRole="button"
+            >
+              <MaterialIcons name="insights" size={20} color={t.onPrimary} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+      {isPartner && (
+        <Text style={styles.readonlyNote}>👁 {tr('Läsläge – du kan titta men inte ändra')}</Text>
+      )}
 
       <View style={styles.tabRow}>
         {[
@@ -692,7 +731,7 @@ export default function Wardrobe() {
             contentContainerStyle={styles.grid}
             style={styles.flatList}
             ListHeaderComponent={
-              laundryFilter === 'in' && laundryCount > 0 ? (
+              !readOnly && laundryFilter === 'in' && laundryCount > 0 ? (
                 <TouchableOpacity style={styles.clearLaundryBtn} onPress={clearLaundry} accessibilityRole="button">
                   <MaterialIcons name="local-laundry-service" size={18} color={t.onPrimary} />
                   <Text style={styles.clearLaundryText}>{tr('Töm tvätten')} · {laundryCount}</Text>
@@ -707,7 +746,7 @@ export default function Wardrobe() {
               </View>
             }
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.item} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+              <TouchableOpacity style={styles.item} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) router.push(`/garment-detail?id=${item.id}`) }}>
                 <View style={styles.itemImageWrap}>
                   {item.image_url
                     ? <SignedImage path={item.image_url} style={[styles.itemImage, pregnant && item.paused_pregnancy && styles.itemPaused]} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
@@ -728,8 +767,9 @@ export default function Wardrobe() {
                       <Ionicons name="swap-horizontal" size={14} color={t.onPrimary} />
                     </View>
                   )}
-                  {/* Skor, smycken, väskor och skärp tvättas inte – ingen tvättikon. */}
-                  {isWashable(item) && (
+                  {/* Skor, smycken, väskor och skärp tvättas inte – ingen tvättikon.
+                      I partner-läge (läsläge) visas ingen tvätt-toggle alls. */}
+                  {!readOnly && isWashable(item) && (
                     <TouchableOpacity
                       style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
                       onPress={() => toggleLaundry(item)}
@@ -775,6 +815,7 @@ export default function Wardrobe() {
           outfitCounts={outfitCounts}
           cat={listCat}
           color={listColor}
+          readOnly={readOnly}
           onMove={moveWishItem}
           onOpenLink={openWishLink}
           onBought={markWishBought}
@@ -784,7 +825,7 @@ export default function Wardrobe() {
 
       {/* SÄLJ */}
       {activeTab === 'sälj' && !showArchive && (
-        <SaleTab forSale={forSale} cat={listCat} color={listColor} onSold={markAsSold} onRemove={removeFromSale} />
+        <SaleTab forSale={forSale} cat={listCat} color={listColor} readOnly={readOnly} onSold={markAsSold} onRemove={removeFromSale} />
       )}
 
       {/* ARKIV – nås från både Garderob- och Sälj-fliken */}
@@ -794,6 +835,8 @@ export default function Wardrobe() {
 
       <BottomNav
         onAddGarment={() => {
+          // Partner-läge är skrivskyddat – man kan inte lägga till i någon annans garderob.
+          if (readOnly) { showAlert(tr('Läsläge'), tr('Du kan titta men inte ändra i den här garderoben.')); return }
           if (activeTab === 'köp') setShowWishChooser(true)
           else if (activeTab === 'sälj') setShowAddSale(true)
           else setShowAddChooser(true)
@@ -808,6 +851,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 24, paddingBottom: 12 },
   headerTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   headerButtons: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  readonlyNote: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, fontStyle: 'italic', paddingHorizontal: 24, marginTop: -4, marginBottom: 8 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.onPrimary },

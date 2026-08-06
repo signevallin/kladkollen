@@ -21,6 +21,8 @@ import BottomNav from '../../components/BottomNav'
 import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import CreateOutfitView from '../../components/my-outfit/CreateOutfitView'
+import PartnerOutfitsView from '../../components/my-outfit/PartnerOutfitsView'
+import PersonSwitcher from '../../components/PersonSwitcher'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { supabase } from '../../supabase'
@@ -54,7 +56,9 @@ export default function MyOutfits() {
   const styles = makeStyles(t)
   const { t: tr, lang } = useSettings()
   const locale = localeFor(lang)
-  const { tab, create } = useLocalSearchParams()
+  const { tab, create, partner, partnerName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string }>()
+  // Partner-läge: visa partnerns outfits (läsläge) i stället för mina egna.
+  const isPartner = !!partner
   const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'resa'>(
     create ? 'outfits' : tab === 'resa' ? 'resa' : tab === 'outfits' ? 'outfits' : 'kalender'
   )
@@ -642,6 +646,23 @@ function isPast(date: Date) {
   }
 
 
+  // Partner-läge: partnerns outfits/kalender/resa i läsläge. Egen enkel vy så
+  // den editerbara outfit-logiken hålls helt separat.
+  if (isPartner) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.topArea}>
+          <View style={styles.headerRow}>
+            <PersonSwitcher scope="outfits" meLabel={tr('Mina outfits')} current={{ kind: 'partner', id: partner }} />
+          </View>
+          <Text style={styles.readonlyNote}>👁 {tr('Läsläge – du kan titta men inte ändra')}</Text>
+        </View>
+        <PartnerOutfitsView targetId={partner} />
+        <BottomNav />
+      </SafeAreaView>
+    )
+  }
+
   return (
     <SafeAreaView style={styles.container}>
 
@@ -775,7 +796,7 @@ function isPast(date: Date) {
       {/* ── Header + Tabs (always visible, outside ScrollView) ── */}
       <View style={styles.topArea}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>{tr('Mina outfits')}</Text>
+          <PersonSwitcher scope="outfits" meLabel={tr('Mina outfits')} current={{ kind: 'me' }} />
         </View>
 
         <View style={styles.tabRow}>
@@ -1162,6 +1183,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   scroll: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 100 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
+  readonlyNote: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, fontStyle: 'italic', marginTop: -12, marginBottom: 12 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textPrimary },
 
