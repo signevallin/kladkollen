@@ -161,6 +161,11 @@ const enBySource: Dict = {
   'Lånar:': 'Borrowing:',
   'Jag': 'Me',
   'Byt person': 'Switch person',
+  'Skicka testnotis': 'Send test notification',
+  'Skickar…': 'Sending…',
+  'Testnotis skickad': 'Test notification sent',
+  'Kommer den fram fungerar push på den här enheten.': 'If it arrives, push works on this device.',
+  'Kunde inte skicka testnotis': 'Could not send test notification',
   'partner': 'partner',
 
   // Plagg-väljare / byt-ut-modal (hemskärmen)

@@ -1083,5 +1083,10 @@
  "Enligt GDPR har du rätt att få tillgång till, rätta och radera dina uppgifter samt invända mot behandling. Du kan när som helst radera ditt konto och all din data direkt i appen under Min profil → Radera konto. Du kan också kontakta oss på hej@kladkollen.se.": "Nach der DSGVO hast du das Recht auf Auskunft, Berichtigung und Löschung deiner Daten sowie auf Widerspruch gegen die Verarbeitung. Du kannst dein Konto und alle deine Daten jederzeit in der App unter Mein Profil → Konto löschen entfernen. Du kannst uns auch unter hej@kladkollen.se kontaktieren.",
  "7. Ändringar": "7. Änderungen",
  "Vi kan uppdatera denna policy. Väsentliga ändringar meddelas i appen. Senast uppdaterad: augusti 2026.": "Wir können diese Richtlinie aktualisieren. Wesentliche Änderungen werden in der App angekündigt.",
- "Byt person": "Person wechseln"
+ "Byt person": "Person wechseln",
+ "Skicka testnotis": "Testbenachrichtigung senden",
+ "Skickar…": "Wird gesendet…",
+ "Testnotis skickad": "Testbenachrichtigung gesendet",
+ "Kommer den fram fungerar push på den här enheten.": "Kommt sie an, funktioniert Push auf diesem Gerät.",
+ "Kunde inte skicka testnotis": "Testbenachrichtigung konnte nicht gesendet werden"
 }
