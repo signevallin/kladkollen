@@ -87,6 +87,8 @@ export default function Wardrobe() {
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   // Gravidläget styr om gravid-markeringar visas i rutnätet (läses ur cachen).
   const pregnant = cacheGet<boolean>('profile.pregnant') ?? false
+  // Användarens namn (rubrik i egen garderob). Seedas ur hemskärmens/profilens cache.
+  const userName = cacheGet<string>('home.userName') || (cacheGet<any>('profile.row')?.name ?? '')
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('nuvarande')
   const [showSearch, setShowSearch] = useState(false)
@@ -556,18 +558,13 @@ export default function Wardrobe() {
       <View style={styles.header}>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.title} numberOfLines={1}>
-            {isPartner ? (partnerName || tr('Partner')) : isPerson ? (personName || tr('Barnet')) : tr('Min garderob')}
+            {isPartner ? (partnerName || tr('Partner')) : isPerson ? (personName || tr('Barnet')) : (userName || tr('Min garderob'))}
           </Text>
           {/* Läsläge (partner) markeras med ett litet hänglås i stället för en
               textrad, så den standardiserade designen inte störs. */}
           {isPartner && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
         </View>
         <View style={styles.headerButtons}>
-          {/* Kompakt personväljare (avatar) – byt mellan egen/partner/barn. */}
-          <PersonSwitcher
-            scope="wardrobe"
-            current={isPartner ? { kind: 'partner', id: partner } : isPerson ? { kind: 'child', id: person } : { kind: 'me' }}
-          />
           {activeTab === 'nuvarande' && (
             <TouchableOpacity
               style={[styles.iconBtn, (showFilterPanel || hasActiveFilters) && styles.iconBtnActive]}
@@ -611,6 +608,11 @@ export default function Wardrobe() {
               <MaterialIcons name="insights" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
+          {/* Personväljare (avatar) längst till höger – samma plats som i home/outfits. */}
+          <PersonSwitcher
+            scope="wardrobe"
+            current={isPartner ? { kind: 'partner', id: partner } : isPerson ? { kind: 'child', id: person } : { kind: 'me' }}
+          />
         </View>
       </View>
 
