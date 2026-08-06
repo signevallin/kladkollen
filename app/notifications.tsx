@@ -15,7 +15,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
-import { DEFAULT_PREFS, registerForPush, type NotifPrefs } from '../utils/push'
+import { DEFAULT_PREFS, registerForPush, sendTestPush, type NotifPrefs } from '../utils/push'
 import { getSmartPushTime, isSmartPushEnabled, setSmartPushEnabled, setSmartPushTime } from '../utils/smartPush'
 import { useSettings } from '../utils/settings'
 
@@ -98,6 +98,18 @@ export default function NotificationsSettings() {
     const next = { ...prefs, [key]: v }
     setPrefs(next)
     persist(enabled, next)
+  }
+
+  const [testing, setTesting] = useState(false)
+  async function testPush() {
+    setTesting(true)
+    try {
+      const r = await sendTestPush()
+      if (r.ok) showAlert(tr('Testnotis skickad'), tr('Kommer den fram fungerar push på den här enheten.'))
+      else showAlert(tr('Kunde inte skicka testnotis'), r.detail)
+    } finally {
+      setTesting(false)
+    }
   }
 
   return (
@@ -188,6 +200,13 @@ export default function NotificationsSettings() {
         <Text style={styles.footnote}>
           {tr('Väderbaserade notiser använder din senast kända plats. Vi hämtar aldrig platsen i bakgrunden bara för notiser.')}
         </Text>
+
+        {/* Felsökning: skicka en riktig push till den här enheten. */}
+        {Platform.OS !== 'web' && (
+          <TouchableOpacity style={styles.testBtn} onPress={testPush} disabled={testing} accessibilityRole="button">
+            <Text style={styles.testBtnText}>{testing ? tr('Skickar…') : tr('Skicka testnotis')}</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -202,6 +221,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   subtitle: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 20 },
   webNote: { backgroundColor: t.surfaceMuted, borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: t.border },
   webNoteText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
+  testBtn: { marginTop: 24, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: t.border },
+  testBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   masterRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: t.border },
   masterTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary },
   masterDesc: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 2 },
