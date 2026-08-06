@@ -752,7 +752,7 @@ export default function Stats() {
             {vintedTips.length > 0 && (
               <View style={styles.vintedSection}>
                 <View style={styles.vintedHeader}>
-                  <Text style={styles.vintedTitle}>{tt('Sälj på Vinted')}</Text>
+                  <Text style={styles.vintedTitle}>{tt('Sälj vidare')}</Text>
                   <View style={styles.vintedBadge}>
                     <Text style={styles.vintedBadgeText}>{vintedTips.length} {tt('tips')}</Text>
                   </View>
