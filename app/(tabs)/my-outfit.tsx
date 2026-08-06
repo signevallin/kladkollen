@@ -116,6 +116,8 @@ export default function MyOutfits() {
   const [partnerGarments, setPartnerGarments] = useState<any[]>([])
   const [partnerCalendar, setPartnerCalendar] = useState<Record<string, any>>({})
   const [partnerTrip, setPartnerTrip] = useState<any | null>(null)
+  // Vilka av partnerns outfits JAG har gillat (❤ i partner-läge).
+  const [myLikedIds, setMyLikedIds] = useState<Set<string>>(new Set())
 
   useFocusEffect(
     useCallback(() => {
@@ -152,6 +154,20 @@ export default function MyOutfits() {
     // "Gillade av partner"-markeringar hör till min egen vy – inte partnerns.
     setPartnerLikedIds(new Set())
     setShowOnlyLiked(false)
+    // Vilka av partnerns outfits jag själv gillat (för ❤-knappen).
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: lk } = await supabase.from('outfit_likes').select('outfit_id').eq('user_id', user.id)
+      setMyLikedIds(new Set((lk || []).map((l: any) => l.outfit_id)))
+    }
+  }
+
+  // Gilla/ogilla en av partnerns outfits (optimistiskt, återställs vid fel).
+  async function togglePartnerLike(outfitId: string) {
+    const flip = (s: Set<string>) => { const n = new Set(s); n.has(outfitId) ? n.delete(outfitId) : n.add(outfitId); return n }
+    setMyLikedIds(flip)
+    const { error } = await supabase.rpc('toggle_outfit_like', { target_outfit: outfitId })
+    if (error) setMyLikedIds(flip)
   }
 
   // Speglar en lokalt sparad resa till databasen. Körs vid varje fokus och
@@ -959,6 +975,17 @@ function isPast(date: Date) {
                       <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
                     </View>
                     <View style={styles.outfitCardHeaderRight}>
+                      {/* Läsläge: gilla partnerns outfit (❤). */}
+                      {readOnly && (
+                        <TouchableOpacity
+                          onPress={() => togglePartnerLike(outfit.id)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          accessibilityLabel={tr('Gilla outfit')}
+                          accessibilityRole="button"
+                        >
+                          <Ionicons name={myLikedIds.has(outfit.id) ? 'heart' : 'heart-outline'} size={22} color={myLikedIds.has(outfit.id) ? t.danger : t.textSecondary} />
+                        </TouchableOpacity>
+                      )}
                       <TouchableOpacity
                         onPress={() => shareSavedOutfit(outfit)}
                         disabled={sharing}
