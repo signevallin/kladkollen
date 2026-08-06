@@ -15,13 +15,14 @@ type Props = {
   outfitCounts: Record<string, number>
   cat: string
   color: string
+  readOnly?: boolean
   onMove: (index: number, direction: 'up' | 'down') => void
   onOpenLink: (item: any) => void
   onBought: (item: any) => void
   onDelete: (item: any) => void
 }
 
-export default function WishlistTab({ wishlist, outfitCounts, cat, color, onMove, onOpenLink, onBought, onDelete }: Props) {
+export default function WishlistTab({ wishlist, outfitCounts, cat, color, readOnly, onMove, onOpenLink, onBought, onDelete }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, formatPrice } = useSettings()
@@ -46,7 +47,7 @@ export default function WishlistTab({ wishlist, outfitCounts, cat, color, onMove
               {formatPrice(visible.reduce((s, w) => s + (Number(w.price) || 0), 0))}
             </Text>
           </View>
-          {!filterActive && <Text style={styles.wishHint}>{tr('Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera')}</Text>}
+          {!filterActive && !readOnly && <Text style={styles.wishHint}>{tr('Tryck ▲▼ för att prioritera · Klicka på ett plagg för att redigera')}</Text>}
           {visible.length === 0 ? (
             <View style={styles.emptyTab}>
               <Text style={styles.emptyTabText}>{tr('Inga plagg matchar filtren')}</Text>
@@ -55,10 +56,10 @@ export default function WishlistTab({ wishlist, outfitCounts, cat, color, onMove
             const index = wishlist.indexOf(item)
             const count = outfitCounts[item.id] || 0
             return (
-              <TouchableOpacity key={item.id} style={styles.wishItem} onPress={() => router.push(`/garment-detail?wishlistId=${item.id}`)} activeOpacity={0.8}>
+              <TouchableOpacity key={item.id} style={styles.wishItem} onPress={() => { if (!readOnly) router.push(`/garment-detail?wishlistId=${item.id}`) }} activeOpacity={readOnly ? 1 : 0.8}>
                 {/* Ompriotering funkar bara i den ofiltrerade listan (index avser
                     hela köplistan) – dölj pilarna när ett filter är aktivt. */}
-                {!filterActive && (
+                {!filterActive && !readOnly && (
                   <View style={styles.reorderCol}>
                     <TouchableOpacity style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]} onPress={() => onMove(index, 'up')} disabled={index === 0} hitSlop={{ top: 10, bottom: 6, left: 10, right: 10 }} accessibilityLabel={tr('Flytta upp')} accessibilityRole="button">
                       <Text style={styles.arrowText}>▲</Text>
@@ -99,12 +100,17 @@ export default function WishlistTab({ wishlist, outfitCounts, cat, color, onMove
                       <Text style={styles.buyBtnText}>{tr('Köp')}</Text>
                     </TouchableOpacity>
                   ) : null}
-                  <TouchableOpacity style={styles.boughtBtn} onPress={() => onBought(item)} accessibilityLabel={`${tr('Markera som köpt')}: ${item.name}`} accessibilityRole="button">
-                    <Text style={styles.boughtBtnText}>{tr('Köpt')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel={`${tr('Ta bort')} ${item.name}`} accessibilityRole="button">
-                    <Text style={styles.deleteBtnText}>✕</Text>
-                  </TouchableOpacity>
+                  {/* Köpt/ta bort är ändringar – döljs i läsläge (partnerns köplista). */}
+                  {!readOnly && (
+                    <>
+                      <TouchableOpacity style={styles.boughtBtn} onPress={() => onBought(item)} accessibilityLabel={`${tr('Markera som köpt')}: ${item.name}`} accessibilityRole="button">
+                        <Text style={styles.boughtBtnText}>{tr('Köpt')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel={`${tr('Ta bort')} ${item.name}`} accessibilityRole="button">
+                        <Text style={styles.deleteBtnText}>✕</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </View>
               </TouchableOpacity>
             )

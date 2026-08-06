@@ -151,7 +151,7 @@ export default function Partner() {
               return (
                 <TouchableOpacity
                   style={styles.viewBtn}
-                  onPress={() => router.push(`/partner-closet?user=${partner.user_id}&name=${encodeURIComponent(partner.name)}` as any)}
+                  onPress={() => router.push(`/wardrobe?partner=${partner.user_id}&partnerName=${encodeURIComponent(partner.name)}` as any)}
                 >
                   <MaterialIcons name="checkroom" size={20} color={t.textPrimary} />
                   <Text style={styles.viewBtnText}>{tr('Visa')} {partner.name}{tr('s garderob & outfits')}</Text>

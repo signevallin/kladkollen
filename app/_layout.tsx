@@ -109,7 +109,6 @@ function RootLayout() {
         <Stack.Screen name="stats" />
         <Stack.Screen name="wardrobe-analysis" />
         <Stack.Screen name="partner" />
-        <Stack.Screen name="partner-closet" />
         <Stack.Screen name="family" />
         <Stack.Screen name="add-garment" />
         <Stack.Screen name="import-purchases" />

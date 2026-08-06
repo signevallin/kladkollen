@@ -388,7 +388,7 @@ export default function Profile() {
               {partner && (
                 <TouchableOpacity
                   style={styles.householdMember}
-                  onPress={() => router.push(`/partner-closet?user=${partner.id}&name=${encodeURIComponent(partner.name)}` as any)}
+                  onPress={() => router.push(`/wardrobe?partner=${partner.id}&partnerName=${encodeURIComponent(partner.name)}` as any)}
                   accessibilityLabel={`${tr('Öppna garderob för')} ${partner.name}`}
                   accessibilityRole="button"
                 >

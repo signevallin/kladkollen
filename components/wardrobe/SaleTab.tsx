@@ -11,11 +11,12 @@ type Props = {
   forSale: any[]
   cat: string
   color: string
+  readOnly?: boolean
   onSold: (item: any) => void
   onRemove: (item: any) => void
 }
 
-export default function SaleTab({ forSale, cat, color, onSold, onRemove }: Props) {
+export default function SaleTab({ forSale, cat, color, readOnly, onSold, onRemove }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
@@ -38,7 +39,7 @@ export default function SaleTab({ forSale, cat, color, onSold, onRemove }: Props
               <Text style={styles.emptyTabText}>{tr('Inga plagg matchar filtren')}</Text>
             </View>
           ) : visible.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.saleItem} onPress={() => router.push(`/garment-detail?id=${item.id}`)}>
+          <TouchableOpacity key={item.id} style={styles.saleItem} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) router.push(`/garment-detail?id=${item.id}`) }}>
             {item.image_url
               ? <SignedImage path={item.image_url} style={styles.saleImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
               : <View style={styles.saleImageEmpty} />
@@ -47,14 +48,16 @@ export default function SaleTab({ forSale, cat, color, onSold, onRemove }: Props
               <Text style={styles.saleName}>{item.name}</Text>
               <Text style={styles.saleCategory}>{tr(item.category)}{item.size ? ` · ${item.size}` : ''}</Text>
             </View>
-            <View style={styles.saleActions}>
-              <TouchableOpacity style={styles.soldBtn} onPress={() => onSold(item)}>
-                <Text style={styles.soldBtnText}>{tr('Såld ✓')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.removeBtn} onPress={() => onRemove(item)}>
-                <Text style={styles.removeBtnText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+            {!readOnly && (
+              <View style={styles.saleActions}>
+                <TouchableOpacity style={styles.soldBtn} onPress={() => onSold(item)}>
+                  <Text style={styles.soldBtnText}>{tr('Såld ✓')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.removeBtn} onPress={() => onRemove(item)}>
+                  <Text style={styles.removeBtnText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </TouchableOpacity>
           ))}
         </>
