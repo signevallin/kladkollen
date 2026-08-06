@@ -691,7 +691,7 @@ export default function Inspiration() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   scroll: { padding: 24, paddingBottom: 100 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 16 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 12 },
 
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },

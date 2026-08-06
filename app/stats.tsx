@@ -802,7 +802,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12 },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 },
   backText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 14 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 12 },
   tabRow: { flexDirection: 'row', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 4, gap: 4 },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center' },
   tabActive: { backgroundColor: t.primary },

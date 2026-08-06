@@ -1274,7 +1274,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   topArea: { paddingHorizontal: 24, paddingTop: 24 },
   scroll: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 100 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   titleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, flexShrink: 1 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
