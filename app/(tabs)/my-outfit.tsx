@@ -841,9 +841,13 @@ function isPast(date: Date) {
       {/* ── Header + Tabs (always visible, outside ScrollView) ── */}
       <View style={styles.topArea}>
         <View style={styles.headerRow}>
-          <PersonSwitcher scope="outfits" meLabel={tr('Mina outfits')} current={isPartner ? { kind: 'partner', id: partner } : { kind: 'me' }} />
+          <View style={styles.titleWrap}>
+            <Text style={styles.title} numberOfLines={1}>{isPartner ? (partnerName || tr('Partner')) : tr('Mina outfits')}</Text>
+            {/* Läsläge (partner) markeras med ett litet hänglås i stället för en textrad. */}
+            {isPartner && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
+          </View>
+          <PersonSwitcher scope="outfits" current={isPartner ? { kind: 'partner', id: partner } : { kind: 'me' }} />
         </View>
-        {isPartner && <Text style={styles.readonlyNote}>👁 {tr('Läsläge – du kan titta men inte ändra')}</Text>}
 
         <View style={styles.tabRow}>
           {(['kalender', 'outfits', 'resa'] as const).map(tb => (
@@ -1262,8 +1266,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   topArea: { paddingHorizontal: 24, paddingTop: 24 },
   scroll: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 100 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary },
-  readonlyNote: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, fontStyle: 'italic', marginTop: -12, marginBottom: 12 },
+  titleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, flexShrink: 1 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textPrimary },
 
@@ -1300,7 +1304,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   dayCellImageSmall: { width: 21, height: 21, borderRadius: 5 },
   dayCellOutfitDot: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textPrimary },
   dayCellPlus: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint },
-  calendarLegend: { flexDirection: 'row', gap: 16, justifyContent: 'center', marginTop: 12 },
+  calendarLegend: { flexDirection: 'row', gap: 16, justifyContent: 'center', marginTop: 32 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
   // Måste matcha dagcellernas verkliga fyllning (dayCellWorn/Planned/Today).
