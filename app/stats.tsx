@@ -754,7 +754,7 @@ export default function Stats() {
                 <View style={styles.vintedHeader}>
                   <Text style={styles.vintedTitle}>{tt('Sälj vidare')}</Text>
                   <View style={styles.vintedBadge}>
-                    <Text style={styles.vintedBadgeText}>{vintedTips.length} {tt('tips')}</Text>
+                    <Text style={styles.vintedBadgeText}>{tt('{n} att sälja').replace('{n}', String(vintedTips.length))}</Text>
                   </View>
                 </View>
                 <Text style={styles.vintedSubtitle}>{tt('Dessa plagg har inte använts på länge – dags att sälja?')}</Text>

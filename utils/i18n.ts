@@ -561,6 +561,7 @@ const enBySource: Dict = {
   'Aldrig använda': 'Never worn',
   'Sälj på Vinted': 'Sell on Vinted',
   'Sälj vidare': 'Resell',
+  '{n} att sälja': '{n} to sell',
   'tips': 'tips',
   'Dessa plagg har inte använts på länge – dags att sälja?': 'These items haven’t been worn in a while – time to sell?',
   'i snitt': 'on average',

@@ -1089,5 +1089,6 @@
  "Testnotis skickad": "Notification de test envoyée",
  "Kommer den fram fungerar push på den här enheten.": "Si elle arrive, les notifications push fonctionnent sur cet appareil.",
  "Kunde inte skicka testnotis": "Impossible d’envoyer la notification de test",
- "Sälj vidare": "Revendre"
+ "Sälj vidare": "Revendre",
+ "{n} att sälja": "{n} à vendre"
 }
