@@ -861,7 +861,16 @@ function isPast(date: Date) {
       </View>
 
       {/* ── Scrollable content ── */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      {/* automaticallyAdjustKeyboardInsets: skjuter upp innehållet när tangent-
+          bordet visas (t.ex. destinations-/känsla-fälten i resa) så man ser vad
+          man skriver. keyboardDismissMode='interactive' låter en dra ner det. */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
+      >
 
         {/* KALENDER */}
         {activeTab === 'kalender' && (
