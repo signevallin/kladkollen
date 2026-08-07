@@ -496,7 +496,8 @@ export default function Home() {
       const itemsWithImages = dedupOutfitItems(
         parsed.items.map((name: string) => {
           const match = findMatch(name)
-          return { name, image_url: match?.image_url || null, id: match?.id || null }
+          // category följer med så dela-kollaget kan placera över-/underdelar rätt.
+          return { name, image_url: match?.image_url || null, id: match?.id || null, category: match?.category || null }
         }),
         pool,
       )
@@ -898,7 +899,7 @@ export default function Home() {
     setOutfit((prev: any) => {
       if (!prev) return prev
       const items = [...prev.itemsWithImages]
-      items[index] = { name: garment.name, image_url: garment.image_url || null, id: garment.id }
+      items[index] = { name: garment.name, image_url: garment.image_url || null, id: garment.id, category: garment.category || null }
       return { ...prev, itemsWithImages: items }
     })
     resetSavedState()
@@ -935,7 +936,7 @@ export default function Home() {
       const outfits = prev.outfits.map((o: any, oi: number) => {
         if (oi !== person) return o
         const items = [...o.itemsWithImages]
-        items[index] = { name: garment.name, image_url: garment.image_url || null, id: garment.id }
+        items[index] = { name: garment.name, image_url: garment.image_url || null, id: garment.id, category: garment.category || null }
         return withRecomputedBorrowed({ ...o, itemsWithImages: items }, prev.lentIds?.[oi])
       })
       return { ...prev, outfits }
@@ -976,7 +977,7 @@ export default function Home() {
 
   // Lägger till valt plagg i rätt outfit (singel eller en av par-personerna).
   function addItemToOutfit(g: any) {
-    const newItem = { name: g.name, image_url: g.image_url || null, id: g.id, added: true }
+    const newItem = { name: g.name, image_url: g.image_url || null, id: g.id, category: g.category || null, added: true }
     if (!addTarget) return
     if (addTarget.person === null) {
       setOutfit((prev: any) => prev ? { ...prev, itemsWithImages: [...prev.itemsWithImages, newItem] } : prev)
