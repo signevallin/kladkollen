@@ -46,11 +46,13 @@ export default function OutfitShareCard({
   const lowers = items.filter(i => roleOf(i) === 'lower')
   const sides = items.filter(i => roleOf(i) === 'side')
 
-  // Om inget hamnar i mitten (t.ex. bara accessoarer) – lägg allt i mitten.
+  // Om inget känns igen som över-/underdel (kategori saknas + namnet ger ingen
+  // ledtråd) → sätt ändå det FÖRSTA plagget i mitten och resten på sidorna, så
+  // det aldrig blir en enda lång vertikal kolumn.
   const centerHasContent = uppers.length > 0 || lowers.length > 0
-  const centerUppers = centerHasContent ? uppers : items
+  const centerUppers = centerHasContent ? uppers : items.slice(0, 1)
   const centerLowers = centerHasContent ? lowers : []
-  const sideItems = centerHasContent ? sides : []
+  const sideItems = centerHasContent ? sides : items.slice(1)
 
   // Dela sidoplaggen jämnt mellan vänster och höger för balans.
   const left: any[] = []
