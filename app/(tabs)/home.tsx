@@ -1425,7 +1425,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   scroll: { paddingBottom: 100 },
 
   // Header
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 28, paddingTop: 28, paddingBottom: 32 },
+  // paddingTop/Right = 24 så profil-avataren hamnar på samma plats som i
+  // garderob/outfits; paddingLeft 28 håller hälsningen i linje med innehållet nedanför.
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 28, paddingRight: 24, paddingTop: 24, paddingBottom: 32 },
   headerLeft: { flex: 1 },
   greeting: { fontFamily: 'Lora_400Regular', fontSize: 28, color: t.textSecondary, marginBottom: 6 },
   profileBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.surfaceMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, overflow: 'hidden', marginLeft: 16 },
