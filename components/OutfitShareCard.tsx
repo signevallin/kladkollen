@@ -15,11 +15,15 @@ const SOFT = '#6C4D38' // dämpad brun (varumärke/undertext)
 // shorts i mitten nedtill, allt annat vid sidorna.
 const UPPER = ['Toppar', 'Tröjor', 'Klänningar', 'Sovkläder', 'Underkläder', 'Badkläder']
 const LOWER = ['Byxor', 'Shorts', 'Kjolar']
+// Smycken och accessoarer ritas ALLTID små – de ska aldrig konkurrera i storlek
+// med kläderna. Väskor är undantaget: de är stora nog att ritas som ett plagg.
+const SMALL_CATS = ['Smycken', 'Accessoarer']
 // Reserv: gissa placering ur plaggnamnet när kategori saknas (t.ex. äldre
 // sparade outfits eller plagg som inte matchat garderoben), så kollaget aldrig
 // faller tillbaka på en enda vertikal rad.
 const LOWER_KW = /\b(kjol|byx|jeans|shorts|chinos|leggings|mjukis|kostymbyx)/i
 const UPPER_KW = /\b(klänning|topp|blus|skjorta|tröj|t-shirt|tshirt|linne|pik[ée]|body|sweatshirt|hoodie|kofta|polo|collegetr)/i
+const SMALL_KW = /\b(halsband|örhäng|armband|\bring\b|klocka|fotlänk|bälte|hatt|keps|mössa|solglasög|halsduk|sjal|scarf|hår(band|spänne|klämma|accessoar)|scrunchie|slips|fluga|vante|handske)/i
 // Rollen för ett plagg: kategori först, annars gissning ur namnet.
 function roleOf(it: any): 'upper' | 'lower' | 'side' {
   const cat = it?.category || ''
@@ -30,6 +34,14 @@ function roleOf(it: any): 'upper' | 'lower' | 'side' {
   if (LOWER_KW.test(n)) return 'lower'
   if (UPPER_KW.test(n)) return 'upper'
   return 'side'
+}
+// Litet plagg? Smycken/accessoarer (utom väskor) ritas alltid smått – kategori
+// först, annars gissning ur namnet.
+function isSmall(it: any): boolean {
+  const cat = it?.category || ''
+  if (SMALL_CATS.includes(cat)) return true
+  if (cat) return false // känd kategori (plagg, skor, väska) → normal storlek
+  return SMALL_KW.test((it?.name || '').toLowerCase())
 }
 const IMG_TRANSFORM = { width: 800, height: 800, resize: 'contain' as const, format: 'origin' as const }
 
@@ -60,27 +72,33 @@ export default function OutfitShareCard({
   sideItems.forEach((s, i) => (i % 2 === 0 ? left : right).push(s))
 
   const total = items.length
-  const centerSize = total <= 3 ? 480 : 440
-  const sideSize = 260
+  // Kläderna hålls i jämn storlek – mitten bara aningen större än sidorna så att
+  // t.ex. ett linne inte blir dubbelt så stort som kavajen bredvid.
+  const centerSize = total <= 3 ? 420 : 380
+  const sideSize = 340   // plagg i sidokolumnen (kavaj, ytterplagg, skor, väska)
+  const smallSize = 190  // smycken & accessoarer – alltid små
+  const sizeOf = (it: any) => (isSmall(it) ? smallSize : sideSize)
   // Plaggbilderna är kvadrater med mycket genomskinlig luft runt om, så vi
   // överlappar kraftigt för att packa dem tätt (luften äts, plaggen möts).
   const centerOverlap = Math.round(centerSize * 0.42) // överdel↔överdel
   const lowerTuck = Math.round(centerSize * 0.58)     // underdel tuckas in under överdel
-  const sideOverlap = Math.round(sideSize * 0.46)     // plagg i sidokolumnen
   const sidePull = Math.round(centerSize * 0.22)      // dra in sidokolumnerna mot mitten
 
   const renderSide = (list: any[], side: 'left' | 'right') => (
     <View style={[styles.sideCol, side === 'left' ? { marginRight: -sidePull } : { marginLeft: -sidePull }]}>
-      {list.map((it, i) => (
-        <SignedImage
-          key={i}
-          path={it.image_url}
-          style={[{ width: sideSize, height: sideSize }, i > 0 && { marginTop: -sideOverlap }]}
-          resizeMode="contain"
-          flat
-          transform={IMG_TRANSFORM}
-        />
-      ))}
+      {list.map((it, i) => {
+        const sz = sizeOf(it)
+        return (
+          <SignedImage
+            key={i}
+            path={it.image_url}
+            style={[{ width: sz, height: sz }, i > 0 && { marginTop: -Math.round(sz * 0.42) }]}
+            resizeMode="contain"
+            flat
+            transform={IMG_TRANSFORM}
+          />
+        )
+      })}
     </View>
   )
 
