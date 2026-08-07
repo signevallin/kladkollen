@@ -58,16 +58,22 @@ export default function OutfitShareCard({
   sideItems.forEach((s, i) => (i % 2 === 0 ? left : right).push(s))
 
   const total = items.length
-  const centerSize = total <= 3 ? 460 : 420
-  const sideSize = 220
+  const centerSize = total <= 3 ? 480 : 440
+  const sideSize = 260
+  // Plaggbilderna är kvadrater med mycket genomskinlig luft runt om, så vi
+  // överlappar kraftigt för att packa dem tätt (luften äts, plaggen möts).
+  const centerOverlap = Math.round(centerSize * 0.42) // överdel↔överdel
+  const lowerTuck = Math.round(centerSize * 0.58)     // underdel tuckas in under överdel
+  const sideOverlap = Math.round(sideSize * 0.46)     // plagg i sidokolumnen
+  const sidePull = Math.round(centerSize * 0.22)      // dra in sidokolumnerna mot mitten
 
-  const renderSide = (list: any[]) => (
-    <View style={styles.sideCol}>
+  const renderSide = (list: any[], side: 'left' | 'right') => (
+    <View style={[styles.sideCol, side === 'left' ? { marginRight: -sidePull } : { marginLeft: -sidePull }]}>
       {list.map((it, i) => (
         <SignedImage
           key={i}
           path={it.image_url}
-          style={[{ width: sideSize, height: sideSize }, i > 0 && { marginTop: -28 }]}
+          style={[{ width: sideSize, height: sideSize }, i > 0 && { marginTop: -sideOverlap }]}
           resizeMode="contain"
           flat
           transform={IMG_TRANSFORM}
@@ -87,14 +93,14 @@ export default function OutfitShareCard({
       {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
 
       <View style={styles.stage}>
-        {left.length > 0 && renderSide(left)}
+        {left.length > 0 && renderSide(left, 'left')}
 
         <View style={styles.centerCol}>
           {centerUppers.map((it, i) => (
             <SignedImage
               key={`u${i}`}
               path={it.image_url}
-              style={[{ width: centerSize, height: centerSize }, i > 0 && { marginTop: -40 }]}
+              style={[{ width: centerSize, height: centerSize }, i > 0 && { marginTop: -centerOverlap }]}
               resizeMode="contain"
               flat
               transform={IMG_TRANSFORM}
@@ -105,7 +111,7 @@ export default function OutfitShareCard({
               key={`l${i}`}
               path={it.image_url}
               // Första underdelen tuckas in under överdelen; övriga staplas tätt.
-              style={[{ width: centerSize, height: centerSize }, { marginTop: i === 0 && centerUppers.length > 0 ? -80 : -40 }]}
+              style={[{ width: centerSize, height: centerSize }, { marginTop: i === 0 && centerUppers.length > 0 ? -lowerTuck : -centerOverlap }]}
               resizeMode="contain"
               flat
               transform={IMG_TRANSFORM}
@@ -113,7 +119,7 @@ export default function OutfitShareCard({
           ))}
         </View>
 
-        {right.length > 0 && renderSide(right)}
+        {right.length > 0 && renderSide(right, 'right')}
       </View>
 
       {!!outfit?.song?.title && (
@@ -124,13 +130,13 @@ export default function OutfitShareCard({
 }
 
 const styles = StyleSheet.create({
-  card: { width: 1080, backgroundColor: BG, paddingVertical: 90, paddingHorizontal: 56, alignItems: 'center' },
+  card: { width: 1080, backgroundColor: BG, paddingVertical: 64, paddingHorizontal: 40, alignItems: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 22 },
   rule: { width: 84, height: 2, backgroundColor: SOFT, opacity: 0.5 },
   brand: { fontFamily: 'Poppins_700Bold', fontSize: 30, letterSpacing: 10, color: SOFT },
   title: { fontFamily: 'Lora_500Medium', fontStyle: 'italic', fontSize: 66, color: INK, textAlign: 'center', lineHeight: 76, marginTop: 20 },
   subtitle: { fontFamily: 'Lora_400Regular', fontSize: 30, color: SOFT, marginTop: 14, textAlign: 'center' },
-  stage: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 48, width: '100%' },
+  stage: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 24, width: '100%' },
   sideCol: { alignItems: 'center', justifyContent: 'center' },
   centerCol: { alignItems: 'center', justifyContent: 'center' },
   song: { fontFamily: 'Lora_400Regular', fontSize: 30, color: SOFT, marginTop: 40, textAlign: 'center' },
