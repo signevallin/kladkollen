@@ -438,6 +438,21 @@ function isPast(date: Date) {
     return m || null
   }
 
+  // ── Rese-plagg som {id, name} ────────────────────────────────────────────
+  // Reseplanens plagg lagras numera som { id, name } så bild/tvätt/byt löses via
+  // plagg-id (pålitligt) i stället för luddig namnmatchning. Bakåtkompatibelt:
+  // äldre resor (rena namnsträngar) hanteras via fallback på namn.
+  const tripName = (it: any): string => (typeof it === 'string' ? it : (it?.name || ''))
+  const tripId = (it: any): string | null => (typeof it === 'string' ? null : (it?.id ?? null))
+  // Löser ett reseplagg till ett garderobsplagg: id först, annars namnmatchning.
+  function resolveTripGarment(it: any) {
+    const id = tripId(it)
+    if (id) { const g = dispGarments.find((x: any) => x.id === id); if (g) return g }
+    return matchGarment(tripName(it))
+  }
+  // Gör om ett AI-namn till ett {id, name}-plagg (id null om det inte matchar).
+  const toTripItem = (name: string) => { const g = matchGarment(name); return { id: g?.id ?? null, name } }
+
   // Bygger en kategorigrupperad lista av garderoben som AI:n kan packa ur.
   function buildTripGarmentList(list: any[]) {
     const byCat: Record<string, string[]> = {}
@@ -503,8 +518,10 @@ function isPast(date: Date) {
 
       const result = {
         climateNote: parsed.climateNote || weather.summary || '',
-        packingList: Array.isArray(parsed.packingList) ? parsed.packingList : [],
-        outfits: Array.isArray(parsed.outfits) ? parsed.outfits : [],
+        // Plagg lagras som { id, name } (id löst mot garderoben) för pålitlig
+        // bild-/tvätt-/byt-hantering. extras är icke-plagg → rena strängar.
+        packingList: (Array.isArray(parsed.packingList) ? parsed.packingList : []).map(toTripItem),
+        outfits: (Array.isArray(parsed.outfits) ? parsed.outfits : []).map((o: any) => ({ ...o, items: (o.items || []).map(toTripItem) })),
         extras: Array.isArray(parsed.extras) ? parsed.extras : [],
         destinationLabel,
         dateLabel,
@@ -554,13 +571,14 @@ function isPast(date: Date) {
   async function scheduleTripOutfit(tripOutfit: any, date: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const items: string[] = tripOutfit.items || []
-    const matched = items.map(n => matchGarment(n)).filter(Boolean) as any[]
+    const items: any[] = tripOutfit.items || []
+    const names = items.map(tripName)
+    const matched = items.map(resolveTripGarment).filter(Boolean) as any[]
     const garmentIds = matched.map(g => g.id).filter(Boolean)
     const imageUrls = matched.map(g => g.image_url).filter(Boolean)
     const name = tripOutfit.name || 'Reseoutfit'
     const { data: inserted, error } = await supabase.from('outfits').insert([{
-      user_id: user.id, name, garment_ids: garmentIds, garment_names: items, image_urls: imageUrls, saved: true,
+      user_id: user.id, name, garment_ids: garmentIds, garment_names: names, image_urls: imageUrls, saved: true,
     }]).select().single()
     if (error || !inserted) { showAlert(tr('Något gick fel'), error?.message || tr('Kunde inte spara outfiten.')); return }
     await assignOutfitToDay(inserted, date)
@@ -581,12 +599,12 @@ function isPast(date: Date) {
   // inte tvättas (skor, smycken, väskor, skärp) hoppas över.
   function washTripGarments() {
     if (!tripResult) return
-    const names: string[] = [
+    const items: any[] = [
       ...(tripResult.outfits || []).flatMap((o: any) => o.items || []),
       ...(tripResult.packingList || []),
     ]
     const ids = Array.from(new Set(
-      names.map(n => matchGarment(n)).filter(g => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
+      items.map(resolveTripGarment).filter(g => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
     )) as string[]
     if (ids.length === 0) {
       showAlert(tr('Inga plagg att tvätta'), tr('Reseplanen matchar inga plagg i din garderob.')); return
@@ -609,40 +627,43 @@ function isPast(date: Date) {
   // hålls i synk (AI:ns extra-tips som inte är outfit-plagg rörs inte).
   function usedInOutfits(name: string, outfits: any[]): boolean {
     const target = (name || '').toLowerCase()
-    return outfits.some((o: any) => (o.items || []).some((n: string) => (n || '').toLowerCase() === target))
+    return outfits.some((o: any) => (o.items || []).some((it: any) => tripName(it).toLowerCase() === target))
   }
   // Uppdaterar packlistan: tar bort ett borttaget plagg (om det inte används i
   // någon annan outfit) och lägger till ett nytt (om det inte redan finns).
-  function syncPacking(list: string[], outfits: any[], removed: string | null, added: string | null): string[] {
+  // Jämför på namn men behåller {id, name}-objekten.
+  function syncPacking(list: any[], outfits: any[], removed: any | null, added: any | null): any[] {
     let pl = [...(list || [])]
-    if (removed && !usedInOutfits(removed, outfits)) pl = pl.filter(n => (n || '').toLowerCase() !== removed.toLowerCase())
-    if (added && !pl.some(n => (n || '').toLowerCase() === added.toLowerCase())) pl = [...pl, added]
+    if (removed && !usedInOutfits(tripName(removed), outfits)) pl = pl.filter(it => tripName(it).toLowerCase() !== tripName(removed).toLowerCase())
+    if (added && !pl.some(it => tripName(it).toLowerCase() === tripName(added).toLowerCase())) pl = [...pl, added]
     return pl
   }
 
   function replaceTripItem(oi: number, ii: number, garment: any) {
     if (!tripResult) return
-    const oldName = tripResult.outfits?.[oi]?.items?.[ii] ?? null
+    const oldItem = tripResult.outfits?.[oi]?.items?.[ii] ?? null
+    const newItem = { id: garment.id, name: garment.name }
     const outfits = tripResult.outfits.map((o: any, i: number) =>
-      i !== oi ? o : { ...o, items: (o.items || []).map((n: string, j: number) => j === ii ? garment.name : n) })
-    const packingList = syncPacking(tripResult.packingList, outfits, oldName, garment.name)
+      i !== oi ? o : { ...o, items: (o.items || []).map((it: any, j: number) => j === ii ? newItem : it) })
+    const packingList = syncPacking(tripResult.packingList, outfits, oldItem, newItem)
     persistTripResult({ ...tripResult, outfits, packingList })
     setTripSwap(null)
   }
   function removeTripItem(oi: number, ii: number) {
     if (!tripResult) return
-    const oldName = tripResult.outfits?.[oi]?.items?.[ii] ?? null
+    const oldItem = tripResult.outfits?.[oi]?.items?.[ii] ?? null
     const outfits = tripResult.outfits.map((o: any, i: number) =>
-      i !== oi ? o : { ...o, items: (o.items || []).filter((_: string, j: number) => j !== ii) })
-    const packingList = syncPacking(tripResult.packingList, outfits, oldName, null)
+      i !== oi ? o : { ...o, items: (o.items || []).filter((_: any, j: number) => j !== ii) })
+    const packingList = syncPacking(tripResult.packingList, outfits, oldItem, null)
     persistTripResult({ ...tripResult, outfits, packingList })
     setTripSwap(null)
   }
   function addTripItem(oi: number, garment: any) {
     if (!tripResult) return
+    const newItem = { id: garment.id, name: garment.name }
     const outfits = tripResult.outfits.map((o: any, i: number) =>
-      i !== oi ? o : { ...o, items: [...(o.items || []), garment.name] })
-    const packingList = syncPacking(tripResult.packingList, outfits, null, garment.name)
+      i !== oi ? o : { ...o, items: [...(o.items || []), newItem] })
+    const packingList = syncPacking(tripResult.packingList, outfits, null, newItem)
     persistTripResult({ ...tripResult, outfits, packingList })
     setTripAddTarget(null)
   }
@@ -664,10 +685,11 @@ function isPast(date: Date) {
 
   // Byt-ut-arket för en reseoutfit: alternativ i samma kategori som inte redan
   // används i outfiten (och som inte är arkiverade/sålda/i tvätten).
-  const tripSwapItemName: string | null = tripSwap ? (tripResult?.outfits?.[tripSwap.oi]?.items?.[tripSwap.ii] ?? null) : null
-  const tripSwapGarment = tripSwapItemName ? matchGarment(tripSwapItemName) : null
+  const tripSwapItem = tripSwap ? (tripResult?.outfits?.[tripSwap.oi]?.items?.[tripSwap.ii] ?? null) : null
+  const tripSwapItemName: string | null = tripSwapItem ? tripName(tripSwapItem) : null
+  const tripSwapGarment = tripSwapItem ? resolveTripGarment(tripSwapItem) : null
   const tripSwapUsed = new Set(
-    (tripSwap ? tripResult?.outfits?.[tripSwap.oi]?.items || [] : []).map((n: string) => (n || '').toLowerCase())
+    (tripSwap ? tripResult?.outfits?.[tripSwap.oi]?.items || [] : []).map((it: any) => tripName(it).toLowerCase())
   )
   const tripSwapAlternatives = tripSwap ? garments.filter(g =>
     !g.archived && !g.for_sale && !g.in_laundry &&
@@ -676,7 +698,7 @@ function isPast(date: Date) {
   ) : []
   // Lägg-till-väljaren: aktiva plagg som inte redan finns i outfiten.
   const tripAddUsed = new Set(
-    (tripAddTarget ? tripResult?.outfits?.[tripAddTarget.oi]?.items || [] : []).map((n: string) => (n || '').toLowerCase())
+    (tripAddTarget ? tripResult?.outfits?.[tripAddTarget.oi]?.items || [] : []).map((it: any) => tripName(it).toLowerCase())
   )
   const tripAddPool = tripAddTarget ? garments.filter(g =>
     !g.archived && !g.for_sale && !g.in_laundry && !tripAddUsed.has((g.name || '').toLowerCase())
@@ -1136,10 +1158,10 @@ function isPast(date: Date) {
                       <View key={i} style={styles.outfitCard}>
                         <Text style={styles.outfitName}>{o.name}</Text>
                         <View style={styles.outfitImages}>
-                          {(o.items || []).map((name: string, j: number) => {
-                            const m = matchGarment(name)
+                          {(o.items || []).map((it: any, j: number) => {
+                            const m = resolveTripGarment(it)
                             return (
-                              <TouchableOpacity key={j} style={styles.tripItemWrap} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) setTripSwap({ oi: i, ii: j }) }} accessibilityLabel={`${tr('Byt ut')} ${name}`}>
+                              <TouchableOpacity key={j} style={styles.tripItemWrap} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) setTripSwap({ oi: i, ii: j }) }} accessibilityLabel={`${tr('Byt ut')} ${tripName(it)}`}>
                                 {m?.image_url
                                   ? <SignedImage path={m.image_url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                                   : <View style={styles.outfitImageEmpty} />}
@@ -1153,7 +1175,7 @@ function isPast(date: Date) {
                             </TouchableOpacity>
                           )}
                         </View>
-                        <Text style={styles.outfitGarments}>{(o.items || []).join(' · ')}</Text>
+                        <Text style={styles.outfitGarments}>{(o.items || []).map(tripName).join(' · ')}</Text>
                         {!readOnly && (
                           <TouchableOpacity style={styles.tripCalBtn} onPress={() => setScheduleOutfit(o)}>
                             <Ionicons name="calendar-outline" size={16} color={t.primary} />
@@ -1167,18 +1189,19 @@ function isPast(date: Date) {
 
                 <Text style={styles.tripSectionTitle}>{tr('Packlista')}</Text>
                 <View style={styles.packCard}>
-                  {(dispTrip.packingList || []).map((name: string, i: number) => {
-                    const m = matchGarment(name)
-                    const checked = !!tripChecked[name]
+                  {(dispTrip.packingList || []).map((it: any, i: number) => {
+                    const nm = tripName(it)
+                    const m = resolveTripGarment(it)
+                    const checked = !!tripChecked[nm]
                     return (
-                      <TouchableOpacity key={i} style={styles.packRow} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) toggleTripCheck(name) }}>
+                      <TouchableOpacity key={i} style={styles.packRow} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) toggleTripCheck(nm) }}>
                         <View style={[styles.packCheck, checked && styles.packCheckOn]}>
                           {checked && <Text style={styles.packCheckMark}>✓</Text>}
                         </View>
                         {m?.image_url
                           ? <SignedImage path={m.image_url} style={styles.packThumb} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                           : <View style={styles.packThumbEmpty} />}
-                        <Text style={[styles.packName, checked && styles.packNameChecked]}>{name}</Text>
+                        <Text style={[styles.packName, checked && styles.packNameChecked]}>{nm}</Text>
                       </TouchableOpacity>
                     )
                   })}
