@@ -1,5 +1,22 @@
 // Hjälpfunktioner för reseplaneraren: slår upp destinationens koordinater och
 // hämtar väderprognos för resperioden (open-meteo, gratis och utan nyckel).
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { supabase } from '../supabase'
+
+const TRIP_KEY = 'kladkollen_trip'
+
+// Speglar en lokalt sparad resa till databasen (trips-tabellen) så en sambo kan
+// se den i läsläge. Körs vid appstart OCH när outfit-fliken får fokus, så resan
+// hamnar i molnet även om man inte öppnar just den fliken. No-op utan resa/inlogg.
+export async function mirrorLocalTripToDb(): Promise<void> {
+  try {
+    const raw = await AsyncStorage.getItem(TRIP_KEY)
+    if (!raw) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('trips').upsert({ user_id: user.id, data: JSON.parse(raw), updated_at: new Date().toISOString() })
+  } catch { /* ignorera – nästa försök tar det */ }
+}
 
 export type GeoResult = { name: string; country: string; latitude: number; longitude: number }
 

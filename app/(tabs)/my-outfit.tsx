@@ -31,7 +31,7 @@ import { showAlert, showConfirm } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { captureError } from '../../utils/sentry'
 import { loadPartner } from '../../utils/household'
-import { geocodeDestination, fetchTripWeather } from '../../utils/trip'
+import { geocodeDestination, fetchTripWeather, mirrorLocalTripToDb } from '../../utils/trip'
 import { useSettings } from '../../utils/settings'
 import { localeFor } from '../../utils/i18n'
 
@@ -172,15 +172,9 @@ export default function MyOutfits() {
 
   // Speglar en lokalt sparad resa till databasen. Körs vid varje fokus och
   // direkt efter att en ny resa genererats.
+  // Delad hjälpare (utils/trip) så samma spegling körs vid appstart också.
   async function syncLocalTripToDb() {
-    try {
-      const raw = await AsyncStorage.getItem(TRIP_KEY)
-      if (!raw) return
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { error } = await supabase.from('trips').upsert({ user_id: user.id, data: JSON.parse(raw), updated_at: new Date().toISOString() })
-      if (error) console.warn('Kunde inte spegla resan till databasen:', error.message)
-    } catch { /* ignorera – nästa fokus försöker igen */ }
+    await mirrorLocalTripToDb()
   }
 
   // Ladda ev. sparad reseplan (och avprickning) en gång så den överlever
@@ -1135,10 +1129,10 @@ function isPast(date: Date) {
                   {!!dispTrip.climateNote && <Text style={styles.tripClimate}>{dispTrip.climateNote}</Text>}
                 </View>
 
-                {dispTrip.outfits.length > 0 && (
+                {(dispTrip.outfits || []).length > 0 && (
                   <>
                     <Text style={styles.tripSectionTitle}>{tr('Outfits att ta med')}</Text>
-                    {dispTrip.outfits.map((o: any, i: number) => (
+                    {(dispTrip.outfits || []).map((o: any, i: number) => (
                       <View key={i} style={styles.outfitCard}>
                         <Text style={styles.outfitName}>{o.name}</Text>
                         <View style={styles.outfitImages}>
