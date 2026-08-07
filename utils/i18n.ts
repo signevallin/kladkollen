@@ -562,6 +562,7 @@ const enBySource: Dict = {
   'Sälj på Vinted': 'Sell on Vinted',
   'Sälj vidare': 'Resell',
   '{n} att sälja': '{n} to sell',
+  'i tvätten': 'in the wash',
   'Insikter': 'Insights',
   'Vad din garderob berättar om dig.': 'What your wardrobe says about you.',
   'Fortsätt använda garderoben och logga outfits så lär jag känna din stil – dina insikter dyker upp här.': 'Keep using your wardrobe and logging outfits and I’ll get to know your style – your insights show up here.',
