@@ -820,11 +820,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 10 },
   backText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 12 },
-  tabRow: { flexDirection: 'row', backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 4, gap: 4 },
-  tab: { flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center' },
-  tabActive: { backgroundColor: t.primary },
-  tabText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textSecondary },
-  tabTextActive: { color: t.onPrimary },
+  // Samma flikstil som garderoben/mina outfits: separata pill-knappar med kant.
+  tabRow: { flexDirection: 'row', gap: 8 },
+  tab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
+  tabActive: { backgroundColor: t.primary, borderColor: t.primary },
+  tabText: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textSecondary },
+  tabTextActive: { color: t.onPrimary, fontWeight: '600' },
 
   scroll: { padding: 24, paddingTop: 16, paddingBottom: 100 },
   analysisCta: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: t.border, marginBottom: 20 },
