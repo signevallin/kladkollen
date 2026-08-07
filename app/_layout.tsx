@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
 import { registerForPush } from '../utils/push'
 import { scheduleSmartPush } from '../utils/smartPush'
+import { mirrorLocalTripToDb } from '../utils/trip'
 import { ONBOARDING_DONE_KEY } from './onboarding'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
 import { SettingsProvider } from '../utils/settings'
@@ -75,6 +76,9 @@ function RootLayout() {
     registerForPush()
     // Schemalägg om Smart Push (kalenderbaserad morgonnotis) för nästa morgon.
     scheduleSmartPush()
+    // Spegla ev. lokal resa till molnet direkt vid start, så partnern kan se den
+    // även om man aldrig öppnar Outfits-fliken.
+    mirrorLocalTripToDb()
 
     // Kallstart: öppnades appen genom att trycka på en notis (från helt stängt
     // läge) hämtar vi den och navigerar till rätt vy – en gång.
