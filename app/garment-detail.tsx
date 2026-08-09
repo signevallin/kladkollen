@@ -425,7 +425,7 @@ export default function GarmentDetail() {
             accessibilityLabel={tr('Gå tillbaka')}
             accessibilityRole="button"
           >
-            <Text style={styles.backButtonText}>← Tillbaka</Text>
+            <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
           </TouchableOpacity>
           {saveState === 'saving' && <Text style={styles.saveStatus}>{tr('Sparar…')}</Text>}
           {saveState === 'saved' && <Text style={styles.saveStatus}>{tr('Sparat ✓')}</Text>}
