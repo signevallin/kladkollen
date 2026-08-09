@@ -40,10 +40,30 @@ function throttleWaitMs(detail: string, attempt: number): number {
   return [2000, 5000, 10000][attempt] ?? 10000
 }
 
+// maxDuration ovan är 60 s. Vi håller oss under det med marginal och lämnar
+// alltid ETT eget, snyggt JSON-svar i stället för att bli hårddödad av
+// plattformen (det gav en opak 504 som klienten inte kunde tolka).
+const TIME_BUDGET_MS = 52_000
+// Friendligt tidsgränsmeddelande – plagget sparas ändå med originalfotot.
+const TIMEOUT_MSG = 'Bakgrundsborttagningen tog för lång tid (modellen behövde starta). Försök igen om en liten stund.'
+
+// fetch med hård timeout så en hängande anslutning inte äter hela budgeten.
+async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise<Response> {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), ms)
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
   }
+  const startedAt = Date.now()
+  const remaining = () => TIME_BUDGET_MS - (Date.now() - startedAt)
   try {
     const auth = await requireUser(request)
     if (auth instanceof Response) return auth
@@ -61,7 +81,7 @@ export default async function handler(request: Request): Promise<Response> {
     //    Cacheas mellan anrop så flerbildsuppladdningar gör färre API-anrop.
     let version = cachedVersion && cachedVersion.model === model ? cachedVersion.version : null
     if (!version) {
-      const modelRes = await fetch(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders })
+      const modelRes = await fetchWithTimeout(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders }, 15_000)
       if (modelRes.status === 404) {
         return json({ error: `Modellen '${model}' hittades inte på Replicate. Sätt REPLICATE_MODEL till en giltig modell.` }, 502)
       }
@@ -75,33 +95,43 @@ export default async function handler(request: Request): Promise<Response> {
       cachedVersion = { model, version }
     }
 
-    // 2) Skapa prediction mot versionen, kör synkront (Prefer: wait).
-    //    Vid strypning (429): vänta tills fönstret öppnas och försök igen,
-    //    så flerbildsuppladdningar inte tappar alla bilder utom den första.
+    // 2) Skapa prediction mot versionen. Håll uppe anslutningen (Prefer: wait)
+    //    men BARA i ~30 s så det initiala anropet aldrig äter hela budgeten –
+    //    resten pollas nedan. Vid strypning (429): vänta tills fönstret öppnas
+    //    och försök igen, så flerbildsuppladdningar inte tappar alla bilder.
     let res: Response
     let prediction: any
     for (let attempt = 0; ; attempt++) {
-      res = await fetch('https://api.replicate.com/v1/predictions', {
+      const waitS = Math.max(5, Math.min(30, Math.floor(remaining() / 1000) - 10))
+      res = await fetchWithTimeout('https://api.replicate.com/v1/predictions', {
         method: 'POST',
-        headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'wait' },
+        headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: `wait=${waitS}` },
         body: JSON.stringify({ version, input: { image: `data:image/jpeg;base64,${base64}` } }),
-      })
+      }, waitS * 1000 + 5_000)
       prediction = (await res.json()) as any
+      // Vänta bara på ny strypnings-omgång om vi har tid kvar för det.
       if (res.status === 429 && attempt < 3) {
-        await new Promise(r => setTimeout(r, throttleWaitMs(String(prediction?.detail || ''), attempt)))
-        continue
+        const wait = throttleWaitMs(String(prediction?.detail || ''), attempt)
+        if (remaining() > wait + 8_000) {
+          await new Promise(r => setTimeout(r, wait))
+          continue
+        }
       }
       break
     }
     if (!res.ok) {
-      return json({ error: prediction?.detail || 'Bakgrundsborttagning misslyckades' }, res.status)
+      const msg = res.status === 429 ? 'Tjänsten är tillfälligt hårt belastad. Försök igen om en stund.' : (prediction?.detail || 'Bakgrundsborttagning misslyckades')
+      return json({ error: msg }, res.status)
     }
 
-    // 3) Polla om körningen inte hann bli klar inom wait-fönstret.
+    // 3) Polla om körningen inte hann bli klar inom wait-fönstret – tills den är
+    //    klar ELLER tidsbudgeten tar slut (då returnerar vi ett snyggt fel i
+    //    stället för att bli hårddödad av plattformen → opak 504).
     const pollUrl = prediction?.urls?.get
-    for (let i = 0; i < 30 && (prediction.status === 'starting' || prediction.status === 'processing') && pollUrl; i++) {
+    while ((prediction.status === 'starting' || prediction.status === 'processing') && pollUrl) {
+      if (remaining() < 4_000) return json({ error: TIMEOUT_MSG }, 504)
       await new Promise(r => setTimeout(r, 1500))
-      res = await fetch(pollUrl, { headers: authHeaders })
+      res = await fetchWithTimeout(pollUrl, { headers: authHeaders }, 10_000)
       prediction = await res.json()
     }
 
@@ -113,10 +143,13 @@ export default async function handler(request: Request): Promise<Response> {
     if (!url) return json({ error: 'Inget resultat från modellen' }, 502)
 
     // 4) Hämta den bakgrundsfria PNG:n och returnera som base64 (samma kontrakt).
-    const imgRes = await fetch(url)
+    const imgRes = await fetchWithTimeout(url, {}, 15_000)
     if (!imgRes.ok) return json({ error: 'Kunde inte hämta resultatbilden' }, 502)
     return json({ base64: arrayBufferToBase64(await imgRes.arrayBuffer()) })
   } catch (e: any) {
+    // En avbruten fetch (AbortError) betyder att vi slog i tidsgränsen – ge då
+    // det snälla timeout-meddelandet i stället för ett kryptiskt abort-fel.
+    if (e?.name === 'AbortError') return json({ error: TIMEOUT_MSG }, 504)
     // Logga hela felet så det syns i Vercel-loggarna – annars får klienten bara
     // ett opakt 500 utan spår att felsöka från.
     console.error('remove-background failed:', e?.stack || e?.message || e)

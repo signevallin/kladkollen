@@ -29,7 +29,12 @@ export async function apiPost<T = any>(path: string, body: unknown): Promise<T> 
   try {
     data = await res.json()
   } catch {
-    const err = new Error(`Servern svarade oväntat (${res.status})`)
+    // Icke-JSON-svar = oftast en plattforms-timeout (504/502/503) som ger en
+    // HTML-sida i stället för vårt JSON. Ge då ett begripligt meddelande.
+    const timedOut = res.status === 504 || res.status === 502 || res.status === 503 || res.status === 408
+    const err = new Error(timedOut
+      ? 'Det tog för lång tid att svara. Försök igen om en stund.'
+      : `Servern svarade oväntat (${res.status})`)
     captureError(err, { path, status: res.status })
     throw err
   }
