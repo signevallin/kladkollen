@@ -21,6 +21,7 @@ import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../../components/BottomNav'
 import { OUTFIT_CONTEXTS, STYLE_RULES } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
+import { loadGarments } from '../../utils/garmentsStore'
 import { useSettings } from '../../utils/settings'
 import { loadPartner } from '../../utils/household'
 import OutfitShareCard from '../../components/OutfitShareCard'
@@ -176,12 +177,12 @@ export default function Home() {
   }
 
   async function fetchAll() {
-    // Bara kolumnerna hemskärmen faktiskt använder (outfit-generering + räknare) –
-    // slipper dra hela plaggraden vid varje appstart.
-    const { data } = await supabase.from('garments').select('id, name, category, subcategory, color, season, image_url, times_worn, archived, in_laundry, set_id, maternity_friendly, paused_pregnancy').is('person_id', null)
-    if (data) {
-      setGarments(data); cacheSet('home.garments', data)
-    }
+    // Delad plagg-hämtning (utils/garmentsStore) – samma data återanvänds mellan
+    // flikarna i stället för att varje flik laddar om plaggen vid fokus. Egna
+    // plagg = person_id null (barnens ligger i respektive barns garderob).
+    const all = await loadGarments()
+    const data = all.filter((g: any) => g.person_id == null)
+    setGarments(data); cacheSet('home.garments', data)
     fetchWeather()
   }
 

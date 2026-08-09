@@ -22,6 +22,7 @@ import { pickImageSmart } from '../utils/imagePicker'
 import SignedImage from '../components/SignedImage'
 import { router } from 'expo-router'
 import { supabase } from '../supabase'
+import { invalidateGarments } from '../utils/garmentsStore'
 import { showAlert, showConfirm } from '../utils/alert'
 import { toast } from '../components/Toast'
 import { apiPost } from '../utils/api'
@@ -200,6 +201,7 @@ export default function GarmentDetail() {
           status: personId ? familyStatus : null,
         }).eq('id', id)
         if (error) throw error
+        invalidateGarments()
       }
       setSaveState('saved')
     } catch (e: any) {
@@ -346,7 +348,7 @@ export default function GarmentDetail() {
     showConfirm(tr('Ta bort plagg'), `${tr('Är du säker på att du vill ta bort')} ${name}?`, async () => {
       const { error } = await supabase.from('garments').delete().eq('id', id)
       if (error) showAlert(tr('Något gick fel'), error.message)
-      else back()
+      else { invalidateGarments(); back() }
     }, 'Ta bort', true)
   }
 
@@ -379,6 +381,7 @@ export default function GarmentDetail() {
     try {
       const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', id)
       if (error) throw error
+      invalidateGarments()
       toast('Plagget ligger nu i säljlistan')
       back()
     } catch (e: any) {
@@ -405,6 +408,7 @@ export default function GarmentDetail() {
     if (error) {
       showAlert(tr('Något gick fel'), error.message)
     } else {
+      invalidateGarments()
       setTimesWorn(newCount); setLastWorn(today)
       showAlert(tr('Markerat som använt!'), `${tr('Använt')} ${newCount} ${tr('gånger totalt.')}`)
     }

@@ -25,6 +25,7 @@ import { supabase } from '../../supabase'
 import { showAlert, showConfirm } from '../../utils/alert'
 import { newImageId } from '../../utils/id'
 import { cacheGet, cacheSet } from '../../utils/cache'
+import { loadGarments, invalidateGarments } from '../../utils/garmentsStore'
 import { useSettings } from '../../utils/settings'
 import { localeFor } from '../../utils/i18n'
 import { affiliateUrl } from '../../utils/affiliate'
@@ -148,8 +149,9 @@ export default function Wardrobe() {
       setArchived(mine.filter(g => g.archived && !g.for_sale))
       return
     }
-    // Deterministisk basordning; display-sorten nedan har dessutom id-tiebreak.
-    const { data } = await supabase.from('garments').select('*').order('created_at', { ascending: false })
+    // Deterministisk basordning (created_at desc); display-sorten nedan har
+    // dessutom id-tiebreak. Delad hämtning – återanvänds mellan flikarna.
+    const data = await loadGarments()
     if (data) {
       // Barn-läge: visa bara det barnets plagg. Annars mina egna (person_id null);
       // barnens plagg ligger i respektive barns garderob.
@@ -179,6 +181,7 @@ export default function Wardrobe() {
       return nx
     })
     const { error } = await supabase.from('garments').update({ in_laundry: next }).eq('id', item.id)
+    invalidateGarments()
     if (error) {
       setGarments(prev => prev.map(g => g.id === item.id ? { ...g, in_laundry: !next } : g))
     }
@@ -199,6 +202,7 @@ export default function Wardrobe() {
           return nx
         })
         const { error } = await supabase.from('garments').update({ in_laundry: false }).in('id', ids)
+        invalidateGarments()
         if (error) {
           setGarments(prev => {
             const nx = prev.map(g => ids.includes(g.id) ? { ...g, in_laundry: true } : g)
@@ -386,6 +390,7 @@ export default function Wardrobe() {
   async function markAsSold(item: any) {
     showConfirm(tr('Markera som såld'), `${item.name} – ${tr('såld?')}`, async () => {
       await supabase.from('garments').update({ sold: true, archived: true, for_sale: false }).eq('id', item.id)
+      invalidateGarments()
       fetchGarments()
       showAlert(tr('Sålt!'), `${item.name} ${tr('har arkiverats.')}`)
     }, tr('Ja, arkivera'), true)
@@ -395,6 +400,7 @@ export default function Wardrobe() {
   // arkivet om det är arkiverat, annars garderoben.
   async function removeFromSale(item: any) {
     await supabase.from('garments').update({ for_sale: false }).eq('id', item.id)
+    invalidateGarments()
     fetchGarments()
   }
 
@@ -433,6 +439,7 @@ export default function Wardrobe() {
       image_url: item.image_url || null,
     }])
     await supabase.from('wishlist').delete().eq('id', item.id)
+    invalidateGarments()
     fetchGarments()
     fetchWishlist()
     showAlert(tr('Grattis!'), `${item.name} ${tr('finns nu i garderoben.')}`)

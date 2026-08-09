@@ -29,6 +29,7 @@ import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
+import { invalidateGarments } from '../utils/garmentsStore'
 import { useEntitlements } from '../utils/entitlements'
 import { LANGS } from '../utils/i18n'
 
@@ -242,6 +243,7 @@ export default function Profile() {
     const { data, error } = await supabase
       .from('garments').update({ paused_pregnancy: false }).eq('paused_pregnancy', true).select('id')
     if (error) { showAlert(tr('Kunde inte ta tillbaka plaggen'), tr('Försök igen om en stund.')); return }
+    invalidateGarments()
     showAlert(tr('Klart'), `${data?.length ?? 0} ${tr('plagg togs tillbaka i garderoben.')}`)
   }
 
