@@ -51,8 +51,8 @@ export default function SongCard({ song }: { song: SongData }) {
           : <View style={[styles.artwork, styles.artworkEmpty]} />
         }
         <View style={styles.info}>
-          <Text style={styles.title} numberOfLines={2}>{song.title}</Text>
-          <Text style={styles.artist} numberOfLines={1}>{song.artist}</Text>
+          <Text style={styles.title}>{song.title}</Text>
+          <Text style={styles.artist} numberOfLines={2}>{song.artist}</Text>
         </View>
         {song.previewUrl ? (
           <TouchableOpacity
@@ -103,7 +103,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   artwork: { width: 56, height: 56, borderRadius: 10 },
   artworkEmpty: { backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
   info: { flex: 1, gap: 2 },
-  title: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
+  title: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary, lineHeight: 20 },
   artist: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
   reason: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, fontStyle: 'italic', lineHeight: 19 },
   playBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
