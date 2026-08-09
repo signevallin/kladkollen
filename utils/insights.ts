@@ -99,18 +99,33 @@ export function buildInsights({ garments, outfits, calendar, tr, formatPrice }: 
     out.push({ icon: 'inventory-2', text: tr('Du äger {n} {cat} men bär dem sällan.').replace('{n}', String(rarely[0].count)).replace('{cat}', lower(rarely[0].cat)) })
   }
 
-  // ── Mest burna plagg ──
-  const mostWorn = [...garments].sort((a, b) => (b.times_worn || 0) - (a.times_worn || 0))[0]
-  if (mostWorn && (mostWorn.times_worn || 0) >= 3) {
-    out.push({ icon: 'star', text: tr('Ditt mest burna plagg: {name} ({n} gånger).').replace('{name}', mostWorn.name).replace('{n}', String(mostWorn.times_worn)) })
+  // ── Mest mångsidiga plagg (med i flest sparade outfits) ──
+  // Skiljer sig från "mest burna plagg" (som redan finns under Min garderob):
+  // här handlar det om vilket plagg som är med i flest olika looker.
+  const outfitCountById: Record<string, number> = {}
+  outfits.forEach(o => {
+    const ids = new Set<string>((o.garment_ids || []) as string[])
+    ids.forEach(id => { outfitCountById[id] = (outfitCountById[id] || 0) + 1 })
+  })
+  const versatile = Object.entries(outfitCountById).sort((a, b) => b[1] - a[1])[0]
+  if (versatile && versatile[1] >= 3) {
+    const g = garments.find(x => x.id === versatile[0])
+    if (g?.name) out.push({ icon: 'auto-awesome', text: tr('Ditt mest mångsidiga plagg: {name} – med i {n} olika outfits.').replace('{name}', g.name).replace('{n}', String(versatile[1])) })
   }
 
   // ── Mest aktiva säsong (ur kalendern) ──
+  // Visas bara när logg-historiken sträcker sig över minst ett år, så alla
+  // säsonger hunnit representeras. Annars blir "flest outfits på sommaren" bara
+  // en artefakt av när appen laddades ner.
   if (calendar.length >= 6) {
-    const seasonCount: Record<string, number> = {}
-    calendar.forEach(e => { const d = new Date(e.date + 'T12:00:00'); const s = seasonOf(d.getMonth()); seasonCount[s] = (seasonCount[s] || 0) + 1 })
-    const top = Object.entries(seasonCount).sort((a, b) => b[1] - a[1])[0]
-    if (top) out.push({ icon: 'wb-sunny', text: tr('Du loggar flest outfits på {season}.').replace('{season}', lower(top[0] === 'Vår' ? 'våren' : top[0] === 'Sommar' ? 'sommaren' : top[0] === 'Höst' ? 'hösten' : 'vintern')) })
+    const times = calendar.map(e => new Date(e.date + 'T12:00:00').getTime())
+    const spansAYear = times.length > 0 && (now - Math.min(...times)) >= YEAR_MS
+    if (spansAYear) {
+      const seasonCount: Record<string, number> = {}
+      calendar.forEach(e => { const d = new Date(e.date + 'T12:00:00'); const s = seasonOf(d.getMonth()); seasonCount[s] = (seasonCount[s] || 0) + 1 })
+      const top = Object.entries(seasonCount).sort((a, b) => b[1] - a[1])[0]
+      if (top) out.push({ icon: 'wb-sunny', text: tr('Du loggar flest outfits på {season}.').replace('{season}', lower(top[0] === 'Vår' ? 'våren' : top[0] === 'Sommar' ? 'sommaren' : top[0] === 'Höst' ? 'hösten' : 'vintern')) })
+    }
   }
 
   // ── Din go-to outfit (mest återkommande i kalendern) ──

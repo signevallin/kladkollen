@@ -1100,7 +1100,6 @@
  "Bäst köp: dina {cat} kostar bara ungefär {v} per användning.": "Mejor compra: tus {cat} cuestan solo unos {v} por uso.",
  "Du verkar trivas bäst i {color} – de outfitsen får dina högsta betyg.": "Pareces sentirte mejor con {color}: esos looks reciben tus mejores valoraciones.",
  "Du äger {n} {cat} men bär dem sällan.": "Tienes {n} {cat} pero rara vez los usas.",
- "Ditt mest burna plagg: {name} ({n} gånger).": "Tu prenda más usada: {name} ({n} veces).",
  "Du loggar flest outfits på {season}.": "Registras más looks en {season}.",
  "Din go-to outfit \"{name}\" har du burit {n} gånger.": "Tu look recurrente «{name}» lo has usado {n} veces.",
  "våren": "primavera",
@@ -1111,5 +1110,6 @@
  "Lägg till något eget…": "Añade algo propio…",
  "Egna saker sparas och kommer tillbaka nästa resa.": "Tus propias cosas se guardan y vuelven en el próximo viaje.",
  "Visa Dagens låt": "Mostrar la canción del día",
- "Visar en matchande låt till dagens outfit på startsidan.": "Muestra una canción que combina con el look de hoy en la pantalla de inicio."
+ "Visar en matchande låt till dagens outfit på startsidan.": "Muestra una canción que combina con el look de hoy en la pantalla de inicio.",
+ "Ditt mest mångsidiga plagg: {name} – med i {n} olika outfits.": "Tu prenda más versátil: {name}: en {n} looks distintos."
 }
