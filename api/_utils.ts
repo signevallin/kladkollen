@@ -30,7 +30,7 @@ function rateLimited(userId: string): boolean {
  * Verifierar Supabase-JWT:n i Authorization-headern.
  * Returnerar användaren, eller ett Response (401/429/500) som ska skickas direkt.
  */
-export async function requireUser(request: Request): Promise<AuthedUser | Response> {
+export async function requireUser(request: Request, opts?: { rateLimit?: boolean }): Promise<AuthedUser | Response> {
   const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
   if (!token) return json({ error: 'Inte inloggad' }, 401)
 
@@ -47,6 +47,10 @@ export async function requireUser(request: Request): Promise<AuthedUser | Respon
 
   const user = (await res.json()) as AuthedUser
   if (!user?.id) return json({ error: 'Ogiltig session' }, 401)
+
+  // Poll-anrop (t.ex. status-koll på ett pågående jobb) ska inte räknas mot
+  // AI-rate-limiten – bara autentisera dem.
+  if (opts?.rateLimit === false) return user
 
   // Beständig rate limit i databasen (överlever edge-instansbyten och stoppar
   // därför ihållande spam mot de dyra AI-endpointsen). Faller tillbaka på den

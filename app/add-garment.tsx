@@ -26,6 +26,7 @@ import DraftCard from '../components/add-garment/DraftCard'
 import { supabase } from '../supabase'
 import { invalidateGarments } from '../utils/garmentsStore'
 import { apiPost } from '../utils/api'
+import { removeBackground } from '../utils/removeBg'
 import { parsePrice } from '../utils/brands'
 import { useSettings } from '../utils/settings'
 import { pickImageSmart } from '../utils/imagePicker'
@@ -219,11 +220,11 @@ export default function AddGarment() {
         })(),
         (async () => {
           try {
-            const data = await apiPost('/api/remove-background', { base64 })
-            if (data.base64) {
+            const b64 = await removeBackground(base64)
+            if (b64) {
               setDrafts(prev => prev.map(d =>
                 d.id === draft.id
-                  ? { ...d, processedBase64: data.base64, uri: `data:image/png;base64,${data.base64}`, removingBg: false }
+                  ? { ...d, processedBase64: b64, uri: `data:image/png;base64,${b64}`, removingBg: false }
                   : d
               ))
             } else {

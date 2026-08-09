@@ -23,6 +23,7 @@ import SignedImage from '../components/SignedImage'
 import { router } from 'expo-router'
 import { supabase } from '../supabase'
 import { invalidateGarments } from '../utils/garmentsStore'
+import { removeBackground } from '../utils/removeBg'
 import { showAlert, showConfirm } from '../utils/alert'
 import { toast } from '../components/Toast'
 import { apiPost } from '../utils/api'
@@ -252,8 +253,7 @@ export default function GarmentDetail() {
       let processed: string | null = null
       if (asset.base64) {
         try {
-          const data = await apiPost('/api/remove-background', { base64: asset.base64 })
-          if (data.base64) processed = data.base64
+          processed = await removeBackground(asset.base64)
         } catch { /* misslyckad borttagning → originalbilden */ }
       }
       url = processed ? await uploadPng(processed) : await uploadImage(asset.uri)
@@ -320,15 +320,15 @@ export default function GarmentDetail() {
       if (!res.ok) throw new Error('Kunde inte hämta bilden')
       const base64 = await blobToBase64(await res.blob())
       if (!base64) throw new Error('Kunde inte läsa bilden')
-      const data = await apiPost('/api/remove-background', { base64 })
-      if (!data.base64) throw new Error('Bakgrunden kunde inte tas bort just nu. Försök igen om en stund.')
-      const newUrl = await uploadPng(data.base64)
+      const b64 = await removeBackground(base64)
+      if (!b64) throw new Error('Bakgrunden kunde inte tas bort just nu. Försök igen om en stund.')
+      const newUrl = await uploadPng(b64)
       const table = isWishlistItem ? 'wishlist' : 'garments'
       const rowId = isWishlistItem ? wishlistId : id
       const { error } = await supabase.from(table).update({ image_url: newUrl }).eq('id', rowId)
       if (error) throw error
       setImageUrl(newUrl)
-      setNewImage(`data:image/png;base64,${data.base64}`)
+      setNewImage(`data:image/png;base64,${b64}`)
       setSaveState('saved')
     } catch (e: any) {
       setSaveState('error')

@@ -16,6 +16,7 @@ import {
 import { supabase } from '../supabase'
 import { invalidateGarments } from '../utils/garmentsStore'
 import { apiPost } from '../utils/api'
+import { removeBackground } from '../utils/removeBg'
 import { showAlert } from '../utils/alert'
 import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
@@ -210,8 +211,8 @@ export default function ImportPurchases() {
               })(),
               (async () => {
                 try {
-                  const data = await apiPost('/api/remove-background', { base64: img.base64 })
-                  if (data.base64) { uploadBase64 = data.base64; uploadType = 'image/png' }
+                  const b64 = await removeBackground(img.base64)
+                  if (b64) { uploadBase64 = b64; uploadType = 'image/png' }
                 } catch { /* misslyckad bakgrundsborttagning → originalbilden används */ }
               })(),
             ])
