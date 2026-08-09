@@ -574,7 +574,7 @@ const enBySource: Dict = {
   'Bäst köp: dina {cat} kostar bara ungefär {v} per användning.': 'Best buy: your {cat} cost only about {v} per wear.',
   'Du verkar trivas bäst i {color} – de outfitsen får dina högsta betyg.': 'You seem happiest in {color} – those outfits get your highest ratings.',
   'Du äger {n} {cat} men bär dem sällan.': 'You own {n} {cat} but rarely wear them.',
-  'Ditt mest burna plagg: {name} ({n} gånger).': 'Your most-worn item: {name} ({n} times).',
+  'Ditt mest mångsidiga plagg: {name} – med i {n} olika outfits.': 'Your most versatile item: {name} – in {n} different outfits.',
   'Du loggar flest outfits på {season}.': 'You log the most outfits in {season}.',
   'Din go-to outfit "{name}" har du burit {n} gånger.': 'Your go-to outfit “{name}” you’ve worn {n} times.',
   'våren': 'spring',
