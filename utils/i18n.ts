@@ -1136,6 +1136,8 @@ const enBySource: Dict = {
   // Min profil (rader, pills, hjälptexter)
   "Påverkar hur mycket AI:n tar hänsyn till vädret – fryser du lätt föreslås varmare lager.": "Affects how much the AI weighs the weather – if you get cold easily it suggests warmer layers.",
   "Outfitens låtförslag hämtas ur dina genrer.": "Outfit song suggestions are drawn from your genres.",
+  "Visa Dagens låt": "Show Today’s song",
+  "Visar en matchande låt till dagens outfit på startsidan.": "Shows a matching song for today’s outfit on the home screen.",
   "Anpassar appen efter var i livet du är.": "Adapts the app to where you are in life.",
   "Välj en eller flera": "Choose one or more",
   "Regler AI:n följer när den sätter ihop en outfit.": "Rules the AI follows when putting together an outfit.",

@@ -32,6 +32,7 @@ const FALLBACK_RATES: Record<CurrencyCode, number> = {
 const CUR_KEY = 'kladkollen_currency'
 const TEMP_KEY = 'kladkollen_tempunit'
 const LANG_KEY = 'kladkollen_lang'
+const SONG_KEY = 'kladkollen_show_daily_song'
 const RATES_KEY = 'kladkollen_rates'
 const RATES_TTL = 12 * 60 * 60 * 1000 // 12 h
 
@@ -49,9 +50,12 @@ type SettingsCtx = {
   currency: CurrencyCode
   tempUnit: TempUnit
   lang: Lang
+  /** Om "Dagens låt" ska visas på hemskärmen (kan döljas under Profil → Musik). */
+  showDailySong: boolean
   setCurrency: (c: CurrencyCode) => void
   setTempUnit: (u: TempUnit) => void
   setLang: (l: Lang) => void
+  setShowDailySong: (v: boolean) => void
   /** Översätter en nyckel till valt språk (faller tillbaka på svenska). */
   t: (key: string) => string
   /** Formaterar ett SEK-belopp i vald valuta (med omräkning). */
@@ -72,6 +76,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>('SEK')
   const [tempUnit, setTempUnitState] = useState<TempUnit>('C')
   const [lang, setLangState] = useState<Lang>('sv')
+  const [showDailySong, setShowDailySongState] = useState<boolean>(true)
   const [rates, setRates] = useState<Record<CurrencyCode, number>>(FALLBACK_RATES)
 
   useEffect(() => {
@@ -83,6 +88,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         if (u === 'F' || u === 'C') setTempUnitState(u)
         const l = await AsyncStorage.getItem(LANG_KEY)
         if (l && LANGS.some(x => x.code === l)) { setLangState(l as Lang); setApiLang(l) }
+        const s = await AsyncStorage.getItem(SONG_KEY)
+        if (s === '0') setShowDailySongState(false)
       } catch { /* behåll standard */ }
       loadRates()
     })()
@@ -122,6 +129,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setApiLang(l)
     AsyncStorage.setItem(LANG_KEY, l).catch(() => {})
   }
+  function setShowDailySong(v: boolean) {
+    setShowDailySongState(v)
+    AsyncStorage.setItem(SONG_KEY, v ? '1' : '0').catch(() => {})
+  }
 
   const rate = rates[currency] ?? 1
   const toUnit = (celsius: number) => tempUnit === 'F' ? Math.round(celsius * 9 / 5 + 32) : Math.round(celsius)
@@ -130,9 +141,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     currency,
     tempUnit,
     lang,
+    showDailySong,
     setCurrency,
     setTempUnit,
     setLang,
+    setShowDailySong,
     t: (key: string) => translate(lang, key),
     rate,
     formatPrice: (sek) => formatWithCurrency((Number(sek) || 0) * rate, currency),
