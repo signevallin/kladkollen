@@ -1,15 +1,17 @@
 import { json, requireUser } from './_utils'
 
-// Node-runtime i stället för Edge: bakgrundsborttagningen anropar Replicate
-// (rembg kan kallstarta). Node tillåter maxDuration. Handlern använder bara
-// webb-standard-API:er (fetch/btoa/Response) som finns i Node 18+.
+// Edge-runtime: handlern använder den webb-baserade signaturen
+// (request: Request) => Response — samma som övriga endpoints och requireUser.
+// (Node-runtime förväntar sig (req, res) och ignorerar ett returnerat Response,
+// vilket fick funktionen att hänga tills 60 s-taket → "request.json is not a
+// function" + 504.) Vi behöver inte längre Nodes maxDuration eftersom allt nu
+// är KORTA start-/poll-anrop:
 //
-// VIKTIGT – kort start + korta poll-anrop: modellen kan ta 30 s+ vid kallstart.
-// Att hålla EN lång, tyst HTTP-request så länge fick mobilen/iOS att släppa
-// anslutningen → "Network request failed" varje gång. I stället skapas jobbet i
-// ett kort start-anrop som returnerar ett jobb-id, och klienten pollar sedan
-// status i korta anrop tills den bakgrundsfria bilden är klar.
-export const config = { runtime: 'nodejs', maxDuration: 60 }
+// Modellen kan ta 30 s+ vid kallstart. Att hålla EN lång, tyst HTTP-request så
+// länge fick mobilen/iOS att släppa anslutningen. I stället skapas jobbet i ett
+// kort start-anrop som returnerar ett jobb-id, och klienten pollar sedan status
+// i korta anrop tills den bakgrundsfria bilden är klar.
+export const config = { runtime: 'edge' }
 
 // Väletablerad öppen bakgrundsborttagningsmodell (rembg). Kan bytas via env.
 const DEFAULT_MODEL = 'cjwbw/rembg'
