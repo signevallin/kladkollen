@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
+import { hydrateCache } from '../utils/cache'
 import { registerForPush } from '../utils/push'
 import { scheduleSmartPush } from '../utils/smartPush'
 import { mirrorLocalTripToDb } from '../utils/trip'
@@ -42,7 +43,10 @@ function RootLayout() {
   })
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Hydrera disk-cachen och läs sessionen parallellt. Cachen fylls innan
+    // flikarna monteras (ready=true), så en kallstart kan visa senast kända
+    // data direkt i varje flik i stället för en tom laddande vy.
+    Promise.all([hydrateCache(), supabase.auth.getSession()]).then(([, { data: { session } }]) => {
       setHasSession(!!session)
       setReady(true)
     })
