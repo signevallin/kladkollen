@@ -671,6 +671,18 @@ export default function Profile() {
         </View>
         )}
 
+        {/* ── Skrud Premium ── */}
+        {sectionHeader('premium', 'Skrud Premium')}
+        {!collapsedSections.has('premium') && (
+        <View style={styles.listCard}>
+          {renderRow('premium', 'Skrud Premium', {
+            icon: 'workspace-premium',
+            value: isPro ? 'Aktiv' : 'Uppgradera',
+            onPress: () => router.push('/paywall'),
+          })}
+        </View>
+        )}
+
         {/* ── Inställningar ── */}
         {sectionHeader('installningar', 'Inställningar')}
         {!collapsedSections.has('installningar') && (
@@ -724,18 +736,6 @@ export default function Profile() {
                 ))}
               </View>
             ),
-          })}
-        </View>
-        )}
-
-        {/* ── Skrud Premium ── */}
-        {sectionHeader('premium', 'Skrud Premium')}
-        {!collapsedSections.has('premium') && (
-        <View style={styles.listCard}>
-          {renderRow('premium', 'Skrud Premium', {
-            icon: 'workspace-premium',
-            value: isPro ? 'Aktiv' : 'Uppgradera',
-            onPress: () => router.push('/paywall'),
           })}
         </View>
         )}
