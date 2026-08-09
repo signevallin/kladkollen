@@ -84,7 +84,58 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   JSON-kolumner (`color_analysis`, `notif_prefs`, `outfit_context_notes`) är
   `Json` – casta vid gränsen (`as unknown as …`) när du läser/skriver dem.
 
+## Data, cache & prestanda
+- **Plagg hämtas via `utils/garmentsStore`.** `loadGarments()` (in-flight dedup +
+  20 s TTL, cachar till `garments.all`) delas av hem/garderob/outfits/statistik i
+  stället för egna `from('garments')`-queries. Varje skärm hämtar hela raderna
+  och filtrerar själv (egna = `person_id == null`, arkiverade, till salu …).
+  **Regel:** efter VARJE skrivning mot `garments` (tvätt/sälj/arkiv/redigera/nytt
+  plagg/använd-räknare) måste `invalidateGarments()` anropas – annars ser andra
+  flikar gammal data inom TTL:en. (Inspiration hämtar plagg on-demand i egna
+  actions och går medvetet inte via storen.)
+- **`utils/cache` är write-through mot AsyncStorage** och hydreras en gång i
+  `app/_layout.tsx` (`hydrateCache()`) innan flikarna monteras – så en kallstart
+  ritar senast kända data direkt. Skärmar seedar sin state från `cacheGet(...)`.
+  `cacheClear()` (utloggning) tömmer även disk-cachen.
+
+## Bakgrundsborttagning (Replicate)
+- `api/remove-background.ts` + klienthjälparen `utils/removeBg.removeBackground()`
+  kör som **kort START-anrop (skapar jobbet asynkront, returnerar `predictionId`)
+  + korta POLL-anrop** (var 2 s, upp till ~80 s). En enda lång request fick
+  mobilen att släppa anslutningen ("Network request failed") / plattforms-timeout.
+  Alla flöden (add-garment, garment-detail, import-purchases/-email) går via
+  hjälparen – anropa aldrig endpointen direkt. Vid fel sparas plagget med
+  originalfotot.
+- `requireUser(request, { rateLimit: false })` autentiserar utan att räkna mot
+  AI-rate-limiten – används för POLL-anropen. Modell via `REPLICATE_MODEL`
+  (default `cjwbw/rembg`). Servern (`api/`) deployas av Vercel; app-koden byggs
+  separat med EAS/Xcode – en serverfix kräver alltså både Vercel-deploy och
+  nytt appbygge. Native nätverksbeteende (timeouts) går inte att testa i Expo web.
+
+## Reseplan (trips)
+- Lokal resa speglas till `trips` via `utils/trip.mirrorLocalTripToDb()` (appstart
+  + outfit-fokus) så en partner kan se den (läsläge via SECURITY DEFINER
+  `partner_trip()`). **Gotcha:** supabase-js `.upsert()` behöver SELECT-rätt
+  (RETURNING); SELECT hade revokerats i advisor-hardeningen och fick återges
+  (`20260807_trips_grant_select.sql`), annars misslyckades synken tyst.
+- Egna "glöm inte"-saker (extras) är redigerbara och sparas separat
+  (`kladkollen_trip_extras`) – de läggs alltid överst när en ny resa planeras.
+
 ## Övrigt värt att minnas
+- **Insikter** (tredje fliken i statistik): `components/stats/InsightsTab.tsx` +
+  `utils/insights.ts` (deterministiskt, inga AI-anrop). Varje insikt visas bara
+  med tillräcklig data; säsongsinsikten kräver ett års logg-historik.
+- **Partner-/hushållsläge:** garderob och outfits kan visa en partners/barns data
+  i läsläge; `components/PersonSwitcher.tsx` byter person i headern. Partnerdata
+  hämtas via household-vaktade `partner_*`-RPC:er.
+- **Dela-kollage** (`components/OutfitShareCard.tsx`): strukturerat flatlay –
+  överdelar mitten upptill, underdelar under, resten på sidorna; smycken/
+  accessoarer ritas alltid smått (väskor undantag). Roll avgörs av kategori,
+  namn-gissning som reserv. Kräver att plaggen har `category` med i outfit-datan.
+- **Auth-mejlmallar** (bekräftelsemejl m.m.) ligger som referens i
+  `supabase/email-templates/` men redigeras/sparas i Supabase Dashboard.
+- Inställningen `showDailySong` (Profil → Musik) döljer "Dagens låt"; lagras
+  lokalt i `useSettings` (AsyncStorage), ingen DB.
 - i18n är nycklad på svenska källsträngar: `tr('Svensk text')`. Övriga språk
   (en/de/es/fr) ligger i `utils/i18n.ts` (en via `enBySource`) och
   `utils/i18n.*.json`. Saknad nyckel faller tillbaka på svenskan.
