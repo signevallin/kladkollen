@@ -15,12 +15,13 @@ export async function removeBackground(base64: string): Promise<string | null> {
   const start = await apiPost<{ base64?: string; predictionId?: string; status?: string }>(
     '/api/remove-background', { base64 },
   )
-  if (start?.base64) return start.base64 // varm modell – klar direkt
+  if (start?.base64) return start.base64 // klar redan (ovanligt – jobbet körs asynkront)
   const id = start?.predictionId
   if (!id) return null
 
-  // Polla i upp till ~60 s (30 × 2 s). Varje statuskoll är ett kort, robust anrop.
-  for (let i = 0; i < 30; i++) {
+  // Polla i upp till ~80 s (40 × 2 s) så även en kallstartande modell hinner bli
+  // klar. Varje statuskoll är ett kort, robust anrop.
+  for (let i = 0; i < 40; i++) {
     await new Promise(r => setTimeout(r, 2000))
     try {
       const res = await apiPost<{ base64?: string; status?: string }>(
