@@ -49,6 +49,9 @@ function monthLabel(date: Date, locale: string): string {
 
 const TRIP_KEY = 'kladkollen_trip'
 const TRIP_CHECK_KEY = 'kladkollen_trip_checked'
+// Användarens egna "glöm inte"-saker (necessär, laddare, pass …). Sparas separat
+// och läggs alltid överst i extras-listan när en ny resa planeras.
+const TRIP_EXTRAS_KEY = 'kladkollen_trip_extras'
 
 export default function MyOutfits() {
   const t = useTheme()
@@ -104,6 +107,9 @@ export default function MyOutfits() {
   const [tripLoading, setTripLoading] = useState(false)
   const [tripResult, setTripResult] = useState<any | null>(null)
   const [tripChecked, setTripChecked] = useState<Record<string, boolean>>({})
+  // Egna, återkommande "glöm inte"-saker + inmatningsfältet för att lägga till.
+  const [savedExtras, setSavedExtras] = useState<string[]>([])
+  const [newExtra, setNewExtra] = useState('')
   const [scheduleOutfit, setScheduleOutfit] = useState<any | null>(null)
   // Byt ut / lägg till plagg i en reseoutfit (samma UI som på hemskärmen).
   const [tripSwap, setTripSwap] = useState<{ oi: number; ii: number } | null>(null)
@@ -186,6 +192,8 @@ export default function MyOutfits() {
         if (raw) setTripResult(JSON.parse(raw))
         const chk = await AsyncStorage.getItem(TRIP_CHECK_KEY)
         if (chk) setTripChecked(JSON.parse(chk))
+        const ex = await AsyncStorage.getItem(TRIP_EXTRAS_KEY)
+        if (ex) setSavedExtras(JSON.parse(ex))
       } catch { /* ignorera */ }
     })()
   }, [])
@@ -522,7 +530,8 @@ function isPast(date: Date) {
         // bild-/tvätt-/byt-hantering. extras är icke-plagg → rena strängar.
         packingList: (Array.isArray(parsed.packingList) ? parsed.packingList : []).map(toTripItem),
         outfits: (Array.isArray(parsed.outfits) ? parsed.outfits : []).map((o: any) => ({ ...o, items: (o.items || []).map(toTripItem) })),
-        extras: Array.isArray(parsed.extras) ? parsed.extras : [],
+        // Egna återkommande saker läggs alltid överst, sedan AI:ns förslag (utan dubbletter).
+        extras: mergeExtras(savedExtras, Array.isArray(parsed.extras) ? parsed.extras : []),
         destinationLabel,
         dateLabel,
         days,
@@ -546,6 +555,55 @@ function isPast(date: Date) {
     setTripChecked(prev => {
       const next = { ...prev, [name]: !prev[name] }
       AsyncStorage.setItem(TRIP_CHECK_KEY, JSON.stringify(next)).catch(() => {})
+      return next
+    })
+  }
+
+  // Slår ihop egna återkommande saker (först) med AI:ns förslag, utan dubbletter.
+  function mergeExtras(saved: string[], ai: string[]): string[] {
+    const seen = new Set<string>()
+    const out: string[] = []
+    for (const e of [...saved, ...ai]) {
+      const k = (e || '').trim().toLowerCase()
+      if (!k || seen.has(k)) continue
+      seen.add(k); out.push(e)
+    }
+    return out
+  }
+
+  // Uppdaterar extras på den aktiva resan (sparar lokalt + speglar till DB).
+  function updateTripExtras(fn: (extras: string[]) => string[]) {
+    setTripResult((prev: any) => {
+      if (!prev) return prev
+      const next = { ...prev, extras: fn(prev.extras || []) }
+      AsyncStorage.setItem(TRIP_KEY, JSON.stringify(next)).catch(() => {})
+      syncLocalTripToDb()
+      return next
+    })
+  }
+
+  // Lägg till en egen "glöm inte"-sak. Kommer alltid tillbaka nästa resa.
+  function addTripExtra(name: string) {
+    const v = name.trim()
+    if (!v) return
+    updateTripExtras(extras => extras.some(e => e.toLowerCase() === v.toLowerCase()) ? extras : [...extras, v])
+    setSavedExtras(prev => {
+      if (prev.some(e => e.toLowerCase() === v.toLowerCase())) return prev
+      const next = [...prev, v]
+      AsyncStorage.setItem(TRIP_EXTRAS_KEY, JSON.stringify(next)).catch(() => {})
+      return next
+    })
+    setNewExtra('')
+  }
+
+  // Ta bort en sak – både från resan och (om det var en egen) från de sparade,
+  // så den inte dyker upp igen nästa gång.
+  function removeTripExtra(name: string) {
+    updateTripExtras(extras => extras.filter(e => e !== name))
+    setSavedExtras(prev => {
+      if (!prev.some(e => e === name)) return prev
+      const next = prev.filter(e => e !== name)
+      AsyncStorage.setItem(TRIP_EXTRAS_KEY, JSON.stringify(next)).catch(() => {})
       return next
     })
   }
@@ -1207,22 +1265,48 @@ function isPast(date: Date) {
                   })}
                 </View>
 
-                {(dispTrip.extras || []).length > 0 && (
+                {(!readOnly || (dispTrip.extras || []).length > 0) && (
                   <>
                     <Text style={styles.tripSectionTitle}>{tr('Glöm inte')}</Text>
                     <View style={styles.packCard}>
                       {(dispTrip.extras || []).map((name: string, i: number) => {
                         const checked = !!tripChecked[name]
                         return (
-                          <TouchableOpacity key={i} style={styles.packRow} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) toggleTripCheck(name) }}>
-                            <View style={[styles.packCheck, checked && styles.packCheckOn]}>
-                              {checked && <Text style={styles.packCheckMark}>✓</Text>}
-                            </View>
-                            <Text style={[styles.packName, checked && styles.packNameChecked]}>{name}</Text>
-                          </TouchableOpacity>
+                          <View key={i} style={styles.packRow}>
+                            <TouchableOpacity style={styles.packRowMain} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) toggleTripCheck(name) }}>
+                              <View style={[styles.packCheck, checked && styles.packCheckOn]}>
+                                {checked && <Text style={styles.packCheckMark}>✓</Text>}
+                              </View>
+                              <Text style={[styles.packName, checked && styles.packNameChecked]}>{name}</Text>
+                            </TouchableOpacity>
+                            {!readOnly && (
+                              <TouchableOpacity onPress={() => removeTripExtra(name)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                                <MaterialIcons name="close" size={18} color={t.textFaint} />
+                              </TouchableOpacity>
+                            )}
+                          </View>
                         )
                       })}
+                      {!readOnly && (
+                        <View style={styles.extraAddRow}>
+                          <TextInput
+                            style={styles.extraInput}
+                            value={newExtra}
+                            onChangeText={setNewExtra}
+                            placeholder={tr('Lägg till något eget…')}
+                            placeholderTextColor={t.textFaint}
+                            returnKeyType="done"
+                            onSubmitEditing={() => addTripExtra(newExtra)}
+                          />
+                          <TouchableOpacity style={styles.extraAddBtn} onPress={() => addTripExtra(newExtra)} disabled={!newExtra.trim()}>
+                            <MaterialIcons name="add" size={20} color={t.onPrimary} />
+                          </TouchableOpacity>
+                        </View>
+                      )}
                     </View>
+                    {!readOnly && (
+                      <Text style={styles.extraHint}>{tr('Egna saker sparas och kommer tillbaka nästa resa.')}</Text>
+                    )}
                   </>
                 )}
 
@@ -1418,6 +1502,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tripSectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary, marginTop: 20, marginBottom: 12 },
   packCard: { backgroundColor: t.surfaceMuted, borderRadius: 18, padding: 8, borderWidth: 1, borderColor: t.border },
   packRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, paddingHorizontal: 8 },
+  packRowMain: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  extraAddRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, paddingHorizontal: 8 },
+  extraInput: { flex: 1, fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface },
+  extraAddBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  extraHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, marginTop: 8, marginLeft: 4 },
   packCheck: { width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
   packCheckOn: { backgroundColor: t.primary, borderColor: t.primary },
   packCheckMark: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 13 },

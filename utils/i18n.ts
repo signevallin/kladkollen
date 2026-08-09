@@ -451,6 +451,8 @@ const enBySource: Dict = {
   'Lägg i kalender': 'Add to calendar',
   'Packlista': 'Packing list',
   'Glöm inte': 'Don’t forget',
+  'Lägg till något eget…': 'Add your own…',
+  'Egna saker sparas och kommer tillbaka nästa resa.': 'Your own items are saved and come back next trip.',
   'Planera en ny resa': 'Plan a new trip',
   // Aviseringar
   'Kunde inte spara': 'Couldn’t save',
