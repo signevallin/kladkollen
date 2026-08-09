@@ -119,16 +119,17 @@ export default async function handler(request: Request): Promise<Response> {
     const { version, err } = await getVersion(model, authHeaders)
     if (err) return err
 
-    // Håll uppe anslutningen en kort stund (Prefer: wait=8) så VARMA modeller
-    // hinner bli klara direkt; annars returneras ett jobb-id att polla på.
+    // Skapa jobbet ASYNKRONT (inget Prefer: wait) så start-anropet returnerar
+    // direkt (~1–2 s) och aldrig spränger plattformens tidsgräns. Klienten
+    // pollar sedan status i korta anrop. (Modellen kan kallstarta 30 s+.)
     let res: Response
     let prediction: any
     for (let attempt = 0; ; attempt++) {
       res = await fetchWithTimeout('https://api.replicate.com/v1/predictions', {
         method: 'POST',
-        headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'wait=8' },
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
         body: JSON.stringify({ version, input: { image: `data:image/jpeg;base64,${base64}` } }),
-      }, 20_000)
+      }, 15_000)
       prediction = (await res.json()) as any
       if (res.status === 429 && attempt < 2) {
         await new Promise(r => setTimeout(r, throttleWaitMs(String(prediction?.detail || ''), attempt)))
@@ -140,12 +141,10 @@ export default async function handler(request: Request): Promise<Response> {
       const msg = res.status === 429 ? 'Tjänsten är tillfälligt hårt belastad. Försök igen om en stund.' : (prediction?.detail || 'Bakgrundsborttagning misslyckades')
       return json({ error: msg }, res.status)
     }
-    // Klart redan inom wait-fönstret (varm modell)? Returnera bilden direkt.
-    if (prediction.status === 'succeeded') return await outputToBase64(prediction, authHeaders)
     if (prediction.status === 'failed' || prediction.status === 'canceled') {
       return json({ error: prediction?.error || `Modellen svarade: ${prediction.status}` }, 502)
     }
-    // Annars: lämna tillbaka jobb-id så klienten kan polla i korta anrop.
+    // Lämna tillbaka jobb-id så klienten kan polla i korta anrop.
     return json({ predictionId: prediction.id, status: prediction.status })
   } catch (e: any) {
     if (e?.name === 'AbortError') return json({ error: 'Tjänsten svarade inte i tid. Försök igen om en stund.' }, 504)
