@@ -1,10 +1,14 @@
 import { json, requireUser } from './_utils'
 
-// Node-runtime i stället för Edge: bakgrundsborttagningen väntar på Replicate
-// (rembg har långsam kallstart), och Edge-runtimens korta hårda tidsgräns gav
-// ett opakt "internal server error" (plattforms-timeout). Node tillåter
-// maxDuration. Handlern använder bara webb-standard-API:er (fetch/btoa/Response)
-// som finns i Node 18+, så koden är oförändrad.
+// Node-runtime i stället för Edge: bakgrundsborttagningen anropar Replicate
+// (rembg kan kallstarta). Node tillåter maxDuration. Handlern använder bara
+// webb-standard-API:er (fetch/btoa/Response) som finns i Node 18+.
+//
+// VIKTIGT – kort start + korta poll-anrop: modellen kan ta 30 s+ vid kallstart.
+// Att hålla EN lång, tyst HTTP-request så länge fick mobilen/iOS att släppa
+// anslutningen → "Network request failed" varje gång. I stället skapas jobbet i
+// ett kort start-anrop som returnerar ett jobb-id, och klienten pollar sedan
+// status i korta anrop tills den bakgrundsfria bilden är klar.
 export const config = { runtime: 'nodejs', maxDuration: 60 }
 
 // Väletablerad öppen bakgrundsborttagningsmodell (rembg). Kan bytas via env.
@@ -40,14 +44,7 @@ function throttleWaitMs(detail: string, attempt: number): number {
   return [2000, 5000, 10000][attempt] ?? 10000
 }
 
-// maxDuration ovan är 60 s. Vi håller oss under det med marginal och lämnar
-// alltid ETT eget, snyggt JSON-svar i stället för att bli hårddödad av
-// plattformen (det gav en opak 504 som klienten inte kunde tolka).
-const TIME_BUDGET_MS = 52_000
-// Friendligt tidsgränsmeddelande – plagget sparas ändå med originalfotot.
-const TIMEOUT_MSG = 'Bakgrundsborttagningen tog för lång tid (modellen behövde starta). Försök igen om en liten stund.'
-
-// fetch med hård timeout så en hängande anslutning inte äter hela budgeten.
+// fetch med hård timeout så en hängande anslutning inte blockerar handlern.
 async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise<Response> {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), ms)
@@ -58,64 +55,84 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Pro
   }
 }
 
+// Hämtar (och cachar) modellens senaste körbara version. Returnerar antingen
+// { version } eller { err } (ett färdigt fel-Response att skicka direkt).
+async function getVersion(model: string, authHeaders: Record<string, string>): Promise<{ version?: string; err?: Response }> {
+  if (cachedVersion && cachedVersion.model === model) return { version: cachedVersion.version }
+  const modelRes = await fetchWithTimeout(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders }, 15_000)
+  if (modelRes.status === 404) {
+    return { err: json({ error: `Modellen '${model}' hittades inte på Replicate. Sätt REPLICATE_MODEL till en giltig modell.` }, 502) }
+  }
+  if (!modelRes.ok) {
+    const d = await modelRes.json().catch(() => ({}))
+    return { err: json({ error: (d as any).detail || `Kunde inte läsa modellen (${modelRes.status})` }, 502) }
+  }
+  const modelData = (await modelRes.json()) as any
+  const version = modelData?.latest_version?.id
+  if (!version) return { err: json({ error: 'Modellen saknar en körbar version' }, 502) }
+  cachedVersion = { model, version }
+  return { version }
+}
+
+// Laddar ner den bakgrundsfria PNG:n och returnerar den som base64 (klientens kontrakt).
+async function outputToBase64(prediction: any, authHeaders: Record<string, string>): Promise<Response> {
+  const url = firstOutputUrl(prediction.output)
+  if (!url) return json({ error: 'Inget resultat från modellen' }, 502)
+  const imgRes = await fetchWithTimeout(url, {}, 15_000)
+  if (!imgRes.ok) return json({ error: 'Kunde inte hämta resultatbilden' }, 502)
+  return json({ base64: arrayBufferToBase64(await imgRes.arrayBuffer()) })
+}
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
   }
-  const startedAt = Date.now()
-  const remaining = () => TIME_BUDGET_MS - (Date.now() - startedAt)
   try {
-    const auth = await requireUser(request)
+    const body = (await request.json()) as any
+    const isPoll = !!body.predictionId
+    // Poll-anrop autentiseras men räknas inte mot AI-rate-limiten (annars skulle
+    // ett enda jobb med många statuskoll slå i taket).
+    const auth = await requireUser(request, isPoll ? { rateLimit: false } : undefined)
     if (auth instanceof Response) return auth
-
-    const { base64 } = (await request.json()) as any
-    if (!base64) return json({ error: 'Bild saknas' }, 400)
 
     const token = process.env.REPLICATE_API_TOKEN
     if (!token) return json({ error: 'REPLICATE_API_TOKEN saknas på servern' }, 500)
     const model = process.env.REPLICATE_MODEL || DEFAULT_MODEL
     const authHeaders = { Authorization: `Bearer ${token}` }
 
-    // 1) Hämta modellens senaste version (fungerar oavsett om modellen har en
-    //    default-version satt – till skillnad mot models-by-name-endpointen).
-    //    Cacheas mellan anrop så flerbildsuppladdningar gör färre API-anrop.
-    let version = cachedVersion && cachedVersion.model === model ? cachedVersion.version : null
-    if (!version) {
-      const modelRes = await fetchWithTimeout(`https://api.replicate.com/v1/models/${model}`, { headers: authHeaders }, 15_000)
-      if (modelRes.status === 404) {
-        return json({ error: `Modellen '${model}' hittades inte på Replicate. Sätt REPLICATE_MODEL till en giltig modell.` }, 502)
+    // ── POLL-läge: klienten frågar om ett pågående jobb ──
+    if (isPoll) {
+      const r = await fetchWithTimeout(`https://api.replicate.com/v1/predictions/${body.predictionId}`, { headers: authHeaders }, 15_000)
+      const pred = (await r.json()) as any
+      if (!r.ok) return json({ error: pred?.detail || `Kunde inte läsa jobbet (${r.status})` }, 502)
+      if (pred.status === 'succeeded') return await outputToBase64(pred, authHeaders)
+      if (pred.status === 'failed' || pred.status === 'canceled') {
+        return json({ error: pred?.error || `Modellen svarade: ${pred.status}` }, 502)
       }
-      if (!modelRes.ok) {
-        const d = await modelRes.json().catch(() => ({}))
-        return json({ error: (d as any).detail || `Kunde inte läsa modellen (${modelRes.status})` }, 502)
-      }
-      const modelData = (await modelRes.json()) as any
-      version = modelData?.latest_version?.id
-      if (!version) return json({ error: 'Modellen saknar en körbar version' }, 502)
-      cachedVersion = { model, version }
+      return json({ predictionId: body.predictionId, status: pred.status })
     }
 
-    // 2) Skapa prediction mot versionen. Håll uppe anslutningen (Prefer: wait)
-    //    men BARA i ~30 s så det initiala anropet aldrig äter hela budgeten –
-    //    resten pollas nedan. Vid strypning (429): vänta tills fönstret öppnas
-    //    och försök igen, så flerbildsuppladdningar inte tappar alla bilder.
+    // ── START-läge: skapa ett nytt jobb ──
+    const base64 = body.base64
+    if (!base64) return json({ error: 'Bild saknas' }, 400)
+
+    const { version, err } = await getVersion(model, authHeaders)
+    if (err) return err
+
+    // Håll uppe anslutningen en kort stund (Prefer: wait=8) så VARMA modeller
+    // hinner bli klara direkt; annars returneras ett jobb-id att polla på.
     let res: Response
     let prediction: any
     for (let attempt = 0; ; attempt++) {
-      const waitS = Math.max(5, Math.min(30, Math.floor(remaining() / 1000) - 10))
       res = await fetchWithTimeout('https://api.replicate.com/v1/predictions', {
         method: 'POST',
-        headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: `wait=${waitS}` },
+        headers: { ...authHeaders, 'Content-Type': 'application/json', Prefer: 'wait=8' },
         body: JSON.stringify({ version, input: { image: `data:image/jpeg;base64,${base64}` } }),
-      }, waitS * 1000 + 5_000)
+      }, 20_000)
       prediction = (await res.json()) as any
-      // Vänta bara på ny strypnings-omgång om vi har tid kvar för det.
-      if (res.status === 429 && attempt < 3) {
-        const wait = throttleWaitMs(String(prediction?.detail || ''), attempt)
-        if (remaining() > wait + 8_000) {
-          await new Promise(r => setTimeout(r, wait))
-          continue
-        }
+      if (res.status === 429 && attempt < 2) {
+        await new Promise(r => setTimeout(r, throttleWaitMs(String(prediction?.detail || ''), attempt)))
+        continue
       }
       break
     }
@@ -123,35 +140,16 @@ export default async function handler(request: Request): Promise<Response> {
       const msg = res.status === 429 ? 'Tjänsten är tillfälligt hårt belastad. Försök igen om en stund.' : (prediction?.detail || 'Bakgrundsborttagning misslyckades')
       return json({ error: msg }, res.status)
     }
-
-    // 3) Polla om körningen inte hann bli klar inom wait-fönstret – tills den är
-    //    klar ELLER tidsbudgeten tar slut (då returnerar vi ett snyggt fel i
-    //    stället för att bli hårddödad av plattformen → opak 504).
-    const pollUrl = prediction?.urls?.get
-    while ((prediction.status === 'starting' || prediction.status === 'processing') && pollUrl) {
-      if (remaining() < 4_000) return json({ error: TIMEOUT_MSG }, 504)
-      await new Promise(r => setTimeout(r, 1500))
-      res = await fetchWithTimeout(pollUrl, { headers: authHeaders }, 10_000)
-      prediction = await res.json()
-    }
-
-    if (prediction.status !== 'succeeded') {
+    // Klart redan inom wait-fönstret (varm modell)? Returnera bilden direkt.
+    if (prediction.status === 'succeeded') return await outputToBase64(prediction, authHeaders)
+    if (prediction.status === 'failed' || prediction.status === 'canceled') {
       return json({ error: prediction?.error || `Modellen svarade: ${prediction.status}` }, 502)
     }
-
-    const url = firstOutputUrl(prediction.output)
-    if (!url) return json({ error: 'Inget resultat från modellen' }, 502)
-
-    // 4) Hämta den bakgrundsfria PNG:n och returnera som base64 (samma kontrakt).
-    const imgRes = await fetchWithTimeout(url, {}, 15_000)
-    if (!imgRes.ok) return json({ error: 'Kunde inte hämta resultatbilden' }, 502)
-    return json({ base64: arrayBufferToBase64(await imgRes.arrayBuffer()) })
+    // Annars: lämna tillbaka jobb-id så klienten kan polla i korta anrop.
+    return json({ predictionId: prediction.id, status: prediction.status })
   } catch (e: any) {
-    // En avbruten fetch (AbortError) betyder att vi slog i tidsgränsen – ge då
-    // det snälla timeout-meddelandet i stället för ett kryptiskt abort-fel.
-    if (e?.name === 'AbortError') return json({ error: TIMEOUT_MSG }, 504)
-    // Logga hela felet så det syns i Vercel-loggarna – annars får klienten bara
-    // ett opakt 500 utan spår att felsöka från.
+    if (e?.name === 'AbortError') return json({ error: 'Tjänsten svarade inte i tid. Försök igen om en stund.' }, 504)
+    // Logga hela felet så det syns i Vercel-loggarna.
     console.error('remove-background failed:', e?.stack || e?.message || e)
     return json({ error: e?.message || 'Bakgrundsborttagning misslyckades' }, 500)
   }
