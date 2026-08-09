@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native'
 import { supabase } from '../supabase'
+import { invalidateGarments } from '../utils/garmentsStore'
 import { showAlert, showConfirm } from '../utils/alert'
 import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
@@ -47,6 +48,7 @@ export default function Locations() {
     await supabase.from('locations').update({ is_archive: !loc.is_archive }).eq('id', loc.id)
     // Synka plaggen på den platsen så de hamnar rätt (i/ur arkivet).
     await supabase.from('garments').update({ archived: !loc.is_archive }).eq('location', loc.name)
+    invalidateGarments()
     load()
   }
 

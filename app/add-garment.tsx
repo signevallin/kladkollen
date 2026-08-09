@@ -24,6 +24,7 @@ import {
 } from 'react-native'
 import DraftCard from '../components/add-garment/DraftCard'
 import { supabase } from '../supabase'
+import { invalidateGarments } from '../utils/garmentsStore'
 import { apiPost } from '../utils/api'
 import { parsePrice } from '../utils/brands'
 import { useSettings } from '../utils/settings'
@@ -316,6 +317,7 @@ export default function AddGarment() {
           status: pid ? draft.familyStatus : null,
         }])
       }
+      invalidateGarments()
       toast(`${ready.length} ${ready.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
       goBack(personParam ? `/wardrobe?person=${personParam}&personName=${encodeURIComponent(personName || '')}` : '/wardrobe')
     } catch (e: any) {

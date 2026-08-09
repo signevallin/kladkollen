@@ -18,6 +18,7 @@ import BottomNav from '../components/BottomNav'
 import SignedImage from '../components/SignedImage'
 import InsightsTab from '../components/stats/InsightsTab'
 import { supabase } from '../supabase'
+import { loadGarments, invalidateGarments } from '../utils/garmentsStore'
 import { normalizeBrand } from '../utils/brands'
 import { showAlert } from '../utils/alert'
 import { useSettings } from '../utils/settings'
@@ -142,13 +143,13 @@ export default function Stats() {
   }
 
   async function fetchGarmentStats() {
-    let q = supabase.from('garments').select('*').eq('archived', false)
-    q = isPerson ? q.eq('person_id', person) : q.is('person_id', null)
-    const { data } = await q.order('times_worn', { ascending: false })
-    if (data) {
-      setGarments(data)
-      setTotalWorn(data.reduce((s, g) => s + (g.times_worn || 0), 0))
-    }
+    // Delad plagg-hämtning; filtrera + sortera (times_worn) på klienten.
+    const all = await loadGarments()
+    const data = (isPerson ? all.filter(g => g.person_id === person) : all.filter(g => g.person_id == null))
+      .filter(g => !g.archived)
+      .sort((a, b) => (b.times_worn || 0) - (a.times_worn || 0))
+    setGarments(data)
+    setTotalWorn(data.reduce((s, g) => s + (g.times_worn || 0), 0))
   }
 
   async function fetchStyleStats() {
@@ -167,8 +168,8 @@ export default function Stats() {
     const rated = outfits.filter((o): o is typeof o & { rating: number } => o.rating !== null)
     setRatedCount(rated.length)
 
-    const { data: gData } = await supabase.from('garments').select('id, name, image_url, color')
-    const colorById = new Map(gData?.map(g => [g.id, g.color]) || [])
+    const gData = await loadGarments()
+    const colorById = new Map(gData.map(g => [g.id, g.color]))
 
     // Outfits lagrar AI:ns plaggnamn, som sällan är exakt samma som namnet i
     // garderoben. Matcha därför luddigt (som i resten av appen): exakt träff
@@ -277,7 +278,7 @@ export default function Stats() {
   async function markForSale(item: any) {
     const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', item.id)
     if (error) showAlert(tt('Något gick fel'), error.message)
-    else { showAlert(tt('Lagt till i säljlistan!'), `${item.name} ${tt('finns nu under Sälj-fliken i din garderob.')}`); fetchAll() }
+    else { invalidateGarments(); showAlert(tt('Lagt till i säljlistan!'), `${item.name} ${tt('finns nu under Sälj-fliken i din garderob.')}`); fetchAll() }
   }
 
   const mostWornAll = garments.filter(g => g.times_worn > 0)

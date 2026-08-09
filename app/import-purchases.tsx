@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native'
 import { supabase } from '../supabase'
+import { invalidateGarments } from '../utils/garmentsStore'
 import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { parsePrice } from '../utils/brands'
@@ -248,6 +249,7 @@ export default function ImportPurchases() {
           }])
         }
       }
+      invalidateGarments()
 
       toast(
         `${chosen.length} ${chosen.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`,

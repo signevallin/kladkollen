@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native'
 import { supabase } from '../supabase'
+import { invalidateGarments } from '../utils/garmentsStore'
 import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
 import { parsePrice } from '../utils/brands'
@@ -159,6 +160,7 @@ export default function ImportEmail() {
       }
 
       await supabase.from('pending_imports').delete().in('id', chosen.map(p => p.id))
+      invalidateGarments()
       toast(`${chosen.length} ${chosen.length === 1 ? tr('plagg tillagt') : tr('plagg tillagda')}!`, tr('Ligger nu i garderoben – med bild och bakgrunden borttagen.'))
       goBack('/wardrobe')
     } catch (e: any) {

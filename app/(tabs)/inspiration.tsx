@@ -24,6 +24,7 @@ import { captureRef } from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
 import { toast } from '../../components/Toast'
 import { supabase } from '../../supabase'
+import { invalidateGarments } from '../../utils/garmentsStore'
 import { apiPost } from '../../utils/api'
 import { showAlert, showConfirm } from '../../utils/alert'
 import { loadPartner } from '../../utils/household'
@@ -65,6 +66,7 @@ export default function Inspiration() {
       async () => {
         const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', g.id)
         if (error) { showAlert(tt('Något gick fel'), error.message); return }
+        invalidateGarments()
         setRediscover(prev => prev.filter(x => x.id !== g.id))
         toast(tt('Plagget ligger nu i säljlistan'))
       },

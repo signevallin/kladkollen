@@ -27,6 +27,7 @@ import SwapSheet from '../../components/home/SwapSheet'
 import { supabase } from '../../supabase'
 import { isWashable } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
+import { loadGarments, invalidateGarments } from '../../utils/garmentsStore'
 import { showAlert, showConfirm } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { captureError } from '../../utils/sentry'
@@ -215,8 +216,11 @@ export default function MyOutfits() {
   }
 
   async function fetchGarments() {
-    const { data } = await supabase.from('garments').select('*').eq('archived', false).is('person_id', null)
-    if (data) { setGarments(data); cacheSet('myoutfit.garments', data) }
+    // Delad plagg-hämtning – återanvänds mellan flikarna. Filtrera till egna,
+    // icke-arkiverade plagg (som tidigare gjordes i queryn).
+    const all = await loadGarments()
+    const data = all.filter((g: any) => !g.archived && g.person_id == null)
+    setGarments(data); cacheSet('myoutfit.garments', data)
   }
 
   async function fetchWishlist() {
@@ -673,6 +677,7 @@ function isPast(date: Date) {
       async () => {
         const { error } = await supabase.from('garments').update({ in_laundry: true }).in('id', ids)
         if (error) { showAlert(tr('Något gick fel'), error.message); return }
+        invalidateGarments()
         setGarments(prev => prev.map(g => ids.includes(g.id) ? { ...g, in_laundry: true } : g))
         showAlert(tr('Klart!'), `${ids.length} ${tr('plagg ligger nu i tvätten.')}`)
       },

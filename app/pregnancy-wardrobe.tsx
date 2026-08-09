@@ -6,6 +6,7 @@ import SignedImage from '../components/SignedImage'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { supabase } from '../supabase'
+import { invalidateGarments } from '../utils/garmentsStore'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useSettings } from '../utils/settings'
@@ -61,6 +62,7 @@ export default function PregnancyWardrobe() {
     const next = !g.lendable
     setMaternity(prev => prev.map(x => (x.id === g.id ? { ...x, lendable: next } : x)))
     const { error } = await supabase.from('garments').update({ lendable: next }).eq('id', g.id)
+    invalidateGarments()
     if (error) setMaternity(prev => prev.map(x => (x.id === g.id ? { ...x, lendable: !next } : x)))
   }
 
