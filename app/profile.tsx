@@ -56,7 +56,7 @@ export default function Profile() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
-  const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, t: tr } = useSettings()
+  const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
   const { isPro } = useEntitlements()
 
   const [name, setName] = useState('')
@@ -484,8 +484,21 @@ export default function Profile() {
             icon: 'music-note', value: musicGenres.length ? `${musicGenres.length} ${tr('valda')}` : undefined,
             body: (
               <>
-                <Text style={styles.hint}>{tr('Outfitens låtförslag hämtas ur dina genrer.')}</Text>
-                {pillGroup(MUSIC_GENRES as unknown as string[], musicGenres, toggle(setMusicGenres))}
+                <View style={styles.gravidToggleRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.gravidFieldLabel, { marginTop: 0 }]}>{tr('Visa Dagens låt')}</Text>
+                    <Text style={styles.hint}>{tr('Visar en matchande låt till dagens outfit på startsidan.')}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setShowDailySong(!showDailySong)} style={[styles.toggle, showDailySong && styles.toggleOn]}>
+                    <View style={[styles.toggleKnob, showDailySong && styles.toggleKnobOn]} />
+                  </TouchableOpacity>
+                </View>
+                {showDailySong && (
+                  <>
+                    <Text style={styles.hint}>{tr('Outfitens låtförslag hämtas ur dina genrer.')}</Text>
+                    {pillGroup(MUSIC_GENRES as unknown as string[], musicGenres, toggle(setMusicGenres))}
+                  </>
+                )}
               </>
             ),
           })}

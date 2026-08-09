@@ -50,7 +50,7 @@ const RECENT_GARMENTS_KEY = 'kladkollen_recent_garments'
 export default function Home() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { tempLabel, t: tr } = useSettings()
+  const { tempLabel, t: tr, showDailySong } = useSettings()
   const { isPro, creditsLeft, refresh: refreshEntitlements } = useEntitlements()
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
@@ -519,8 +519,9 @@ export default function Home() {
       outfitAnim.setValue(0)
       Animated.spring(outfitAnim, { toValue: 1, friction: 7, useNativeDriver: true }).start()
 
-      // Hämta matchande låt + Apple Music-preview (blockerar inte outfiten om det failar)
-      if (parsed.song?.title) {
+      // Hämta matchande låt + Apple Music-preview (blockerar inte outfiten om det failar).
+      // Hoppas över helt om användaren dolt "Dagens låt" (Profil → Musik).
+      if (parsed.song?.title && showDailySong) {
         // Minns låten (som "Titel – Artist") så vi undviker upprepning nästa
         // gång – både samma låt och samma artist (senaste 50).
         try {
@@ -1212,7 +1213,7 @@ export default function Home() {
               )}
             </View>
 
-            {outfit.song && <SongCard song={outfit.song} />}
+            {outfit.song && showDailySong && <SongCard song={outfit.song} />}
 
             <View style={styles.ratingRow}>
               <Text style={styles.ratingLabel}>{tr('Vad tyckte du om looken?')}</Text>
