@@ -154,7 +154,11 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   köldkänslighet sänks ett steg, och plaggvyn visar gravid-taggarna. Egen
   skärm `app/pregnancy-wardrobe.tsx` (essentials-checklista → köplista +
   återanvänd/låna ut). Par-flödet "Matcha" är inte gravidanpassat än.
-- Bild-miniatyrer: `SignedImage` tar en `transform`-prop (Supabase image
-  transform, kräver betald plan). Plagg använder `resize:'contain'` +
-  `format:'origin'` (bevarar transparens, beskär inte); avatarer `resize:'cover'`.
-  Detaljvyn och dela-korten lämnas i full upplösning.
+- Bild-miniatyrer: `SignedImage` tar en `transform`-prop. **Gotcha (kostnad):**
+  Supabase fakturerar per origin-bild som transformeras. Därför **hoppar
+  SignedImage medvetet över server-transformen när `format:'origin'`** (alla
+  plagg) och låter i stället `expo-image` skala ner till vyns storlek på enheten
+  (samma minnesvinst, ingen transform-kostnad). Bara avatarer (`resize:'cover'`
+  utan `format`) transformeras på servern – de är få. Håll därför uppladdade
+  plaggbilder rimligt små (`MAX_IMAGE_WIDTH` i add-garment = 1000) eftersom
+  origin laddas direkt.
