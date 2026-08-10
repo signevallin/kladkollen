@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { brandSuggestions } from '../utils/brands'
+import { useSettings } from '../utils/settings'
 
 // Textfält för märke med autocomplete – slår ihop egna märken och en inbyggd
 // lista, så samma märke stavas likadant varje gång.
@@ -16,6 +17,7 @@ export default function BrandInput({
 }) {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
   const [focused, setFocused] = useState(false)
   const suggestions = focused ? brandSuggestions(value, ownBrands) : []
   const showList = suggestions.length > 0 && !(suggestions.length === 1 && suggestions[0].toLowerCase() === value.toLowerCase())
@@ -24,7 +26,7 @@ export default function BrandInput({
     <View style={styles.container}>
       <TextInput
         style={styles.input}
-        placeholder={placeholder}
+        placeholder={tr(placeholder)}
         placeholderTextColor={t.placeholder}
         value={value}
         onChangeText={onChange}

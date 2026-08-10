@@ -622,6 +622,7 @@ const enBySource: Dict = {
   'STORLEK': 'SIZE',
   'PLATS': 'LOCATION',
   'MÄRKE (VALFRITT)': 'BRAND (OPTIONAL)',
+  'Märke (valfritt)': 'Brand (optional)',
   'KATEGORI': 'CATEGORY',
   'TYP': 'TYPE',
   'FÄRG': 'COLOUR',
