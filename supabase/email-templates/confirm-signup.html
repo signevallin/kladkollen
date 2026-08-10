@@ -1,10 +1,10 @@
-<!DOCTYPE html>
-<html lang="sv">
+{{ $en := or (eq .Data.lang "en") (eq .Data.lang "de") (eq .Data.lang "es") (eq .Data.lang "fr") }}<!DOCTYPE html>
+<html lang="{{ if $en }}en{{ else }}sv{{ end }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Välkommen till Skrud</title>
+  <title>{{ if $en }}Welcome to Skrud{{ else }}Välkommen till Skrud{{ end }}</title>
   <!-- Progressiv förbättring: laddas i klienter som stödjer webbtypsnitt.
        Övriga faller tillbaka på Georgia/Arial via inline-stilarna nedan. -->
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
 <body style="margin:0; padding:0; background-color:#F3EEE9;">
   <!-- Dold förhandstext i inkorgen -->
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#F3EEE9; font-size:1px; line-height:1px;">
-    Vad kul att du är här – bekräfta din e-post så är du igång i din digitala garderob.
+    {{ if $en }}So glad you're here – confirm your email to get started with your digital wardrobe.{{ else }}Vad kul att du är här – bekräfta din e-post så är du igång i din digitala garderob.{{ end }}
   </div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F3EEE9;">
@@ -41,15 +41,15 @@
             <td class="card-pad" style="background-color:#FEFAF8; border:1px solid #E7D8C9; border-radius:20px; padding:44px 40px;">
 
               <h1 class="h1" style="margin:0 0 18px 0; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:30px; font-weight:700; letter-spacing:-0.5px; color:#402D21; line-height:1.2;">
-                Välkommen till Skrud!
+                {{ if $en }}Welcome to Skrud!{{ else }}Välkommen till Skrud!{{ end }}
               </h1>
 
               <p style="margin:0 0 18px 0; font-family:'Lora',Georgia,'Times New Roman',serif; font-size:17px; line-height:1.65; color:#6C4D38;">
-                Vad kul att du är här. Skrud blir din digitala garderob – fota plaggen du redan äger, så hjälper vi dig att sätta ihop outfits som passar dig, vädret och din dag.
+                {{ if $en }}So glad you're here. Skrud is your digital wardrobe – photograph the clothes you already own and we'll help you put together outfits that suit you, the weather and your day.{{ else }}Vad kul att du är här. Skrud blir din digitala garderob – fota plaggen du redan äger, så hjälper vi dig att sätta ihop outfits som passar dig, vädret och din dag.{{ end }}
               </p>
 
               <p style="margin:0 0 30px 0; font-family:'Lora',Georgia,'Times New Roman',serif; font-size:17px; line-height:1.65; color:#6C4D38;">
-                Det sista steget är att bekräfta din e-postadress. Tryck på knappen så är du igång:
+                {{ if $en }}One last step – confirm your email address. Tap the button and you're in:{{ else }}Det sista steget är att bekräfta din e-postadress. Tryck på knappen så är du igång:{{ end }}
               </p>
 
               <!-- Knapp (tabellbaserad för Outlook-stöd) -->
@@ -57,7 +57,7 @@
                 <tr>
                   <td align="center" bgcolor="#402D21" style="border-radius:999px;">
                     <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block; padding:16px 40px; font-family:'Poppins',Arial,Helvetica,sans-serif; font-size:16px; font-weight:700; color:#FEFAF8; background-color:#402D21; border-radius:999px;">
-                      Bekräfta min e-post
+                      {{ if $en }}Confirm my email{{ else }}Bekräfta min e-post{{ end }}
                     </a>
                   </td>
                 </tr>
@@ -65,7 +65,7 @@
 
               <!-- Reservlänk -->
               <p style="margin:0 0 6px 0; font-family:'Lora',Georgia,'Times New Roman',serif; font-size:14px; line-height:1.6; color:#8B7A6C;">
-                Funkar inte knappen? Klistra in den här länken i din webbläsare:
+                {{ if $en }}Button not working? Paste this link into your browser:{{ else }}Funkar inte knappen? Klistra in den här länken i din webbläsare:{{ end }}
               </p>
               <p style="margin:0 0 30px 0; font-family:'Lora',Georgia,'Times New Roman',serif; font-size:13px; line-height:1.5; word-break:break-all;">
                 <a href="{{ .ConfirmationURL }}" target="_blank" style="color:#6C4D38; text-decoration:underline;">{{ .ConfirmationURL }}</a>
@@ -77,8 +77,7 @@
               </table>
 
               <p style="margin:26px 0 0 0; font-family:'Lora',Georgia,'Times New Roman',serif; font-size:17px; line-height:1.65; color:#402D21;">
-                Vi ses i garderoben!<br>
-                <span style="color:#6C4D38;">Varma hälsningar, teamet bakom Skrud</span>
+                {{ if $en }}See you in your wardrobe!<br><span style="color:#6C4D38;">Warm regards, the team behind Skrud</span>{{ else }}Vi ses i garderoben!<br><span style="color:#6C4D38;">Varma hälsningar, teamet bakom Skrud</span>{{ end }}
               </p>
 
             </td>
@@ -88,7 +87,7 @@
           <tr>
             <td align="center" style="padding:22px 24px 0 24px;">
               <p style="margin:0; font-family:'Lora',Georgia,'Times New Roman',serif; font-size:12px; line-height:1.6; color:#A2917F;">
-                Fick du det här mejlet utan att ha skapat ett konto? Då kan du lugnt strunta i det – ingenting händer.
+                {{ if $en }}Got this email without creating an account? You can safely ignore it – nothing will happen.{{ else }}Fick du det här mejlet utan att ha skapat ett konto? Då kan du lugnt strunta i det – ingenting händer.{{ end }}
               </p>
             </td>
           </tr>
