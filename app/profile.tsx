@@ -31,6 +31,7 @@ import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
 import { invalidateGarments } from '../utils/garmentsStore'
 import { useEntitlements } from '../utils/entitlements'
+import { tierAtLeast } from '../utils/purchases'
 import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
@@ -58,7 +59,7 @@ export default function Profile() {
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
   const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
-  const { isPro } = useEntitlements()
+  const { isPro, tier } = useEntitlements()
 
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)
@@ -523,9 +524,15 @@ export default function Profile() {
                     <Text style={[styles.gravidFieldLabel, { marginTop: 0 }]}>{tr('Gravid')}</Text>
                     <Text style={styles.hint}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
                   </View>
-                  <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
-                    <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
-                  </TouchableOpacity>
+                  {tierAtLeast(tier, 'partner') ? (
+                    <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
+                      <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity onPress={() => router.push('/paywall')} style={styles.premiumTag}>
+                      <Text style={styles.premiumTagText}>{tr('Premium')}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </>
             ),
@@ -560,8 +567,8 @@ export default function Profile() {
               </>
             ),
           })}
-          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/partner' : '/paywall') })}
-          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/family' : '/paywall') })}
+          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: tierAtLeast(tier, 'partner') ? undefined : 'Premium', onPress: () => router.push(tierAtLeast(tier, 'partner') ? '/partner' : '/paywall') })}
+          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: tierAtLeast(tier, 'family') ? undefined : 'Premium', onPress: () => router.push(tierAtLeast(tier, 'family') ? '/family' : '/paywall') })}
         </View>
         )}
 
@@ -794,6 +801,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   hint: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 11, fontStyle: 'italic', marginBottom: 10, marginTop: 4 },
   input: { fontFamily: 'Lora_400Regular', backgroundColor: t.surface, borderRadius: 12, padding: 14, color: t.textPrimary, fontSize: 16, borderWidth: 1, borderColor: t.border, marginTop: 6 },
   gravidToggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, marginBottom: 4 },
+  premiumTag: { backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
+  premiumTagText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.primary },
   gravidFieldLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, marginTop: 12, marginBottom: 2 },
   pregnantRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   pregnantHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 19, marginTop: 6 },

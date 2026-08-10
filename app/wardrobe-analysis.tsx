@@ -12,9 +12,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { router } from 'expo-router'
 import { supabase } from '../supabase'
 import { apiPost } from '../utils/api'
 import { showAlert } from '../utils/alert'
+import { useEntitlements } from '../utils/entitlements'
 import { goBack } from '../utils/nav'
 import { STYLE_RULES } from '../utils/constants'
 import { useSettings } from '../utils/settings'
@@ -34,6 +36,7 @@ export default function WardrobeAnalysis() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang } = useSettings()
+  const { isPro } = useEntitlements()
   const locale = localeFor(lang)
 
   const [garments, setGarments] = useState<any[]>([])
@@ -119,6 +122,7 @@ export default function WardrobeAnalysis() {
   }
 
   async function analyze(mode: Mode) {
+    if (!isPro) { router.push('/paywall'); return }
     if (garments.length === 0) { showAlert(tr('Tom garderob'), tr('Lägg till plagg först så kan jag analysera.')); return }
     if (!ready(mode)) { showAlert(tr('Saknar underlag'), missingHint(mode)); return }
     setLoadingMode(mode)

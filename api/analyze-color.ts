@@ -1,4 +1,4 @@
-import { langInstruction, requireUser } from './_utils'
+import { getUserTier, langInstruction, requireUser, tierMeets } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -21,6 +21,10 @@ export default async function handler(request: Request): Promise<Response> {
   }
   const auth = await requireUser(request)
   if (auth instanceof Response) return auth
+  // Färganalys är en Premium-funktion (alla betalda nivåer).
+  if (!tierMeets(await getUserTier(request, auth.id), 'single')) {
+    return new Response(JSON.stringify({ error: 'Kräver Skrud Premium', code: 'premium_required' }), { status: 402 })
+  }
 
   try {
     const { base64, lang } = await request.json() as { base64: string; lang?: string }
