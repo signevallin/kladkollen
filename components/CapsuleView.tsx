@@ -5,6 +5,7 @@ import { supabase } from '../supabase'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { showAlert } from '../utils/alert'
+import { useSettings } from '../utils/settings'
 import SignedImage from './SignedImage'
 
 // Capsule wardrobe – AI föreslår ett kompakt urval plagg och räknar hur många
@@ -12,6 +13,7 @@ import SignedImage from './SignedImage'
 export default function CapsuleView() {
   const t = useTheme()
   const styles = makeStyles(t)
+  const { t: tr } = useSettings()
 
   const [garments, setGarments] = useState<any[]>([])
   const [capsuleGenerated, setCapsuleGenerated] = useState(false)
@@ -49,7 +51,7 @@ export default function CapsuleView() {
   }
 
   function generateCapsule() {
-    if (garments.length === 0) { showAlert('Garderoben är tom', 'Lägg till plagg först!'); return }
+    if (garments.length === 0) { showAlert(tr('Garderoben är tom'), tr('Lägg till plagg först!')); return }
     setGeneratingCapsule(true)
 
     const NEUTRAL_COLORS = ['Svart', 'Vit', 'Grå', 'Beige', 'Brun']

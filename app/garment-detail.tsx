@@ -349,14 +349,14 @@ export default function GarmentDetail() {
       const { error } = await supabase.from('garments').delete().eq('id', id)
       if (error) showAlert(tr('Något gick fel'), error.message)
       else { invalidateGarments(); back() }
-    }, 'Ta bort', true)
+    }, tr('Ta bort'), true)
   }
 
   async function deleteWishlistItem() {
     showConfirm(tr('Ta bort'), `${tr('Ta bort från köplistan?')} – ${name}`, async () => {
       await supabase.from('wishlist').delete().eq('id', wishlistId)
       back()
-    }, 'Ta bort', true)
+    }, tr('Ta bort'), true)
   }
 
   // Arkiv styrs av platsen: att arkivera = flytta plagget till en arkiv-plats,
@@ -382,7 +382,7 @@ export default function GarmentDetail() {
       const { error } = await supabase.from('garments').update({ for_sale: true }).eq('id', id)
       if (error) throw error
       invalidateGarments()
-      toast('Plagget ligger nu i säljlistan')
+      toast(tr('Plagget ligger nu i säljlistan'))
       back()
     } catch (e: any) {
       showAlert(tr('Något gick fel'), e.message)

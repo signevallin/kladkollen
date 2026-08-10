@@ -193,7 +193,7 @@ export default function Inspiration() {
       await supabase.from('moodboard').delete().eq('id', id)
       setSelectedImage(null)
       fetchMoodboard()
-    }, 'Ta bort', true)
+    }, tt('Ta bort'), true)
   }
 
   async function pickInspoImage() {
