@@ -9,7 +9,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity } from 're
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: '1. Vem ansvarar för dina uppgifter?',
-    body: 'Skrud ("vi") är personuppgiftsansvarig för de uppgifter som behandlas i appen. Kontakta oss på hej@kladkollen.se vid frågor om din data.',
+    body: 'Skrud ("vi") är personuppgiftsansvarig för de uppgifter som behandlas i appen. Kontakta oss på support@skrud.app vid frågor om din data.',
   },
   {
     title: '2. Vilka uppgifter samlar vi in?',
@@ -38,7 +38,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '6. Dina rättigheter',
-    body: 'Enligt GDPR har du rätt att få tillgång till, rätta och radera dina uppgifter samt invända mot behandling. Du kan när som helst radera ditt konto och all din data direkt i appen under Min profil → Radera konto. Du kan också kontakta oss på hej@kladkollen.se.',
+    body: 'Enligt GDPR har du rätt att få tillgång till, rätta och radera dina uppgifter samt invända mot behandling. Du kan när som helst radera ditt konto och all din data direkt i appen under Min profil → Radera konto. Du kan också kontakta oss på support@skrud.app.',
   },
   {
     title: '7. Ändringar',

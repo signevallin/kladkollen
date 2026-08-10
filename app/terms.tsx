@@ -37,7 +37,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '8. Kontakt',
-    body: 'Frågor om villkoren? Kontakta oss på hej@kladkollen.se. Senast uppdaterad: juli 2026.',
+    body: 'Frågor om villkoren? Kontakta oss på support@skrud.app. Senast uppdaterad: juli 2026.',
   },
 ]
 

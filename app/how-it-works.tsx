@@ -162,7 +162,7 @@ export default function HowItWorks() {
 
         <View style={styles.helpBox}>
           <Text style={styles.helpTitle}>{tr('Behöver du mer hjälp?')}</Text>
-          <Text style={styles.helpText}>{tr('Hör av dig till oss på hej@kladkollen.se så hjälper vi dig.')}</Text>
+          <Text style={styles.helpText}>{tr('Hör av dig till oss på support@skrud.app så hjälper vi dig.')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
