@@ -70,15 +70,18 @@ type SettingsCtx = {
   tempLabel: (celsius: number) => string
 }
 
-// Läser telefonens språk (via Hermes Intl, inget extra beroende). Returnerar en
-// språkkod vi stödjer, annars 'sv' (default för hemmamarknaden).
+// Läser telefonens språk (via Hermes Intl, inget extra beroende). Ett språk vi
+// stödjer används rakt av; alla andra språk blir engelska (universellt för
+// utländska användare). Kan vi inte avgöra alls → svenska (hemmamarknaden).
 function detectDeviceLang(): Lang {
   try {
     const loc = Intl.DateTimeFormat().resolvedOptions().locale || ''
     const code = loc.slice(0, 2).toLowerCase()
     if (LANGS.some(x => x.code === code)) return code as Lang
-  } catch { /* ignorera – faller tillbaka på svenska */ }
-  return 'sv'
+    return 'en'
+  } catch {
+    return 'sv'
+  }
 }
 
 const Ctx = createContext<SettingsCtx | null>(null)
