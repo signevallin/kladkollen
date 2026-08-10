@@ -22,6 +22,7 @@ import BottomNav from '../../components/BottomNav'
 import { OUTFIT_CONTEXTS, STYLE_RULES } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
 import { loadGarments } from '../../utils/garmentsStore'
+import { savePushLocation } from '../../utils/push'
 import { useSettings } from '../../utils/settings'
 import { loadPartner } from '../../utils/household'
 import OutfitShareCard from '../../components/OutfitShareCard'
@@ -194,6 +195,9 @@ export default function Home() {
       // grov – vi behöver aldrig exakt position.
       const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low })
       const { latitude, longitude } = location.coords
+      // Spara den grova positionen på profilen så servern kan skicka väder-/
+      // regn-notiser (fire-and-forget, dedupas i hjälparen).
+      savePushLocation(latitude, longitude)
       // current = hur det känns nu (emoji/etikett). hourly + daily = resten av
       // dagens temperaturspann och regnrisk, så outfiten håller hela dagen.
       const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&hourly=temperature_2m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=1&timezone=auto`)
