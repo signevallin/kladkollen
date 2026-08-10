@@ -79,9 +79,11 @@ export async function registerForPush(): Promise<void> {
         const loc = await Location.getLastKnownPositionAsync()
           ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low }).catch(() => null)
         if (loc) {
-          update.push_lat = loc.coords.latitude
-          update.push_lon = loc.coords.longitude
-          lastSavedGeo = `${loc.coords.latitude.toFixed(3)},${loc.coords.longitude.toFixed(3)}`
+          // Grov plats (2 decimaler, ~1 km) räcker för väder och håller lagringen
+          // som "Coarse Location" (Apple: ≥3 decimaler = Precise).
+          update.push_lat = coarse(loc.coords.latitude)
+          update.push_lon = coarse(loc.coords.longitude)
+          lastSavedGeo = `${update.push_lat},${update.push_lon}`
         }
       }
     } catch { /* ignorera – plats är valfritt */ }
@@ -90,17 +92,23 @@ export async function registerForPush(): Promise<void> {
   } catch { /* tyst – notiser är en bonus, inte kritiskt */ }
 }
 
+// Avrundar till 2 decimaler (~1 km) så vi bara lagrar GROV plats. Det räcker för
+// väder och gör att appen ärligt kan deklareras som "Coarse Location" i App Store
+// (Apple: latitud/longitud med ≥3 decimaler räknas som Precise).
+function coarse(n: number): number { return Math.round(n * 100) / 100 }
+
 // Sparar användarens grova position på profilen (push_lat/push_lon) så servern
 // kan skicka väder-/regn-notiser. Anropas från hemskärmens väderhämtning, där vi
 // ändå har en färsk position. Dedupar så vi inte skriver vid varje flikfokus.
 let lastSavedGeo: string | null = null
 export async function savePushLocation(lat: number, lon: number): Promise<void> {
   try {
-    const key = `${lat.toFixed(3)},${lon.toFixed(3)}`
+    const rLat = coarse(lat), rLon = coarse(lon)
+    const key = `${rLat},${rLon}`
     if (key === lastSavedGeo) return
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { error } = await supabase.from('profiles').update({ push_lat: lat, push_lon: lon }).eq('id', user.id)
+    const { error } = await supabase.from('profiles').update({ push_lat: rLat, push_lon: rLon }).eq('id', user.id)
     if (!error) lastSavedGeo = key
   } catch { /* plats är valfritt – tyst */ }
 }
