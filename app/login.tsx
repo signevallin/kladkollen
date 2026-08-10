@@ -50,7 +50,7 @@ const COL_RIGHT = [210, 138, 226, 150]
 const { width: SCREEN_W } = Dimensions.get('window')
 
 export default function Login() {
-  const { t: tr } = useSettings()
+  const { t: tr, lang } = useSettings()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -92,7 +92,9 @@ export default function Login() {
     setLoading(true)
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password })
+        // Skicka med appspråket som metadata så bekräftelsemejlets mall kan
+        // väljas på rätt språk ({{ .Data.lang }} i Supabase-mallen).
+        const { error } = await supabase.auth.signUp({ email, password, options: { data: { lang } } })
         if (error) throw error
         await rememberMethod('email')
         showAlert(tr('Konto skapat!'), tr('Kolla din email för att verifiera ditt konto.'))
