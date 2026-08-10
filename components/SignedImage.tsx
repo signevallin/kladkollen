@@ -38,11 +38,17 @@ const RESIZE_TO_FIT: Record<ResizeMode, ImageContentFit> = {
  */
 export default function SignedImage({ path, style, flat, resizeMode, contentFit, transform, ...rest }: Props) {
   const t = useTheme()
+  // Supabase fakturerar per origin-bild som transformeras. Plaggminiatyrer använder
+  // format:'origin' – för dem hoppar vi över server-transformen helt och låter
+  // expo-image skala ner till vyns storlek på enheten (samma minnesvinst, ingen
+  // transform-kostnad). Avatarer (resize:'cover' utan format) behåller sin
+  // transform: de är få och beskärningen behövs.
+  const effTransform = transform?.format === 'origin' ? undefined : transform
   // Publik bucket → URL:en kan räknas ut synkront, så bilden får sin källa
   // direkt (ingen tom ruta + extra render per bild).
   const uri = useMemo(
-    () => (path ? imageUrl(path, transform) : null),
-    [path, transform?.width, transform?.height, transform?.resize, transform?.quality, transform?.format],
+    () => (path ? imageUrl(path, effTransform) : null),
+    [path, effTransform?.width, effTransform?.height, effTransform?.resize, effTransform?.quality, effTransform?.format],
   )
 
   if (!uri) return <View style={style} />

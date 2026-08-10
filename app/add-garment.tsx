@@ -37,7 +37,10 @@ import { EU_CHILD_SIZES } from '../utils/childSize'
 // Max bredd på lagrade/skickade bilder. En mobilbild är ofta 3000–4000 px;
 // 1400 px räcker gott för en telefonskärm och kapar filstorleken ~85–90 %.
 // Mindre bild = mindre lagring/bandbredd i Supabase + billigare AI-/Replicate-anrop.
-const MAX_IMAGE_WIDTH = 1400
+// Plaggbilderna visas nu utan server-transform (se SignedImage), så origin-
+// bilden laddas direkt. 1000 px räcker för miniatyrer, detaljvy och dela-kort
+// och håller nedladdningen liten.
+const MAX_IMAGE_WIDTH = 1000
 
 // Skalar ner (aldrig upp) och komprimerar till JPEG. Returnerar uri + base64.
 async function compressImage(uri: string, srcWidth?: number): Promise<{ uri: string; base64: string }> {
