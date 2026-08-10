@@ -319,7 +319,8 @@ export default function AddGarment() {
         }])
       }
       invalidateGarments()
-      toast(`${ready.length} ${ready.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`, 'Ligger nu i garderoben – med bild och bakgrunden borttagen.')
+      const addedMsg = (ready.length === 1 ? tr('{n} plagg tillagt!') : tr('{n} plagg tillagda!')).replace('{n}', String(ready.length))
+      toast(addedMsg, tr('Ligger nu i garderoben – med bild och bakgrunden borttagen.'))
       goBack(personParam ? `/wardrobe?person=${personParam}&personName=${encodeURIComponent(personName || '')}` : '/wardrobe')
     } catch (e: any) {
       showAlert(tr('Något gick fel'), e.message)

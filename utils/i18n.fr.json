@@ -1111,5 +1111,9 @@
  "Egna saker sparas och kommer tillbaka nästa resa.": "Tes propres articles sont enregistrés et reviennent au prochain voyage.",
  "Visa Dagens låt": "Afficher la chanson du jour",
  "Visar en matchande låt till dagens outfit på startsidan.": "Affiche une chanson assortie à la tenue du jour sur l’écran d’accueil.",
- "Ditt mest mångsidiga plagg: {name} – med i {n} olika outfits.": "Ta pièce la plus polyvalente : {name} – dans {n} tenues différentes."
+ "Ditt mest mångsidiga plagg: {name} – med i {n} olika outfits.": "Ta pièce la plus polyvalente : {name} – dans {n} tenues différentes.",
+ "{n} plagg tillagt!": "{n} vêtement ajouté !",
+ "{n} plagg tillagda!": "{n} vêtements ajoutés !",
+ "Du hittar dem på köplistan.": "Tu les trouveras dans ta liste d’envies.",
+ "Du hittar dem i garderoben – kolla gärna kategori och säsong.": "Tu les trouveras dans ta garde-robe – vérifie la catégorie et la saison."
 }
