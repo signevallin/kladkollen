@@ -179,9 +179,16 @@ export async function openaiChat(messages: any[], model: string, maxTokens: numb
 
 // Språknamn per kod – används för att bygga AI-instruktionen. Lägg till en rad
 // här när ett nytt språk läggs till i appen (klienten skickar `lang` i bodyn).
-const LANG_NAMES: Record<string, string> = {
+export const LANG_NAMES: Record<string, string> = {
   en: 'ENGLISH', de: 'GERMAN (Deutsch)', fr: 'FRENCH (français)',
   es: 'SPANISH (español)', it: 'ITALIAN (italiano)',
+}
+
+/** Språknamnet för en språkkod (default svenska). */
+export function langName(lang: unknown): string {
+  const code = String(lang || 'sv')
+  if (code === 'sv') return 'SWEDISH (svenska)'
+  return LANG_NAMES[code] || 'ENGLISH'
 }
 
 /**

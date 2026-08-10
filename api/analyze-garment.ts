@@ -1,4 +1,4 @@
-import { requireUser } from './_utils'
+import { langName, requireUser } from './_utils'
 import { CATEGORIES, COLOR_NAMES as COLORS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 
 export const config = { runtime: 'edge' }
@@ -7,16 +7,23 @@ const SUBCATEGORY_HINT = Object.entries(SUBCATEGORIES)
   .map(([cat, subs]) => `${cat}: ${subs.join(', ')}`)
   .join(' | ')
 
-const PROMPT = `Analysera plagget i bilden och svara ENDAST med ett JSON-objekt (inget annat):
+// Namnet skrivs på användarens språk; kategori/underkategori/färg/säsong MÅSTE
+// vara de exakta svenska enum-värdena (de är översättningsnycklar som visas via
+// tr() i appen), så de får INTE översättas av AI:n.
+function buildPrompt(lang: unknown): string {
+  const ln = langName(lang)
+  return `Analysera plagget i bilden och svara ENDAST med ett JSON-objekt (inget annat):
 {
-  "name": "kort beskrivande namn på svenska, t.ex. 'Svart ullkappa' eller 'Beige linnebyxor'",
+  "name": "kort beskrivande namn skrivet på ${ln} (färg + plaggtyp, t.ex. motsvarande 'Svart ullkappa')",
   "category": "EXAKT ett av: ${CATEGORIES.join(', ')}",
   "subcategory": "baserat på vald kategori, EXAKT ett av alternativen nedan (eller null om inget passar): ${SUBCATEGORY_HINT}",
   "color": "EXAKT ett av: ${COLORS.join(', ')}",
   "seasons": ["ett eller flera av: ${SEASONS.join(', ')}"]
 }
 
+VIKTIGT: Endast "name" ska vara på ${ln}. Fälten "category", "subcategory", "color" och "seasons" MÅSTE vara exakt de svenska värdena ur listorna ovan – översätt dem INTE.
 Välj den årstid som passar plaggets material och stil bäst. Om plagget passar hela året, använd ["Alla årstider"].`
+}
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
@@ -25,7 +32,7 @@ export default async function handler(request: Request): Promise<Response> {
   const auth = await requireUser(request)
   if (auth instanceof Response) return auth
   try {
-    const { base64 } = await request.json() as any
+    const { base64, lang } = await request.json() as any
     const key = process.env.ANTHROPIC_API_KEY
     if (!key) {
       return new Response(JSON.stringify({ error: 'API-nyckel saknas' }), { status: 500 })
@@ -44,7 +51,7 @@ export default async function handler(request: Request): Promise<Response> {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-            { type: 'text', text: PROMPT },
+            { type: 'text', text: buildPrompt(lang) },
           ],
         }],
       }),
