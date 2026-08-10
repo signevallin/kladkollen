@@ -70,6 +70,17 @@ type SettingsCtx = {
   tempLabel: (celsius: number) => string
 }
 
+// Läser telefonens språk (via Hermes Intl, inget extra beroende). Returnerar en
+// språkkod vi stödjer, annars 'sv' (default för hemmamarknaden).
+function detectDeviceLang(): Lang {
+  try {
+    const loc = Intl.DateTimeFormat().resolvedOptions().locale || ''
+    const code = loc.slice(0, 2).toLowerCase()
+    if (LANGS.some(x => x.code === code)) return code as Lang
+  } catch { /* ignorera – faller tillbaka på svenska */ }
+  return 'sv'
+}
+
 const Ctx = createContext<SettingsCtx | null>(null)
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -86,8 +97,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         if (c) setCurrencyState(c as CurrencyCode)
         const u = await AsyncStorage.getItem(TEMP_KEY)
         if (u === 'F' || u === 'C') setTempUnitState(u)
+        // Språk: uttryckligt val (sparat) vinner. Annars följer vi telefonens
+        // språk om vi stödjer det – så en engelsktalande som just installerat
+        // appen möts av engelska (och får bekräftelsemejlet på engelska).
         const l = await AsyncStorage.getItem(LANG_KEY)
-        if (l && LANGS.some(x => x.code === l)) { setLangState(l as Lang); setApiLang(l) }
+        if (l && LANGS.some(x => x.code === l)) {
+          setLangState(l as Lang); setApiLang(l)
+        } else {
+          const d = detectDeviceLang()
+          if (d !== 'sv') { setLangState(d); setApiLang(d) }
+        }
         const s = await AsyncStorage.getItem(SONG_KEY)
         if (s === '0') setShowDailySongState(false)
       } catch { /* behåll standard */ }
