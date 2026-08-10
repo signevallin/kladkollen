@@ -17,8 +17,38 @@ const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || ''
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || ''
 const API_KEY = Platform.OS === 'android' ? ANDROID_KEY : IOS_KEY
 
-// Namnet på entitlementet i RevenueCat som ger Premium.
+// Namnet på entitlementet i RevenueCat som ger Premium (äldre, enkel-nivå).
 export const PREMIUM_ENTITLEMENT = 'premium'
+
+// Prenumerationsnivåer. Högre nivå inkluderar lägre (i RevenueCat attacheras
+// lägre entitlements på högre produkter, så en Familj-köpare har alla tre).
+export type Tier = 'none' | 'single' | 'partner' | 'family'
+export const TIER_RANK: Record<Tier, number> = { none: 0, single: 1, partner: 2, family: 3 }
+export function tierAtLeast(tier: Tier, min: Tier): boolean { return TIER_RANK[tier] >= TIER_RANK[min] }
+
+// Entitlement-namn i RevenueCat per nivå.
+const ENT_SINGLE = 'single', ENT_PARTNER = 'partner', ENT_FAMILY = 'family'
+
+// Högsta aktiva nivån ur RevenueCats customerInfo.
+export function tierFromInfo(info: any): Tier {
+  try {
+    const active = info?.entitlements?.active || {}
+    if (active[ENT_FAMILY]) return 'family'
+    if (active[ENT_PARTNER]) return 'partner'
+    if (active[ENT_SINGLE]) return 'single'
+    if (active[PREMIUM_ENTITLEMENT]) return 'single' // ev. äldre enkel-entitlement
+  } catch { /* none */ }
+  return 'none'
+}
+
+// Reserv/serverkälla: härled nivå ur produkt-id (t.ex. "family_annual" → family).
+export function tierFromProductId(pid: string | null | undefined): Tier {
+  const s = (pid || '').toLowerCase()
+  if (!s) return 'none'
+  if (s.includes('family') || s.includes('familj')) return 'family'
+  if (s.includes('partner')) return 'partner'
+  return 'single' // känd betald produkt utan nivå-nyckel → minsta betalda nivå
+}
 
 export const purchasesAvailable = !!Purchases && !!API_KEY
 

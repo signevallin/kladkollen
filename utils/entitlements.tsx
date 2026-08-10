@@ -2,8 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from '../supabase'
 import {
   configurePurchases, getCustomerInfo, getPackages, identifyPurchases,
-  isProFromInfo, purchasePackage, restorePurchases, purchasesAvailable,
-  type PurchasePackage,
+  purchasePackage, restorePurchases, purchasesAvailable,
+  tierFromInfo, tierFromProductId, TIER_RANK,
+  type PurchasePackage, type Tier,
 } from './purchases'
 
 // Håll i synk med servern (api/_utils.ts FREE_AI_PER_WEEK).
@@ -11,7 +12,8 @@ export const FREE_AI_PER_WEEK = 3
 const WEEK_SECONDS = 7 * 24 * 60 * 60
 
 type EntitlementsCtx = {
-  isPro: boolean
+  isPro: boolean          // tier !== 'none' (bakåtkompatibelt: obegränsad AI m.m.)
+  tier: Tier              // 'none' | 'single' | 'partner' | 'family'
   loading: boolean
   packages: PurchasePackage[]
   purchasesAvailable: boolean
@@ -26,6 +28,7 @@ const Ctx = createContext<EntitlementsCtx | null>(null)
 
 export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const [isPro, setIsPro] = useState(false)
+  const [tier, setTier] = useState<Tier>('none')
   const [loading, setLoading] = useState(true)
   const [packages, setPackages] = useState<PurchasePackage[]>([])
   // Utgå från -1 (obegränsat/Premium) tills vi läst det riktiga värdet, så
@@ -35,16 +38,17 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const [creditsLeft, setCreditsLeft] = useState<number>(-1)
   const [purchasesDebug, setPurchasesDebug] = useState<string>(purchasesAvailable ? 'laddar…' : 'SDK/nyckel av')
 
-  // Läser pro-status ur databasen (entitlements.pro_until, satt av webhooken) –
-  // fungerar även utan native-modulen. Kombineras med RevenueCat om tillgängligt.
-  const readDbEntitlement = useCallback(async (): Promise<boolean> => {
+  // Läser nivå ur databasen (entitlements.pro_until + product_id, satt av
+  // webhooken) – fungerar även utan native-modulen. Kombineras med RevenueCat.
+  const readDbTier = useCallback(async (): Promise<Tier> => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return false
-      const { data } = await supabase.from('entitlements').select('pro_until').eq('user_id', user.id).maybeSingle()
+      if (!user) return 'none'
+      const { data } = await supabase.from('entitlements').select('pro_until, product_id').eq('user_id', user.id).maybeSingle()
       const until = data?.pro_until ? new Date(data.pro_until).getTime() : 0
-      return until > Date.now()
-    } catch { return false }
+      if (until <= Date.now()) return 'none'
+      return tierFromProductId((data as { product_id?: string | null } | null)?.product_id)
+    } catch { return 'none' }
   }, [])
 
   const readCredits = useCallback(async () => {
@@ -55,14 +59,15 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refresh = useCallback(async () => {
-    let pro = await readDbEntitlement()
+    let t = await readDbTier()
     if (purchasesAvailable) {
       const info = await getCustomerInfo()
-      if (info) pro = pro || isProFromInfo(info)
+      if (info) { const rc = tierFromInfo(info); if (TIER_RANK[rc] > TIER_RANK[t]) t = rc }
     }
-    setIsPro(pro)
+    setTier(t)
+    setIsPro(t !== 'none')
     await readCredits()
-  }, [readDbEntitlement, readCredits])
+  }, [readDbTier, readCredits])
 
   useEffect(() => {
     let alive = true
@@ -102,7 +107,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   return (
-    <Ctx.Provider value={{ isPro, loading, packages, purchasesAvailable, creditsLeft, purchasesDebug, refresh, purchase, restore }}>
+    <Ctx.Provider value={{ isPro, tier, loading, packages, purchasesAvailable, creditsLeft, purchasesDebug, refresh, purchase, restore }}>
       {children}
     </Ctx.Provider>
   )
