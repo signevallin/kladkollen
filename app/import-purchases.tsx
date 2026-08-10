@@ -253,8 +253,8 @@ export default function ImportPurchases() {
       invalidateGarments()
 
       toast(
-        `${chosen.length} ${chosen.length === 1 ? 'plagg tillagt' : 'plagg tillagda'}!`,
-        toWishlist ? 'Du hittar dem på köplistan.' : 'Du hittar dem i garderoben – kolla gärna kategori och säsong.',
+        (chosen.length === 1 ? tr('{n} plagg tillagt!') : tr('{n} plagg tillagda!')).replace('{n}', String(chosen.length)),
+        toWishlist ? tr('Du hittar dem på köplistan.') : tr('Du hittar dem i garderoben – kolla gärna kategori och säsong.'),
       )
       goBack('/wardrobe')
     } catch (e: any) {
