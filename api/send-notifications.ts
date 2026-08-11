@@ -227,7 +227,10 @@ export default async function handler(request: Request): Promise<Response> {
     .from('profiles')
     .select('id, push_token, notif_enabled, notif_prefs, push_lat, push_lon, last_notif_date')
     .not('push_token', 'is', null)
-    .eq('notif_enabled', true)
+    // Har push-token = användaren gav notistillstånd. registerForPush sätter inte
+    // notif_enabled, så den kan vara null (aldrig öppnat notisinställningarna) –
+    // behandla null som PÅ. Bara ett uttryckligt false stänger av.
+    .or('notif_enabled.is.null,notif_enabled.eq.true')
 
   const day = today()
   const slotTag = `${day}:${slot}`
