@@ -5,8 +5,15 @@ import { Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
+import { showAlert } from '../utils/alert'
 import AppleMusicBadge from './AppleMusicBadge'
 import SpotifyFullLogo from './SpotifyFullLogo'
+
+// Öppnar en länk säkert – Linking.openURL kan avvisa (t.ex. universal link som
+// inte kan lösas) och blev annars en ohanterad promise-rejektion i Sentry.
+async function openLink(url: string, onFail: () => void) {
+  try { await Linking.openURL(url) } catch { onFail() }
+}
 
 export type SongData = {
   title: string
@@ -75,7 +82,7 @@ export default function SongCard({ song }: { song: SongData }) {
         {song.appleMusicUrl ? (
           <TouchableOpacity
             style={styles.appleBadge}
-            onPress={() => Linking.openURL(song.appleMusicUrl!)}
+            onPress={() => openLink(song.appleMusicUrl!, () => showAlert(tr('Kunde inte öppna länken')))}
             accessibilityLabel="Lyssna på Apple Music"
             accessibilityRole="link"
           >
@@ -84,7 +91,7 @@ export default function SongCard({ song }: { song: SongData }) {
         ) : null}
         <TouchableOpacity
           style={styles.spotifyBadge}
-          onPress={() => Linking.openURL(`https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`)}
+          onPress={() => openLink(`https://open.spotify.com/search/${encodeURIComponent(`${song.title} ${song.artist}`)}`, () => showAlert(tr('Kunde inte öppna länken')))}
           accessibilityLabel="Lyssna på Spotify"
           accessibilityRole="link"
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}

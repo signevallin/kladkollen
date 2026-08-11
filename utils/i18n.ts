@@ -970,6 +970,7 @@ const enBySource: Dict = {
   'Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.': 'Automatically fetch items from your order history at H&M, Zalando and more.',
   'Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt': 'Forward order confirmations and the items are added automatically',
   'Dagens låt': 'Song of the day',
+  'Kunde inte öppna länken': 'Couldn’t open the link',
   'Skapad med Skrud · din digitala garderob': 'Made with Skrud · your digital wardrobe',
   'Kontrollera din uppkoppling och försök igen.': 'Check your connection and try again.',
   'Försök igen': 'Try again',
