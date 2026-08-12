@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Körs av Vercel Cron (morgon + kväll). Bygger en personlig notis per
-// användare utifrån deras garderob + väder och skickar via Expo Push.
+// Körs av Vercel Cron. Bygger en personlig notis per användare utifrån deras
+// garderob + väder och skickar via Expo Push. Stödjer slot=morning|evening,
+// men på Hobby-planen (max 2 cron-jobb, en körning/dygn) schemaläggs bara
+// morgon-sloten dagligen – kväll-sloten finns kvar för manuellt anrop eller
+// Vercel Pro. Kvällens "logga dagens outfit" täcks lokalt av utils/smartPush.
 // Edge-runtime (som resten av api/): handlern använder den webb-baserade
 // signaturen (request: Request) → new Response(). På nodejs-runtime får
 // handlern i stället (req, res) och kraschar direkt vid request.headers.get
