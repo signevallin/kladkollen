@@ -4,7 +4,11 @@ import { computeSizeReminders, type ReminderChild, type ReminderGarment } from '
 // Körs av Vercel Cron (veckovis). Räknar per hushåll ut vilka sparade barnkläder
 // som är redo att tas fram (spec §2) och skickar en veckodigest via Expo Push
 // till hushållets vuxna – så påminnelsen når även den som aldrig öppnar appen.
-// Node-runtime: behöver service role och loopar över hushåll.
+// Edge-runtime (som resten av api/): handlern använder webb-signaturen
+// (request: Request) → new Response(). Utan config default:ade den till
+// nodejs-runtime, där handlern får (req, res) i stället och kraschar direkt
+// (request.headers.get is not a function) → 100 % fel, aldrig levererad.
+export const config = { runtime: 'edge' }
 
 const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send'
 

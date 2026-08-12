@@ -2,10 +2,12 @@ import { createClient } from '@supabase/supabase-js'
 
 // Körs av Vercel Cron (morgon + kväll). Bygger en personlig notis per
 // användare utifrån deras garderob + väder och skickar via Expo Push.
-// Node-runtime (inte edge): behöver service role och loopar över användare.
-// maxDuration höjs så väder-/push-anropen hinner klart innan funktionen
-// dödas (annars skickas inga notiser alls – allt skickas i slutet av körningen).
-export const config = { runtime: 'nodejs', maxDuration: 60 }
+// Edge-runtime (som resten av api/): handlern använder den webb-baserade
+// signaturen (request: Request) → new Response(). På nodejs-runtime får
+// handlern i stället (req, res) och kraschar direkt vid request.headers.get
+// ("is not a function") → 100 % fel och noll notiser. Service role + fetch
+// fungerar på edge (samma mönster som delete-account/revenuecat-webhook).
+export const config = { runtime: 'edge' }
 
 type Garment = {
   id: string; name: string | null; brand: string | null; color: string | null
