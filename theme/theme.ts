@@ -68,7 +68,7 @@ export const darkColors: ThemeColors = {
   onPrimary: '#181009',
   primary: '#DBB48D',
   primaryActive: '#B8935F',
-  tan: '#6E5844',
+  tan: '#CFB59E',
   accent: '#33454F',
   border: 'rgba(245,233,223,0.16)',
   borderSoft: 'rgba(245,233,223,0.10)',
