@@ -10,7 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
 import { hydrateCache } from '../utils/cache'
 import { registerForPush } from '../utils/push'
-import { scheduleSmartPush } from '../utils/smartPush'
+import { scheduleSmartPush, scheduleLogReminder } from '../utils/smartPush'
 import { mirrorLocalTripToDb } from '../utils/trip'
 import { ONBOARDING_DONE_KEY } from './onboarding'
 import { ThemeProvider, useTheme, useThemeControl } from '../theme/ThemeProvider'
@@ -80,6 +80,8 @@ function RootLayout() {
     registerForPush()
     // Schemalägg om Smart Push (kalenderbaserad morgonnotis) för nästa morgon.
     scheduleSmartPush()
+    // Schemalägg om den fristående kvällspåminnelsen "logga dagens outfit".
+    scheduleLogReminder()
     // Spegla ev. lokal resa till molnet direkt vid start, så partnern kan se den
     // även om man aldrig öppnar Outfits-fliken.
     mirrorLocalTripToDb()

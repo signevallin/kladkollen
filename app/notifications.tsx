@@ -16,7 +16,7 @@ import type { Theme } from '../theme/theme'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { DEFAULT_PREFS, registerForPush, sendTestPush, type NotifPrefs } from '../utils/push'
-import { getSmartPushTime, isSmartPushEnabled, setSmartPushEnabled, setSmartPushTime } from '../utils/smartPush'
+import { getSmartPushTime, isSmartPushEnabled, setSmartPushEnabled, setSmartPushTime, setLogReminderEnabled } from '../utils/smartPush'
 import { useSettings } from '../utils/settings'
 
 const TIME_PRESETS = [
@@ -52,8 +52,12 @@ export default function NotificationsSettings() {
     if (!user) { setLoading(false); return }
     const { data } = await supabase.from('profiles').select('notif_enabled, notif_prefs').eq('id', user.id).single()
     if (data) {
-      setEnabled(data.notif_enabled ?? true)
-      setPrefs({ ...DEFAULT_PREFS, ...((data.notif_prefs as unknown as Partial<NotifPrefs>) || {}) })
+      const en = data.notif_enabled ?? true
+      const pf = { ...DEFAULT_PREFS, ...((data.notif_prefs as unknown as Partial<NotifPrefs>) || {}) }
+      setEnabled(en)
+      setPrefs(pf)
+      // Spegla logreminder-preferensen till den lokala kvällspåminnelsen.
+      setLogReminderEnabled(en && pf.logreminder)
     }
     setLoading(false)
   }
@@ -81,6 +85,8 @@ export default function NotificationsSettings() {
   async function toggleMaster(v: boolean) {
     setEnabled(v)
     persist(v, prefs)
+    // Kvällspåminnelsen följer huvudreglaget (och logreminder-preferensen).
+    setLogReminderEnabled(v && prefs.logreminder)
     if (v) {
       // Se till att vi har tillstånd + token när användaren slår på notiser.
       const perm = await Notifications.getPermissionsAsync()
@@ -98,6 +104,8 @@ export default function NotificationsSettings() {
     const next = { ...prefs, [key]: v }
     setPrefs(next)
     persist(enabled, next)
+    // "Logga dagens outfit" driver den lokala kvällspåminnelsen.
+    if (key === 'logreminder') setLogReminderEnabled(enabled && v)
   }
 
   const [testing, setTesting] = useState(false)

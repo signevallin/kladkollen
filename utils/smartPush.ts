@@ -20,6 +20,8 @@ const DEFAULT_MIN = 30
 const EVENING_REMINDER_HOUR = 16
 const EVENING_LOG_HOUR = 20              // "vad hade du på dig idag?"-påminnelsen
 const LOGGED_KEY = 'outfit_logged_date'  // YYYY-MM-DD (UTC) för senast loggade dag
+const LOG_TAG = 'logreminder'            // egen tag – helt fristående från Smart Push
+const LOG_ENABLED_KEY = 'logreminder_enabled' // lokal spegling av notif-pref
 const BG_TASK = 'smartpush-refresh'
 
 // Datumsträng i samma format som outfit_calendar använder (UTC), så
@@ -32,6 +34,7 @@ function dayStr(d: Date): string { return d.toISOString().split('T')[0] }
 TaskManager.defineTask(BG_TASK, async () => {
   try {
     await scheduleSmartPush()
+    await scheduleLogReminder()
     return BackgroundTask.BackgroundTaskResult.Success
   } catch {
     return BackgroundTask.BackgroundTaskResult.Failed
@@ -53,6 +56,14 @@ async function unregisterBackground(): Promise<void> {
       await BackgroundTask.unregisterTaskAsync(BG_TASK)
     }
   } catch { /* ignorera */ }
+}
+
+// Bakgrundsuppgiften delas av Smart Push och kvällspåminnelsen. Registrera den
+// om någon av dem är på, avregistrera bara när båda är av.
+async function syncBackground(): Promise<void> {
+  const anyOn = (await isSmartPushEnabled()) || (await isLogReminderEnabled())
+  if (anyOn) await registerBackground()
+  else await unregisterBackground()
 }
 
 // ── På/av + tid ─────────────────────────────────────────────────────
@@ -80,7 +91,7 @@ export async function setSmartPushEnabled(on: boolean): Promise<boolean> {
   if (!on) {
     await AsyncStorage.setItem(ENABLED_KEY, '0')
     await cancelSmartPush()
-    await unregisterBackground()
+    await syncBackground()
     return true
   }
   if (Platform.OS === 'web') return false
@@ -91,7 +102,7 @@ export async function setSmartPushEnabled(on: boolean): Promise<boolean> {
   if (!okNotif) return false
   await AsyncStorage.setItem(ENABLED_KEY, '1')
   await scheduleSmartPush()
-  await registerBackground()
+  await syncBackground()
   return true
 }
 
@@ -107,13 +118,65 @@ async function cancelSmartPush(): Promise<void> {
   } catch { /* ignorera */ }
 }
 
+// ── Fristående kvällspåminnelse "logga dagens outfit" ───────────────
+// Helt oberoende av Smart Push: egen på/av-flagga (speglar notif-preferensen
+// logreminder) och egen notis-tag. Kräver bara notistillstånd, inte kalender.
+
+export async function isLogReminderEnabled(): Promise<boolean> {
+  return (await AsyncStorage.getItem(LOG_ENABLED_KEY)) === '1'
+}
+
+// Slår på/av den lokala kvällspåminnelsen. Anropas från notisinställningarna
+// med (notiser på && logreminder-pref på).
+export async function setLogReminderEnabled(on: boolean): Promise<void> {
+  await AsyncStorage.setItem(LOG_ENABLED_KEY, on ? '1' : '0')
+  await scheduleLogReminder()
+  await syncBackground()
+}
+
+async function cancelLogReminder(): Promise<void> {
+  try {
+    const all = await Notifications.getAllScheduledNotificationsAsync()
+    for (const n of all) {
+      if ((n.content.data as any)?.tag === LOG_TAG) {
+        await Notifications.cancelScheduledNotificationAsync(n.identifier)
+      }
+    }
+  } catch { /* ignorera */ }
+}
+
+// Schemalägger kvällens påminnelse för närmaste kväll som inte passerat – men
+// bara om påminnelsen är på OCH den dagens outfit inte redan loggats.
+export async function scheduleLogReminder(): Promise<void> {
+  if (Platform.OS === 'web') return
+  try {
+    await cancelLogReminder()
+    if ((await AsyncStorage.getItem(LOG_ENABLED_KEY)) !== '1') return
+    const now = new Date()
+    const target = new Date()
+    target.setHours(EVENING_LOG_HOUR, 0, 0, 0)
+    if (target <= now) target.setDate(target.getDate() + 1) // kvällen har passerat → imorgon
+    const loggedDate = await AsyncStorage.getItem(LOGGED_KEY)
+    if (target > now && loggedDate !== dayStr(target)) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Vad hade du på dig idag? 📸',
+          body: 'Logga dagens outfit på 2 sekunder.',
+          data: { tag: LOG_TAG, route: '/my-outfit' },
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: target },
+      })
+    }
+  } catch { /* tyst – notiser är en bonus */ }
+}
+
 // Anropas när användaren loggar dagens outfit. Sätter dagens flagga och
-// schemalägger om, så kvällens "logga dagens outfit"-påminnelse för idag
-// avbokas direkt (i stället för att smälla in trots att man redan loggat).
+// schemalägger om, så kvällens påminnelse för idag avbokas direkt (i stället
+// för att smälla in trots att man redan loggat).
 export async function markOutfitLoggedToday(): Promise<void> {
   try {
     await AsyncStorage.setItem(LOGGED_KEY, dayStr(new Date()))
-    await scheduleSmartPush()
+    await scheduleLogReminder()
   } catch { /* best-effort – notiser är en bonus */ }
 }
 
@@ -161,24 +224,6 @@ export async function scheduleSmartPush(): Promise<void> {
           trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: eveningTrigger },
         })
       }
-    }
-
-    // Kvällens "vad hade du på dig idag?"-påminnelse. Schemaläggs för den
-    // närmaste kvällen som ännu inte passerat, MEN bara om den dagens outfit
-    // inte redan loggats (flaggan sätts av markOutfitLoggedToday vid loggning).
-    const logTarget = new Date()
-    logTarget.setHours(EVENING_LOG_HOUR, 0, 0, 0)
-    if (logTarget <= now) logTarget.setDate(logTarget.getDate() + 1) // kvällen har passerat → imorgon
-    const loggedDate = await AsyncStorage.getItem(LOGGED_KEY)
-    if (logTarget > now && loggedDate !== dayStr(logTarget)) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Vad hade du på dig idag? 📸',
-          body: 'Logga dagens outfit på 2 sekunder.',
-          data: { tag: TAG, route: '/my-outfit' },
-        },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: logTarget },
-      })
     }
   } catch { /* tyst – notiser är en bonus */ }
 }
