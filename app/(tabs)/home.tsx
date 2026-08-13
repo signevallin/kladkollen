@@ -23,6 +23,7 @@ import { OUTFIT_CONTEXTS, STYLE_RULES } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
 import { loadGarments } from '../../utils/garmentsStore'
 import { savePushLocation } from '../../utils/push'
+import { markOutfitLoggedToday } from '../../utils/smartPush'
 import { useSettings } from '../../utils/settings'
 import { loadPartner } from '../../utils/household'
 import OutfitShareCard from '../../components/OutfitShareCard'
@@ -758,6 +759,7 @@ export default function Home() {
       if (error) throw error
       const today = new Date().toISOString().split('T')[0]
       await supabase.from('outfit_calendar').upsert({ user_id: user?.id, outfit_id: outfitData.id, date: today }, { onConflict: 'user_id,date' })
+      markOutfitLoggedToday() // avboka kvällens logga-påminnelse
       // Räkna plaggen som använda idag – atomiskt via RPC (ingen läs+skriv-loop).
       if (garmentIds.length) await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
       // Lägg även sambons look på HENS kalender – ni går ju bort tillsammans.
@@ -845,6 +847,7 @@ export default function Home() {
         date: today,
       }, { onConflict: 'user_id,date' })
       if (calError) throw calError
+      markOutfitLoggedToday() // avboka kvällens logga-påminnelse
 
       const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
       // Räkna plaggen som använda idag – atomiskt via RPC (ingen läs+skriv-loop).

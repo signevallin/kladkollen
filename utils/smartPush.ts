@@ -18,7 +18,13 @@ const TAG = 'smartpush'
 const DEFAULT_HOUR = 7
 const DEFAULT_MIN = 30
 const EVENING_REMINDER_HOUR = 16
+const EVENING_LOG_HOUR = 20              // "vad hade du på dig idag?"-påminnelsen
+const LOGGED_KEY = 'outfit_logged_date'  // YYYY-MM-DD (UTC) för senast loggade dag
 const BG_TASK = 'smartpush-refresh'
+
+// Datumsträng i samma format som outfit_calendar använder (UTC), så
+// jämförelsen "har dagen loggats?" stämmer med det appen faktiskt sparar.
+function dayStr(d: Date): string { return d.toISOString().split('T')[0] }
 
 // ── Bakgrundsuppgift ────────────────────────────────────────────────
 // Definieras på modulnivå (körs vid import i _layout) så systemet kan väcka
@@ -101,6 +107,16 @@ async function cancelSmartPush(): Promise<void> {
   } catch { /* ignorera */ }
 }
 
+// Anropas när användaren loggar dagens outfit. Sätter dagens flagga och
+// schemalägger om, så kvällens "logga dagens outfit"-påminnelse för idag
+// avbokas direkt (i stället för att smälla in trots att man redan loggat).
+export async function markOutfitLoggedToday(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(LOGGED_KEY, dayStr(new Date()))
+    await scheduleSmartPush()
+  } catch { /* best-effort – notiser är en bonus */ }
+}
+
 // Schemalägger notiser för nästa morgon (idag om det fortfarande är före tiden).
 export async function scheduleSmartPush(): Promise<void> {
   if (Platform.OS === 'web') return
@@ -145,6 +161,24 @@ export async function scheduleSmartPush(): Promise<void> {
           trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: eveningTrigger },
         })
       }
+    }
+
+    // Kvällens "vad hade du på dig idag?"-påminnelse. Schemaläggs för den
+    // närmaste kvällen som ännu inte passerat, MEN bara om den dagens outfit
+    // inte redan loggats (flaggan sätts av markOutfitLoggedToday vid loggning).
+    const logTarget = new Date()
+    logTarget.setHours(EVENING_LOG_HOUR, 0, 0, 0)
+    if (logTarget <= now) logTarget.setDate(logTarget.getDate() + 1) // kvällen har passerat → imorgon
+    const loggedDate = await AsyncStorage.getItem(LOGGED_KEY)
+    if (logTarget > now && loggedDate !== dayStr(logTarget)) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Vad hade du på dig idag? 📸',
+          body: 'Logga dagens outfit på 2 sekunder.',
+          data: { tag: TAG, route: '/my-outfit' },
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: logTarget },
+      })
     }
   } catch { /* tyst – notiser är en bonus */ }
 }
