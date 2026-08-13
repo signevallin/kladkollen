@@ -43,14 +43,21 @@ export default async function handler(request: Request): Promise<Response> {
     return json({ error: 'Otillåten länk' }, 400)
   }
 
+  // Timeout på det utgående anropet: många butikssidor är långsamma eller
+  // bot-skyddade och hänger annars tills hela funktionen dödas av plattformen
+  // (→ 504, "det tog för lång tid"). Avbryt i tid och svara med tydligt fel.
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 12000)
   try {
     const r = await fetch(target.toString(), {
+      redirect: 'follow',
+      signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         'Accept': 'text/html,application/xhtml+xml',
       },
     })
-    if (!r.ok) return json({ error: `Kunde inte hämta sidan (${r.status})` }, 502)
+    if (!r.ok) return json({ error: `Kunde inte hämta sidan (${r.status}). Vissa butiker blockerar automatisk hämtning – fyll i manuellt.` }, 502)
     const html = (await r.text()).slice(0, 400000)
 
     const name = meta(html, 'og:title') || decodeEntities((html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || '').trim()) || null
@@ -63,6 +70,11 @@ export default async function handler(request: Request): Promise<Response> {
       price: price ? price.slice(0, 30) : null,
     })
   } catch (e: any) {
+    if (e?.name === 'AbortError') {
+      return json({ error: 'Sidan svarade för långsamt. Prova en annan länk eller fyll i manuellt.' }, 504)
+    }
     return json({ error: 'Kunde inte hämta länken. Kontrollera att den är korrekt.' }, 502)
+  } finally {
+    clearTimeout(timeout)
   }
 }

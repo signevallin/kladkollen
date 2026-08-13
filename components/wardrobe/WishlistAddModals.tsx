@@ -77,7 +77,14 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
       setUrl('')
       setShowForm(true)
     } catch (e: any) {
-      showAlert(tr('Kunde inte hämta länken'), e.message || tr('Försök med en annan länk.'))
+      // Kunde inte hämta automatiskt (långsam/bot-skyddad butik). Hamna inte i
+      // en återvändsgränd – öppna manuella formuläret med länken sparad så
+      // användaren kan fylla i namn/bild själv.
+      setLink(u)
+      setShowUrl(false)
+      setUrl('')
+      setShowForm(true)
+      showAlert(tr('Kunde inte hämta länken automatiskt'), tr('Fyll i namn och bild manuellt – länken är sparad.'))
     } finally {
       setFetchingUrl(false)
     }
