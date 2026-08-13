@@ -35,6 +35,7 @@ import { loadPartner } from '../../utils/household'
 import { geocodeDestination, fetchTripWeather, mirrorLocalTripToDb } from '../../utils/trip'
 import { useSettings } from '../../utils/settings'
 import { localeFor } from '../../utils/i18n'
+import { markOutfitLoggedToday } from '../../utils/smartPush'
 
 const STYLE_TAGS = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 // Måndagsstartade veckodagsetiketter + fullt månadsnamn på valt språk via Intl
@@ -278,6 +279,8 @@ export default function MyOutfits() {
         date,
       }, { onConflict: 'user_id,date' })
       if (error) throw error
+      // Loggar man för idag: avboka kvällens logga-påminnelse.
+      if (date === new Date().toISOString().split('T')[0]) markOutfitLoggedToday()
       // Att lägga en outfit på en dag räknas som att plaggen använts den dagen.
       await adjustGarmentWear(outfit.garment_ids || [], 1, date)
       ok = true
