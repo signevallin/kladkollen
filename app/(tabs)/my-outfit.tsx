@@ -1494,7 +1494,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tripIntro: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 16 },
   tripCalCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
   tripDayCell: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
-  tripDayInRange: { backgroundColor: '#DDE6ED' },
+  // Temaanpassad: t.accent är #DDE6ED i ljust läge (oförändrat) och en mörk ton
+  // i mörkt läge, så dagsiffrorna (t.textPrimary) syns i båda temana.
+  tripDayInRange: { backgroundColor: t.accent },
   tripDayEndpoint: { backgroundColor: t.primary, borderRadius: 8 },
   tripDayNum: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textPrimary },
   tripDayNumPast: { color: t.textFaint },
