@@ -52,7 +52,14 @@ export function tierFromProductId(pid: string | null | undefined): Tier {
 
 export const purchasesAvailable = !!Purchases && !!API_KEY
 
-export type PurchasePackage = { id: string; title: string; priceString: string; period?: string; raw: any }
+export type PurchasePackage = { id: string; productId: string; title: string; priceString: string; period?: string; raw: any }
+
+// Härleder nivå + period ur ett pakets produkt-id (t.ex. "skrud_family_annual").
+export function packageTier(pkg: PurchasePackage): Tier { return tierFromProductId(pkg.productId) }
+export function packageIsAnnual(pkg: PurchasePackage): boolean {
+  const s = `${pkg.productId} ${pkg.period || ''}`.toLowerCase()
+  return s.includes('annual') || s.includes('year') || s.includes('år')
+}
 
 let configured = false
 export function configurePurchases() {
@@ -95,6 +102,7 @@ export async function getPackages(): Promise<{ packages: PurchasePackage[]; debu
     if (!current) return { packages: [], debug: `ingen current offering (all: ${allCount})` }
     const packages: PurchasePackage[] = (current.availablePackages || []).map((p: any) => ({
       id: p.identifier,
+      productId: p.product?.identifier || '',
       title: p.product?.title || p.identifier,
       priceString: p.product?.priceString || '',
       period: p.packageType,

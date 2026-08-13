@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
+import { clip, getUserTier, json, langInstruction, openaiChat, parseAiJson, requireUser, tierMeets, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -10,6 +10,10 @@ export default async function handler(request: Request): Promise<Response> {
   }
   const auth = await requireUser(request)
   if (auth instanceof Response) return auth
+  // Garderobsanalys är en Premium-funktion (alla betalda nivåer).
+  if (!tierMeets(await getUserTier(request, auth.id), 'single')) {
+    return json({ error: 'Kräver Skrud Premium', code: 'premium_required' }, 402)
+  }
 
   try {
     const body = (await request.json()) as any

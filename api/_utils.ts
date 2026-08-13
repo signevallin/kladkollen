@@ -72,6 +72,47 @@ export async function requireUser(request: Request, opts?: { rateLimit?: boolean
   return user
 }
 
+// ── Prenumerationsnivåer (server-sidan) ────────────────────────────────────
+export type Tier = 'none' | 'single' | 'partner' | 'family'
+const SERVER_TIER_RANK: Record<Tier, number> = { none: 0, single: 1, partner: 2, family: 3 }
+
+// Måste hålla i synk med utils/purchases.tierFromProductId.
+function serverTierFromProductId(pid: string | null | undefined): Tier {
+  const s = (pid || '').toLowerCase()
+  if (!s) return 'none'
+  if (s.includes('family') || s.includes('familj')) return 'family'
+  if (s.includes('partner')) return 'partner'
+  return 'single'
+}
+
+/**
+ * Läser användarens nivå ur entitlements (RLS: egen rad). Kräver giltig
+ * pro_until. userId hämtas från requireUser. Returnerar 'none' om ingen/utgången.
+ */
+export async function getUserTier(request: Request, userId: string): Promise<Tier> {
+  try {
+    const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL
+    const anonKey = process.env.SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseUrl || !anonKey || !token) return 'none'
+    const res = await fetch(`${supabaseUrl}/rest/v1/entitlements?user_id=eq.${userId}&select=pro_until,product_id`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) return 'none'
+    const rows = (await res.json()) as { pro_until?: string | null; product_id?: string | null }[]
+    const row = Array.isArray(rows) ? rows[0] : null
+    if (!row?.pro_until || new Date(row.pro_until).getTime() <= Date.now()) return 'none'
+    return serverTierFromProductId(row.product_id)
+  } catch {
+    return 'none'
+  }
+}
+
+/** true om användarens nivå når minst `min`. */
+export function tierMeets(tier: Tier, min: Tier): boolean {
+  return SERVER_TIER_RANK[tier] >= SERVER_TIER_RANK[min]
+}
+
 // Gratis-AI-kvot per vecka. Premium-användare (giltig entitlement) räknas inte
 // och får alltid true (obegränsat) – det avgörs i RPC:n use_ai_credit, som är
 // den enda pålitliga källan (klienten kan inte skriva entitlements).

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { router } from 'expo-router'
 import { supabase } from '../../supabase'
 import { apiPost } from '../../utils/api'
 import { showAlert } from '../../utils/alert'
+import { useEntitlements } from '../../utils/entitlements'
 import { pickImageSmart } from '../../utils/imagePicker'
 import { useSettings } from '../../utils/settings'
 import { useTheme } from '../../theme/ThemeProvider'
@@ -39,6 +41,7 @@ export default function ColorAnalysis({ onAnalyzed }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
+  const { isPro } = useEntitlements()
 
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysisData | null>(null)
   const [analyzingColor, setAnalyzingColor] = useState(false)
@@ -75,6 +78,7 @@ export default function ColorAnalysis({ onAnalyzed }: Props) {
   }
 
   async function analyzeColor() {
+    if (!isPro) { router.push('/paywall'); return }
     if (inputMode === 'image' && !colorBase64) {
       showAlert(tr('Ladda upp en bild för att analysera din färgprofil')); return
     }
