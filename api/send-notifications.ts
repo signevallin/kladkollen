@@ -130,7 +130,8 @@ async function buildNotif(
       kind: 'rain',
       title: 'Det ser ut att bli regn idag ☔️',
       body: `${weather.rainChance}% risk för regn – glöm inte ${item}.`,
-      route: '/home',
+      // Öppna det utpekade regnplagget om vi hittade ett, annars hem.
+      route: raincoat ? `/garment-detail?id=${raincoat.id}` : '/home',
     }
   }
 
@@ -154,7 +155,7 @@ async function buildNotif(
         kind: 'rightweather',
         title: `Perfekt väder idag (${weather.temp}°C) 🌤`,
         body: `Äntligen läge för din ${describe(cand)} som legat orörd ett tag.`,
-        route: '/home',
+        route: `/garment-detail?id=${cand.id}`,
       }
     }
   }
@@ -171,7 +172,7 @@ async function buildNotif(
         kind: 'forgotten',
         title: 'Glömd skatt i garderoben ✨',
         body: `Din ${describe(forgotten)} ${when}. Ska vi styla den idag?`,
-        route: '/home',
+        route: `/garment-detail?id=${forgotten.id}`,
       }
     }
   }
