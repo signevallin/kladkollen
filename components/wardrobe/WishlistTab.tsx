@@ -12,7 +12,6 @@ import type { Theme } from '../../theme/theme'
 // header-filter), så det stora render-blocket flyttar ut ur skärmen.
 type Props = {
   wishlist: any[]
-  outfitCounts: Record<string, number>
   cat: string
   color: string
   readOnly?: boolean
@@ -22,7 +21,7 @@ type Props = {
   onDelete: (item: any) => void
 }
 
-export default function WishlistTab({ wishlist, outfitCounts, cat, color, readOnly, onMove, onOpenLink, onBought, onDelete }: Props) {
+export default function WishlistTab({ wishlist, cat, color, readOnly, onMove, onOpenLink, onBought, onDelete }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, formatPrice } = useSettings()
@@ -54,7 +53,6 @@ export default function WishlistTab({ wishlist, outfitCounts, cat, color, readOn
             </View>
           ) : visible.map((item) => {
             const index = wishlist.indexOf(item)
-            const count = outfitCounts[item.id] || 0
             return (
               <TouchableOpacity key={item.id} style={styles.wishItem} onPress={() => { if (!readOnly) router.push(`/garment-detail?wishlistId=${item.id}`) }} activeOpacity={readOnly ? 1 : 0.8}>
                 {/* Ompriotering funkar bara i den ofiltrerade listan (index avser
@@ -87,11 +85,8 @@ export default function WishlistTab({ wishlist, outfitCounts, cat, color, readOn
                         <Text style={styles.wishMetaText}>{tr(item.color)}</Text>
                       </View>
                     ) : null}
-                    {item.season ? <Text style={styles.wishMetaText}>· {tr(item.season)}</Text> : null}
+                    {item.season ? <Text style={styles.wishMetaText}>· {item.season.split(', ').map((s: string) => tr(s)).join(', ')}</Text> : null}
                   </View>
-                  {count > 0 && (
-                    <View style={styles.outfitBadge}><Text style={styles.outfitBadgeText}>{count} outfit{count !== 1 ? 's' : ''}</Text></View>
-                  )}
                 </View>
                 <View style={styles.wishActions}>
                   {item.url ? (
@@ -148,8 +143,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   wishMetaText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
   wishColorMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   wishColorDot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: t.border },
-  outfitBadge: { marginTop: 4, alignSelf: 'flex-start', backgroundColor: t.surfaceMuted, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: t.border },
-  outfitBadgeText: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
   wishActions: { flexDirection: 'column', alignItems: 'flex-end', gap: 6 },
   buyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.primary, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 12 },
   buyBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 12 },

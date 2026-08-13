@@ -73,7 +73,6 @@ export default function Wardrobe() {
   const [forSale, setForSale] = useState<any[]>(() => cacheGet('wardrobe.forSale') ?? [])
   const [archived, setArchived] = useState<any[]>(() => cacheGet('wardrobe.archived') ?? [])
   const [wishlist, setWishlist] = useState<any[]>(() => cacheGet('wardrobe.wishlist') ?? [])
-  const [outfitCounts, setOutfitCounts] = useState<Record<string, number>>({})
   const [search, setSearch] = useState('')
   // Multi-select: tom mängd = "Alla" (inget filter). Man kan välja flera värden
   // per filter (t.ex. både Svart och Vit), och listan visar plagg som matchar
@@ -235,7 +234,6 @@ export default function Wardrobe() {
       .order('sort_order', { ascending: true })
     if (data) {
       setWishlist(data); cacheSet('wardrobe.wishlist', data)
-      fetchOutfitCounts(data)
     }
   }
 
@@ -258,22 +256,6 @@ export default function Wardrobe() {
     if (!user) return
     await supabase.from('profiles').upsert({ id: user.id, capsule_garment_ids: [...ids].join(',') })
     setCapsuleSaved(true)
-  }
-
-  async function fetchOutfitCounts(items: any[]) {
-    const { data: outfits } = await supabase.from('outfits').select('garment_names')
-    if (!outfits) return
-    const counts: Record<string, number> = {}
-    items.forEach(wishItem => {
-      counts[wishItem.id] = outfits.filter(o => {
-        const names: string[] = o.garment_names || []
-        return names.some(n =>
-          n.toLowerCase().includes(wishItem.name.toLowerCase()) ||
-          wishItem.name.toLowerCase().includes(n.toLowerCase())
-        )
-      }).length
-    })
-    setOutfitCounts(counts)
   }
 
   // Öppnar produktlänken (affiliate-spårad om konfigurerat) i in-app-webbläsaren.
@@ -825,7 +807,6 @@ export default function Wardrobe() {
       {activeTab === 'köp' && (
         <WishlistTab
           wishlist={wishlist}
-          outfitCounts={outfitCounts}
           cat={listCat}
           color={listColor}
           readOnly={readOnly}
