@@ -1123,5 +1123,7 @@
  "Mörk": "Oscuro",
  "Blond": "Rubio",
  "Undertone": "Subtono",
- "Kunde inte öppna länken": "No se pudo abrir el enlace"
+ "Kunde inte öppna länken": "No se pudo abrir el enlace",
+ "Kunde inte hämta länken automatiskt": "No se pudo obtener el enlace automáticamente",
+ "Fyll i namn och bild manuellt – länken är sparad.": "Añade el nombre y la imagen manualmente: el enlace está guardado."
 }
