@@ -143,7 +143,10 @@ export default function Wardrobe() {
     // cachen så min egen garderob inte skrivs över.
     if (isPartner) {
       const { data } = await supabase.rpc('partner_garments', { target: partner })
-      const mine = data || []
+      // Bara partnerns EGNA plagg (person_id null) – deras barn-/personplagg
+      // ligger i respektive persons garderob, precis som i ägarens egen vy.
+      // Annars räknas de dubbelt och partnervyn visar fler plagg än ägaren ser.
+      const mine = (data || []).filter(g => !g.person_id)
       setGarments(mine.filter(g => !g.archived && !g.for_sale))
       setForSale(mine.filter(g => g.for_sale))
       setArchived(mine.filter(g => g.archived && !g.for_sale))
