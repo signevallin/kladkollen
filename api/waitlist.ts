@@ -8,13 +8,16 @@ export const config = { runtime: 'edge' }
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
-  let email = '', source = 'landing', lang = 'sv', honeypot = ''
+  let email = '', source = 'landing', lang = 'sv', honeypot = '', stage: string | null = null
   try {
     const body = (await request.json()) as any
     email = String(body?.email || '').trim().toLowerCase()
     source = String(body?.source || 'landing').slice(0, 40)
     lang = String(body?.lang || 'sv').slice(0, 5)
     honeypot = String(body?.company || '')
+    // Livsskede: bara kända värden sparas, annars null.
+    const s = String(body?.stage || '').toLowerCase()
+    stage = (s === 'single' || s === 'couple' || s === 'family') ? s : null
   } catch {
     return json({ error: 'bad_request' }, 400)
   }
@@ -39,7 +42,7 @@ export default async function handler(request: Request): Promise<Response> {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal',
       },
-      body: JSON.stringify({ email, source, lang }),
+      body: JSON.stringify({ email, source, lang, stage }),
     })
     // 409 = redan på listan (unik e-post) → också ett lyckat resultat.
     if (!r.ok && r.status !== 409) return json({ error: 'server' }, 502)

@@ -7,8 +7,12 @@ create table if not exists waitlist (
   email      text not null unique,
   source     text,
   lang       text,
+  stage      text,  -- livsskede: single | couple | family (valfritt)
   created_at timestamptz not null default now()
 );
+
+-- Om tabellen redan fanns (skapad innan stage-kolumnen lades till):
+alter table waitlist add column if not exists stage text;
 
 alter table waitlist enable row level security;
 -- Medvetet inga policies: bara service role (edge-funktionen) når tabellen.

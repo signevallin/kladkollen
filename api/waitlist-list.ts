@@ -24,17 +24,20 @@ export default async function handler(request: Request): Promise<Response> {
   if (!supabaseUrl || !serviceKey) return new Response('Missing config', { status: 500 })
 
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/waitlist?select=email,source,lang,created_at&order=created_at.desc`,
+    `${supabaseUrl}/rest/v1/waitlist?select=email,source,lang,stage,created_at&order=created_at.desc`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
   )
   if (!r.ok) return new Response('Kunde inte hämta väntelistan', { status: 502 })
-  const rows = (await r.json()) as { email: string; source: string | null; lang: string | null; created_at: string }[]
+  const rows = (await r.json()) as { email: string; source: string | null; lang: string | null; stage: string | null; created_at: string }[]
+
+  const stageLabel = (s: string | null) =>
+    s === 'single' ? 'Singel' : s === 'couple' ? 'Par' : s === 'family' ? 'Familj' : '–'
 
   // CSV-export
   if (url.searchParams.get('format') === 'csv') {
     const cell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
-    const csv = 'email,source,lang,created_at\n' +
-      rows.map(x => [x.email, x.source, x.lang, x.created_at].map(cell).join(',')).join('\n')
+    const csv = 'email,stage,source,lang,created_at\n' +
+      rows.map(x => [x.email, x.stage, x.source, x.lang, x.created_at].map(cell).join(',')).join('\n')
     return new Response(csv, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
@@ -46,10 +49,18 @@ export default async function handler(request: Request): Promise<Response> {
   const rowsHtml = rows.map((x, i) => `<tr>
     <td class="num">${i + 1}</td>
     <td>${esc(x.email)}</td>
+    <td class="mid">${esc(stageLabel(x.stage))}</td>
     <td class="mid">${esc(x.lang || '–')}</td>
     <td class="mid">${esc(x.source || '–')}</td>
     <td class="dim">${esc((x.created_at || '').slice(0, 16).replace('T', ' '))}</td>
   </tr>`).join('')
+
+  // Sammanfattning per livsskede.
+  const counts = { single: 0, couple: 0, family: 0, none: 0 }
+  for (const x of rows) counts[(x.stage as 'single' | 'couple' | 'family') || 'none']++
+  const summary = rows.length
+    ? ` · Singel ${counts.single} · Par ${counts.couple} · Familj ${counts.family}${counts.none ? ` · Ej angett ${counts.none}` : ''}`
+    : ''
 
   const csvHref = `/api/waitlist-list?key=${encodeURIComponent(key)}&format=csv`
 
@@ -77,10 +88,10 @@ export default async function handler(request: Request): Promise<Response> {
 </style></head><body>
 <div class="wrap">
   <h1>Väntelista</h1>
-  <p class="meta"><span class="count">${rows.length}</span> anmälda · sorterat nyast först</p>
+  <p class="meta"><span class="count">${rows.length}</span> anmälda${summary}</p>
   ${rows.length ? `<a class="btn" href="${csvHref}">⬇︎ Ladda ner CSV</a>
   <table>
-    <thead><tr><th>#</th><th>E-post</th><th>Språk</th><th>Källa</th><th>Datum</th></tr></thead>
+    <thead><tr><th>#</th><th>E-post</th><th>Skede</th><th>Språk</th><th>Källa</th><th>Datum</th></tr></thead>
     <tbody>${rowsHtml}</tbody>
   </table>` : `<div class="empty">Ingen har anmält sig ännu.</div>`}
 </div></body></html>`
