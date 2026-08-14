@@ -90,6 +90,7 @@ export default function GarmentDetail() {
   const [location, setLocation] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
+  const [link, setLink] = useState('') // produktlänk (bara köplistan)
   // Familjeläge: vem plagget tillhör + barnstorlek + hand-me-down-status.
   const [children, setChildren] = useState<Person[]>([])
   const [personId, setPersonId] = useState<string | null>(null)
@@ -134,6 +135,7 @@ export default function GarmentDetail() {
       setColor(data.color || '')
       setSeasons(data.season ? data.season.split(', ').filter(Boolean) : [])
       setPrice(data.price != null ? String(fromBaseSEK(data.price)) : '')
+      setLink(data.url || '')
       setImageUrl(data.image_url)
       setLoaded(true)
     }
@@ -177,6 +179,7 @@ export default function GarmentDetail() {
           subcategory: subcategory || null,
           color: color || null,
           season: seasons.join(', '),
+          url: link.trim() || null,
         }).eq('id', wishlistId)
         if (error) throw error
       } else {
@@ -225,7 +228,7 @@ export default function GarmentDetail() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [name, category, subcategory, color, seasons, size, fit, lendable, maternityFriendly, pausedPregnancy, location, brand, price, archiveReason, personId, sizeCm, familyStatus])
+  }, [name, category, subcategory, color, seasons, size, fit, lendable, maternityFriendly, pausedPregnancy, location, brand, price, link, archiveReason, personId, sizeCm, familyStatus])
 
   // Håll arkiv-badgen i synk med vald plats.
   useEffect(() => {
@@ -561,7 +564,7 @@ export default function GarmentDetail() {
           ))}
         </View>
 
-        {/* Pris – även på köplistan (för budget/överblick) */}
+        {/* Pris & länk – även på köplistan (för budget/överblick + köpknappen) */}
         {isWishlistItem && (
           <>
             <Text style={styles.label}>{tr('Pris')} ({currency})</Text>
@@ -572,6 +575,17 @@ export default function GarmentDetail() {
               value={price}
               onChangeText={setPrice}
               keyboardType="numeric"
+            />
+            <Text style={styles.label}>{tr('Länk till plagget')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="https://..."
+              placeholderTextColor={t.placeholder}
+              value={link}
+              onChangeText={setLink}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
             />
           </>
         )}
