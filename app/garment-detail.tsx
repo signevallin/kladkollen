@@ -114,10 +114,14 @@ export default function GarmentDetail() {
   const [cropUri, setCropUri] = useState<string | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Hämta när id/wishlistId finns. Vid djuplänk från en notis (särskilt kallstart)
+  // kan route-parametern dyka upp en tick EFTER att skärmen monterats – en
+  // engångseffekt med [] frågade då med undefined id → tom vy utan bild. Genom
+  // att bero på parametrarna (och hoppa över tomma) hämtas plagget när id kommit.
   useEffect(() => {
-    if (isWishlistItem) fetchWishlistItem()
-    else fetchGarment()
-  }, [])
+    if (isWishlistItem) { if (wishlistId) fetchWishlistItem() }
+    else if (id) fetchGarment()
+  }, [id, wishlistId, isWishlistItem])
   useEffect(() => { loadPartner().then(({ partner }) => setHasPartner(!!partner)) }, [])
 
   async function fetchWishlistItem() {
