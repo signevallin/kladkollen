@@ -1091,22 +1091,33 @@ export default function Home() {
         {/* Valfritt utgångsplagg/-set – generera outfit KRING ett plagg eller set */}
         <View style={styles.section}>
           {baseSet ? (
-            <View style={styles.optionRow}>
-              <View style={styles.optionLeft}>
-                <View style={styles.baseSetIcon}><Ionicons name="albums" size={18} color={t.primary} /></View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.optionText}>{tr('Utgår från set')}</Text>
-                  <Text style={styles.optionSub} numberOfLines={1}>{baseSet.name}</Text>
+            <View style={styles.baseSetCard}>
+              <View style={styles.baseSetTop}>
+                <View style={styles.optionLeft}>
+                  <View style={styles.baseSetIcon}><Ionicons name="albums" size={18} color={t.primary} /></View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.optionText}>{tr('Utgår från set')}</Text>
+                    <Text style={styles.optionSub} numberOfLines={1}>{baseSet.name}</Text>
+                  </View>
                 </View>
+                <TouchableOpacity
+                  onPress={() => setBaseSet(null)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityLabel={tr('Ta bort utgångsset')}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="close-circle" size={24} color={t.textSecondary} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => setBaseSet(null)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityLabel={tr('Ta bort utgångsset')}
-                accessibilityRole="button"
-              >
-                <Ionicons name="close-circle" size={24} color={t.textSecondary} />
-              </TouchableOpacity>
+              {baseSet.members?.length ? (
+                <View style={styles.baseSetThumbs}>
+                  {baseSet.members.map((m, i) => (
+                    m?.image_url
+                      ? <SignedImage key={i} path={m.image_url} style={styles.baseSetThumb} resizeMode="contain" transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                      : <View key={i} style={[styles.baseSetThumb, styles.baseThumbEmpty]} />
+                  ))}
+                </View>
+              ) : null}
             </View>
           ) : baseGarment ? (
             <View style={styles.optionRow}>
@@ -1502,6 +1513,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   baseThumb: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface },
   baseThumbEmpty: { borderWidth: 1, borderColor: t.border },
   baseSetIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
+  baseSetCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: t.border },
+  baseSetTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  baseSetThumbs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  baseSetThumb: { width: 46, height: 46, borderRadius: 10, backgroundColor: t.surface },
   swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   addItemBox: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center' },
   addItemCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
