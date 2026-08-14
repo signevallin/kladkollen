@@ -17,7 +17,7 @@ export default async function handler(request: Request): Promise<Response> {
     honeypot = String(body?.company || '')
     // Livsskede: bara kända värden sparas, annars null.
     const s = String(body?.stage || '').toLowerCase()
-    stage = (s === 'single' || s === 'couple' || s === 'family') ? s : null
+    stage = (s === 'single' || s === 'couple' || s === 'family' || s === 'pregnant') ? s : null
   } catch {
     return json({ error: 'bad_request' }, 400)
   }

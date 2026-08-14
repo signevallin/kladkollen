@@ -31,7 +31,7 @@ export default async function handler(request: Request): Promise<Response> {
   const rows = (await r.json()) as { email: string; source: string | null; lang: string | null; stage: string | null; created_at: string }[]
 
   const stageLabel = (s: string | null) =>
-    s === 'single' ? 'Singel' : s === 'couple' ? 'Par' : s === 'family' ? 'Familj' : '–'
+    s === 'single' ? 'Singel' : s === 'couple' ? 'Par' : s === 'family' ? 'Familj' : s === 'pregnant' ? 'Gravid' : '–'
 
   // CSV-export
   if (url.searchParams.get('format') === 'csv') {
@@ -56,10 +56,10 @@ export default async function handler(request: Request): Promise<Response> {
   </tr>`).join('')
 
   // Sammanfattning per livsskede.
-  const counts = { single: 0, couple: 0, family: 0, none: 0 }
-  for (const x of rows) counts[(x.stage as 'single' | 'couple' | 'family') || 'none']++
+  const counts = { single: 0, couple: 0, family: 0, pregnant: 0, none: 0 }
+  for (const x of rows) counts[(x.stage as 'single' | 'couple' | 'family' | 'pregnant') || 'none']++
   const summary = rows.length
-    ? ` · Singel ${counts.single} · Par ${counts.couple} · Familj ${counts.family}${counts.none ? ` · Ej angett ${counts.none}` : ''}`
+    ? ` · Singel ${counts.single} · Par ${counts.couple} · Familj ${counts.family} · Gravid ${counts.pregnant}${counts.none ? ` · Ej angett ${counts.none}` : ''}`
     : ''
 
   const csvHref = `/api/waitlist-list?key=${encodeURIComponent(key)}&format=csv`
