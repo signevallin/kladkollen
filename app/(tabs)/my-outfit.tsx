@@ -370,9 +370,6 @@ function isPast(date: Date) {
   const dispTrip = isPartner ? partnerTrip : tripResult
 
   // Outfit functions
-  // Taggen som visas/filtreras på: tillfället outfiten genererades för
-  // (mood/context, t.ex. "Jobb"/"Date") eller stilen den skapades med (style).
-  const tagOf = (o: any): string | null => o?.mood || o?.style || null
   // Filtret matchar mot tillfälle (mood/context) ELLER stil, så en och samma
   // rad räcker för både AI-genererade (tillfälle) och egenskapade (stil) outfits.
   const filteredOutfits = dispOutfits.filter(o => {
@@ -1084,9 +1081,6 @@ function isPast(date: Date) {
                         <Ionicons name="heart" size={16} color={t.danger} style={{ marginRight: 6 }} />
                       )}
                       <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
-                      {tagOf(outfit) && (
-                        <View style={styles.outfitTag}><Text style={styles.outfitTagText}>{tr(tagOf(outfit) as string)}</Text></View>
-                      )}
                     </View>
                     <View style={styles.outfitCardHeaderRight}>
                       {/* Läsläge: gilla partnerns outfit (❤). */}
@@ -1494,8 +1488,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   outfitCardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   outfitNameWrap: { flexDirection: 'row', alignItems: 'center', flexShrink: 1 },
   outfitName: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, flexShrink: 1 },
-  outfitTag: { backgroundColor: t.accent, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3, marginLeft: 8, flexShrink: 0 },
-  outfitTagText: { fontFamily: 'Poppins_600SemiBold', fontSize: 10, color: t.primary, letterSpacing: 0.3 },
   editLink: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.primary },
   outfitDate: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic' },
   outfitImages: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
