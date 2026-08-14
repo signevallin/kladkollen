@@ -5,12 +5,47 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Skrud — Din digitala garderob</title>
 <meta name="description" content="Skrud är din digitala garderob. Fota plaggen, låt AI skapa kompletta outfits utifrån vädret – för dig, paret och hela familjen.">
+<meta name="keywords" content="digital garderob, AI outfit, garderobsapp, outfit-app, capsule wardrobe, färganalys, väderbaserad outfit, familjegarderob, Skrud">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#FEFAF8">
+<meta name="author" content="Skrud">
 <link rel="canonical" href="https://skrud.app/">
+<link rel="icon" href="/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="apple-mobile-web-app-title" content="Skrud">
+
+<!-- Open Graph -->
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Skrud">
 <meta property="og:url" content="https://skrud.app/">
 <meta property="og:title" content="Skrud — Din digitala garderob">
 <meta property="og:description" content="Skrud är din digitala garderob. Fota plaggen, låt AI skapa kompletta outfits utifrån vädret – för dig, paret och hela familjen.">
+<meta property="og:image" content="https://skrud.app/icon.png">
+<meta property="og:locale" content="sv_SE">
+<meta property="og:locale:alternate" content="en_US">
+
+<!-- Twitter -->
 <meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Skrud — Din digitala garderob">
+<meta name="twitter:description" content="Fota plaggen, låt AI skapa kompletta outfits utifrån vädret – för dig, paret och hela familjen.">
+<meta name="twitter:image" content="https://skrud.app/icon.png">
+
+<!-- Strukturerad data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Skrud",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "iOS",
+  "url": "https://skrud.app/",
+  "image": "https://skrud.app/icon.png",
+  "description": "Skrud är din digitala garderob. Fota plaggen, låt AI skapa kompletta outfits utifrån vädret – för dig, paret och hela familjen.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "SEK" },
+  "publisher": { "@type": "Organization", "name": "Skrud", "url": "https://skrud.app/" }
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -70,9 +105,12 @@ img{display:block;max-width:100%;}
 #nav.scrolled{background:rgba(254,250,248,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:var(--border);box-shadow:0 2px 20px rgba(64,45,33,.06);}
 .nav-inner{max-width:1200px;margin:0 auto;padding:0 40px;height:72px;display:flex;align-items:center;gap:32px;}
 .nav-wordmark{font-family:'Poppins',sans-serif;font-size:21px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--brand-soft);text-decoration:none;}
-.nav-links{display:flex;gap:2px;margin-left:auto;}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.nav-links{display:flex;gap:2px;}
 .nav-link{font-family:'Poppins',sans-serif;color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:600;padding:8px 14px;border-radius:8px;transition:color .15s,background .15s;}
 .nav-link:hover{color:var(--brand);background:rgba(207,181,158,.18);}
+.lang-btn{font-family:'Poppins',sans-serif;background:transparent;color:var(--brand-soft);border:1px solid rgba(108,77,56,.28);padding:8px 13px;border-radius:999px;font-weight:700;font-size:12px;letter-spacing:.06em;cursor:pointer;transition:background .15s,color .15s;flex-shrink:0;}
+.lang-btn:hover{background:rgba(207,181,158,.18);color:var(--brand);}
 .btn-primary{font-family:'Poppins',sans-serif;background:var(--brand);color:#FEFAF8;border:none;padding:10px 22px;border-radius:999px;font-weight:700;font-size:14px;animation:cta-glow 2.8s ease-in-out infinite;transition:transform .15s,filter .15s;flex-shrink:0;text-decoration:none;display:inline-block;}
 .btn-primary:hover{transform:translateY(-2px) scale(1.025);filter:brightness(1.15);animation-play-state:paused;}
 .btn-ghost{font-family:'Poppins',sans-serif;background:transparent;color:var(--brand);border:1px solid rgba(108,77,56,.3);padding:17px 32px;border-radius:999px;font-weight:600;font-size:17px;transition:background .2s,border-color .2s,transform .15s;text-decoration:none;display:inline-block;}
@@ -138,6 +176,20 @@ img{display:block;max-width:100%;}
 .stat-num{font-family:'Poppins',sans-serif;font-size:52px;font-weight:800;color:var(--brand);letter-spacing:-.04em;line-height:1;}
 .stat-label{font-size:13px;color:var(--text-muted);margin-top:8px;font-weight:500;}
 
+/* WAITLIST */
+#waitlist{background:var(--bg);}
+.wl-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 auto;max-width:520px;}
+.wl-input{font-family:'Lora',Georgia,serif;flex:1;min-width:220px;padding:16px 20px;border-radius:999px;border:1px solid rgba(108,77,56,.28);background:var(--card);color:var(--brand);font-size:16px;outline:none;transition:border-color .15s,box-shadow .15s;}
+.wl-input:focus{border-color:var(--brand-soft);box-shadow:0 0 0 3px rgba(207,181,158,.25);}
+.wl-btn{font-family:'Poppins',sans-serif;background:var(--brand);color:#FEFAF8;border:none;padding:16px 34px;border-radius:999px;font-weight:700;font-size:16px;cursor:pointer;transition:transform .15s,filter .15s;flex-shrink:0;}
+.wl-btn:hover{transform:translateY(-2px) scale(1.02);filter:brightness(1.12);}
+.wl-btn:disabled{opacity:.6;cursor:default;transform:none;filter:none;}
+.wl-hp{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;}
+.wl-msg{font-family:'Poppins',sans-serif;font-size:15px;font-weight:600;margin-top:18px;min-height:22px;}
+.wl-msg.ok{color:#3E7A55;}
+.wl-msg.err{color:#9E2035;}
+.wl-note{font-size:13px;color:var(--text-dim);margin-top:14px;}
+
 /* FINAL CTA */
 #cta{position:relative;overflow:hidden;text-align:center;padding:120px 40px;background:var(--bg);}
 .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(221,230,237,.6) 0%,transparent 65%);pointer-events:none;}
@@ -147,7 +199,7 @@ img{display:block;max-width:100%;}
 /* FOOTER */
 .footer-inner{max-width:1200px;margin:0 auto;padding:48px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
 .footer-logo{font-family:'Poppins',sans-serif;font-size:19px;font-weight:700;color:var(--brand-soft);letter-spacing:.3em;text-transform:uppercase;margin-right:-.3em;}
-.footer-links{display:flex;gap:24px;}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap;}
 .footer-link{font-size:13px;color:var(--text-muted);text-decoration:none;transition:color .15s;}
 .footer-link:hover{color:var(--brand);}
 .footer-copy{font-size:12px;color:var(--text-dim);}
@@ -171,12 +223,15 @@ img{display:block;max-width:100%;}
 <nav id="nav">
   <div class="nav-inner">
     <a href="/" class="nav-wordmark">Skrud</a>
-    <div class="nav-links">
-      <a href="#features" class="nav-link">Funktioner</a>
-      <a href="#how" class="nav-link">Så fungerar det</a>
-      <a href="#management" class="nav-link">Hantering</a>
+    <div class="nav-right">
+      <div class="nav-links">
+        <a href="#features" class="nav-link" data-i18n="nav.features">Funktioner</a>
+        <a href="#how" class="nav-link" data-i18n="nav.how">Så fungerar det</a>
+        <a href="#management" class="nav-link" data-i18n="nav.management">Hantering</a>
+      </div>
+      <button id="langBtn" class="lang-btn" type="button" aria-label="Switch language">EN</button>
+      <a href="/login" class="btn-primary" data-i18n="nav.cta">Prova gratis</a>
     </div>
-    <a href="/login" class="btn-primary">Prova gratis</a>
   </div>
 </nav>
 
@@ -186,49 +241,43 @@ img{display:block;max-width:100%;}
   <div class="hero-inner">
     <div class="hero-badge">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6C4D38" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-      Din digitala garderob
+      <span data-i18n="hero.badge">Din digitala garderob</span>
     </div>
 
-    <h1 class="hero-h1">
-      <span class="word">Klä</span> <span class="word">dig</span> <span class="word">rätt,</span>
-      <br>
-      <span class="hero-h1-grad">
-        <span class="word">varje</span> <span class="word">dag.</span>
-      </span>
-    </h1>
+    <h1 class="hero-h1" data-i18n-html="hero.h1">Klä dig rätt,<br><span class="hero-h1-grad">varje dag.</span></h1>
 
-    <p class="hero-sub">Fota din garderob en gång. Skrud skapar kompletta outfits med AI utifrån dagens väder – för dig, för paret och för hela familjen.</p>
+    <p class="hero-sub" data-i18n="hero.sub">Fota din garderob en gång. Skrud skapar kompletta outfits med AI utifrån dagens väder – för dig, för paret och för hela familjen.</p>
 
     <div class="hero-cta">
-      <a href="/login" class="hero-btn-main">Kom igång gratis</a>
-      <a href="#how" class="btn-ghost">Se hur det funkar</a>
+      <a href="/login" class="hero-btn-main" data-i18n="hero.cta1">Kom igång gratis</a>
+      <a href="#how" class="btn-ghost" data-i18n="hero.cta2">Se hur det funkar</a>
     </div>
 
     <div style="position:relative;display:inline-block;">
       <div class="clothes-grid reveal">
         <div class="clothes-card float-a" style="transform:rotate(-4deg)">
           <div class="clothes-card-swatch" style="background:#8CA9C4;"></div>
-          <div class="clothes-card-name">Blå linneskjorta</div>
-          <div class="clothes-card-tag">Jobb · Sommar</div>
-          <span class="clothes-card-badge">AI-analyserad</span>
+          <div class="clothes-card-name" data-i18n="card1.name">Blå linneskjorta</div>
+          <div class="clothes-card-tag" data-i18n="card1.tag">Jobb · Sommar</div>
+          <span class="clothes-card-badge" data-i18n="card.badge">AI-analyserad</span>
         </div>
         <div class="clothes-card float-b" style="margin-top:28px">
           <div class="clothes-card-swatch" style="background:#26221E;"></div>
-          <div class="clothes-card-name">Svarta jeans</div>
-          <div class="clothes-card-tag">Vardaglig · Höst</div>
-          <span class="clothes-card-badge">AI-analyserad</span>
+          <div class="clothes-card-name" data-i18n="card2.name">Svarta jeans</div>
+          <div class="clothes-card-tag" data-i18n="card2.tag">Vardaglig · Höst</div>
+          <span class="clothes-card-badge" data-i18n="card.badge">AI-analyserad</span>
         </div>
         <div class="clothes-card float-c" style="transform:rotate(3deg)">
           <div class="clothes-card-swatch" style="background:#F3EEE9;box-shadow:inset 0 0 0 1px rgba(64,45,33,.14);"></div>
-          <div class="clothes-card-name">Vita sneakers</div>
-          <div class="clothes-card-tag">Accessoar · Alla</div>
-          <span class="clothes-card-badge">AI-analyserad</span>
+          <div class="clothes-card-name" data-i18n="card3.name">Vita sneakers</div>
+          <div class="clothes-card-tag" data-i18n="card3.tag">Accessoar · Alla</div>
+          <span class="clothes-card-badge" data-i18n="card.badge">AI-analyserad</span>
         </div>
       </div>
-      <div class="ai-tag float-a" style="position:absolute;top:-16px;right:-70px;animation-delay:.8s">
+      <div class="ai-tag float-a" style="position:absolute;top:-16px;right:-70px;animation-delay:.8s" data-i18n="aitag1">
         15°C · Lätt skjorta rekommenderas
       </div>
-      <div class="ai-tag float-b" style="position:absolute;bottom:10px;left:-90px;animation-delay:1.3s">
+      <div class="ai-tag float-b" style="position:absolute;bottom:10px;left:-90px;animation-delay:1.3s" data-i18n="aitag2">
         Outfit klar — 3 plagg matchade
       </div>
     </div>
@@ -237,78 +286,78 @@ img{display:block;max-width:100%;}
 
 <div class="marquee-wrap">
   <div class="marquee-track">
-    <span class="marquee-item"><span class="marquee-dot"></span>AI-analys</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Outfit-generering</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Väder hela dagen</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Regnpåminnelser</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Familjegarderob</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Set som hör ihop</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Tvätt-koll</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Capsule Wardrobe</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Personlig färgpalett</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Digital garderob</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>AI-analys</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Outfit-generering</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Väder hela dagen</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Regnpåminnelser</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Familjegarderob</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Set som hör ihop</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Tvätt-koll</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Capsule Wardrobe</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Personlig färgpalett</span>
-    <span class="marquee-item"><span class="marquee-dot"></span>Digital garderob</span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.1">AI-analys</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.2">Outfit-generering</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.3">Väder hela dagen</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.4">Regnpåminnelser</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.5">Familjegarderob</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.6">Set som hör ihop</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.7">Tvätt-koll</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.8">Capsule Wardrobe</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.9">Personlig färgpalett</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.10">Digital garderob</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.1">AI-analys</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.2">Outfit-generering</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.3">Väder hela dagen</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.4">Regnpåminnelser</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.5">Familjegarderob</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.6">Set som hör ihop</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.7">Tvätt-koll</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.8">Capsule Wardrobe</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.9">Personlig färgpalett</span></span>
+    <span class="marquee-item"><span class="marquee-dot"></span><span data-i18n="marq.10">Digital garderob</span></span>
   </div>
 </div>
 
 <div id="features" style="background:var(--bg);">
   <div class="section">
     <div class="reveal">
-      <div class="section-label">Funktioner</div>
-      <h2 class="section-h2">En hel stylist.<br>I din telefon.</h2>
-      <p class="section-sub">Allt du behöver för att alltid ha koll på vad du äger — och alltid ha något att ha på dig.</p>
+      <div class="section-label" data-i18n="feat.label">Funktioner</div>
+      <h2 class="section-h2" data-i18n-html="feat.h2">En hel stylist.<br>I din telefon.</h2>
+      <p class="section-sub" data-i18n="feat.sub">Allt du behöver för att alltid ha koll på vad du äger — och alltid ha något att ha på dig.</p>
     </div>
     <div class="features-grid">
       <div class="feat-card reveal" style="transition-delay:.05s">
         <div class="feat-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </div>
-        <div class="feat-title">AI-analys av plagg</div>
-        <p class="feat-desc">Fotografera ett plagg så fyller AI i namn, kategori, färg och säsong automatiskt — och tar bort bakgrunden på bilden. Inga formulär, ingen manuell inmatning.</p>
+        <div class="feat-title" data-i18n="feat1.title">AI-analys av plagg</div>
+        <p class="feat-desc" data-i18n="feat1.desc">Fotografera ett plagg så fyller AI i namn, kategori, färg och säsong automatiskt — och tar bort bakgrunden på bilden. Inga formulär, ingen manuell inmatning.</p>
       </div>
       <div class="feat-card reveal" style="transition-delay:.1s">
         <div class="feat-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg>
         </div>
-        <div class="feat-title">Outfit-generering</div>
-        <p class="feat-desc">Välj tillfälle — Jobb, Ledig eller Fest — och få en komplett outfit ur din egen garderob. Vill du kan du utgå från ett favoritplagg eller ett helt set.</p>
+        <div class="feat-title" data-i18n="feat2.title">Outfit-generering</div>
+        <p class="feat-desc" data-i18n="feat2.desc">Välj tillfälle — Jobb, Ledig eller Fest — och få en komplett outfit ur din egen garderob. Vill du kan du utgå från ett favoritplagg eller ett helt set.</p>
       </div>
       <div class="feat-card reveal" style="transition-delay:.15s">
         <div class="feat-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="13" x2="16" y2="21"/><line x1="8" y1="13" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="23"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>
         </div>
-        <div class="feat-title">Väder hela dagen</div>
-        <p class="feat-desc">AI:n tar hänsyn till hela dagens prognos — temperatur, väderomslag och risk för regn — och till hur snabbt du fryser. Ser det ut att bli regn får du en påminnelse att ta med regnjackan.</p>
+        <div class="feat-title" data-i18n="feat3.title">Väder hela dagen</div>
+        <p class="feat-desc" data-i18n="feat3.desc">AI:n tar hänsyn till hela dagens prognos — temperatur, väderomslag och risk för regn — och till hur snabbt du fryser. Ser det ut att bli regn får du en påminnelse att ta med regnjackan.</p>
       </div>
       <div class="feat-card reveal" style="transition-delay:.2s">
         <div class="feat-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <div class="feat-title">För hela familjen</div>
-        <p class="feat-desc">En garderob för alla faser i livet. Håll koll på din egen garderob, dela vardagen med din partner eller samla hela familjens kläder på ett ställe — samma app.</p>
+        <div class="feat-title" data-i18n="feat4.title">För hela familjen</div>
+        <p class="feat-desc" data-i18n="feat4.desc">En garderob för alla faser i livet. Håll koll på din egen garderob, dela vardagen med din partner eller samla hela familjens kläder på ett ställe — samma app.</p>
       </div>
       <div class="feat-card reveal" style="transition-delay:.25s">
         <div class="feat-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
-        <div class="feat-title">Set som hör ihop</div>
-        <p class="feat-desc">Länka plagg som hör ihop — kostymen, träningskläderna, bikinin — men styla dem gärna var för sig ändå. Ett tryck räcker för att bygga en outfit kring hela setet.</p>
+        <div class="feat-title" data-i18n="feat5.title">Set som hör ihop</div>
+        <p class="feat-desc" data-i18n="feat5.desc">Länka plagg som hör ihop — kostymen, träningskläderna, bikinin — men styla dem gärna var för sig ändå. Ett tryck räcker för att bygga en outfit kring hela setet.</p>
       </div>
       <div class="feat-card reveal" style="transition-delay:.3s">
         <div class="feat-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
         </div>
-        <div class="feat-title">Håll koll på tvätten</div>
-        <p class="feat-desc">Markera vad som ligger i tvätten så vet du alltid vad som är rent och redo. När allt är tvättat töms tvätten med ett tryck.</p>
+        <div class="feat-title" data-i18n="feat6.title">Håll koll på tvätten</div>
+        <p class="feat-desc" data-i18n="feat6.desc">Markera vad som ligger i tvätten så vet du alltid vad som är rent och redo. När allt är tvättat töms tvätten med ett tryck.</p>
       </div>
     </div>
   </div>
@@ -317,24 +366,24 @@ img{display:block;max-width:100%;}
 <div id="how" style="background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
   <div class="section">
     <div class="reveal">
-      <div class="section-label">Så fungerar det</div>
-      <h2 class="section-h2">Tre steg till<br>din perfekta outfit.</h2>
+      <div class="section-label" data-i18n="how.label">Så fungerar det</div>
+      <h2 class="section-h2" data-i18n-html="how.h2">Tre steg till<br>din perfekta outfit.</h2>
     </div>
     <div class="steps-grid">
       <div class="reveal" style="transition-delay:.05s">
         <div class="step-num">01</div>
-        <div class="step-title">Fotografera dina kläder</div>
-        <p class="step-desc">Ta ett foto på ett plagg. AI identifierar det direkt och sparar det i din digitala garderob med namn, kategori, färg och säsong.</p>
+        <div class="step-title" data-i18n="step1.title">Fotografera dina kläder</div>
+        <p class="step-desc" data-i18n="step1.desc">Ta ett foto på ett plagg. AI identifierar det direkt och sparar det i din digitala garderob med namn, kategori, färg och säsong.</p>
       </div>
       <div class="reveal" style="transition-delay:.1s">
         <div class="step-num">02</div>
-        <div class="step-title">Sätt din stil</div>
-        <p class="step-desc">Berätta om din livsstil och stilriktning. Gör en färganalys. Ju mer Skrud vet om dig, desto träffsäkrare blir förslagen.</p>
+        <div class="step-title" data-i18n="step2.title">Sätt din stil</div>
+        <p class="step-desc" data-i18n="step2.desc">Berätta om din livsstil och stilriktning. Gör en färganalys. Ju mer Skrud vet om dig, desto träffsäkrare blir förslagen.</p>
       </div>
       <div class="reveal" style="transition-delay:.15s">
         <div class="step-num">03</div>
-        <div class="step-title">Få din outfit</div>
-        <p class="step-desc">Välj Jobb, Ledig eller Fest och tryck på knappen. Skrud sätter ihop en komplett look ur din garderob — väderanpassad och stilren.</p>
+        <div class="step-title" data-i18n="step3.title">Få din outfit</div>
+        <p class="step-desc" data-i18n="step3.desc">Välj Jobb, Ledig eller Fest och tryck på knappen. Skrud sätter ihop en komplett look ur din garderob — väderanpassad och stilren.</p>
       </div>
     </div>
   </div>
@@ -343,9 +392,9 @@ img{display:block;max-width:100%;}
 <div id="management" style="background:var(--bg);">
   <div class="section">
     <div class="reveal">
-      <div class="section-label">Garderobshantering</div>
-      <h2 class="section-h2">Full koll.<br>Alltid.</h2>
-      <p class="section-sub">Mer än outfits — ett komplett system för hela din garderob.</p>
+      <div class="section-label" data-i18n="mgmt.label">Garderobshantering</div>
+      <h2 class="section-h2" data-i18n-html="mgmt.h2">Full koll.<br>Alltid.</h2>
+      <p class="section-sub" data-i18n="mgmt.sub">Mer än outfits — ett komplett system för hela din garderob.</p>
     </div>
     <div class="mgmt-grid">
       <div class="mgmt-card reveal" style="transition-delay:.05s">
@@ -353,8 +402,8 @@ img{display:block;max-width:100%;}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         </div>
         <div>
-          <div class="mgmt-title">Garderob</div>
-          <p class="mgmt-desc">Bläddra och filtrera dina plagg på kategori, färg, storlek och säsong. Hela garderoben alltid i fickan.</p>
+          <div class="mgmt-title" data-i18n="mgmt1.title">Garderob</div>
+          <p class="mgmt-desc" data-i18n="mgmt1.desc">Bläddra och filtrera dina plagg på kategori, färg, storlek och säsong. Hela garderoben alltid i fickan.</p>
         </div>
       </div>
       <div class="mgmt-card reveal" style="transition-delay:.08s">
@@ -362,8 +411,8 @@ img{display:block;max-width:100%;}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         </div>
         <div>
-          <div class="mgmt-title">Köplista</div>
-          <p class="mgmt-desc">Spara plagg du drömmer om och prioritera dem. Shoppa med intention, inte impuls.</p>
+          <div class="mgmt-title" data-i18n="mgmt2.title">Köplista</div>
+          <p class="mgmt-desc" data-i18n="mgmt2.desc">Spara plagg du drömmer om och prioritera dem. Shoppa med intention, inte impuls.</p>
         </div>
       </div>
       <div class="mgmt-card reveal" style="transition-delay:.11s">
@@ -371,8 +420,8 @@ img{display:block;max-width:100%;}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
         </div>
         <div>
-          <div class="mgmt-title">Arkiv med plats</div>
-          <p class="mgmt-desc">Arkivera plagg som inte passar just nu och ange var de finns — källaren, vinden eller förrådet. Inget försvinner.</p>
+          <div class="mgmt-title" data-i18n="mgmt3.title">Arkiv med plats</div>
+          <p class="mgmt-desc" data-i18n="mgmt3.desc">Arkivera plagg som inte passar just nu och ange var de finns — källaren, vinden eller förrådet. Inget försvinner.</p>
         </div>
       </div>
       <div class="mgmt-card reveal" style="transition-delay:.14s">
@@ -380,8 +429,8 @@ img{display:block;max-width:100%;}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
         </div>
         <div>
-          <div class="mgmt-title">Säljlista</div>
-          <p class="mgmt-desc">Märk plagg du vill sälja vidare. Markera som sålda och håll ordning på avslutade affärer.</p>
+          <div class="mgmt-title" data-i18n="mgmt4.title">Säljlista</div>
+          <p class="mgmt-desc" data-i18n="mgmt4.desc">Märk plagg du vill sälja vidare. Markera som sålda och håll ordning på avslutade affärer.</p>
         </div>
       </div>
     </div>
@@ -391,16 +440,16 @@ img{display:block;max-width:100%;}
 <div style="background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
   <div class="section colour-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;">
     <div class="reveal">
-      <div class="section-label">Stilanalys</div>
-      <h2 class="section-h2">Din personliga<br>färgpalett.</h2>
-      <p class="section-sub" style="margin-bottom:32px;">Ladda upp ett foto eller fyll i hudton, hårfärg och ögonfärg. Skrud ger dig en komplett palett med bas-, komplement- och accentfärger.</p>
-      <a href="/login" class="btn-primary" style="display:inline-block;padding:14px 28px;">Testa färganalysen</a>
+      <div class="section-label" data-i18n="colour.label">Stilanalys</div>
+      <h2 class="section-h2" data-i18n-html="colour.h2">Din personliga<br>färgpalett.</h2>
+      <p class="section-sub" data-i18n="colour.sub" style="margin-bottom:32px;">Ladda upp ett foto eller fyll i hudton, hårfärg och ögonfärg. Skrud ger dig en komplett palett med bas-, komplement- och accentfärger.</p>
+      <a href="/login" class="btn-primary" data-i18n="colour.btn" style="display:inline-block;padding:14px 28px;">Testa färganalysen</a>
     </div>
     <div class="reveal" style="transition-delay:.1s">
       <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px;box-shadow:0 12px 40px rgba(64,45,33,.08);">
-        <div style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;">Din palett</div>
+        <div data-i18n="colour.paletteTitle" style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;">Din palett</div>
         <div style="margin-bottom:20px;">
-          <div style="font-family:'Poppins',sans-serif;font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">BASFÄRGER</div>
+          <div data-i18n="colour.base" style="font-family:'Poppins',sans-serif;font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">BASFÄRGER</div>
           <div style="display:flex;gap:8px;">
             <div style="height:48px;flex:1;border-radius:10px;background:#402D21;"></div>
             <div style="height:48px;flex:1;border-radius:10px;background:#6C4D38;"></div>
@@ -409,7 +458,7 @@ img{display:block;max-width:100%;}
           </div>
         </div>
         <div style="margin-bottom:20px;">
-          <div style="font-family:'Poppins',sans-serif;font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">KOMPLEMENTFÄRGER</div>
+          <div data-i18n="colour.comp" style="font-family:'Poppins',sans-serif;font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">KOMPLEMENTFÄRGER</div>
           <div style="display:flex;gap:8px;">
             <div style="height:48px;flex:1;border-radius:10px;background:#8B5E52;"></div>
             <div style="height:48px;flex:1;border-radius:10px;background:#DDE6ED;"></div>
@@ -417,7 +466,7 @@ img{display:block;max-width:100%;}
           </div>
         </div>
         <div>
-          <div style="font-family:'Poppins',sans-serif;font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">ACCENTFÄRGER</div>
+          <div data-i18n="colour.accent" style="font-family:'Poppins',sans-serif;font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">ACCENTFÄRGER</div>
           <div style="display:flex;gap:8px;">
             <div style="height:48px;flex:1;border-radius:10px;background:#7A9E87;"></div>
             <div style="height:48px;flex:1;border-radius:10px;background:#9B7DB5;"></div>
@@ -431,24 +480,41 @@ img{display:block;max-width:100%;}
 <div class="stats-row reveal">
   <div class="stat-item">
     <div class="stat-num" data-count="10" data-suffix=" min">0</div>
-    <div class="stat-label">sparade per morgon</div>
+    <div class="stat-label" data-i18n="stat1.label">sparade per morgon</div>
   </div>
   <div class="stat-item">
     <div class="stat-num" data-count="15">0</div>
-    <div class="stat-label">basplagg räcker</div>
+    <div class="stat-label" data-i18n="stat2.label">basplagg räcker</div>
   </div>
   <div class="stat-item">
     <div class="stat-num" data-count="100" data-suffix="+">0</div>
-    <div class="stat-label">möjliga outfit-kombinationer</div>
+    <div class="stat-label" data-i18n="stat3.label">möjliga outfit-kombinationer</div>
   </div>
 </div>
+
+<section id="waitlist" style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--cream);">
+  <div class="section" style="text-align:center;max-width:640px;">
+    <div class="reveal">
+      <div class="section-label" data-i18n="wl.label">Väntelista</div>
+      <h2 class="section-h2" data-i18n-html="wl.h2">Var först in<br>när vi lanserar.</h2>
+      <p class="section-sub" data-i18n="wl.sub" style="margin:0 auto 32px;">Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.</p>
+      <form id="wlForm" class="wl-form" novalidate>
+        <input type="email" id="wlEmail" class="wl-input" required autocomplete="email" data-i18n-ph="wl.placeholder" placeholder="Din e-postadress" aria-label="E-post">
+        <input type="text" name="company" id="wlCompany" class="wl-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="wl-btn" data-i18n="wl.button">Gå med</button>
+      </form>
+      <p id="wlMsg" class="wl-msg" role="status" aria-live="polite"></p>
+      <p class="wl-note" data-i18n="wl.note">Vi mejlar bara när appen är redo. Ingen spam, avsluta när du vill.</p>
+    </div>
+  </div>
+</section>
 
 <section id="cta">
   <div class="cta-glow glow-orb"></div>
   <div style="position:relative;" class="reveal">
-    <h2 class="cta-h2">Din garderob<br><span style="background:linear-gradient(135deg,var(--brand-soft) 0%,var(--tan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">väntar på dig.</span></h2>
-    <p class="cta-sub">Börja bygga din digitala garderob idag. Gratis att komma igång — inga kortuppgifter krävs.</p>
-    <a href="/login" class="hero-btn-main">Kom igång gratis</a>
+    <h2 class="cta-h2" data-i18n-html="cta.h2">Din garderob<br><span class="hero-h1-grad">väntar på dig.</span></h2>
+    <p class="cta-sub" data-i18n="cta.sub">Börja bygga din digitala garderob idag. Gratis att komma igång — inga kortuppgifter krävs.</p>
+    <a href="/login" class="hero-btn-main" data-i18n="cta.btn">Kom igång gratis</a>
   </div>
 </section>
 
@@ -456,17 +522,163 @@ img{display:block;max-width:100%;}
   <div class="footer-inner">
     <div class="footer-logo">Skrud</div>
     <div class="footer-links">
-      <a href="/privacy" class="footer-link">Integritetspolicy</a>
-      <a href="/terms" class="footer-link">Villkor</a>
-      <a href="/support" class="footer-link">Support</a>
-      <a href="mailto:support@skrud.app" class="footer-link">Kontakt</a>
+      <a href="/privacy" class="footer-link" data-i18n="footer.privacy">Integritetspolicy</a>
+      <a href="/terms" class="footer-link" data-i18n="footer.terms">Villkor</a>
+      <a href="/support" class="footer-link" data-i18n="footer.support">Support</a>
+      <a href="mailto:support@skrud.app" class="footer-link" data-i18n="footer.contact">Kontakt</a>
     </div>
     <div class="footer-copy">© 2026 Elairis</div>
   </div>
 </div>
 
 <script>
-  // Scroll reveal
+  // ── i18n ─────────────────────────────────────────────────────────────
+  const T = {
+    sv: {
+      'meta.title': 'Skrud — Din digitala garderob',
+      'meta.desc': 'Skrud är din digitala garderob. Fota plaggen, låt AI skapa kompletta outfits utifrån vädret – för dig, paret och hela familjen.',
+      'nav.features': 'Funktioner', 'nav.how': 'Så fungerar det', 'nav.management': 'Hantering', 'nav.cta': 'Prova gratis',
+      'hero.badge': 'Din digitala garderob',
+      'hero.h1': 'Klä dig rätt,<br><span class="hero-h1-grad">varje dag.</span>',
+      'hero.sub': 'Fota din garderob en gång. Skrud skapar kompletta outfits med AI utifrån dagens väder – för dig, för paret och för hela familjen.',
+      'hero.cta1': 'Kom igång gratis', 'hero.cta2': 'Se hur det funkar',
+      'card1.name': 'Blå linneskjorta', 'card1.tag': 'Jobb · Sommar',
+      'card2.name': 'Svarta jeans', 'card2.tag': 'Vardaglig · Höst',
+      'card3.name': 'Vita sneakers', 'card3.tag': 'Accessoar · Alla',
+      'card.badge': 'AI-analyserad',
+      'aitag1': '15°C · Lätt skjorta rekommenderas', 'aitag2': 'Outfit klar — 3 plagg matchade',
+      'marq.1': 'AI-analys', 'marq.2': 'Outfit-generering', 'marq.3': 'Väder hela dagen', 'marq.4': 'Regnpåminnelser', 'marq.5': 'Familjegarderob', 'marq.6': 'Set som hör ihop', 'marq.7': 'Tvätt-koll', 'marq.8': 'Capsule Wardrobe', 'marq.9': 'Personlig färgpalett', 'marq.10': 'Digital garderob',
+      'feat.label': 'Funktioner', 'feat.h2': 'En hel stylist.<br>I din telefon.', 'feat.sub': 'Allt du behöver för att alltid ha koll på vad du äger — och alltid ha något att ha på dig.',
+      'feat1.title': 'AI-analys av plagg', 'feat1.desc': 'Fotografera ett plagg så fyller AI i namn, kategori, färg och säsong automatiskt — och tar bort bakgrunden på bilden. Inga formulär, ingen manuell inmatning.',
+      'feat2.title': 'Outfit-generering', 'feat2.desc': 'Välj tillfälle — Jobb, Ledig eller Fest — och få en komplett outfit ur din egen garderob. Vill du kan du utgå från ett favoritplagg eller ett helt set.',
+      'feat3.title': 'Väder hela dagen', 'feat3.desc': 'AI:n tar hänsyn till hela dagens prognos — temperatur, väderomslag och risk för regn — och till hur snabbt du fryser. Ser det ut att bli regn får du en påminnelse att ta med regnjackan.',
+      'feat4.title': 'För hela familjen', 'feat4.desc': 'En garderob för alla faser i livet. Håll koll på din egen garderob, dela vardagen med din partner eller samla hela familjens kläder på ett ställe — samma app.',
+      'feat5.title': 'Set som hör ihop', 'feat5.desc': 'Länka plagg som hör ihop — kostymen, träningskläderna, bikinin — men styla dem gärna var för sig ändå. Ett tryck räcker för att bygga en outfit kring hela setet.',
+      'feat6.title': 'Håll koll på tvätten', 'feat6.desc': 'Markera vad som ligger i tvätten så vet du alltid vad som är rent och redo. När allt är tvättat töms tvätten med ett tryck.',
+      'how.label': 'Så fungerar det', 'how.h2': 'Tre steg till<br>din perfekta outfit.',
+      'step1.title': 'Fotografera dina kläder', 'step1.desc': 'Ta ett foto på ett plagg. AI identifierar det direkt och sparar det i din digitala garderob med namn, kategori, färg och säsong.',
+      'step2.title': 'Sätt din stil', 'step2.desc': 'Berätta om din livsstil och stilriktning. Gör en färganalys. Ju mer Skrud vet om dig, desto träffsäkrare blir förslagen.',
+      'step3.title': 'Få din outfit', 'step3.desc': 'Välj Jobb, Ledig eller Fest och tryck på knappen. Skrud sätter ihop en komplett look ur din garderob — väderanpassad och stilren.',
+      'mgmt.label': 'Garderobshantering', 'mgmt.h2': 'Full koll.<br>Alltid.', 'mgmt.sub': 'Mer än outfits — ett komplett system för hela din garderob.',
+      'mgmt1.title': 'Garderob', 'mgmt1.desc': 'Bläddra och filtrera dina plagg på kategori, färg, storlek och säsong. Hela garderoben alltid i fickan.',
+      'mgmt2.title': 'Köplista', 'mgmt2.desc': 'Spara plagg du drömmer om och prioritera dem. Shoppa med intention, inte impuls.',
+      'mgmt3.title': 'Arkiv med plats', 'mgmt3.desc': 'Arkivera plagg som inte passar just nu och ange var de finns — källaren, vinden eller förrådet. Inget försvinner.',
+      'mgmt4.title': 'Säljlista', 'mgmt4.desc': 'Märk plagg du vill sälja vidare. Markera som sålda och håll ordning på avslutade affärer.',
+      'colour.label': 'Stilanalys', 'colour.h2': 'Din personliga<br>färgpalett.', 'colour.sub': 'Ladda upp ett foto eller fyll i hudton, hårfärg och ögonfärg. Skrud ger dig en komplett palett med bas-, komplement- och accentfärger.', 'colour.btn': 'Testa färganalysen',
+      'colour.paletteTitle': 'Din palett', 'colour.base': 'BASFÄRGER', 'colour.comp': 'KOMPLEMENTFÄRGER', 'colour.accent': 'ACCENTFÄRGER',
+      'stat1.label': 'sparade per morgon', 'stat2.label': 'basplagg räcker', 'stat3.label': 'möjliga outfit-kombinationer',
+      'wl.label': 'Väntelista', 'wl.h2': 'Var först in<br>när vi lanserar.', 'wl.sub': 'Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.', 'wl.placeholder': 'Din e-postadress', 'wl.button': 'Gå med', 'wl.note': 'Vi mejlar bara när appen är redo. Ingen spam, avsluta när du vill.',
+      'wl.success': 'Tack! Du står på väntelistan. 🎉', 'wl.invalid': 'Ange en giltig e-postadress.', 'wl.error': 'Något gick fel. Försök igen om en stund.',
+      'cta.h2': 'Din garderob<br><span class="hero-h1-grad">väntar på dig.</span>', 'cta.sub': 'Börja bygga din digitala garderob idag. Gratis att komma igång — inga kortuppgifter krävs.', 'cta.btn': 'Kom igång gratis',
+      'footer.privacy': 'Integritetspolicy', 'footer.terms': 'Villkor', 'footer.support': 'Support', 'footer.contact': 'Kontakt'
+    },
+    en: {
+      'meta.title': 'Skrud — Your digital wardrobe',
+      'meta.desc': 'Skrud is your digital wardrobe. Photograph your clothes and let AI build complete, weather-aware outfits — for you, your partner and the whole family.',
+      'nav.features': 'Features', 'nav.how': 'How it works', 'nav.management': 'Wardrobe tools', 'nav.cta': 'Try for free',
+      'hero.badge': 'Your digital wardrobe',
+      'hero.h1': 'Dress well,<br><span class="hero-h1-grad">every day.</span>',
+      'hero.sub': 'Photograph your wardrobe once. Skrud builds complete outfits with AI based on today’s weather — for you, for couples and for the whole family.',
+      'hero.cta1': 'Get started free', 'hero.cta2': 'See how it works',
+      'card1.name': 'Blue linen shirt', 'card1.tag': 'Work · Summer',
+      'card2.name': 'Black jeans', 'card2.tag': 'Casual · Autumn',
+      'card3.name': 'White sneakers', 'card3.tag': 'Accessory · All',
+      'card.badge': 'AI-analysed',
+      'aitag1': '15°C · Light shirt recommended', 'aitag2': 'Outfit ready — 3 items matched',
+      'marq.1': 'AI analysis', 'marq.2': 'Outfit generation', 'marq.3': 'All-day weather', 'marq.4': 'Rain reminders', 'marq.5': 'Family wardrobe', 'marq.6': 'Matching sets', 'marq.7': 'Laundry tracking', 'marq.8': 'Capsule wardrobe', 'marq.9': 'Personal colour palette', 'marq.10': 'Digital wardrobe',
+      'feat.label': 'Features', 'feat.h2': 'A whole stylist.<br>In your pocket.', 'feat.sub': 'Everything you need to always know what you own — and always have something to wear.',
+      'feat1.title': 'AI garment analysis', 'feat1.desc': 'Photograph a garment and AI fills in name, category, colour and season automatically — and removes the background. No forms, no manual entry.',
+      'feat2.title': 'Outfit generation', 'feat2.desc': 'Pick an occasion — Work, Casual or Party — and get a complete outfit from your own wardrobe. Start from a favourite garment or a whole set if you like.',
+      'feat3.title': 'All-day weather', 'feat3.desc': 'The AI factors in the whole day’s forecast — temperature, changing conditions and chance of rain — and how quickly you get cold. If rain is likely, you get a reminder to bring a jacket.',
+      'feat4.title': 'For the whole family', 'feat4.desc': 'One wardrobe for every stage of life. Keep track of your own, share everyday life with your partner, or gather the whole family’s clothes in one place — same app.',
+      'feat5.title': 'Matching sets', 'feat5.desc': 'Link garments that belong together — the suit, the gym kit, the bikini — but still style them separately. One tap builds an outfit around the whole set.',
+      'feat6.title': 'Keep track of laundry', 'feat6.desc': 'Mark what’s in the wash so you always know what’s clean and ready. When everything’s washed, clear the basket with one tap.',
+      'how.label': 'How it works', 'how.h2': 'Three steps to<br>your perfect outfit.',
+      'step1.title': 'Photograph your clothes', 'step1.desc': 'Take a photo of a garment. AI identifies it instantly and saves it to your digital wardrobe with name, category, colour and season.',
+      'step2.title': 'Set your style', 'step2.desc': 'Tell us about your lifestyle and style direction. Do a colour analysis. The more Skrud knows about you, the sharper the suggestions.',
+      'step3.title': 'Get your outfit', 'step3.desc': 'Choose Work, Casual or Party and tap the button. Skrud puts together a complete look from your wardrobe — weather-aware and elegant.',
+      'mgmt.label': 'Wardrobe management', 'mgmt.h2': 'Full control.<br>Always.', 'mgmt.sub': 'More than outfits — a complete system for your entire wardrobe.',
+      'mgmt1.title': 'Wardrobe', 'mgmt1.desc': 'Browse and filter your clothes by category, colour, size and season. Your whole wardrobe always in your pocket.',
+      'mgmt2.title': 'Wishlist', 'mgmt2.desc': 'Save garments you dream of and prioritise them. Shop with intention, not impulse.',
+      'mgmt3.title': 'Archive with location', 'mgmt3.desc': 'Archive garments that don’t fit right now and note where they are — the basement, the attic or storage. Nothing gets lost.',
+      'mgmt4.title': 'Sell list', 'mgmt4.desc': 'Mark garments you want to sell on. Mark them as sold and keep track of finished deals.',
+      'colour.label': 'Style analysis', 'colour.h2': 'Your personal<br>colour palette.', 'colour.sub': 'Upload a photo or enter your skin tone, hair and eye colour. Skrud gives you a complete palette with base, complementary and accent colours.', 'colour.btn': 'Try the colour analysis',
+      'colour.paletteTitle': 'Your palette', 'colour.base': 'BASE COLOURS', 'colour.comp': 'COMPLEMENTARY', 'colour.accent': 'ACCENT COLOURS',
+      'stat1.label': 'saved every morning', 'stat2.label': 'core items are enough', 'stat3.label': 'possible outfit combinations',
+      'wl.label': 'Waitlist', 'wl.h2': 'Be first in<br>when we launch.', 'wl.sub': 'Skrud is rolling out step by step. Leave your email and we’ll let you know the moment you can get started.', 'wl.placeholder': 'Your email address', 'wl.button': 'Join', 'wl.note': 'We’ll only email you when the app is ready. No spam, unsubscribe anytime.',
+      'wl.success': 'Thanks! You’re on the waitlist. 🎉', 'wl.invalid': 'Please enter a valid email address.', 'wl.error': 'Something went wrong. Please try again shortly.',
+      'cta.h2': 'Your wardrobe<br><span class="hero-h1-grad">is waiting for you.</span>', 'cta.sub': 'Start building your digital wardrobe today. Free to get started — no card details required.', 'cta.btn': 'Get started free',
+      'footer.privacy': 'Privacy policy', 'footer.terms': 'Terms', 'footer.support': 'Support', 'footer.contact': 'Contact'
+    }
+  };
+
+  function applyLang(lang) {
+    const dict = T[lang] || T.sv;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = dict[el.getAttribute('data-i18n')];
+      if (v != null) el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const v = dict[el.getAttribute('data-i18n-html')];
+      if (v != null) el.innerHTML = v;
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const v = dict[el.getAttribute('data-i18n-ph')];
+      if (v != null) el.setAttribute('placeholder', v);
+    });
+    if (dict['meta.title']) document.title = dict['meta.title'];
+    const md = document.querySelector('meta[name="description"]');
+    if (md && dict['meta.desc']) md.setAttribute('content', dict['meta.desc']);
+    const lb = document.getElementById('langBtn');
+    if (lb) lb.textContent = lang === 'sv' ? 'EN' : 'SV';
+    try { localStorage.setItem('skrud_lang', lang); } catch (e) {}
+  }
+
+  (function initLang() {
+    let saved = null;
+    try { saved = localStorage.getItem('skrud_lang'); } catch (e) {}
+    const nav = (navigator.language || 'sv').toLowerCase();
+    const initial = saved || (nav.startsWith('sv') ? 'sv' : 'en');
+    applyLang(initial);
+    const lb = document.getElementById('langBtn');
+    if (lb) lb.addEventListener('click', () => applyLang(document.documentElement.lang === 'sv' ? 'en' : 'sv'));
+  })();
+
+  // ── Väntelista ───────────────────────────────────────────────────────
+  const wlForm = document.getElementById('wlForm');
+  if (wlForm) {
+    wlForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const lang = document.documentElement.lang || 'sv';
+      const dict = T[lang] || T.sv;
+      const email = document.getElementById('wlEmail').value.trim();
+      const company = document.getElementById('wlCompany').value; // honeypot
+      const msg = document.getElementById('wlMsg');
+      const btn = wlForm.querySelector('.wl-btn');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        msg.textContent = dict['wl.invalid']; msg.className = 'wl-msg err'; return;
+      }
+      btn.disabled = true;
+      try {
+        const r = await fetch('/api/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, company, source: 'landing', lang })
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { msg.textContent = dict['wl.success']; msg.className = 'wl-msg ok'; wlForm.reset(); }
+        else if (d.error === 'invalid_email') { msg.textContent = dict['wl.invalid']; msg.className = 'wl-msg err'; }
+        else { msg.textContent = dict['wl.error']; msg.className = 'wl-msg err'; }
+      } catch (err) {
+        msg.textContent = dict['wl.error']; msg.className = 'wl-msg err';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  // ── Scroll reveal ────────────────────────────────────────────────────
   const observer = new IntersectionObserver(
     entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
     { threshold: 0.1 }
