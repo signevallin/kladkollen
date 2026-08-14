@@ -86,6 +86,9 @@ export default function MyOutfits() {
   }, [create])
   const [activeStyleFilter, setActiveStyleFilter] = useState('Alla')
   const [showOnlyLiked, setShowOnlyLiked] = useState(false)
+  // Filterraden i Outfits-fliken göms bakom en filterknapp i headern (som i
+  // garderoben) och visas när man trycker på den.
+  const [showOutfitFilter, setShowOutfitFilter] = useState(false)
 
   // Delning av en sparad outfit (samma dela-kort som på hemskärmen).
   const [sharing, setSharing] = useState(false)
@@ -934,7 +937,19 @@ function isPast(date: Date) {
             {/* Läsläge (partner) markeras med ett litet hänglås i stället för en textrad. */}
             {isPartner && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
           </View>
-          <PersonSwitcher scope="outfits" current={isPartner ? { kind: 'partner', id: partner } : { kind: 'me' }} />
+          <View style={styles.headerActions}>
+            {activeTab === 'outfits' && (
+              <TouchableOpacity
+                style={[styles.iconBtn, (showOutfitFilter || activeStyleFilter !== 'Alla' || showOnlyLiked) && styles.iconBtnActive]}
+                onPress={() => setShowOutfitFilter(v => !v)}
+                accessibilityLabel={tr('Filter')}
+                accessibilityRole="button"
+              >
+                <MaterialIcons name="tune" size={20} color={t.onPrimary} />
+              </TouchableOpacity>
+            )}
+            <PersonSwitcher scope="outfits" current={isPartner ? { kind: 'partner', id: partner } : { kind: 'me' }} />
+          </View>
         </View>
 
         <View style={styles.tabRow}>
@@ -1040,6 +1055,7 @@ function isPast(date: Date) {
         {/* OUTFITS */}
         {activeTab === 'outfits' && (
           <>
+            {showOutfitFilter && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, paddingHorizontal: 4 }}>
               <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 4 }}>
                 {partnerLikedIds.size > 0 && (
@@ -1058,6 +1074,7 @@ function isPast(date: Date) {
                 ))}
               </View>
             </ScrollView>
+            )}
 
             {dispOutfits.length === 0 ? (
               <View style={styles.empty}>
@@ -1393,6 +1410,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   titleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, flexShrink: 1 },
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
+  iconBtnActive: { backgroundColor: t.primaryActive, borderColor: t.primaryActive },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   iconBtnText: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textPrimary },
 
   tabRow: { flexDirection: 'row', gap: 8, marginBottom: 8 },
