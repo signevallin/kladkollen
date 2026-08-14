@@ -189,6 +189,11 @@ img{display:block;max-width:100%;}
 .wl-msg.ok{color:#3E7A55;}
 .wl-msg.err{color:#9E2035;}
 .wl-note{font-size:13px;color:var(--text-dim);margin-top:14px;}
+.wl-stage-label{font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px;}
+.wl-stage{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;}
+.wl-pill{font-family:'Poppins',sans-serif;background:var(--card);color:var(--brand-soft);border:1px solid rgba(108,77,56,.28);padding:9px 20px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.wl-pill:hover{border-color:var(--brand-soft);}
+.wl-pill.active{background:var(--brand);color:#FEFAF8;border-color:var(--brand);}
 
 /* FINAL CTA */
 #cta{position:relative;overflow:hidden;text-align:center;padding:120px 40px;background:var(--bg);}
@@ -497,7 +502,13 @@ img{display:block;max-width:100%;}
     <div class="reveal">
       <div class="section-label" data-i18n="wl.label">Väntelista</div>
       <h2 class="section-h2" data-i18n-html="wl.h2">Var först in<br>när vi lanserar.</h2>
-      <p class="section-sub" data-i18n="wl.sub" style="margin:0 auto 32px;">Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.</p>
+      <p class="section-sub" data-i18n="wl.sub" style="margin:0 auto 28px;">Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.</p>
+      <p class="wl-stage-label" data-i18n="wl.stageLabel">Var i livet är du?</p>
+      <div class="wl-stage" role="group" aria-label="Livsskede">
+        <button type="button" class="wl-pill" data-stage="single" data-i18n="wl.stageSingle">Singel</button>
+        <button type="button" class="wl-pill" data-stage="couple" data-i18n="wl.stageCouple">Par</button>
+        <button type="button" class="wl-pill" data-stage="family" data-i18n="wl.stageFamily">Familj</button>
+      </div>
       <form id="wlForm" class="wl-form" novalidate>
         <input type="email" id="wlEmail" class="wl-input" required autocomplete="email" data-i18n-ph="wl.placeholder" placeholder="Din e-postadress" aria-label="E-post">
         <input type="text" name="company" id="wlCompany" class="wl-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -568,6 +579,7 @@ img{display:block;max-width:100%;}
       'colour.paletteTitle': 'Din palett', 'colour.base': 'BASFÄRGER', 'colour.comp': 'KOMPLEMENTFÄRGER', 'colour.accent': 'ACCENTFÄRGER',
       'stat1.label': 'sparade per morgon', 'stat2.label': 'basplagg räcker', 'stat3.label': 'möjliga outfit-kombinationer',
       'wl.label': 'Väntelista', 'wl.h2': 'Var först in<br>när vi lanserar.', 'wl.sub': 'Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.', 'wl.placeholder': 'Din e-postadress', 'wl.button': 'Gå med', 'wl.note': 'Vi mejlar bara när appen är redo. Ingen spam, avsluta när du vill.',
+      'wl.stageLabel': 'Var i livet är du?', 'wl.stageSingle': 'Singel', 'wl.stageCouple': 'Par', 'wl.stageFamily': 'Familj',
       'wl.success': 'Tack! Du står på väntelistan. 🎉', 'wl.invalid': 'Ange en giltig e-postadress.', 'wl.error': 'Något gick fel. Försök igen om en stund.',
       'cta.h2': 'Din garderob<br><span class="hero-h1-grad">väntar på dig.</span>', 'cta.sub': 'Börja bygga din digitala garderob idag. Gratis att komma igång — inga kortuppgifter krävs.', 'cta.btn': 'Kom igång gratis',
       'footer.privacy': 'Integritetspolicy', 'footer.terms': 'Villkor', 'footer.support': 'Support', 'footer.contact': 'Kontakt'
@@ -606,6 +618,7 @@ img{display:block;max-width:100%;}
       'colour.paletteTitle': 'Your palette', 'colour.base': 'BASE COLOURS', 'colour.comp': 'COMPLEMENTARY', 'colour.accent': 'ACCENT COLOURS',
       'stat1.label': 'saved every morning', 'stat2.label': 'core items are enough', 'stat3.label': 'possible outfit combinations',
       'wl.label': 'Waitlist', 'wl.h2': 'Be first in<br>when we launch.', 'wl.sub': 'Skrud is rolling out step by step. Leave your email and we’ll let you know the moment you can get started.', 'wl.placeholder': 'Your email address', 'wl.button': 'Join', 'wl.note': 'We’ll only email you when the app is ready. No spam, unsubscribe anytime.',
+      'wl.stageLabel': 'Where are you in life?', 'wl.stageSingle': 'Single', 'wl.stageCouple': 'Couple', 'wl.stageFamily': 'Family',
       'wl.success': 'Thanks! You’re on the waitlist. 🎉', 'wl.invalid': 'Please enter a valid email address.', 'wl.error': 'Something went wrong. Please try again shortly.',
       'cta.h2': 'Your wardrobe<br><span class="hero-h1-grad">is waiting for you.</span>', 'cta.sub': 'Start building your digital wardrobe today. Free to get started — no card details required.', 'cta.btn': 'Get started free',
       'footer.privacy': 'Privacy policy', 'footer.terms': 'Terms', 'footer.support': 'Support', 'footer.contact': 'Contact'
@@ -646,6 +659,16 @@ img{display:block;max-width:100%;}
   })();
 
   // ── Väntelista ───────────────────────────────────────────────────────
+  let selectedStage = '';
+  document.querySelectorAll('.wl-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const s = pill.getAttribute('data-stage');
+      if (selectedStage === s) { selectedStage = ''; pill.classList.remove('active'); return; }
+      selectedStage = s;
+      document.querySelectorAll('.wl-pill').forEach(x => x.classList.toggle('active', x === pill));
+    });
+  });
+
   const wlForm = document.getElementById('wlForm');
   if (wlForm) {
     wlForm.addEventListener('submit', async (e) => {
@@ -664,7 +687,7 @@ img{display:block;max-width:100%;}
         const r = await fetch('/api/waitlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, company, source: 'landing', lang })
+          body: JSON.stringify({ email, company, source: 'landing', lang, stage: selectedStage || null })
         });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { msg.textContent = dict['wl.success']; msg.className = 'wl-msg ok'; wlForm.reset(); }
