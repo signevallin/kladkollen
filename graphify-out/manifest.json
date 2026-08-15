@@ -100,8 +100,8 @@
     "semantic_hash": ""
   },
   "api/generate-outfit.ts": {
-    "mtime": 1786800555.6126091,
-    "ast_hash": "633b794e32aaab4b65446b3a33660780",
+    "mtime": 1786801448.955388,
+    "ast_hash": "08b1fae7af70f01f26e82bd8af7144bb",
     "semantic_hash": ""
   },
   "api/inbound-email.ts": {
@@ -960,8 +960,8 @@
     "semantic_hash": ""
   },
   "app/child-outfit.tsx": {
-    "mtime": 1786800640.1446073,
-    "ast_hash": "e4734e7280db51fc27999bfed7a7c10d",
+    "mtime": 1786801470.2513876,
+    "ast_hash": "432919c683d4f27f48abe2526e804c38",
     "semantic_hash": ""
   },
   "components/PersonSwitcher.tsx": {
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "utils/outfit.ts": {
-    "mtime": 1786800484.0766108,
-    "ast_hash": "752d2b168016439723e621a4ff38e059",
+    "mtime": 1786801417.6233888,
+    "ast_hash": "0c1ade1a0372da57f02b54a7f459a0d5",
     "semantic_hash": ""
   },
   "utils/removeBg.ts": {
