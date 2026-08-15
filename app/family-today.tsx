@@ -39,6 +39,12 @@ type Member = {
 
 const LEDIG = OUTFIT_CONTEXTS[2] // vardaglig kontext för "dagens" outfit
 
+// Gate bakom Familj-nivån. Håll false tills Familj-abonnemanget faktiskt går
+// att köpa (produkterna sätts upp i tiered-paywall-grenen) – annars fastnar
+// alla på upsell-skärmen och kan inte testa funktionen. Sätt true vid lansering
+// av Familj-nivån (görs på tiered-paywall-grenen) för att gömma den bakom nivån.
+const REQUIRE_FAMILY_TIER = false
+
 function weatherEmoji(code: number): string {
   if (code === 0) return '☀️'
   if (code <= 3) return '⛅️'
@@ -64,7 +70,7 @@ export default function FamilyToday() {
   const styles = makeStyles(t)
   const { t: tr, lang, tempLabel } = useSettings()
   const { tier } = useEntitlements()
-  const entitled = tierAtLeast(tier, 'family')
+  const entitled = !REQUIRE_FAMILY_TIER || tierAtLeast(tier, 'family')
 
   const [members, setMembers] = useState<Member[]>([])
   const [myGarments, setMyGarments] = useState<any[]>([])
