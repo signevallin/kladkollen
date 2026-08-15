@@ -2141,7 +2141,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "app/(tabs)/my-outfit.tsx",
-      "source_location": "L1704",
+      "source_location": "L1801",
       "_origin": "ast",
       "id": "app_tabs_my_outfit_makestyles",
       "community": 42,
@@ -5664,8 +5664,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_dependencies_expo_apple_authentication",
-      "community": 137,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -5675,8 +5675,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "expo_apple_authentication",
-      "community": 137,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -5796,8 +5796,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "package_dependencies_expo_constants",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 137,
+      "community_name": "expo-constants",
       "norm_label": "expo-constants"
     },
     {
@@ -5807,8 +5807,8 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "expo_constants",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 137,
+      "community_name": "expo-constants",
       "norm_label": "expo-constants"
     },
     {
@@ -13777,7 +13777,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/pack-trip.ts",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0,
       "_origin": "ast",
       "source": "api_pack_trip_handler",
@@ -14137,7 +14137,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/pack-trip.ts",
-      "source_location": "L83",
+      "source_location": "L85",
       "weight": 1.0,
       "_origin": "ast",
       "source": "api_pack_trip_handler",
@@ -14401,7 +14401,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/pack-trip.ts",
-      "source_location": "L78",
+      "source_location": "L80",
       "weight": 1.0,
       "_origin": "ast",
       "source": "api_pack_trip_handler",
@@ -18481,7 +18481,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/my-outfit.tsx",
-      "source_location": "L1704",
+      "source_location": "L1801",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_my_outfit",
@@ -19233,7 +19233,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/my-outfit.tsx",
-      "source_location": "L1200",
+      "source_location": "L1272",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_my_outfit_myoutfits",
@@ -19245,7 +19245,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/my-outfit.tsx",
-      "source_location": "L1192",
+      "source_location": "L1264",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_my_outfit_myoutfits",
@@ -19294,11 +19294,23 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/(tabs)/my-outfit.tsx",
-      "source_location": "L180",
+      "source_location": "L185",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_my_outfit_myoutfits",
       "target": "utils_cache_cacheset"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "app/(tabs)/my-outfit.tsx",
+      "source_location": "L263",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "app_tabs_my_outfit_myoutfits",
+      "target": "utils_garmentsstore_loadgarments"
     },
     {
       "relation": "calls",
@@ -19318,7 +19330,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/(tabs)/my-outfit.tsx",
-      "source_location": "L178",
+      "source_location": "L183",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_my_outfit_myoutfits",
@@ -43087,5 +43099,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "cb50456c663e3a872ae7f4429a37f2adff048a9d"
+  "built_at_commit": "b550de9478e1f261784adec0e98cb7a644fc537c"
 }

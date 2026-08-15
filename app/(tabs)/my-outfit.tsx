@@ -150,6 +150,11 @@ export default function MyOutfits() {
   // Egna sparade "glöm inte"-saker per barn + inmatningsfält per barn.
   const [childSavedExtras, setChildSavedExtras] = useState<Record<string, string[]>>({})
   const [newChildExtra, setNewChildExtra] = useState<Record<string, string>>({})
+  // Barnets garderobspool per person (för byt ut/lägg till i reseoutfits) samt
+  // vilket plagg som byts/läggs till. ci = index i childPacks, oi/ii = outfit/plagg.
+  const [childPools, setChildPools] = useState<Record<string, any[]>>({})
+  const [childTripSwap, setChildTripSwap] = useState<{ ci: number; oi: number; ii: number } | null>(null)
+  const [childTripAdd, setChildTripAdd] = useState<{ ci: number; oi: number } | null>(null)
 
   // Partner-läge (läsläge): partnerns data hålls i egen state så den egna aldrig
   // skrivs över. Rendern väljer "disp*"-varianten nedan utifrån isPartner, så
@@ -250,7 +255,19 @@ export default function MyOutfits() {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(TRIP_KEY)
-        if (raw) setTripResult(JSON.parse(raw))
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          setTripResult(parsed)
+          // Återställ barnens garderobspooler så byt ut/lägg till funkar efter omstart.
+          if (Array.isArray(parsed?.childPacks) && parsed.childPacks.length) {
+            const all = await loadGarments().catch(() => [] as any[])
+            const pools: Record<string, any[]> = {}
+            for (const cp of parsed.childPacks) {
+              pools[cp.personId] = (all as any[]).filter(g => g.person_id === cp.personId && !g.archived)
+            }
+            setChildPools(pools)
+          }
+        }
         const chk = await AsyncStorage.getItem(TRIP_CHECK_KEY)
         if (chk) setTripChecked(JSON.parse(chk))
         const ex = await AsyncStorage.getItem(TRIP_EXTRAS_KEY)
@@ -668,6 +685,10 @@ function isPast(date: Date) {
       if (tripIncludeKids && children.length) {
         const all = await loadGarments().catch(() => [] as any[])
         const childPacks: any[] = []
+        const pools: Record<string, any[]> = {}
+        // Delade hushållssaker (adapter, powerbank …) ska bara ligga i den vuxnes
+        // lista – filtrera bort dem ur barnens extras.
+        const parentExtraSet = new Set((result.extras || []).map((e: string) => e.trim().toLowerCase()))
         for (const c of children) {
           try {
             const active = (all as any[]).filter(g => g.person_id === c.id && !g.archived && !g.in_laundry)
@@ -700,8 +721,11 @@ function isPast(date: Date) {
             const garmentIds = Array.from(new Set(
               [...packingItems, ...outfitGarments].filter((g: any) => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
             ))
-            // Egna sparade saker för barnet läggs alltid överst, sedan AI:ns extras.
+            // Egna sparade saker för barnet överst, sedan AI:ns extras – men aldrig
+            // sådant som redan finns i den vuxnes lista (delade hushållssaker).
             const extras = mergeExtras(childSavedExtras[c.id] || [], Array.isArray(cp.extras) ? cp.extras : [])
+              .filter((e: string) => !parentExtraSet.has(e.trim().toLowerCase()))
+            pools[c.id] = usePool
             childPacks.push({
               personId: c.id,
               name: c.name,
@@ -715,6 +739,7 @@ function isPast(date: Date) {
           } catch { /* hoppa över barnet vid fel, resten av resan står kvar */ }
         }
         ;(result as any).childPacks = childPacks
+        setChildPools(pools)
       }
 
       setTripResult(result)
@@ -976,6 +1001,53 @@ function isPast(date: Date) {
   const tripAddPool = tripAddTarget ? garments.filter(g =>
     !g.archived && !g.for_sale && !g.in_laundry && !tripAddUsed.has((g.name || '').toLowerCase())
   ) : []
+
+  // ── Byt ut / lägg till plagg i en BARN-reseoutfit ─────────────────────────
+  // Uppdaterar ett barns reseoutfit och räknar om tvättbara plagg-id:n.
+  function updateChildOutfit(ci: number, oi: number, fn: (items: any[]) => any[]) {
+    setTripResult((prev: any) => {
+      if (!prev?.childPacks) return prev
+      const childPacks = prev.childPacks.map((cp: any, i: number) => {
+        if (i !== ci) return cp
+        const outfits = (cp.outfits || []).map((o: any, j: number) => j === oi ? { ...o, itemsWithImages: fn(o.itemsWithImages || []) } : o)
+        const pool = childPools[cp.personId] || []
+        const byId = new Map(pool.map((g: any) => [g.id, g]))
+        const ids = [
+          ...outfits.flatMap((o: any) => (o.itemsWithImages || []).map((it: any) => it.id)),
+          ...(cp.packingItems || []).map((it: any) => it.id),
+        ]
+        const garmentIds = Array.from(new Set(ids)).filter((id: any) => { const g = byId.get(id); return g && isWashable(g) })
+        return { ...cp, outfits, garmentIds }
+      })
+      const next = { ...prev, childPacks }
+      AsyncStorage.setItem(TRIP_KEY, JSON.stringify(next)).catch(() => {})
+      return next
+    })
+  }
+  function replaceChildTripItem(ci: number, oi: number, ii: number, g: any) {
+    updateChildOutfit(ci, oi, items => items.map((it, j) => j === ii ? { id: g.id, name: g.name, image_url: g.image_url || null } : it))
+    setChildTripSwap(null)
+  }
+  function removeChildTripItem(ci: number, oi: number, ii: number) {
+    updateChildOutfit(ci, oi, items => items.filter((_, j) => j !== ii))
+    setChildTripSwap(null)
+  }
+  function addChildTripItem(ci: number, oi: number, g: any) {
+    updateChildOutfit(ci, oi, items => [...items, { id: g.id, name: g.name, image_url: g.image_url || null }])
+    setChildTripAdd(null)
+  }
+
+  const childSwapPack = childTripSwap ? tripResult?.childPacks?.[childTripSwap.ci] : null
+  const childSwapPool: any[] = childSwapPack ? (childPools[childSwapPack.personId] || []) : []
+  const childSwapItem = childTripSwap ? childSwapPack?.outfits?.[childTripSwap.oi]?.itemsWithImages?.[childTripSwap.ii] : null
+  const childSwapCategory = childSwapItem ? childSwapPool.find(g => g.id === childSwapItem.id)?.category : null
+  const childSwapUsed = new Set((childTripSwap ? childSwapPack?.outfits?.[childTripSwap.oi]?.itemsWithImages || [] : []).map((it: any) => it.id).filter(Boolean))
+  const childSwapAlternatives = childSwapPool.filter(g =>
+    !g.archived && !g.in_laundry && g.id !== childSwapItem?.id && !childSwapUsed.has(g.id) &&
+    (childSwapCategory ? g.category === childSwapCategory : true))
+  const childAddPack = childTripAdd ? tripResult?.childPacks?.[childTripAdd.ci] : null
+  const childAddUsed = new Set((childTripAdd ? childAddPack?.outfits?.[childTripAdd.oi]?.itemsWithImages || [] : []).map((it: any) => it.id).filter(Boolean))
+  const childAddPool: any[] = childAddPack ? (childPools[childAddPack.personId] || []).filter(g => !g.archived && !g.in_laundry && !childAddUsed.has(g.id)) : []
 
   // Skapa/ändra outfit – egen helskärmsvy.
   if (creating) {
@@ -1564,10 +1636,9 @@ function isPast(date: Date) {
 
                 {/* Familjeresa: packning + outfits per barn (läsläge – barnens
                     reseoutfits redigeras inte här). */}
-                {(dispTrip.childPacks || []).map((cp: any) => (
+                {(dispTrip.childPacks || []).map((cp: any, ci: number) => (
                   <View key={cp.personId} style={styles.childPackBlock}>
                     <View style={styles.childPackHeader}>
-                      <MaterialIcons name="child-care" size={18} color={t.primary} />
                       <Text style={styles.childPackTitle}>{tr('Packat till')} {cp.name}</Text>
                     </View>
                     {(cp.outfits || []).map((o: any, i: number) => (
@@ -1575,12 +1646,18 @@ function isPast(date: Date) {
                         <Text style={styles.outfitName}>{o.name}</Text>
                         <View style={styles.outfitImages}>
                           {(o.itemsWithImages || []).map((it: any, j: number) => (
-                            <View key={j} style={styles.tripItemWrap}>
+                            <TouchableOpacity key={j} style={styles.tripItemWrap} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) setChildTripSwap({ ci, oi: i, ii: j }) }} accessibilityLabel={`${tr('Byt ut')} ${it.name}`}>
                               {it.image_url
                                 ? <SignedImage path={it.image_url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
                                 : <View style={styles.outfitImageEmpty} />}
-                            </View>
+                              {!readOnly && <View style={styles.tripSwapBadge}><Text style={styles.tripSwapBadgeText}>⇄</Text></View>}
+                            </TouchableOpacity>
                           ))}
+                          {!readOnly && (
+                            <TouchableOpacity style={styles.tripAddBox} onPress={() => setChildTripAdd({ ci, oi: i })} accessibilityLabel={tr('Lägg till plagg')}>
+                              <View style={styles.tripAddCircle}><Ionicons name="add" size={18} color={t.onPrimary} /></View>
+                            </TouchableOpacity>
+                          )}
                         </View>
                         <Text style={styles.outfitGarments}>{(o.itemsWithImages || []).map((it: any) => it.name).join(' · ')}</Text>
                       </View>
@@ -1679,6 +1756,26 @@ function isPast(date: Date) {
         garments={garments}
         onSelect={(g) => tripAddTarget && addTripItem(tripAddTarget.oi, g)}
         onClose={() => setTripAddTarget(null)}
+        accessoriesFirst
+      />
+
+      {/* Byt ut / lägg till plagg i en BARN-reseoutfit (barnets garderob) */}
+      <SwapSheet
+        visible={childTripSwap !== null}
+        title={`${tr('Byt ut')}${childSwapItem?.name ? ` ${childSwapItem.name}` : ''}`}
+        alternatives={childSwapAlternatives}
+        emptyText={tr('Inga andra plagg i samma kategori')}
+        onClose={() => setChildTripSwap(null)}
+        onRemove={() => childTripSwap && removeChildTripItem(childTripSwap.ci, childTripSwap.oi, childTripSwap.ii)}
+        onReplace={(g) => childTripSwap && replaceChildTripItem(childTripSwap.ci, childTripSwap.oi, childTripSwap.ii, g)}
+      />
+      <GarmentPicker
+        visible={childTripAdd !== null}
+        title={tr('Lägg till plagg')}
+        pool={childAddPool}
+        garments={childAddPool}
+        onSelect={(g) => childTripAdd && addChildTripItem(childTripAdd.ci, childTripAdd.oi, g)}
+        onClose={() => setChildTripAdd(null)}
         accessoriesFirst
       />
 
