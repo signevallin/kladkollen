@@ -1198,7 +1198,7 @@ function isPast(date: Date) {
                           style={[styles.tripDayCell, inRange && styles.tripDayInRange, endpoint && styles.tripDayEndpoint]}
                           onPress={() => handleTripDayPress(day)}
                         >
-                          <Text style={[styles.tripDayNum, past && styles.tripDayNumPast, endpoint && styles.tripDayNumEndpoint]}>
+                          <Text style={[styles.tripDayNum, past && styles.tripDayNumPast, inRange && styles.tripDayNumInRange, endpoint && styles.tripDayNumEndpoint]}>
                             {day.getDate()}
                           </Text>
                         </TouchableOpacity>
@@ -1524,10 +1524,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tripDayCell: { width: '14.28%', height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
   // Temaanpassad: t.accent är #DDE6ED i ljust läge (oförändrat) och en mörk ton
   // i mörkt läge, så dagsiffrorna (t.textPrimary) syns i båda temana.
-  tripDayInRange: { backgroundColor: t.accent },
+  // Spannet mellan start/slut: alltid ljusblått med mörkbruna siffror (samma i
+  // ljust och mörkt läge) – i mörkt läge var det annars mörkblått med vit text.
+  tripDayInRange: { backgroundColor: '#DDE6ED' },
   tripDayEndpoint: { backgroundColor: t.primary, borderRadius: 8 },
   tripDayNum: { fontFamily: 'Lora_500Medium', fontSize: 13, color: t.textPrimary },
   tripDayNumPast: { color: t.textFaint },
+  tripDayNumInRange: { color: '#402D21' },
   tripDayNumEndpoint: { color: t.onPrimary, fontWeight: '700' },
   tripDatesLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, textAlign: 'center', marginBottom: 16 },
   tripGenBtn: { backgroundColor: t.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
