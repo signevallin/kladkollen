@@ -327,6 +327,27 @@ export default function MyOutfits() {
   async function assignOutfitToDay(outfit: any, date: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return false
+    // Barn har ingen outfit_calendar – planera via worn_on på outfit-raden. En
+    // outfit per dag: nolla worn_on på ev. tidigare barn-outfit på samma datum.
+    if (isPerson && person) {
+      const prev = personCalendar[date]
+      if (prev?.outfit_id === outfit.id) return true
+      let ok = false
+      try {
+        if (prev?.outfits?.garment_ids?.length) await adjustGarmentWear(prev.outfits.garment_ids, -1)
+        await supabase.from('outfits').update({ worn_on: null }).eq('person_id', person).eq('worn_on', date)
+        const { error } = await supabase.from('outfits').update({ worn_on: date, saved: true }).eq('id', outfit.id)
+        if (error) throw error
+        await adjustGarmentWear(outfit.garment_ids || [], 1, date)
+        ok = true
+      } catch (e: any) {
+        captureError(e, { where: 'assignOutfitToDay:child' })
+        showAlert(tr('Kunde inte spara'), tr('Något gick fel – kontrollera din uppkoppling och försök igen.'))
+      } finally {
+        loadPersonData()
+      }
+      return ok
+    }
     const prevEntry = calendarEntries[date]
     // Samma outfit igen → ingen förändring.
     if (prevEntry?.outfit_id === outfit.id) return true
@@ -368,6 +389,21 @@ export default function MyOutfits() {
   async function removeOutfitFromDate(date: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    // Barn: nolla worn_on (och räkna ner plaggen) i stället för outfit_calendar.
+    if (isPerson && person) {
+      try {
+        const entry = personCalendar[date]
+        if (entry?.outfits?.garment_ids?.length) await adjustGarmentWear(entry.outfits.garment_ids, -1)
+        await supabase.from('outfits').update({ worn_on: null }).eq('person_id', person).eq('worn_on', date)
+      } catch (e: any) {
+        captureError(e, { where: 'removeOutfitFromDate:child' })
+        showAlert(tr('Kunde inte ta bort'), tr('Något gick fel – kontrollera din uppkoppling och försök igen.'))
+      } finally {
+        setDayDetailDate(null)
+        loadPersonData()
+      }
+      return
+    }
     try {
       // Räkna ner plaggen som var kopplade till dagen.
       const entry = calendarEntries[date]
@@ -980,25 +1016,28 @@ function isPast(date: Date) {
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Bygg en ny outfit (välj plagg direkt) och lägg den på dagen. */}
-              <TouchableOpacity
-                style={styles.pickerCreateBtn}
-                onPress={() => {
-                  const date = selectedDate
-                  setShowOutfitPicker(false); setSelectedDate(null)
-                  setEditOutfit(null); setAssignAfterCreate(date); setCreating(true)
-                }}
-              >
-                <Ionicons name="add" size={18} color={t.onPrimary} />
-                <Text style={styles.pickerCreateBtnText}>{tr('Skapa ny outfit')}</Text>
-              </TouchableOpacity>
-              {outfits.length === 0 ? (
+              {/* Bygg en ny outfit (välj plagg direkt) och lägg den på dagen.
+                  Döljs i barn-läge – barn-outfits skapas via "Familjen idag". */}
+              {!isPerson && (
+                <TouchableOpacity
+                  style={styles.pickerCreateBtn}
+                  onPress={() => {
+                    const date = selectedDate
+                    setShowOutfitPicker(false); setSelectedDate(null)
+                    setEditOutfit(null); setAssignAfterCreate(date); setCreating(true)
+                  }}
+                >
+                  <Ionicons name="add" size={18} color={t.onPrimary} />
+                  <Text style={styles.pickerCreateBtnText}>{tr('Skapa ny outfit')}</Text>
+                </TouchableOpacity>
+              )}
+              {(isPerson ? personOutfits : outfits).length === 0 ? (
                 <View style={styles.emptyTab}>
                   <Text style={styles.emptyTabText}>{tr('Inga sparade outfits ännu')}</Text>
-                  <Text style={styles.emptyTabHint}>{tr('Bygg en ny outfit ovan – eller välj en sparad här sen.')}</Text>
+                  {!isPerson && <Text style={styles.emptyTabHint}>{tr('Bygg en ny outfit ovan – eller välj en sparad här sen.')}</Text>}
                 </View>
               ) : (
-                outfits.map((outfit: any) => (
+                (isPerson ? personOutfits : outfits).map((outfit: any) => (
                   <TouchableOpacity key={outfit.id} style={styles.outfitPickerItem} onPress={() => assignOutfitToDate(outfit)}>
                     <View style={styles.outfitPickerImages}>
                       {(outfit.image_urls || []).slice(0, 3).map((url: string, i: number) => (
@@ -1173,8 +1212,8 @@ function isPast(date: Date) {
                   <TouchableOpacity
                     key={ds}
                     style={[styles.dayCell, todayStyle && styles.dayCellToday, entry && (pastStyle ? styles.dayCellWorn : styles.dayCellPlanned)]}
-                    activeOpacity={readOnly ? 1 : 0.2}
-                    onPress={() => { if (!readOnly) setDayDetailDate(ds) }}
+                    activeOpacity={isPartner ? 1 : 0.2}
+                    onPress={() => { if (!isPartner) setDayDetailDate(ds) }}
                   >
                     <Text style={[styles.dayNumber, todayStyle && styles.dayNumberToday, pastStyle && !entry && styles.dayNumberPast, entry && !pastStyle && styles.dayNumberPlanned]}>
                       {day.getDate()}
@@ -1193,8 +1232,8 @@ function isPast(date: Date) {
                         </View>
                       ) : <Text style={styles.dayCellOutfitDot}>●</Text>
                     ) : (
-                      // Läsläge: ingen "+"-ledtråd på tomma dagar (kan inte lägga till).
-                      !readOnly ? <Text style={styles.dayCellPlus}>＋</Text> : null
+                      // Läsläge (partner): ingen "+"-ledtråd på tomma dagar.
+                      !isPartner ? <Text style={styles.dayCellPlus}>＋</Text> : null
                     )}
                   </TouchableOpacity>
                 )
