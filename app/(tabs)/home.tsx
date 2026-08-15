@@ -1384,7 +1384,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   generateBtnText: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, letterSpacing: 0.5 },
   quotaHint: { alignItems: 'center', marginTop: -4, marginBottom: 10, paddingVertical: 4 },
   quotaText: { fontFamily: 'Lora_400Regular', fontSize: 12.5, color: t.textFaint },
-  coupleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 28, backgroundColor: t.surfaceMuted, borderRadius: 16, paddingVertical: 15, borderWidth: 1, borderColor: t.border, marginBottom: 28 },
+  coupleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 28, backgroundColor: t.surfaceMuted, borderRadius: 16, paddingVertical: 15, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
   coupleBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14 },
   coupleVibe: { fontFamily: 'Lora_500Medium', fontSize: 14, color: t.textPrimary, lineHeight: 21, textAlign: 'center', marginBottom: 4 },
   couplePersonBlock: { gap: 10, paddingBottom: 14, marginBottom: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },

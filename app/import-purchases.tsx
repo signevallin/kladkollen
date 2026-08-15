@@ -134,8 +134,10 @@ export default function ImportPurchases() {
   const { t: tr } = useSettings()
   const webRef = useRef<any>(null)
   // target=wishlist → plaggen hamnar på köplistan i stället för i garderoben.
-  const { target } = useLocalSearchParams()
+  // person satt → importen sker för ett barn (plaggen taggas med person_id).
+  const { target, person, personName } = useLocalSearchParams<{ target?: string; person?: string; personName?: string }>()
   const toWishlist = target === 'wishlist'
+  const personId = (person as string) || null
 
   const [store, setStore] = useState<{ name: string; url: string } | null>(null)
   const [step, setStep] = useState<'store' | 'browse' | 'select'>('store')
@@ -255,6 +257,7 @@ export default function ImportPurchases() {
         if (toWishlist) {
           await supabase.from('wishlist').insert([{
             user_id: user.id,
+            person_id: personId,
             name: item.name,
             category: analysis.category || null,
             color: analysis.color || null,
@@ -264,6 +267,7 @@ export default function ImportPurchases() {
         } else {
           await supabase.from('garments').insert([{
             user_id: user.id,
+            person_id: personId,
             name: item.name,
             category: analysis.category || '',
             subcategory: analysis.subcategory || null,
@@ -282,7 +286,7 @@ export default function ImportPurchases() {
         (chosen.length === 1 ? tr('{n} plagg tillagt!') : tr('{n} plagg tillagda!')).replace('{n}', String(chosen.length)),
         toWishlist ? tr('Du hittar dem på köplistan.') : tr('Du hittar dem i garderoben – kolla gärna kategori och säsong.'),
       )
-      goBack('/wardrobe')
+      goBack(personId ? `/wardrobe?person=${personId}&personName=${encodeURIComponent(personName || '')}` : '/wardrobe')
     } catch (e: any) {
       showAlert(tr('Något gick fel'), e.message)
     } finally {

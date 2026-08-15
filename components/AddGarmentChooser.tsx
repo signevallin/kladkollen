@@ -18,8 +18,10 @@ export default function AddGarmentChooser({
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
-  // I barn-läge förväljs barnet så fotoflödet taggar plaggen direkt.
+  // I barn-läge förväljs barnet så alla flöden (foto/import) taggar plaggen
+  // med rätt person. personQs börjar med &, personQ1 med ? (för rena rutter).
   const personQs = person ? `&person=${person}&personName=${encodeURIComponent(personName || '')}` : ''
+  const personQ1 = person ? `?person=${person}&personName=${encodeURIComponent(personName || '')}` : ''
 
   function goto(path: string) {
     onClose()
@@ -40,11 +42,11 @@ export default function AddGarmentChooser({
             <Text style={styles.choiceTitle}>{tr('Välj foton')}</Text>
             <Text style={styles.choiceHint}>{tr('Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/import-purchases')}>
+          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/import-purchases${personQ1}`)}>
             <Text style={styles.choiceTitle}>{tr('Importera via butiker')}</Text>
             <Text style={styles.choiceHint}>{tr('Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto('/import-email')}>
+          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/import-email${personQ1}`)}>
             <Text style={styles.choiceTitle}>{tr('Importera från mejl')}</Text>
             <Text style={styles.choiceHint}>{tr('Vidarebefordra orderbekräftelser så läggs plaggen till automatiskt')}</Text>
           </TouchableOpacity>
