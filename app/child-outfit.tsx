@@ -29,6 +29,26 @@ function getCurrentSeason(): string {
   return 'Höst'
 }
 
+// Ålder i månader från födelsedatum (null om okänt).
+function ageMonths(birthdate: string | null | undefined): number | null {
+  if (!birthdate) return null
+  const b = new Date(birthdate)
+  if (isNaN(b.getTime())) return null
+  const now = new Date()
+  let m = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth())
+  if (now.getDate() < b.getDate()) m -= 1
+  return Math.max(0, m)
+}
+
+// Bebis = går oftast inte själv än → inga skor. Använd åldern om den finns,
+// annars storleken som reserv (≈ under 18–24 mån). Vet vi ingetdera: inte bebis.
+function isBabyChild(birthdate: string | null | undefined, sizeCm: number | null): boolean {
+  const m = ageMonths(birthdate)
+  if (m != null) return m < 18
+  if (sizeCm != null) return sizeCm < 86
+  return false
+}
+
 function seasonAppropriate(g: any, season: string): boolean {
   const s = (g.season || '').trim()
   if (!s) return true
@@ -117,6 +137,8 @@ export default function ChildOutfit() {
 
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
       const previousItems: string = (outfit?.items || []).join(', ')
+      // Bebisar (går inte själva än) ska inte tvingas ha skor.
+      const baby = isBabyChild(child?.birthdate, child?.current_size_cm ?? null)
 
       let parsed: any = null
       let attempts = 0
@@ -125,6 +147,7 @@ export default function ChildOutfit() {
         parsed = await apiPost('/api/generate-outfit', {
           audience: 'child',
           childName: name,
+          babyMode: baby,
           weatherSummary: weatherCtx.summary,
           weatherRules: weatherCtx.rules,
           season,
@@ -133,7 +156,7 @@ export default function ChildOutfit() {
           retry: attempts > 1,
           lang,
         })
-        const { valid } = validateOutfit(parsed.items || [], pool, weatherCtx.requiresOuterwear)
+        const { valid } = validateOutfit(parsed.items || [], pool, weatherCtx.requiresOuterwear, { requireShoes: !baby })
         if (valid) break
       }
       if (!parsed?.items?.length) throw new Error(tr('AI:n gav inget giltigt förslag – försök igen.'))

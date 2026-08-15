@@ -41,6 +41,8 @@ export default async function handler(request: Request): Promise<Response> {
     // mode, ingen låt, inga stil-/formalitetsregler). Default 'adult'.
     const audience = body.audience === 'child' ? 'child' : 'adult'
     const childName = clip(body.childName, 40)
+    // Bebis som inte går själv än → skor behövs inte (strumpor/sockor räcker).
+    const babyMode = body.babyMode === true
 
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
 
@@ -50,9 +52,9 @@ export default async function handler(request: Request): Promise<Response> {
 
     // ── Barn-outfit: logistik före styling ──────────────────────────────────
     if (audience === 'child') {
-      const childPrompt = `Du hjälper en förälder att välja dagens outfit till sitt barn${childName ? ` (${childName})` : ''} ur barnets garderob nedan.
-Prioritera i denna ordning: (1) rätt för vädret så barnet varken fryser eller blir för varmt, (2) bekvämt och rörelsevänligt för lek/förskola/skola, (3) att det passar årstiden. Snygg färgmatchning är en bonus, inte huvudsaken – välj hellre praktiskt och bekvämt.
-
+      const childPrompt = `Du hjälper en förälder att välja dagens outfit till ${babyMode ? 'sin bebis' : 'sitt barn'}${childName ? ` (${childName})` : ''} ur ${babyMode ? 'bebisens' : 'barnets'} garderob nedan.
+Prioritera i denna ordning: (1) rätt för vädret så ${babyMode ? 'bebisen' : 'barnet'} varken fryser eller blir för varmt, (2) bekvämt och rörelsevänligt för ${babyMode ? 'lek på golvet och att bäras' : 'lek/förskola/skola'}, (3) att det passar årstiden. Snygg färgmatchning är en bonus, inte huvudsaken – välj hellre praktiskt och bekvämt.
+${babyMode ? '\nVIKTIGT: Detta är en bebis som INTE går själv än. VÄLJ INGA SKOR – strumpor eller mjuka sockor räcker. Ignorera all "obligatorisk"-märkning för skor i listan nedan.\n' : ''}
 ${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
 ${previousItems ? `Föregående förslag var: ${previousItems}. Ge ett annorlunda förslag denna gång.` : ''}
@@ -65,11 +67,11 @@ GARDEROB (välj ENDAST plagg från listan nedan, exakt som de heter):
 ${groupedList}
 
 OBLIGATORISKA REGLER – följ dessa EXAKT:
-1. SKOR: Du MÅSTE välja ett par skor. Outfit utan skor är ogiltig.
-2. NEDERDEL: Du MÅSTE välja byxor/shorts eller kjol – SÅVIDA du inte väljer klänning.
-3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning.
+1. ${babyMode ? 'SKOR: en bebis behöver INGA skor – hoppa över skor helt.' : 'SKOR: Du MÅSTE välja ett par skor. Outfit utan skor är ogiltig.'}
+2. NEDERDEL: Du MÅSTE välja byxor/shorts eller kjol – SÅVIDA du inte väljer klänning${babyMode ? ' eller en hel bodydress/onesie' : ''}.
+3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning${babyMode ? '/body' : ''}.
 4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
-5. INGA DUBBLETTER: exakt EN överdel och EN nederdel, ett par skor. (Ett medvetet lager, t.ex. en tröja över en topp när det är svalt, är ok.)
+5. INGA DUBBLETTER: exakt EN överdel och EN nederdel${babyMode ? '' : ', ett par skor'}. (Ett medvetet lager, t.ex. en tröja över en topp när det är svalt, är ok.)
 ${weatherRules ? '6. VÄDER: ' + weatherRules : ''}
 ${season ? `7. ÅRSTID: Det är ${season}. Välj plagg som passar årstiden.` : ''}
 8. BEKVÄMT: undvik opraktiska plagg för en aktiv dag om bekvämare alternativ finns.

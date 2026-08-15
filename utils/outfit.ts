@@ -50,7 +50,10 @@ export function buildGroupedGarmentList(garmentList: any[], requiresOuterwear: b
 
 // Validerar att ett förslag har de obligatoriska rollerna (skor + över-/nederdel
 // eller klänning, samt ytterplagg när vädret kräver det och det finns i poolen).
-export function validateOutfit(items: string[], garmentList: any[], requiresOuterwear: boolean): { valid: boolean; missing: string } {
+export function validateOutfit(items: string[], garmentList: any[], requiresOuterwear: boolean, opts?: { requireShoes?: boolean }): { valid: boolean; missing: string } {
+  // requireShoes styr om skor är obligatoriska. Default på (vuxna/gående barn);
+  // stängs av för bebisar som inte går själva än (skor behövs inte).
+  const requireShoes = opts?.requireShoes !== false
   const BOTTOM_CATS = ['Byxor', 'Shorts', 'Kjolar']
   const TOP_CATS = ['Toppar', 'Tröjor']
   const DRESS_CATS = ['Klänningar']
@@ -70,7 +73,7 @@ export function validateOutfit(items: string[], garmentList: any[], requiresOute
   const hasShoes = matched.some(g => SHOE_CATS.includes(g.category))
   const hasOuter = matched.some(g => OUTER_CATS.includes(g.category))
 
-  if (!hasShoes) return { valid: false, missing: 'skor saknas' }
+  if (requireShoes && !hasShoes) return { valid: false, missing: 'skor saknas' }
   if (!hasDress && !hasBottom) return { valid: false, missing: 'nederdel (byxor/kjol) saknas' }
   if (!hasDress && !hasTop) return { valid: false, missing: 'överdel saknas' }
   // Only require outerwear if the wardrobe actually has some
