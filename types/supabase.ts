@@ -446,6 +446,7 @@ export type Database = {
           image_urls: string[] | null
           mood: string | null
           name: string | null
+          person_id: string | null
           rating: number | null
           saved: boolean
           style: string | null
@@ -463,6 +464,7 @@ export type Database = {
           image_urls?: string[] | null
           mood?: string | null
           name?: string | null
+          person_id?: string | null
           rating?: number | null
           saved?: boolean
           style?: string | null
@@ -480,6 +482,7 @@ export type Database = {
           image_urls?: string[] | null
           mood?: string | null
           name?: string | null
+          person_id?: string | null
           rating?: number | null
           saved?: boolean
           style?: string | null

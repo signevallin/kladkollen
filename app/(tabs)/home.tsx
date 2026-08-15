@@ -286,6 +286,7 @@ export default function Home() {
       const { data: recentOutfits } = await supabase
         .from('outfits')
         .select('garment_names, rating')
+        .is('person_id', null) // bara mina egna – inte barnens familje-outfits
         .order('created_at', { ascending: false })
         .limit(10)
 

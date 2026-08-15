@@ -206,7 +206,7 @@ export default function MyOutfits() {
   async function fetchOutfits() {
     // Bara aktivt sparade outfits visas – outfits som bara fått ett betyg
     // (feedback till AI:n) ska inte synas här.
-    const { data } = await supabase.from('outfits').select('*').eq('saved', true).order('created_at', { ascending: false })
+    const { data } = await supabase.from('outfits').select('*').eq('saved', true).is('person_id', null).order('created_at', { ascending: false })
     if (data) { setOutfits(data); cacheSet('myoutfit.outfits', data) }
     // Outfits som partnern gillat. Räkna bara likes från den NUVARANDE partnern –
     // efter en isärkoppling finns ingen partner, så inga hjärtan ligger kvar.
