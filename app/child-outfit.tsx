@@ -12,7 +12,7 @@ import { loadGarments } from '../utils/garmentsStore'
 import { goBack } from '../utils/nav'
 import { loadPeople, type Person } from '../utils/people'
 import { useSettings } from '../utils/settings'
-import { buildGroupedGarmentList, dedupOutfitItems, matchItemsToPool, validateOutfit } from '../utils/outfit'
+import { buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit } from '../utils/outfit'
 import { buildWeatherContext, summarizeDayForecast, type WeatherInput } from '../utils/weather'
 
 // Dagens outfit för ett barn: en fristående, förenklad version av hemskärmens
@@ -20,50 +20,6 @@ import { buildWeatherContext, summarizeDayForecast, type WeatherInput } from '..
 // och i rätt storlek (plagg som barnet vuxit ur eller ännu inte passar döljs).
 // Ingen låt, inga stil-/formalitetsregler, inget par-läge. Motorn är densamma
 // (/api/generate-outfit) men med audience:'child'.
-
-function getCurrentSeason(): string {
-  const m = new Date().getMonth()
-  if (m === 11 || m <= 1) return 'Vinter'
-  if (m <= 4) return 'Vår'
-  if (m <= 8) return 'Sommar'
-  return 'Höst'
-}
-
-// Ålder i månader från födelsedatum (null om okänt).
-function ageMonths(birthdate: string | null | undefined): number | null {
-  if (!birthdate) return null
-  const b = new Date(birthdate)
-  if (isNaN(b.getTime())) return null
-  const now = new Date()
-  let m = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth())
-  if (now.getDate() < b.getDate()) m -= 1
-  return Math.max(0, m)
-}
-
-// Bebis = går oftast inte själv än → inga skor. Använd åldern om den finns,
-// annars storleken som reserv (≈ under 18–24 mån). Vet vi ingetdera: inte bebis.
-function isBabyChild(birthdate: string | null | undefined, sizeCm: number | null): boolean {
-  const m = ageMonths(birthdate)
-  if (m != null) return m < 18
-  if (sizeCm != null) return sizeCm < 86
-  return false
-}
-
-function seasonAppropriate(g: any, season: string): boolean {
-  const s = (g.season || '').trim()
-  if (!s) return true
-  if (s.includes('Alla årstider')) return true
-  return s.includes(season)
-}
-
-// Plagg som passar barnets aktuella storlek: osizeade plagg tas alltid med,
-// annars ett generöst fönster runt current_size_cm (lite för stort går bra att
-// växa i, för litet döljs). Saknas storlek på barnet → visa allt.
-function sizeFits(g: any, currentCm: number | null): boolean {
-  if (g.size_cm == null) return true
-  if (currentCm == null) return true
-  return g.size_cm >= currentCm - 6 && g.size_cm <= currentCm + 10
-}
 
 function weatherEmoji(code: number): string {
   if (code === 0) return '☀️'
@@ -126,7 +82,7 @@ export default function ChildOutfit() {
 
       // Filtrera på rätt storlek + säsong. Faller tillbaka bredare om urvalet blir
       // för smalt för en komplett outfit (skor + över-/nederdel eller klänning).
-      const sized = active.filter(g => sizeFits(g, child?.current_size_cm ?? null))
+      const sized = active.filter(g => childSizeFits(g, child?.current_size_cm ?? null))
       const seasonal = sized.filter(g => seasonAppropriate(g, season))
       const SHOE = ['Skor'], BOTTOM_OR_DRESS = ['Byxor', 'Shorts', 'Kjolar', 'Klänningar'], TOP_OR_DRESS = ['Toppar', 'Tröjor', 'Klänningar']
       const canForm = (list: any[]) =>

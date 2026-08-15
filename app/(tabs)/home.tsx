@@ -26,6 +26,7 @@ import { savePushLocation } from '../../utils/push'
 import { markOutfitLoggedToday } from '../../utils/smartPush'
 import { useSettings } from '../../utils/settings'
 import { loadPartner } from '../../utils/household'
+import { loadPeople } from '../../utils/people'
 import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import SongCard from '../../components/SongCard'
@@ -35,7 +36,7 @@ import { supabase } from '../../supabase'
 import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
-import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitItems } from '../../utils/outfit'
+import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitItems, getCurrentSeason, seasonAppropriate } from '../../utils/outfit'
 import { pregnancyPromptContext, trimesterFromDueDate } from '../../utils/pregnancy'
 import { useEntitlements, FREE_AI_PER_WEEK } from '../../utils/entitlements'
 import { fetchSets, type GarmentSet } from '../../utils/sets'
@@ -84,6 +85,9 @@ export default function Home() {
   // Seedas från cachen så partner-knappen syns direkt vid flikbyte (annars
   // blinkar den in först efter att loadPartner hämtat klart).
   const [partner, setPartner] = useState<{ id: string; name: string } | null>(() => cacheGet('household.partner') ?? null)
+  // Antal barn i hushållet – styr om "Familjen idag"-knappen visas (seedas ur
+  // samma cache som PersonSwitcher så knappen inte blinkar in vid flikbyte).
+  const [childCount, setChildCount] = useState<number>(() => (cacheGet<any[]>('household.children') ?? []).length)
   const [coupleOutfit, setCoupleOutfit] = useState<any | null>(null)
   const [coupleLoading, setCoupleLoading] = useState(false)
   const [coupleSaving, setCoupleSaving] = useState(false)
@@ -119,6 +123,10 @@ export default function Home() {
       fetchAll()
       fetchSets().then(setSets)
       loadPartner().then(({ partner }) => { setPartner(partner); cacheSet('household.partner', partner) })
+      loadPeople().then(ppl => {
+        const kids = ppl.filter(p => p.type === 'child')
+        setChildCount(kids.length); cacheSet('household.children', kids)
+      }).catch(() => {})
     }, [])
   )
 
@@ -250,23 +258,6 @@ export default function Home() {
     setSavedOutfitId(null)
     setWornToday(false)
     setRating(null)
-  }
-
-  function getCurrentSeason(): string {
-    const m = new Date().getMonth() // 0 = jan
-    if (m === 11 || m <= 1) return 'Vinter'
-    if (m <= 4) return 'Vår'
-    if (m <= 8) return 'Sommar'
-    return 'Höst'
-  }
-
-  // Ett plagg passar säsongen om: ingen säsong angiven, "Alla årstider",
-  // eller om den aktuella säsongen finns med i plaggets säsonger.
-  function seasonAppropriate(g: any, season: string): boolean {
-    const s = (g.season || '').trim()
-    if (!s) return true
-    if (s.includes('Alla årstider')) return true
-    return s.includes(season)
   }
 
   async function generateOutfit(ctxIndex: number = selectedContext, baseSetGarments: any[] = [], baseGarmentOverride: any = null) {
@@ -1074,6 +1065,14 @@ export default function Home() {
             {coupleLoading
               ? <ActivityIndicator color={t.primary} />
               : <Text style={styles.coupleBtnText}>{tr('Generera outfits för mig och')} {partner.name}</Text>}
+          </TouchableOpacity>
+        )}
+
+        {/* Familjen idag – klä hela hushållet med ett tryck. Visas när det finns
+            partner och/eller barn (Familj-nivån; skärmen visar upsell annars). */}
+        {(partner || childCount > 0) && (
+          <TouchableOpacity style={styles.coupleBtn} onPress={() => router.push('/family-today')} disabled={loading}>
+            <Text style={styles.coupleBtnText}>{tr('Familjen idag')}</Text>
           </TouchableOpacity>
         )}
 
