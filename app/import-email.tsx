@@ -1,6 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import * as Clipboard from 'expo-clipboard'
+import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -45,6 +46,9 @@ export default function ImportEmail() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
+  // person satt → importen sker för ett barn (plaggen taggas med person_id).
+  const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
+  const personId = (person as string) || null
   const [token, setToken] = useState<string | null>(null)
   const [lastStatus, setLastStatus] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
@@ -149,6 +153,7 @@ export default function ImportEmail() {
 
         await supabase.from('garments').insert([{
           user_id: user.id,
+          person_id: personId,
           name: p.name,
           category: p.category || '',
           color: p.color || '',
@@ -163,7 +168,7 @@ export default function ImportEmail() {
       await supabase.from('pending_imports').delete().in('id', chosen.map(p => p.id))
       invalidateGarments()
       toast(`${chosen.length} ${chosen.length === 1 ? tr('plagg tillagt') : tr('plagg tillagda')}!`, tr('Ligger nu i garderoben – med bild och bakgrunden borttagen.'))
-      goBack('/wardrobe')
+      goBack(personId ? `/wardrobe?person=${personId}&personName=${encodeURIComponent(personName || '')}` : '/wardrobe')
     } catch (e: any) {
       showAlert(tr('Något gick fel'), e.message)
     } finally {
