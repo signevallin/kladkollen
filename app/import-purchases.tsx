@@ -59,6 +59,28 @@ const STORES: { name: string; url: string }[] = [
   { name: 'Tradera', url: 'https://www.tradera.com/' },
   { name: 'COS', url: 'https://www.cos.com/en-sek/' },
   { name: '& Other Stories', url: 'https://www.stories.com/en_sek/' },
+  // Populära butiker i övriga Europa.
+  { name: 'Mango', url: 'https://shop.mango.com/' },
+  { name: 'Uniqlo', url: 'https://www.uniqlo.com/eu/en/' },
+  { name: 'Bershka', url: 'https://www.bershka.com/' },
+  { name: 'Pull&Bear', url: 'https://www.pullandbear.com/' },
+  { name: 'Stradivarius', url: 'https://www.stradivarius.com/' },
+  { name: 'Weekday', url: 'https://www.weekday.com/' },
+  { name: 'Monki', url: 'https://www.monki.com/' },
+  { name: 'Next', url: 'https://www.next.co.uk/' },
+  { name: 'Boohoo', url: 'https://www.boohoo.com/' },
+  // Populära butiker i USA.
+  { name: 'SHEIN', url: 'https://www.shein.com/' },
+  { name: 'Nordstrom', url: 'https://www.nordstrom.com/' },
+  { name: "Macy's", url: 'https://www.macys.com/' },
+  { name: 'Gap', url: 'https://www.gap.com/' },
+  { name: 'Old Navy', url: 'https://oldnavy.gap.com/' },
+  { name: 'Nike', url: 'https://www.nike.com/' },
+  { name: 'Abercrombie & Fitch', url: 'https://www.abercrombie.com/' },
+  { name: 'American Eagle', url: 'https://www.ae.com/' },
+  { name: 'Urban Outfitters', url: 'https://www.urbanoutfitters.com/' },
+  { name: 'Anthropologie', url: 'https://www.anthropologie.com/' },
+  { name: 'Revolve', url: 'https://www.revolve.com/' },
 ]
 
 // Butikens logga hämtas som favicon utifrån rot­domänen (inte underdomäner
