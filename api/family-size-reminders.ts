@@ -12,6 +12,21 @@ export const config = { runtime: 'edge' }
 
 const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send'
 
+// Notis-texter per språk (fristående; faller tillbaka på svenska).
+const MSG: Record<string, Record<string, string>> = {
+  sv: { title: 'Dags att ta fram nästa storlek 👶', body: '{n} plagg är redo att ta fram.', bodyLoc: '{n} plagg är redo att ta fram – {loc}.' },
+  en: { title: 'Time to bring out the next size 👶', body: '{n} items are ready to bring out.', bodyLoc: '{n} items are ready to bring out – {loc}.' },
+  de: { title: 'Zeit für die nächste Größe 👶', body: '{n} Teile sind bereit zum Hervorholen.', bodyLoc: '{n} Teile sind bereit zum Hervorholen – {loc}.' },
+  es: { title: 'Hora de sacar la siguiente talla 👶', body: '{n} prendas están listas para sacar.', bodyLoc: '{n} prendas están listas para sacar: {loc}.' },
+  fr: { title: 'Il est temps de sortir la taille suivante 👶', body: '{n} vêtements sont prêts à sortir.', bodyLoc: '{n} vêtements sont prêts à sortir – {loc}.' },
+}
+function t(lang: string | null | undefined, key: string, vars?: Record<string, string | number>): string {
+  const l = lang && MSG[lang] ? lang : 'sv'
+  let s = MSG[l][key] ?? MSG.sv[key] ?? key
+  if (vars) for (const k in vars) s = s.replace(`{${k}}`, String(vars[k]))
+  return s
+}
+
 function today(): string { return new Date().toISOString().slice(0, 10) }
 
 function daysSince(dateStr: string | null): number {
@@ -94,7 +109,6 @@ export default async function handler(request: Request): Promise<Response> {
     for (const r of ready) if (r.location) locCount[r.location] = (locCount[r.location] || 0) + 1
     const topLoc = Object.entries(locCount).sort((a, b) => b[1] - a[1])[0]?.[0]
     const n = ready.length
-    const body = `${n} plagg är redo att ta fram${topLoc ? ` – ${topLoc}` : ''}.`
 
     // Hushållets vuxna med app-konto.
     const { data: members } = await admin
@@ -104,11 +118,15 @@ export default async function handler(request: Request): Promise<Response> {
     const userIds = (members || []).map((m: any) => m.user_id)
     if (userIds.length === 0) continue
 
-    const { data: profiles } = await admin
-      .from('profiles')
-      .select('id, push_token, notif_enabled, notif_prefs, last_size_digest')
-      .in('id', userIds)
-      .not('push_token', 'is', null)
+    const sizeCols = 'id, push_token, notif_enabled, notif_prefs, last_size_digest'
+    let { data: profiles, error: profErr } = await admin
+      .from('profiles').select(`${sizeCols}, lang`)
+      .in('id', userIds).not('push_token', 'is', null)
+    // Resiliens: om lang-kolumnen inte körts än – hämta utan den (svenska).
+    if (profErr) {
+      const r = await admin.from('profiles').select(sizeCols).in('id', userIds).not('push_token', 'is', null)
+      profiles = r.data as any
+    }
 
     for (const p of (profiles || []) as any[]) {
       if (!p.push_token) continue
@@ -121,8 +139,8 @@ export default async function handler(request: Request): Promise<Response> {
       messages.push({
         to: p.push_token,
         sound: 'default',
-        title: 'Dags att ta fram nästa storlek 👶',
-        body,
+        title: t(p.lang, 'title'),
+        body: topLoc ? t(p.lang, 'bodyLoc', { n, loc: topLoc }) : t(p.lang, 'body', { n }),
         data: { route: '/family', kind: 'sizereminder' },
       })
       await admin.from('profiles').update({ last_size_digest: day }).eq('id', p.id)

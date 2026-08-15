@@ -23,6 +23,7 @@ type Profile = {
   notif_prefs: Record<string, boolean> | null
   push_lat: number | null; push_lon: number | null
   last_notif_date: string | null
+  lang: string | null
 }
 
 type Notif = { kind: string; title: string; body: string; route: string }
@@ -56,10 +57,77 @@ function currentSeason(): 'Vår' | 'Sommar' | 'Höst' | 'Vinter' {
   return 'Vinter'
 }
 
-function describe(g: Garment): string {
+// Notis-texter per språk. Fyller {platshållare}; faller tillbaka på svenska,
+// sedan på nyckeln. Håll fristående (importera inte klientens i18n på edge).
+const MSG: Record<string, Record<string, string>> = {
+  sv: {
+    'log.title': 'Vad hade du på dig idag? 📸', 'log.body': 'Tryck här för att logga dagens outfit på 2 sekunder.',
+    'week.title': 'Din vecka i kläder 👗', 'week.body': 'Ditt mest burna plagg är {desc}. Öppna för hela din statistik.',
+    'rain.title': 'Det ser ut att bli regn idag ☔️', 'rain.body': '{rain}% risk för regn – glöm inte {item}.', 'rain.itemOwned': 'din {desc}', 'rain.itemFallback': 'regnjackan eller paraplyet',
+    'uv.title': 'UV-index {uv} idag ☀️', 'uv.body': 'Starkt solljus – plocka fram något luftigt och glöm inte solglasögonen.',
+    'right.title': 'Perfekt väder idag ({temp}°C) 🌤', 'right.body': 'Äntligen läge för din {desc} som legat orörd ett tag.',
+    'forgot.title': 'Glömd skatt i garderoben ✨', 'forgot.body': 'Din {desc} {when}. Ska vi styla den idag?', 'forgot.whenNever': 'har aldrig burits', 'forgot.whenDays': 'har legat orörd i {d} dagar',
+    'ootd.title': 'Dagens outfit väntar 👀', 'ootd.body': 'Öppna Skrud för ett outfitförslag anpassat efter vädret.',
+    'season.title': '{season} är här 🍂', 'season.body': 'Dags att arkivera förra säsongens plagg och lyfta fram de nya?',
+    'from': 'från', 'Vår': 'Vår', 'Sommar': 'Sommar', 'Höst': 'Höst', 'Vinter': 'Vinter',
+  },
+  en: {
+    'log.title': 'What did you wear today? 📸', 'log.body': 'Tap here to log today’s outfit in 2 seconds.',
+    'week.title': 'Your week in clothes 👗', 'week.body': 'Your most-worn item is {desc}. Open for your full stats.',
+    'rain.title': 'Looks like rain today ☔️', 'rain.body': '{rain}% chance of rain – don’t forget {item}.', 'rain.itemOwned': 'your {desc}', 'rain.itemFallback': 'a rain jacket or umbrella',
+    'uv.title': 'UV index {uv} today ☀️', 'uv.body': 'Strong sun – pick something airy and don’t forget your sunglasses.',
+    'right.title': 'Perfect weather today ({temp}°C) 🌤', 'right.body': 'Finally the moment for your {desc} that’s been untouched for a while.',
+    'forgot.title': 'Forgotten gem in your wardrobe ✨', 'forgot.body': 'Your {desc} {when}. Shall we style it today?', 'forgot.whenNever': 'has never been worn', 'forgot.whenDays': 'has been untouched for {d} days',
+    'ootd.title': 'Today’s outfit awaits 👀', 'ootd.body': 'Open Skrud for an outfit suggestion tailored to the weather.',
+    'season.title': '{season} is here 🍂', 'season.body': 'Time to archive last season’s clothes and bring out the new?',
+    'from': 'from', 'Vår': 'Spring', 'Sommar': 'Summer', 'Höst': 'Autumn', 'Vinter': 'Winter',
+  },
+  de: {
+    'log.title': 'Was hast du heute getragen? 📸', 'log.body': 'Tippe hier, um das heutige Outfit in 2 Sekunden zu loggen.',
+    'week.title': 'Deine Woche in Kleidung 👗', 'week.body': 'Dein meistgetragenes Teil ist {desc}. Öffne für deine ganze Statistik.',
+    'rain.title': 'Heute sieht’s nach Regen aus ☔️', 'rain.body': '{rain}% Regenrisiko – vergiss {item} nicht.', 'rain.itemOwned': 'deine {desc}', 'rain.itemFallback': 'eine Regenjacke oder einen Schirm',
+    'uv.title': 'UV-Index {uv} heute ☀️', 'uv.body': 'Starke Sonne – wähle etwas Luftiges und vergiss die Sonnenbrille nicht.',
+    'right.title': 'Perfektes Wetter heute ({temp}°C) 🌤', 'right.body': 'Endlich der Moment für deine {desc}, die schon eine Weile ungetragen ist.',
+    'forgot.title': 'Vergessenes Schmuckstück im Schrank ✨', 'forgot.body': 'Deine {desc} {when}. Sollen wir sie heute stylen?', 'forgot.whenNever': 'wurde noch nie getragen', 'forgot.whenDays': 'ist seit {d} Tagen ungetragen',
+    'ootd.title': 'Das heutige Outfit wartet 👀', 'ootd.body': 'Öffne Skrud für einen wettergerechten Outfit-Vorschlag.',
+    'season.title': '{season} ist da 🍂', 'season.body': 'Zeit, die Teile der letzten Saison zu archivieren und die neuen hervorzuholen?',
+    'from': 'von', 'Vår': 'Frühling', 'Sommar': 'Sommer', 'Höst': 'Herbst', 'Vinter': 'Winter',
+  },
+  es: {
+    'log.title': '¿Qué te pusiste hoy? 📸', 'log.body': 'Toca aquí para registrar el look de hoy en 2 segundos.',
+    'week.title': 'Tu semana en ropa 👗', 'week.body': 'Tu prenda más usada es {desc}. Abre para ver todas tus estadísticas.',
+    'rain.title': 'Parece que hoy lloverá ☔️', 'rain.body': '{rain}% de probabilidad de lluvia: no olvides {item}.', 'rain.itemOwned': 'tu {desc}', 'rain.itemFallback': 'un chubasquero o un paraguas',
+    'uv.title': 'Índice UV {uv} hoy ☀️', 'uv.body': 'Sol fuerte: elige algo ligero y no olvides las gafas de sol.',
+    'right.title': 'Tiempo perfecto hoy ({temp}°C) 🌤', 'right.body': 'Por fin el momento para tu {desc}, que llevaba tiempo sin usarse.',
+    'forgot.title': 'Tesoro olvidado en tu armario ✨', 'forgot.body': 'Tu {desc} {when}. ¿La combinamos hoy?', 'forgot.whenNever': 'nunca se ha usado', 'forgot.whenDays': 'lleva {d} días sin usarse',
+    'ootd.title': 'El look de hoy te espera 👀', 'ootd.body': 'Abre Skrud para una sugerencia de look según el tiempo.',
+    'season.title': '{season} ya está aquí 🍂', 'season.body': '¿Hora de archivar la ropa de la temporada pasada y sacar la nueva?',
+    'from': 'de', 'Vår': 'Primavera', 'Sommar': 'Verano', 'Höst': 'Otoño', 'Vinter': 'Invierno',
+  },
+  fr: {
+    'log.title': 'Qu’as-tu porté aujourd’hui ? 📸', 'log.body': 'Touche ici pour enregistrer la tenue du jour en 2 secondes.',
+    'week.title': 'Ta semaine en vêtements 👗', 'week.body': 'Ton vêtement le plus porté est {desc}. Ouvre pour toutes tes stats.',
+    'rain.title': 'Il risque de pleuvoir aujourd’hui ☔️', 'rain.body': '{rain}% de risque de pluie – n’oublie pas {item}.', 'rain.itemOwned': 'ton {desc}', 'rain.itemFallback': 'un imperméable ou un parapluie',
+    'uv.title': 'Indice UV {uv} aujourd’hui ☀️', 'uv.body': 'Soleil fort – choisis quelque chose de léger et n’oublie pas tes lunettes de soleil.',
+    'right.title': 'Météo parfaite aujourd’hui ({temp}°C) 🌤', 'right.body': 'Enfin le moment pour ton {desc}, resté de côté un moment.',
+    'forgot.title': 'Trésor oublié dans ta garde-robe ✨', 'forgot.body': 'Ton {desc} {when}. On le style aujourd’hui ?', 'forgot.whenNever': 'n’a jamais été porté', 'forgot.whenDays': 'est resté de côté depuis {d} jours',
+    'ootd.title': 'La tenue du jour t’attend 👀', 'ootd.body': 'Ouvre Skrud pour une suggestion de tenue adaptée à la météo.',
+    'season.title': '{season} est là 🍂', 'season.body': 'Le moment d’archiver les vêtements de la saison passée et de sortir les nouveaux ?',
+    'from': 'de', 'Vår': 'Le printemps', 'Sommar': 'L’été', 'Höst': 'L’automne', 'Vinter': 'L’hiver',
+  },
+}
+
+function t(lang: string | null | undefined, key: string, vars?: Record<string, string | number>): string {
+  const l = lang && MSG[lang] ? lang : 'sv'
+  let s = MSG[l][key] ?? MSG.sv[key] ?? key
+  if (vars) for (const k in vars) s = s.replace(`{${k}}`, String(vars[k]))
+  return s
+}
+
+function describe(g: Garment, lang: string): string {
   const parts = [g.color, g.name || g.category].filter(Boolean)
   const base = parts.join(' ').toLowerCase()
-  return g.brand ? `${base} från ${g.brand}` : base
+  return g.brand ? `${base} ${t(lang, 'from')} ${g.brand}` : base
 }
 
 async function getWeather(lat: number, lon: number) {
@@ -87,30 +155,21 @@ async function buildNotif(
   hasOutfitToday: boolean,
 ): Promise<Notif | null> {
   const prefs = p.notif_prefs || {}
+  const lang = p.lang || 'sv' // notistexten översätts till användarens språk
   const active = garments.filter(g => g)
   const season = currentSeason()
 
   if (slot === 'evening') {
     // Kväll: påminn om att logga dagens outfit om inget loggats.
     if (prefs.logreminder && !hasOutfitToday && active.length > 0) {
-      return {
-        kind: 'logreminder',
-        title: 'Vad hade du på dig idag? 📸',
-        body: 'Tryck här för att logga dagens outfit på 2 sekunder.',
-        route: '/my-outfit',
-      }
+      return { kind: 'logreminder', title: t(lang, 'log.title'), body: t(lang, 'log.body'), route: '/my-outfit' }
     }
     // Söndag kväll: veckans statistik (kräver att något burits).
     if (prefs.rediscovery && new Date().getDay() === 0) {
       const worn = active.filter(g => (g.times_worn || 0) > 0)
       if (worn.length > 0) {
         const top = [...worn].sort((a, b) => (b.times_worn || 0) - (a.times_worn || 0))[0]
-        return {
-          kind: 'weeklystats',
-          title: 'Din vecka i kläder 👗',
-          body: `Ditt mest burna plagg är ${describe(top)}. Öppna för hela din statistik.`,
-          route: '/stats',
-        }
+        return { kind: 'weeklystats', title: t(lang, 'week.title'), body: t(lang, 'week.body', { desc: describe(top, lang) }), route: '/stats' }
       }
     }
     return null
@@ -125,11 +184,11 @@ async function buildNotif(
   // eftersom det är mer akut att missa regnjackan än ett solglasögontips.
   if (weather && prefs.weather && weather.rainChance >= 60) {
     const raincoat = active.find(g => /regn/i.test(`${g.name || ''} ${g.category || ''}`))
-    const item = raincoat ? `din ${describe(raincoat)}` : 'regnjackan eller paraplyet'
+    const item = raincoat ? t(lang, 'rain.itemOwned', { desc: describe(raincoat, lang) }) : t(lang, 'rain.itemFallback')
     return {
       kind: 'rain',
-      title: 'Det ser ut att bli regn idag ☔️',
-      body: `${weather.rainChance}% risk för regn – glöm inte ${item}.`,
+      title: t(lang, 'rain.title'),
+      body: t(lang, 'rain.body', { rain: weather.rainChance, item }),
       // Öppna det utpekade regnplagget om vi hittade ett, annars hem.
       route: raincoat ? `/garment-detail?id=${raincoat.id}` : '/home',
     }
@@ -137,12 +196,7 @@ async function buildNotif(
 
   // UV-varning på soliga sommardagar.
   if (weather && prefs.weather && weather.uv >= 6) {
-    return {
-      kind: 'uv',
-      title: `UV-index ${weather.uv} idag ☀️`,
-      body: 'Starkt solljus – plocka fram något luftigt och glöm inte solglasögonen.',
-      route: '/home',
-    }
+    return { kind: 'uv', title: t(lang, 'uv.title', { uv: weather.uv }), body: t(lang, 'uv.body'), route: '/home' }
   }
 
   // "Äntligen rätt väder": ett säsongsplagg du inte burit på länge.
@@ -153,8 +207,8 @@ async function buildNotif(
     if (cand) {
       return {
         kind: 'rightweather',
-        title: `Perfekt väder idag (${weather.temp}°C) 🌤`,
-        body: `Äntligen läge för din ${describe(cand)} som legat orörd ett tag.`,
+        title: t(lang, 'right.title', { temp: weather.temp }),
+        body: t(lang, 'right.body', { desc: describe(cand, lang) }),
         route: `/garment-detail?id=${cand.id}`,
       }
     }
@@ -167,11 +221,11 @@ async function buildNotif(
       .sort((a, b) => daysSince(b.last_worn) - daysSince(a.last_worn))[0]
     if (forgotten) {
       const d = daysSince(forgotten.last_worn)
-      const when = d === Infinity ? 'har aldrig burits' : `har legat orörd i ${d} dagar`
+      const when = d === Infinity ? t(lang, 'forgot.whenNever') : t(lang, 'forgot.whenDays', { d })
       return {
         kind: 'forgotten',
-        title: 'Glömd skatt i garderoben ✨',
-        body: `Din ${describe(forgotten)} ${when}. Ska vi styla den idag?`,
+        title: t(lang, 'forgot.title'),
+        body: t(lang, 'forgot.body', { desc: describe(forgotten, lang), when }),
         route: `/garment-detail?id=${forgotten.id}`,
       }
     }
@@ -179,20 +233,15 @@ async function buildNotif(
 
   // Dagens outfit-förslag.
   if (prefs.ootd && active.length >= 3) {
-    return {
-      kind: 'ootd',
-      title: 'Dagens outfit väntar 👀',
-      body: 'Öppna Skrud för ett outfitförslag anpassat efter vädret.',
-      route: '/home',
-    }
+    return { kind: 'ootd', title: t(lang, 'ootd.title'), body: t(lang, 'ootd.body'), route: '/home' }
   }
 
   // Säsongsbyte de första dagarna i en ny säsong.
   if (prefs.seasonal && new Date().getDate() <= 3 && [3, 6, 9, 12].includes(new Date().getMonth() + 1)) {
     return {
       kind: 'seasonal',
-      title: `${season} är här 🍂`,
-      body: 'Dags att arkivera förra säsongens plagg och lyfta fram de nya?',
+      title: t(lang, 'season.title', { season: t(lang, season) }),
+      body: t(lang, 'season.body'),
       route: '/wardrobe',
     }
   }
@@ -229,14 +278,23 @@ export default async function handler(request: Request): Promise<Response> {
   if (!supabaseUrl || !serviceKey) return new Response('Missing config', { status: 500 })
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
 
-  const { data: profiles } = await admin
-    .from('profiles')
-    .select('id, push_token, notif_enabled, notif_prefs, push_lat, push_lon, last_notif_date')
+  // Har push-token = användaren gav notistillstånd. registerForPush sätter inte
+  // notif_enabled, så den kan vara null (aldrig öppnat notisinställningarna) –
+  // behandla null som PÅ. Bara ett uttryckligt false stänger av.
+  const baseCols = 'id, push_token, notif_enabled, notif_prefs, push_lat, push_lon, last_notif_date'
+  let { data: profiles, error: profErr } = await admin
+    .from('profiles').select(`${baseCols}, lang`)
     .not('push_token', 'is', null)
-    // Har push-token = användaren gav notistillstånd. registerForPush sätter inte
-    // notif_enabled, så den kan vara null (aldrig öppnat notisinställningarna) –
-    // behandla null som PÅ. Bara ett uttryckligt false stänger av.
     .or('notif_enabled.is.null,notif_enabled.eq.true')
+  // Resiliens: om lang-kolumnen inte körts än (migration saknas) faller vi
+  // tillbaka på att hämta utan den → notiser skickas ändå (på svenska).
+  if (profErr) {
+    const r = await admin
+      .from('profiles').select(baseCols)
+      .not('push_token', 'is', null)
+      .or('notif_enabled.is.null,notif_enabled.eq.true')
+    profiles = r.data as any
+  }
 
   const day = today()
   const slotTag = `${day}:${slot}`

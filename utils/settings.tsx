@@ -2,6 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { translate, LANGS, type Lang } from './i18n'
 import { setApiLang } from './api'
+import { supabase } from '../supabase'
+
+// Speglar valt språk till profiles.lang så server-notiserna (Vercel Cron) kan
+// skickas på användarens språk. Best-effort; hoppar över om ej inloggad.
+async function syncLangToProfile(l: string) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) await supabase.from('profiles').update({ lang: l }).eq('id', user.id)
+  } catch { /* best-effort */ }
+}
 
 // App-övergripande inställningar som påverkar hur siffror visas i hela appen:
 // valuta (priser) och temperaturenhet (väder). Sparas lokalt och läses via
@@ -104,17 +114,32 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         // språk om vi stödjer det – så en engelsktalande som just installerat
         // appen möts av engelska (och får bekräftelsemejlet på engelska).
         const l = await AsyncStorage.getItem(LANG_KEY)
+        let resolved: string = 'sv'
         if (l && LANGS.some(x => x.code === l)) {
-          setLangState(l as Lang); setApiLang(l)
+          resolved = l; setLangState(l as Lang); setApiLang(l)
         } else {
           const d = detectDeviceLang()
+          resolved = d
           if (d !== 'sv') { setLangState(d); setApiLang(d) }
         }
+        // Spegla till profilen om man redan är inloggad vid start.
+        syncLangToProfile(resolved)
         const s = await AsyncStorage.getItem(SONG_KEY)
         if (s === '0') setShowDailySongState(false)
       } catch { /* behåll standard */ }
       loadRates()
     })()
+  }, [])
+
+  // Vid inloggning: spegla språket till profilen (nya konton får ingen lang via
+  // profil-triggern, och start-effekten kan ha körts innan sessionen fanns).
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event !== 'SIGNED_IN') return
+      const stored = await AsyncStorage.getItem(LANG_KEY)
+      syncLangToProfile(stored && LANGS.some(x => x.code === stored) ? stored : detectDeviceLang())
+    })
+    return () => data.subscription.unsubscribe()
   }, [])
 
   async function loadRates() {
@@ -150,6 +175,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setLangState(l)
     setApiLang(l)
     AsyncStorage.setItem(LANG_KEY, l).catch(() => {})
+    syncLangToProfile(l)
   }
   function setShowDailySong(v: boolean) {
     setShowDailySongState(v)
