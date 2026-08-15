@@ -44,7 +44,6 @@ const COLD_LEVELS = [
 ]
 const GENDERS = ['Kvinna', 'Man', 'Annat', 'Vill ej ange']
 const STIL_PROFIL = ['Minimal', 'Casual', 'Elegant', 'Sport', 'Bohemisk', 'Streetwear']
-const COLOR_PROFILES = ['Varm', 'Kall', 'Neutral']
 const LIFESTYLE = ['Kontor', 'Hybridjobb', 'Fritid', 'Träning']
 
 const THEME_OPTIONS: { key: 'system' | 'light' | 'dark'; label: string }[] = [
@@ -96,7 +95,6 @@ export default function Profile() {
 
   // Stilprofil
   const [stilProfil, setStilProfil] = useState<string[]>([])
-  const [fargsatt, setFargsatt] = useState('')
   const [livsstil, setLivsstil] = useState<string[]>([])
   const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
   const [musicGenres, setMusicGenres] = useState<string[]>([])
@@ -128,7 +126,7 @@ export default function Profile() {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoaded, name, avatar, gender, birthday, avoidNote, lifeMode, stylePrefs, colorPrefs,
-      currentSeason, coldSensitivity, pregnant, dueDate, stilProfil, fargsatt, livsstil, contextNotes, musicGenres, styleRules])
+      currentSeason, coldSensitivity, pregnant, dueDate, stilProfil, livsstil, contextNotes, musicGenres, styleRules])
 
   // Skriver profildata till alla fält. Anropas både med cachad rad (direkt vid
   // montering, för snabb rendering) och med den färska raden från nätet.
@@ -147,7 +145,6 @@ export default function Profile() {
     setDueDate(data.due_date || '')
     setHasColorAnalysis(!!data.color_analysis)
     if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
-    if (data.fargsatt) setFargsatt(data.fargsatt)
     if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
     if (data.outfit_context_notes) setContextNotes(data.outfit_context_notes)
     if (data.music_genres) setMusicGenres(data.music_genres.split(', ').filter(Boolean))
@@ -187,7 +184,6 @@ export default function Profile() {
       pregnant,
       due_date: dueDate || null,
       stil_profil: stilProfil.join(', '),
-      fargsatt,
       livsstil: livsstil.join(', '),
       outfit_context_notes: contextNotes,
       music_genres: musicGenres.join(', '),
@@ -599,15 +595,6 @@ export default function Profile() {
               <>
                 <Text style={styles.subLabel}>{tr('Stilriktning')}</Text>
                 {pillGroup(STIL_PROFIL, stilProfil, toggle(setStilProfil))}
-
-                <Text style={styles.subLabel}>{tr('Färgprofil')}</Text>
-                <View style={styles.pills}>
-                  {COLOR_PROFILES.map(c => (
-                    <TouchableOpacity key={c} style={[styles.pill, fargsatt === c && styles.pillActive]} onPress={() => setFargsatt(prev => prev === c ? '' : c)}>
-                      <Text style={[styles.pillText, fargsatt === c && styles.pillTextActive]}>{tr(c)}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
 
                 <Text style={styles.subLabel}>{tr('Livsstil')}</Text>
                 {pillGroup(LIFESTYLE, livsstil, toggle(setLivsstil))}
