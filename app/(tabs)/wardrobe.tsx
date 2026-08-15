@@ -84,6 +84,8 @@ export default function Wardrobe() {
   // Barnstorlek (bara relevant i barn-läge) – lagras som strängar av size_cm.
   const [activeSizes, setActiveSizes] = useState<Set<string>>(new Set())
   const [laundryFilter, setLaundryFilter] = useState<'all' | 'in' | 'out'>('all')
+  // Håll inne en tvättikon → visa "Töm tvätten"-knappen (även utan tvättfiltret).
+  const [showLaundryClear, setShowLaundryClear] = useState(false)
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   // Gravidläget styr om gravid-markeringar visas i rutnätet (läses ur cachen).
   const pregnant = cacheGet<boolean>('profile.pregnant') ?? false
@@ -203,6 +205,7 @@ export default function Wardrobe() {
           cacheSet('wardrobe.garments', nx)
           return nx
         })
+        setShowLaundryClear(false)
         const { error } = await supabase.from('garments').update({ in_laundry: false }).in('id', ids)
         invalidateGarments()
         if (error) {
@@ -738,7 +741,7 @@ export default function Wardrobe() {
             contentContainerStyle={styles.grid}
             style={styles.flatList}
             ListHeaderComponent={
-              !readOnly && laundryFilter === 'in' && laundryCount > 0 ? (
+              !readOnly && (laundryFilter === 'in' || showLaundryClear) && laundryCount > 0 ? (
                 <TouchableOpacity style={styles.clearLaundryBtn} onPress={clearLaundry} accessibilityRole="button">
                   <MaterialIcons name="local-laundry-service" size={18} color={t.onPrimary} />
                   <Text style={styles.clearLaundryText}>{tr('Töm tvätten')} · {laundryCount}</Text>
@@ -780,6 +783,8 @@ export default function Wardrobe() {
                     <TouchableOpacity
                       style={[styles.laundryBadge, item.in_laundry && styles.laundryBadgeOn]}
                       onPress={() => toggleLaundry(item)}
+                      onLongPress={() => { if (laundryCount > 0) setShowLaundryClear(true) }}
+                      delayLongPress={300}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       accessibilityLabel={item.in_laundry ? `${tr('Ta ur tvätten')}: ${item.name}` : `${tr('Lägg i tvätten')}: ${item.name}`}
                       accessibilityRole="button"
