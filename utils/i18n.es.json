@@ -1132,5 +1132,19 @@
  "Importera till köplistan": "Importar a la lista de deseos",
  "Välj din butik nedan. Öppna ett plagg du gillar eller din varukorg och tryck Importera – så läggs plaggen till på din köplista.": "Elige tu tienda abajo. Abre una prenda que te guste o tu carrito y pulsa Importar: las prendas se añaden a tu lista de deseos.",
  "Öppna ett plagg du gillar eller din varukorg och försök igen.": "Abre una prenda que te guste o tu carrito e inténtalo de nuevo.",
- "Öppna ett plagg eller din varukorg": "Abre una prenda o tu carrito"
+ "Öppna ett plagg eller din varukorg": "Abre una prenda o tu carrito",
+ "God morgon! ☀️": "¡Buenos días! ☀️",
+ "{summary} – jag har valt ut en outfit som passar!": "{summary}: he elegido un look que te queda genial.",
+ "Dags att fixa kvällslooken 👠": "Hora de preparar el look de noche 👠",
+ "{event} ikväll – glöm inte att byta om (och ta med klackarna!).": "{event} esta noche: no olvides cambiarte (¡y llevar los tacones!).",
+ "Vad hade du på dig idag? 📸": "¿Qué te pusiste hoy? 📸",
+ "Logga dagens outfit på 2 sekunder.": "Registra el look de hoy en 2 segundos.",
+ "Ikväll har du {event} inplanerad": "Esta noche tienes {event}",
+ "Idag väntar {n} möte": "{n} reunión hoy",
+ "Idag väntar {n} möten": "{n} reuniones hoy",
+ "Dagen bjuder på skola": "Hoy toca clase",
+ "Dagen bjuder på träning": "Hoy toca entrenar",
+ "Idag har du {n} sak inplanerad": "Hoy tienes {n} cosa planeada",
+ "Idag har du {n} saker inplanerade": "Hoy tienes {n} cosas planeadas",
+ "En ledig dag": "Un día libre"
 }

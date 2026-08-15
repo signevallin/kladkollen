@@ -1,4 +1,12 @@
 import * as Calendar from 'expo-calendar'
+import { translate } from './i18n'
+
+// Fyller i {platshållare} i en översatt sträng.
+function fill(s: string, vars?: Record<string, string | number>): string {
+  if (!vars) return s
+  for (const k in vars) s = s.replace(`{${k}}`, String(vars[k]))
+  return s
+}
 
 // Tolkar dagens kalender till en outfit-kontext + en kort text för notisen.
 // contextLabel matchar OUTFIT_CONTEXTS (Jobb/Skola/Ledig/Aktiv/Date/Fest).
@@ -40,7 +48,7 @@ async function eventsForDay(date: Date): Promise<Calendar.Event[]> {
   return Calendar.getEventsAsync(ids, start, end)
 }
 
-export async function planForDay(date = new Date()): Promise<DayPlan> {
+export async function planForDay(date = new Date(), lang: string = 'sv'): Promise<DayPlan> {
   let events: Calendar.Event[] = []
   try { events = await eventsForDay(date) } catch { events = [] }
   const timed = events.filter(e => e.title && !e.allDay)
@@ -72,21 +80,23 @@ export async function planForDay(date = new Date()): Promise<DayPlan> {
   else if (school) contextLabel = 'Skola'
   else if (sport) contextLabel = 'Aktiv'
 
+  const tt = (key: string, vars?: Record<string, string | number>) => fill(translate(lang, key), vars)
   let summary: string
   if (eveningEvent) {
-    summary = `Ikväll har du ${eveningEvent}${eveningTime ? ` (${eveningTime})` : ''} inplanerad`
+    const ev = `${eveningEvent}${eveningTime ? ` (${eveningTime})` : ''}`
+    summary = tt('Ikväll har du {event} inplanerad', { event: ev })
   } else if (meetingCount >= 1) {
-    summary = `Idag väntar ${meetingCount} ${meetingCount === 1 ? 'möte' : 'möten'}`
+    summary = tt(meetingCount === 1 ? 'Idag väntar {n} möte' : 'Idag väntar {n} möten', { n: meetingCount })
   } else if (school) {
-    summary = 'Dagen bjuder på skola'
+    summary = tt('Dagen bjuder på skola')
   } else if (sport) {
-    summary = 'Dagen bjuder på träning'
+    summary = tt('Dagen bjuder på träning')
   } else if (timed.length > 0) {
     // Det finns inbokade händelser (t.ex. i en delad kalender) som inte matchar
     // våra nyckelord – säg då inte "ledig", utan att dagen har något inplanerat.
-    summary = `Idag har du ${timed.length} ${timed.length === 1 ? 'sak' : 'saker'} inplanerade`
+    summary = tt(timed.length === 1 ? 'Idag har du {n} sak inplanerad' : 'Idag har du {n} saker inplanerade', { n: timed.length })
   } else {
-    summary = 'En ledig dag'
+    summary = tt('En ledig dag')
   }
 
   return { contextLabel, meetingCount, eveningEvent, eveningTime, summary }
