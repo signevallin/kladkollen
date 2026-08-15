@@ -115,8 +115,8 @@
     "semantic_hash": ""
   },
   "api/pack-trip.ts": {
-    "mtime": 1786811935.5731766,
-    "ast_hash": "daa2e99ccc29488f42b71bd85e281886",
+    "mtime": 1786828151.3327613,
+    "ast_hash": "3ff44ca0c0c05e3b0fa2304e4d63657e",
     "semantic_hash": ""
   },
   "api/parse-purchases.ts": {
@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/home.tsx": {
-    "mtime": 1786827840.1207428,
-    "ast_hash": "168dcd6e41194ea91fe15c78730bab1b",
+    "mtime": 1786828130.48476,
+    "ast_hash": "fdfd2387e8e8860ed163753e5fc1a4da",
     "semantic_hash": ""
   },
   "app/(tabs)/inspiration.tsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/my-outfit.tsx": {
-    "mtime": 1786826774.4126794,
-    "ast_hash": "cea79f062c4d694af47f223723c14442",
+    "mtime": 1786828192.6007638,
+    "ast_hash": "261be9efd36a76c9d7912c6f42a41036",
     "semantic_hash": ""
   },
   "app/(tabs)/wardrobe.tsx": {
@@ -1057,6 +1057,11 @@
   "supabase/migrations/20260817_wishlist_person.sql": {
     "mtime": 1786826577.8926678,
     "ast_hash": "7bec10aff63eb12d237d53946a73f9a8",
+    "semantic_hash": ""
+  },
+  "utils/colorAnalysis.ts": {
+    "mtime": 1786828109.388759,
+    "ast_hash": "2c9514ebaeab8e8f3d7747e8635faa8f",
     "semantic_hash": ""
   }
 }

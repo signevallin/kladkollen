@@ -29,6 +29,7 @@ import { loadPeople, type Person } from '../../utils/people'
 import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths } from '../../utils/outfit'
 import { useEntitlements } from '../../utils/entitlements'
 import { tierAtLeast } from '../../utils/purchases'
+import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
@@ -76,7 +77,7 @@ function childEssentialsHint(months: number | null): string {
 export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { t: tr, lang } = useSettings()
+  const { t: tr, lang, useColorAnalysis } = useSettings()
   const { tier } = useEntitlements()
   const locale = localeFor(lang)
   const { tab, create, partner, partnerName, person, personName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string; person?: string; personName?: string }>()
@@ -658,6 +659,16 @@ function isPast(date: Date) {
       const monthLabelStr = start.getMonth() === end.getMonth() ? monthLabel(start, locale) : `${monthLabel(start, locale)}/${monthLabel(end, locale)}`
       const destinationLabel = geo.country ? `${geo.name}, ${geo.country}` : geo.name
 
+      // Väg in färganalysen om inställningen är på (samma som outfit-genereringen).
+      let colorPalette = ''
+      if (useColorAnalysis) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: prof } = await supabase.from('profiles').select('color_analysis').eq('id', user.id).single()
+          colorPalette = colorPalettePrompt(prof?.color_analysis)
+        }
+      }
+
       const parsed = await apiPost('/api/pack-trip', {
         destination: destinationLabel,
         dateLabel,
@@ -666,6 +677,7 @@ function isPast(date: Date) {
         weatherSummary: weather.summary,
         groupedList,
         vibe: tripVibe.trim(),
+        colorPalette,
       })
 
       const result = {
