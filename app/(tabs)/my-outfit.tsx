@@ -444,6 +444,17 @@ function isPast(date: Date) {
 
   async function wearOutfit(outfit: any) {
     const today = new Date().toISOString().split('T')[0]
+    // Barn har ingen outfit_calendar – deras "kalender" härleds ur worn_on. Sätt
+    // worn_on på outfiten och räkna barnets plagg som använda (rader ägs av mig).
+    if (isPerson) {
+      const { error } = await supabase.from('outfits').update({ worn_on: today, saved: true }).eq('id', outfit.id)
+      if (error) { showAlert(tr('Något gick fel'), error.message); return }
+      const ids = (outfit.garment_ids || []).filter(Boolean)
+      if (ids.length) { try { await adjustGarmentWear(ids, 1, today) } catch { /* icke-kritiskt */ } }
+      loadPersonData()
+      showAlert(tr('Outfit registrerad!'), tr('Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.'))
+      return
+    }
     // Lägg outfiten på dagens datum i kalendern (och räkna plaggen som använda).
     const ok = await assignOutfitToDay(outfit, today)
     if (ok) showAlert(tr('Outfit registrerad!'), tr('Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.'))
@@ -877,12 +888,15 @@ function isPast(date: Date) {
   if (creating) {
     return (
       <CreateOutfitView
-        garments={garments}
-        wishlist={wishlist}
+        // Redigerar man ett barns outfit ska plaggväljaren visa barnets garderob.
+        garments={isPerson ? personGarments : garments}
+        wishlist={isPerson ? [] : wishlist}
         editOutfit={editOutfit}
         locale={locale}
         onClose={() => { setCreating(false); setEditOutfit(null); setAssignAfterCreate(null) }}
         onSaved={async (outfit) => {
+          // Barn-outfit: ladda om barnets data (uppdateringen behåller person_id).
+          if (isPerson) { loadPersonData(); return }
           // Byggd från ett kalenderdatum? Lägg den nya outfiten direkt på dagen.
           const date = assignAfterCreate
           if (date && outfit) await assignOutfitToDay(outfit, date)
@@ -1028,8 +1042,9 @@ function isPast(date: Date) {
         <View style={styles.headerRow}>
           <View style={styles.titleWrap}>
             <Text style={styles.title} numberOfLines={1}>{isPartner ? (partnerName || tr('Partner')) : isPerson ? (personName || tr('Barnet')) : tr('Mina outfits')}</Text>
-            {/* Läsläge (partner/barn) markeras med ett litet hänglås. */}
-            {readOnly && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
+            {/* Läsläge (partner) markeras med ett litet hänglås. Barnens outfits
+                ägs av föräldern och går att redigera – inget lås där. */}
+            {isPartner && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
           </View>
           <View style={styles.headerActions}>
             {activeTab === 'outfits' && (
@@ -1173,8 +1188,10 @@ function isPast(date: Date) {
 
             {dispOutfits.length === 0 ? (
               <View style={styles.empty}>
-                {readOnly ? (
+                {isPartner ? (
                   <Text style={styles.emptyText}>{tr('Inga sparade outfits.')}</Text>
+                ) : isPerson ? (
+                  <Text style={styles.emptyText}>{tr('Inga sparade outfits för barnet än.')}{'\n'}{tr('Generera via "Familjen idag" på hemskärmen.')}</Text>
                 ) : (
                   <>
                     <Text style={styles.emptyText}>{tr('Inga outfits sparade än!')}{'\n'}{tr('Skapa din första eller generera via AI')}</Text>
@@ -1186,7 +1203,7 @@ function isPast(date: Date) {
               </View>
             ) : (
               filteredOutfits.map((outfit: any) => (
-                <TouchableOpacity key={outfit.id} style={styles.outfitCard} activeOpacity={readOnly ? 1 : 0.2} onPress={() => { if (!readOnly) wearOutfit(outfit) }} onLongPress={readOnly ? undefined : () => deleteOutfit(outfit.id)}>
+                <TouchableOpacity key={outfit.id} style={styles.outfitCard} activeOpacity={isPartner ? 1 : 0.2} onPress={() => { if (!isPartner) wearOutfit(outfit) }} onLongPress={isPartner ? undefined : () => deleteOutfit(outfit.id)}>
                   <View style={styles.outfitCardHeader}>
                     <View style={styles.outfitNameWrap}>
                       {partnerLikedIds.has(outfit.id) && (
@@ -1215,7 +1232,7 @@ function isPast(date: Date) {
                       >
                         <Ionicons name="share-outline" size={20} color={t.primary} />
                       </TouchableOpacity>
-                      {!readOnly && (
+                      {!isPartner && (
                         <TouchableOpacity
                           onPress={() => startEditOutfit(outfit)}
                           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -1236,7 +1253,7 @@ function isPast(date: Date) {
                       <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
                     ))}
                   </View>
-                  {!readOnly && <Text style={styles.holdToDelete}>{tr('Håll inne för att ta bort · Tryck för att registrera som använd')}</Text>}
+                  {!isPartner && <Text style={styles.holdToDelete}>{tr('Håll inne för att ta bort · Tryck för att registrera som använd')}</Text>}
                 </TouchableOpacity>
               ))
             )}
