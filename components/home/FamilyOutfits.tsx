@@ -356,8 +356,7 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
                               accessibilityLabel={tr('Lägg till plagg')}
                               accessibilityRole="button"
                             >
-                              <View style={styles.addBox}><Ionicons name="add" size={22} color={t.onPrimary} /></View>
-                              <Text style={styles.itemName} numberOfLines={1}>{tr('Lägg till')}</Text>
+                              <View style={styles.addBox}><View style={styles.addCircle}><Ionicons name="add" size={18} color={t.onPrimary} /></View></View>
                             </TouchableOpacity>
                           )}
                         </View>
@@ -427,9 +426,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   itemWrap: { alignItems: 'center', width: 80 },
   itemImage: { width: 80, height: 80, borderRadius: 14 },
   itemImageEmpty: { width: 80, height: 80, borderRadius: 14, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
-  addBox: { width: 80, height: 80, borderRadius: 14, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
-  swapBadge: { position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
-  swapBadgeText: { color: '#fff', fontSize: 11 },
+  addBox: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center' },
+  addCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  swapBadge: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  swapBadgeText: { color: t.onPrimary, fontSize: 12, fontFamily: 'Poppins_700Bold' },
   itemName: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, textAlign: 'center', width: 80, marginTop: 4 },
   message: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textPrimary, lineHeight: 19, fontStyle: 'italic' },
   actionRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
