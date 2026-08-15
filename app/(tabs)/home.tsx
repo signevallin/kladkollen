@@ -30,6 +30,7 @@ import { loadPeople } from '../../utils/people'
 import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import SongCard from '../../components/SongCard'
+import FamilyOutfits from '../../components/home/FamilyOutfits'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { supabase } from '../../supabase'
@@ -1068,12 +1069,10 @@ export default function Home() {
           </TouchableOpacity>
         )}
 
-        {/* Familjen idag – klä hela hushållet med ett tryck. Visas när det finns
-            partner och/eller barn (Familj-nivån; skärmen visar upsell annars). */}
+        {/* Generera outfits för hela hushållet, direkt här. Visas när det finns
+            partner och/eller barn. Egen komponent (egen state + inline-resultat). */}
         {(partner || childCount > 0) && (
-          <TouchableOpacity style={styles.coupleBtn} onPress={() => router.push('/family-today')} disabled={loading}>
-            <Text style={styles.coupleBtnText}>{tr('Familjen idag')}</Text>
-          </TouchableOpacity>
+          <FamilyOutfits weather={weather} disabled={loading || coupleLoading} />
         )}
 
         {/* Outfit result */}

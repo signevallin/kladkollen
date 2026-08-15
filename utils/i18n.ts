@@ -743,6 +743,8 @@ const enBySource: Dict = {
   'Skapa dagens outfits': 'Create today’s outfits',
   'Skapa nya': 'Create new',
   'För få plagg i garderoben.': 'Too few clothes in the wardrobe.',
+  'Generera outfits för familjen': 'Generate outfits for the family',
+  'Generera nya för familjen': 'Generate new for the family',
   'Återupptäck garderoben': 'Rediscover your wardrobe',
   'Glömda favoriter, veckans statistik och pris-per-användning.': 'Forgotten favourites, weekly stats and cost-per-wear.',
   'Logga dagens outfit': 'Log today’s outfit',
