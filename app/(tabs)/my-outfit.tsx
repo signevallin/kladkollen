@@ -616,11 +616,28 @@ function isPast(date: Date) {
               weatherSummary: weather.summary, groupedList: buildTripGarmentList(usePool),
               vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, lang,
             })
+            // Bild-lös outfit-plaggen + samla barnets tvättbara plagg-id:n (ur
+            // både outfits och packlista) så "Lägg allt i tvätten" når även barnen.
+            const resolveInPool = (nm: string) => {
+              const target = (nm || '').trim().toLowerCase()
+              return usePool.find(g => (g.name || '').trim().toLowerCase() === target)
+                || usePool.find(g => (g.name || '').toLowerCase().includes(target))
+                || usePool.filter(g => g.name && target.includes(g.name.toLowerCase())).sort((a: any, b: any) => b.name.length - a.name.length)[0]
+                || null
+            }
+            const childNames = [
+              ...(Array.isArray(cp.outfits) ? cp.outfits.flatMap((o: any) => o.items || []) : []),
+              ...(Array.isArray(cp.packingList) ? cp.packingList : []),
+            ]
+            const garmentIds = Array.from(new Set(
+              childNames.map(resolveInPool).filter((g: any) => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
+            ))
             childPacks.push({
               personId: c.id,
               name: c.name,
               packingList: Array.isArray(cp.packingList) ? cp.packingList : [],
               extras: Array.isArray(cp.extras) ? cp.extras : [],
+              garmentIds,
               outfits: (Array.isArray(cp.outfits) ? cp.outfits : []).map((o: any) => ({
                 name: o.name, itemsWithImages: matchItemsToPool(o.items || [], usePool),
               })),
@@ -753,9 +770,10 @@ function isPast(date: Date) {
       ...(tripResult.outfits || []).flatMap((o: any) => o.items || []),
       ...(tripResult.packingList || []),
     ]
-    const ids = Array.from(new Set(
-      items.map(resolveTripGarment).filter(g => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
-    )) as string[]
+    const ownIds = items.map(resolveTripGarment).filter(g => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
+    // Även barnens rese-plagg (id:n samlades vid genereringen) läggs i tvätten.
+    const childIds = (tripResult.childPacks || []).flatMap((cp: any) => cp.garmentIds || [])
+    const ids = Array.from(new Set([...ownIds, ...childIds])) as string[]
     if (ids.length === 0) {
       showAlert(tr('Inga plagg att tvätta'), tr('Reseplanen matchar inga plagg i din garderob.')); return
     }
