@@ -167,7 +167,9 @@ export default function ImportPurchases() {
     try {
       const { items: found } = await apiPost('/api/parse-purchases', { store: store?.name, content: msg.content })
       if (!found || found.length === 0) {
-        showAlert(tr('Inga plagg hittades'), tr('Kontrollera att du är inloggad och står på sidan med din orderhistorik, och försök igen.'))
+        showAlert(tr('Inga plagg hittades'), toWishlist
+          ? tr('Öppna ett plagg du gillar eller din varukorg och försök igen.')
+          : tr('Kontrollera att du är inloggad och står på sidan med din orderhistorik, och försök igen.'))
       } else {
         setItems(found)
         setSelected(new Set(found.map((_: any, i: number) => i)))
@@ -297,7 +299,7 @@ export default function ImportPurchases() {
           <TouchableOpacity style={styles.backButton} onPress={() => goBack('/wardrobe')}>
             <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>{tr('Importera köp')}</Text>
+          <Text style={styles.title}>{toWishlist ? tr('Importera till köplistan') : tr('Importera köp')}</Text>
           <View style={styles.webNotice}>
             <Text style={styles.webNoticeText}>
               {tr('Import från nätbutiker fungerar bara i appen på din telefon, där du kan logga in säkert i butikens egen webbläsare.')}
@@ -318,9 +320,11 @@ export default function ImportPurchases() {
           <TouchableOpacity style={styles.backButton} onPress={() => goBack('/wardrobe')}>
             <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>{tr('Importera köp')}</Text>
+          <Text style={styles.title}>{toWishlist ? tr('Importera till köplistan') : tr('Importera köp')}</Text>
           <Text style={styles.subtitle}>
-            {tr('Välj din butik nedan. Logga in, gå till din orderhistorik (t.ex. "Mina köp" eller "Mina ordrar") och tryck Importera – så hämtas dina köpta plagg automatiskt.')}
+            {toWishlist
+              ? tr('Välj din butik nedan. Öppna ett plagg du gillar eller din varukorg och tryck Importera – så läggs plaggen till på din köplista.')
+              : tr('Välj din butik nedan. Logga in, gå till din orderhistorik (t.ex. "Mina köp" eller "Mina ordrar") och tryck Importera – så hämtas dina köpta plagg automatiskt.')}
           </Text>
           <TextInput
             style={styles.search}
@@ -440,7 +444,7 @@ export default function ImportPurchases() {
         />
       )}
       <View style={styles.importBar}>
-        <Text style={styles.importHint}>{tr('Logga in och gå till din orderhistorik')}</Text>
+        <Text style={styles.importHint}>{toWishlist ? tr('Öppna ett plagg eller din varukorg') : tr('Logga in och gå till din orderhistorik')}</Text>
         <TouchableOpacity style={[styles.primaryBtn, parsing && styles.primaryBtnDisabled]} onPress={startImport} disabled={parsing}>
           {parsing
             ? <View style={styles.btnRow}><ActivityIndicator color={t.onPrimary} /><Text style={styles.primaryBtnText}>  {tr('Läser sidan…')}</Text></View>

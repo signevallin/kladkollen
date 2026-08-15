@@ -1128,5 +1128,9 @@
  "Fyll i namn och bild manuellt – länken är sparad.": "Añade el nombre y la imagen manualmente: el enlace está guardado.",
  "Länk till plagget": "Enlace a la prenda",
  "Sök butik": "Buscar tienda",
- "Ingen butik matchar sökningen.": "Ninguna tienda coincide con la búsqueda."
+ "Ingen butik matchar sökningen.": "Ninguna tienda coincide con la búsqueda.",
+ "Importera till köplistan": "Importar a la lista de deseos",
+ "Välj din butik nedan. Öppna ett plagg du gillar eller din varukorg och tryck Importera – så läggs plaggen till på din köplista.": "Elige tu tienda abajo. Abre una prenda que te guste o tu carrito y pulsa Importar: las prendas se añaden a tu lista de deseos.",
+ "Öppna ett plagg du gillar eller din varukorg och försök igen.": "Abre una prenda que te guste o tu carrito e inténtalo de nuevo.",
+ "Öppna ett plagg eller din varukorg": "Abre una prenda o tu carrito"
 }
