@@ -1126,5 +1126,7 @@
  "Kunde inte öppna länken": "Link konnte nicht geöffnet werden",
  "Kunde inte hämta länken automatiskt": "Link konnte nicht automatisch geladen werden",
  "Fyll i namn och bild manuellt – länken är sparad.": "Name und Bild manuell eingeben – der Link ist gespeichert.",
- "Länk till plagget": "Link zum Teil"
+ "Länk till plagget": "Link zum Teil",
+ "Sök butik": "Geschäft suchen",
+ "Ingen butik matchar sökningen.": "Kein Geschäft passt zur Suche."
 }

@@ -10,6 +10,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -138,6 +139,7 @@ export default function ImportPurchases() {
 
   const [store, setStore] = useState<{ name: string; url: string } | null>(null)
   const [step, setStep] = useState<'store' | 'browse' | 'select'>('store')
+  const [storeQuery, setStoreQuery] = useState('')
   const [parsing, setParsing] = useState(false)
   const [items, setItems] = useState<ImportedItem[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
@@ -308,6 +310,8 @@ export default function ImportPurchases() {
 
   // ── Steg 1: välj butik ──────────────────────────────────────
   if (step === 'store') {
+    const q = storeQuery.trim().toLowerCase()
+    const shownStores = q ? STORES.filter(s => s.name.toLowerCase().includes(q)) : STORES
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll}>
@@ -318,7 +322,20 @@ export default function ImportPurchases() {
           <Text style={styles.subtitle}>
             {tr('Välj din butik nedan. Logga in, gå till din orderhistorik (t.ex. "Mina köp" eller "Mina ordrar") och tryck Importera – så hämtas dina köpta plagg automatiskt.')}
           </Text>
-          {STORES.map(s => (
+          <TextInput
+            style={styles.search}
+            placeholder={tr('Sök butik')}
+            placeholderTextColor={t.placeholder}
+            value={storeQuery}
+            onChangeText={setStoreQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+          />
+          {shownStores.length === 0 && (
+            <Text style={styles.subtitle}>{tr('Ingen butik matchar sökningen.')}</Text>
+          )}
+          {shownStores.map(s => (
             <TouchableOpacity key={s.name} style={styles.storeRow} onPress={() => { setStore(s); setStep('browse') }}>
               <View style={styles.storeLogoWrap}>
                 {storeLogoUrl(s.url)
@@ -443,6 +460,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 8 },
   subtitle: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 20 },
 
+  search: { fontFamily: 'Lora_400Regular', fontSize: 15, color: t.textPrimary, backgroundColor: t.surface, borderRadius: 12, borderWidth: 1, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 14 },
   storeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: t.border },
   storeLogoWrap: { width: 34, height: 34, borderRadius: 8, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border, overflow: 'hidden' },
   storeLogo: { width: 22, height: 22 },
