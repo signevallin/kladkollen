@@ -1172,5 +1172,7 @@
  "Generera via \"Familjen idag\" på hemskärmen.": "Genéralos con «La familia hoy» en la pantalla de inicio.",
  "Ingen planerad resa för barnet.": "No hay ningún viaje planeado para el niño.",
  "Planeras i familjeresan under din egen profil.": "Se planifica en el viaje familiar desde tu propio perfil.",
- "Töm": "Vaciar"
+ "Töm": "Vaciar",
+ "Använd i outfit-generering": "Usar al generar looks",
+ "Låt AI:n väga in din färgpalett när outfits skapas.": "Deja que la IA tenga en cuenta tu paleta de colores al crear looks."
 }

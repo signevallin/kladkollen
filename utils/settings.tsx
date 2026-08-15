@@ -43,6 +43,7 @@ const CUR_KEY = 'kladkollen_currency'
 const TEMP_KEY = 'kladkollen_tempunit'
 const LANG_KEY = 'kladkollen_lang'
 const SONG_KEY = 'kladkollen_show_daily_song'
+const COLORAI_KEY = 'kladkollen_use_color_analysis'
 const RATES_KEY = 'kladkollen_rates'
 const RATES_TTL = 12 * 60 * 60 * 1000 // 12 h
 
@@ -62,10 +63,13 @@ type SettingsCtx = {
   lang: Lang
   /** Om "Dagens låt" ska visas på hemskärmen (kan döljas under Profil → Musik). */
   showDailySong: boolean
+  /** Om AI:n ska väga in användarens färganalys när outfits genereras. */
+  useColorAnalysis: boolean
   setCurrency: (c: CurrencyCode) => void
   setTempUnit: (u: TempUnit) => void
   setLang: (l: Lang) => void
   setShowDailySong: (v: boolean) => void
+  setUseColorAnalysis: (v: boolean) => void
   /** Översätter en nyckel till valt språk (faller tillbaka på svenska). */
   t: (key: string) => string
   /** Formaterar ett SEK-belopp i vald valuta (med omräkning). */
@@ -101,6 +105,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [tempUnit, setTempUnitState] = useState<TempUnit>('C')
   const [lang, setLangState] = useState<Lang>('sv')
   const [showDailySong, setShowDailySongState] = useState<boolean>(true)
+  const [useColorAnalysis, setUseColorAnalysisState] = useState<boolean>(true)
   const [rates, setRates] = useState<Record<CurrencyCode, number>>(FALLBACK_RATES)
 
   useEffect(() => {
@@ -126,6 +131,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         syncLangToProfile(resolved)
         const s = await AsyncStorage.getItem(SONG_KEY)
         if (s === '0') setShowDailySongState(false)
+        const ca = await AsyncStorage.getItem(COLORAI_KEY)
+        if (ca === '0') setUseColorAnalysisState(false)
       } catch { /* behåll standard */ }
       loadRates()
     })()
@@ -181,6 +188,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setShowDailySongState(v)
     AsyncStorage.setItem(SONG_KEY, v ? '1' : '0').catch(() => {})
   }
+  function setUseColorAnalysis(v: boolean) {
+    setUseColorAnalysisState(v)
+    AsyncStorage.setItem(COLORAI_KEY, v ? '1' : '0').catch(() => {})
+  }
 
   const rate = rates[currency] ?? 1
   const toUnit = (celsius: number) => tempUnit === 'F' ? Math.round(celsius * 9 / 5 + 32) : Math.round(celsius)
@@ -190,10 +201,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     tempUnit,
     lang,
     showDailySong,
+    useColorAnalysis,
     setCurrency,
     setTempUnit,
     setLang,
     setShowDailySong,
+    setUseColorAnalysis,
     t: (key: string) => translate(lang, key),
     rate,
     formatPrice: (sek) => formatWithCurrency((Number(sek) || 0) * rate, currency),
