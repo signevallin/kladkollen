@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/home.tsx": {
-    "mtime": 1786800525.08861,
-    "ast_hash": "f3bcae6655419ccf713db3564ba02d3c",
+    "mtime": 1786806255.8976686,
+    "ast_hash": "c32c128beacf2d0efdef4666e8eb93f0",
     "semantic_hash": ""
   },
   "app/(tabs)/inspiration.tsx": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "app/_layout.tsx": {
-    "mtime": 1786800649.164607,
-    "ast_hash": "995c38ca0ab348eb3a1676d4442ef57b",
+    "mtime": 1786806228.3256671,
+    "ast_hash": "7d369f1ec4e57f30916e03846db11ad3",
     "semantic_hash": ""
   },
   "app/add-garment.tsx": {
@@ -645,23 +645,23 @@
     "semantic_hash": ""
   },
   "utils/i18n.de.json": {
-    "mtime": 1786800722.0624285,
-    "ast_hash": "6ac1850f45efd406632eb70ab31231d1",
+    "mtime": 1786806322.2129974,
+    "ast_hash": "14dab7c537871e9107cf1bdebfe28d87",
     "semantic_hash": ""
   },
   "utils/i18n.es.json": {
-    "mtime": 1786800722.0652742,
-    "ast_hash": "0d36b3b7e4b07a9aaaa6635fb37138d9",
+    "mtime": 1786806322.2155297,
+    "ast_hash": "7ea9e0ad531831ebcd9d7f76ad29c2a2",
     "semantic_hash": ""
   },
   "utils/i18n.fr.json": {
-    "mtime": 1786800722.0680566,
-    "ast_hash": "dc40656710f188a0d43a5baaef138a41",
+    "mtime": 1786806322.2180274,
+    "ast_hash": "60dc294ee5864391844ccd2a2aa66d81",
     "semantic_hash": ""
   },
   "utils/i18n.ts": {
-    "mtime": 1786800710.4246056,
-    "ast_hash": "4acacdb6ae5ad3507e6d99213dbb52ca",
+    "mtime": 1786806307.1776717,
+    "ast_hash": "6d74746842a2b90fe4828de1806a218d",
     "semantic_hash": ""
   },
   "utils/id.ts": {
@@ -960,8 +960,8 @@
     "semantic_hash": ""
   },
   "app/child-outfit.tsx": {
-    "mtime": 1786801470.2513876,
-    "ast_hash": "432919c683d4f27f48abe2526e804c38",
+    "mtime": 1786802424.6393657,
+    "ast_hash": "92ba836db284a3a970420a5dd119bb0b",
     "semantic_hash": ""
   },
   "components/PersonSwitcher.tsx": {
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "utils/outfit.ts": {
-    "mtime": 1786801417.6233888,
-    "ast_hash": "0c1ade1a0372da57f02b54a7f459a0d5",
+    "mtime": 1786802398.2273664,
+    "ast_hash": "a036125a0302ef20193b2cecb9c7a5e9",
     "semantic_hash": ""
   },
   "utils/removeBg.ts": {
@@ -1037,6 +1037,11 @@
   "supabase/email-templates/confirm-signup.html": {
     "mtime": 1786384959.8340602,
     "ast_hash": "f0b17d7b8fd42fc8834d5a306d153658",
+    "semantic_hash": ""
+  },
+  "app/family-today.tsx": {
+    "mtime": 1786806282.6176703,
+    "ast_hash": "f68bdb009f526ce65aba3faec81a2e09",
     "semantic_hash": ""
   }
 }

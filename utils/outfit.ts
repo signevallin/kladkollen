@@ -4,6 +4,53 @@
 // kan enhetstestas. Kategorierna är desamma oavsett person (barn har samma
 // plaggkategorier som vuxna).
 
+// Aktuell årstid (svensk källtext – matchar plaggens season-fält).
+export function getCurrentSeason(): string {
+  const m = new Date().getMonth() // 0 = jan
+  if (m === 11 || m <= 1) return 'Vinter'
+  if (m <= 4) return 'Vår'
+  if (m <= 8) return 'Sommar'
+  return 'Höst'
+}
+
+// Ett plagg passar säsongen om: ingen säsong angiven, "Alla årstider", eller om
+// den aktuella säsongen finns med i plaggets säsonger.
+export function seasonAppropriate(g: any, season: string): boolean {
+  const s = (g.season || '').trim()
+  if (!s) return true
+  if (s.includes('Alla årstider')) return true
+  return s.includes(season)
+}
+
+// Ålder i månader från födelsedatum (null om okänt).
+export function ageMonths(birthdate: string | null | undefined): number | null {
+  if (!birthdate) return null
+  const b = new Date(birthdate)
+  if (isNaN(b.getTime())) return null
+  const now = new Date()
+  let m = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth())
+  if (now.getDate() < b.getDate()) m -= 1
+  return Math.max(0, m)
+}
+
+// Bebis = går oftast inte själv än → inga skor. Åldern används i första hand,
+// annars storleken som reserv (≈ under 18–24 mån). Vet vi ingetdera: inte bebis.
+export function isBabyChild(birthdate: string | null | undefined, sizeCm: number | null): boolean {
+  const m = ageMonths(birthdate)
+  if (m != null) return m < 18
+  if (sizeCm != null) return sizeCm < 86
+  return false
+}
+
+// Plagg som passar barnets aktuella storlek: osizeade plagg tas alltid med,
+// annars ett generöst fönster runt current_size_cm (lite för stort går bra att
+// växa i, för litet döljs). Saknas storlek på barnet → visa allt.
+export function childSizeFits(g: any, currentCm: number | null): boolean {
+  if (g.size_cm == null) return true
+  if (currentCm == null) return true
+  return g.size_cm >= currentCm - 6 && g.size_cm <= currentCm + 10
+}
+
 // Bygger den grupperade garderobslistan som AI:n väljer ur. requiresOuterwear
 // styr bara ordvalet i ytterplagg-rubriken (väderdrivet).
 export function buildGroupedGarmentList(garmentList: any[], requiresOuterwear: boolean): string {
