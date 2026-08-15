@@ -1518,7 +1518,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   // Resa (reseplanerare)
   tripIntro: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 16 },
   tripCalCard: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.border, marginBottom: 12 },
-  tripDayCell: { width: '14.28%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
+  // Fast höjd (i stället för aspectRatio) så datumsiffran centreras säkert
+  // vertikalt i markeringen – aspectRatio + justifyContent kunde lägga siffran
+  // i nederkant.
+  tripDayCell: { width: '14.28%', height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
   // Temaanpassad: t.accent är #DDE6ED i ljust läge (oförändrat) och en mörk ton
   // i mörkt läge, så dagsiffrorna (t.textPrimary) syns i båda temana.
   tripDayInRange: { backgroundColor: t.accent },
