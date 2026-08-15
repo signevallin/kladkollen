@@ -22,8 +22,11 @@ import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import CreateOutfitView from '../../components/my-outfit/CreateOutfitView'
 import PersonSwitcher from '../../components/PersonSwitcher'
+import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
+import { loadPeople, type Person } from '../../utils/people'
+import { matchItemsToPool, childSizeFits, isBabyChild } from '../../utils/outfit'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
@@ -54,16 +57,20 @@ const TRIP_CHECK_KEY = 'kladkollen_trip_checked'
 // Användarens egna "glöm inte"-saker (necessär, laddare, pass …). Sparas separat
 // och läggs alltid överst i extras-listan när en ny resa planeras.
 const TRIP_EXTRAS_KEY = 'kladkollen_trip_extras'
+const TRIP_KIDS_KEY = 'kladkollen_trip_include_kids'
 
 export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang } = useSettings()
   const locale = localeFor(lang)
-  const { tab, create, partner, partnerName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string }>()
+  const { tab, create, partner, partnerName, person, personName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string; person?: string; personName?: string }>()
   // Partner-läge: visa partnerns outfits (läsläge) i stället för mina egna.
   const isPartner = !!partner
-  const readOnly = isPartner
+  // Barn-läge: visa ett barns sparade/loggade outfits (läsläge). Barnens outfits
+  // ägs av föräldern (user_id) men är taggade med person_id, så de hämtas direkt.
+  const isPerson = !!person && !partner
+  const readOnly = isPartner || isPerson
   const [activeTab, setActiveTab] = useState<'kalender' | 'outfits' | 'resa'>(
     create ? 'outfits' : tab === 'resa' ? 'resa' : tab === 'outfits' ? 'outfits' : 'kalender'
   )
@@ -84,6 +91,11 @@ export default function MyOutfits() {
   useEffect(() => {
     if (create) { setActiveTab('outfits'); setEditOutfit(null); setCreating(true) }
   }, [create])
+
+  // Barn saknar resa-fliken – hoppa till kalendern om man var där vid personbyte.
+  useEffect(() => {
+    if (isPerson && activeTab === 'resa') setActiveTab('kalender')
+  }, [isPerson, activeTab])
   const [activeStyleFilter, setActiveStyleFilter] = useState('Alla')
   const [showOnlyLiked, setShowOnlyLiked] = useState(false)
   // Filterraden i Outfits-fliken göms bakom en filterknapp i headern (som i
@@ -119,6 +131,10 @@ export default function MyOutfits() {
   // Byt ut / lägg till plagg i en reseoutfit (samma UI som på hemskärmen).
   const [tripSwap, setTripSwap] = useState<{ oi: number; ii: number } | null>(null)
   const [tripAddTarget, setTripAddTarget] = useState<{ oi: number } | null>(null)
+  // Familjeresa: generera packning/outfits även till barnen. Barn i hushållet
+  // (för togglens synlighet) och om toggeln är på (sparas lokalt).
+  const [children, setChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
+  const [tripIncludeKids, setTripIncludeKids] = useState(false)
 
   // Partner-läge (läsläge): partnerns data hålls i egen state så den egna aldrig
   // skrivs över. Rendern väljer "disp*"-varianten nedan utifrån isPartner, så
@@ -130,19 +146,44 @@ export default function MyOutfits() {
   // Vilka av partnerns outfits JAG har gillat (❤ i partner-läge).
   const [myLikedIds, setMyLikedIds] = useState<Set<string>>(new Set())
 
+  // Barn-läge (läsläge): barnets outfits + "kalender" (härledd ur worn_on, barn
+  // har ingen outfit_calendar). Hålls separat precis som partner-datan.
+  const [personOutfits, setPersonOutfits] = useState<any[]>([])
+  const [personGarments, setPersonGarments] = useState<any[]>([])
+  const [personCalendar, setPersonCalendar] = useState<Record<string, any>>({})
+
   useFocusEffect(
     useCallback(() => {
       if (isPartner) { loadPartnerData(); return }
+      if (isPerson) { loadPersonData(); return }
       fetchOutfits()
       fetchGarments()
       fetchWishlist()
       fetchCalendarEntries()
+      loadPeople().then(ppl => {
+        const kids = ppl.filter(p => p.type === 'child')
+        setChildren(kids); cacheSet('household.children', kids)
+      }).catch(() => {})
       // Spegla ev. lokal resa till DB vid varje fokus (självläkande) så en
       // sambo kan se den i läsläge – även resor planerade innan speglingen
       // fanns eller på en annan enhet.
       syncLocalTripToDb()
-    }, [isPartner, partner])
+    }, [isPartner, partner, isPerson, person])
   )
+
+  // Hämtar ett barns sparade outfits + härleder en "kalender" ur worn_on (barn
+  // har ingen outfit_calendar). Barnens rader ägs av föräldern, så direkt query.
+  async function loadPersonData() {
+    if (!person) return
+    const { data } = await supabase.from('outfits').select('*').eq('person_id', person).order('created_at', { ascending: false })
+    const all = (data || []) as any[]
+    setPersonOutfits(all.filter(x => x.saved))
+    const map: Record<string, any> = {}
+    for (const o of all) if (o.worn_on) map[o.worn_on] = { date: o.worn_on, outfit_id: o.id, outfits: o }
+    setPersonCalendar(map)
+    const g = await loadGarments().catch(() => [] as any[])
+    setPersonGarments((g as any[]).filter(x => x.person_id === person))
+  }
 
   // Hämtar partnerns outfits/plagg/kalender/resa via household-vaktade RPC:er.
   async function loadPartnerData() {
@@ -199,6 +240,8 @@ export default function MyOutfits() {
         if (chk) setTripChecked(JSON.parse(chk))
         const ex = await AsyncStorage.getItem(TRIP_EXTRAS_KEY)
         if (ex) setSavedExtras(JSON.parse(ex))
+        const ik = await AsyncStorage.getItem(TRIP_KIDS_KEY)
+        if (ik === '1') setTripIncludeKids(true)
       } catch { /* ignorera */ }
     })()
   }, [])
@@ -367,10 +410,10 @@ function isPast(date: Date) {
 
   // Vilken datamängd rendern visar. I partner-läge (läsläge) visas partnerns
   // data, annars den egna – men SAMMA JSX/design används för båda.
-  const dispOutfits = isPartner ? partnerOutfits : outfits
-  const dispGarments = isPartner ? partnerGarments : garments
-  const dispCalendarEntries = isPartner ? partnerCalendar : calendarEntries
-  const dispTrip = isPartner ? partnerTrip : tripResult
+  const dispOutfits = isPartner ? partnerOutfits : isPerson ? personOutfits : outfits
+  const dispGarments = isPartner ? partnerGarments : isPerson ? personGarments : garments
+  const dispCalendarEntries = isPartner ? partnerCalendar : isPerson ? personCalendar : calendarEntries
+  const dispTrip = isPartner ? partnerTrip : isPerson ? null : tripResult
 
   // Outfit functions
   // Filtret matchar mot tillfälle (mood/context) ELLER stil, så en och samma
@@ -554,6 +597,39 @@ function isPast(date: Date) {
         startDate: tripStartDate,
         endDate: tripEndDate,
       }
+
+      // Familjeresa: packa även till barnen (opt-in). Ett pack-trip-anrop per
+      // barn med barnets storleks-/säsongsanpassade garderob; plaggen bild-löses
+      // direkt mot barnets pool (reseresultatet renderar via image_url).
+      if (tripIncludeKids && children.length) {
+        const all = await loadGarments().catch(() => [] as any[])
+        const childPacks: any[] = []
+        for (const c of children) {
+          try {
+            const active = (all as any[]).filter(g => g.person_id === c.id && !g.archived && !g.in_laundry)
+            const sized = active.filter(g => childSizeFits(g, c.current_size_cm ?? null))
+            const usePool = sized.length ? sized : active
+            if (usePool.length === 0) continue
+            const baby = isBabyChild(c.birthdate, c.current_size_cm ?? null)
+            const cp = await apiPost('/api/pack-trip', {
+              destination: destinationLabel, dateLabel, monthLabel: monthLabelStr, days,
+              weatherSummary: weather.summary, groupedList: buildTripGarmentList(usePool),
+              vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, lang,
+            })
+            childPacks.push({
+              personId: c.id,
+              name: c.name,
+              packingList: Array.isArray(cp.packingList) ? cp.packingList : [],
+              extras: Array.isArray(cp.extras) ? cp.extras : [],
+              outfits: (Array.isArray(cp.outfits) ? cp.outfits : []).map((o: any) => ({
+                name: o.name, itemsWithImages: matchItemsToPool(o.items || [], usePool),
+              })),
+            })
+          } catch { /* hoppa över barnet vid fel, resten av resan står kvar */ }
+        }
+        ;(result as any).childPacks = childPacks
+      }
+
       setTripResult(result)
       setTripChecked({})
       await AsyncStorage.setItem(TRIP_KEY, JSON.stringify(result)).catch(() => {})
@@ -933,9 +1009,9 @@ function isPast(date: Date) {
       <View style={styles.topArea}>
         <View style={styles.headerRow}>
           <View style={styles.titleWrap}>
-            <Text style={styles.title} numberOfLines={1}>{isPartner ? (partnerName || tr('Partner')) : tr('Mina outfits')}</Text>
-            {/* Läsläge (partner) markeras med ett litet hänglås i stället för en textrad. */}
-            {isPartner && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
+            <Text style={styles.title} numberOfLines={1}>{isPartner ? (partnerName || tr('Partner')) : isPerson ? (personName || tr('Barnet')) : tr('Mina outfits')}</Text>
+            {/* Läsläge (partner/barn) markeras med ett litet hänglås. */}
+            {readOnly && <MaterialIcons name="lock-outline" size={17} color={t.textFaint} accessibilityLabel={tr('Läsläge – du kan titta men inte ändra')} />}
           </View>
           <View style={styles.headerActions}>
             {activeTab === 'outfits' && (
@@ -948,12 +1024,13 @@ function isPast(date: Date) {
                 <MaterialIcons name="tune" size={20} color={t.onPrimary} />
               </TouchableOpacity>
             )}
-            <PersonSwitcher scope="outfits" current={isPartner ? { kind: 'partner', id: partner } : { kind: 'me' }} />
+            <PersonSwitcher scope="outfits" current={isPartner ? { kind: 'partner', id: partner } : isPerson ? { kind: 'child', id: person } : { kind: 'me' }} />
           </View>
         </View>
 
         <View style={styles.tabRow}>
-          {(['kalender', 'outfits', 'resa'] as const).map(tb => (
+          {/* Barn har ingen resa – dölj den fliken i barn-läge. */}
+          {(isPerson ? (['kalender', 'outfits'] as const) : (['kalender', 'outfits', 'resa'] as const)).map(tb => (
             <TouchableOpacity key={tb} style={[styles.tab, activeTab === tb && styles.tabActive]} onPress={() => setActiveTab(tb)}>
               <Text style={[styles.tabText, activeTab === tb && styles.tabTextActive]}>
                 {tb === 'kalender' ? tr('Kalender') : tb === 'outfits' ? tr('Outfits') : tr('Resa')}
@@ -1224,6 +1301,19 @@ function isPast(date: Date) {
                   onChangeText={setTripVibe}
                 />
 
+                {children.length > 0 && (
+                  <View style={styles.tripKidsRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.tripKidsLabel}>{tr('Packa även till barnen')}</Text>
+                      <Text style={styles.tripKidsSub}>{tr('Packlista och outfits för varje barn.')}</Text>
+                    </View>
+                    <Toggle
+                      value={tripIncludeKids}
+                      onValueChange={(v) => { setTripIncludeKids(v); AsyncStorage.setItem(TRIP_KIDS_KEY, v ? '1' : '0').catch(() => {}) }}
+                    />
+                  </View>
+                )}
+
                 <TouchableOpacity style={[styles.tripGenBtn, tripLoading && { opacity: 0.7 }]} onPress={generateTrip} disabled={tripLoading}>
                   {tripLoading
                     ? <ActivityIndicator color={t.onPrimary} />
@@ -1340,6 +1430,46 @@ function isPast(date: Date) {
                     )}
                   </>
                 )}
+
+                {/* Familjeresa: packning + outfits per barn (läsläge – barnens
+                    reseoutfits redigeras inte här). */}
+                {(dispTrip.childPacks || []).map((cp: any) => (
+                  <View key={cp.personId} style={styles.childPackBlock}>
+                    <View style={styles.childPackHeader}>
+                      <MaterialIcons name="child-care" size={18} color={t.primary} />
+                      <Text style={styles.childPackTitle}>{tr('Packat till')} {cp.name}</Text>
+                    </View>
+                    {(cp.outfits || []).map((o: any, i: number) => (
+                      <View key={i} style={styles.outfitCard}>
+                        <Text style={styles.outfitName}>{o.name}</Text>
+                        <View style={styles.outfitImages}>
+                          {(o.itemsWithImages || []).map((it: any, j: number) => (
+                            <View key={j} style={styles.tripItemWrap}>
+                              {it.image_url
+                                ? <SignedImage path={it.image_url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                                : <View style={styles.outfitImageEmpty} />}
+                            </View>
+                          ))}
+                        </View>
+                        <Text style={styles.outfitGarments}>{(o.itemsWithImages || []).map((it: any) => it.name).join(' · ')}</Text>
+                      </View>
+                    ))}
+                    {(cp.packingList || []).length > 0 && (
+                      <View style={styles.packCard}>
+                        {cp.packingList.map((nm: string, i: number) => {
+                          const key = `child:${cp.personId}:${nm}`
+                          const checked = !!tripChecked[key]
+                          return (
+                            <TouchableOpacity key={i} style={styles.packRow} activeOpacity={0.2} onPress={() => toggleTripCheck(key)}>
+                              <View style={[styles.packCheck, checked && styles.packCheckOn]}>{checked && <Text style={styles.packCheckMark}>✓</Text>}</View>
+                              <Text style={[styles.packName, checked && styles.packNameChecked]}>{nm}</Text>
+                            </TouchableOpacity>
+                          )
+                        })}
+                      </View>
+                    )}
+                  </View>
+                ))}
 
                 {/* Ändra-/tvätt-/nollställ-åtgärder är dolda i läsläge (partnerns resa). */}
                 {!readOnly && (
@@ -1535,6 +1665,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tripDatesLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, textAlign: 'center', marginBottom: 16 },
   tripGenBtn: { backgroundColor: t.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
   tripGenBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
+  tripKidsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 14, marginBottom: 4 },
+  tripKidsLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },
+  tripKidsSub: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginTop: 2 },
+  childPackBlock: { marginTop: 12 },
+  childPackHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 20, marginBottom: 8 },
+  childPackTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary },
   tripLoadingHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, textAlign: 'center', marginTop: 10, fontStyle: 'italic' },
   tripHeaderCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: t.border, marginBottom: 8 },
   tripDest: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: t.textPrimary },

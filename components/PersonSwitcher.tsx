@@ -15,8 +15,8 @@ import { loadPeople, type Person } from '../utils/people'
 // byter mellan sin egen, partnerns och (i garderoben) barnens vy. Byter vy på
 // plats via router.setParams – tomma params = "Jag".
 //
-// scope 'wardrobe' visar Jag + partner + barn; 'outfits' visar bara Jag +
-// partner (barn har inga egna outfits – outfits hör till konton, inte personer).
+// scope 'wardrobe' och 'outfits' visar båda Jag + partner + barn. Barn har egna
+// (av föräldern genererade) outfits via "Familjen idag" som kan visas i läsläge.
 type Props = {
   scope: 'wardrobe' | 'outfits'
   // Vald person just nu, härledd av föräldern ur sina params.
@@ -73,16 +73,14 @@ export default function PersonSwitcher({ scope, current }: Props) {
       select: () => router.setParams({ partner: partner.id, partnerName: partner.name, person: '', personName: '' }),
     })
   }
-  if (scope === 'wardrobe') {
-    children.forEach(c => members.push({
-      key: `child:${c.id}`,
-      label: c.name,
-      avatar: c.avatar_url,
-      icon: 'child-care',
-      active: current.kind === 'child' && current.id === c.id,
-      select: () => router.setParams({ person: c.id, personName: c.name, partner: '', partnerName: '' }),
-    }))
-  }
+  children.forEach(c => members.push({
+    key: `child:${c.id}`,
+    label: c.name,
+    avatar: c.avatar_url,
+    icon: 'child-care',
+    active: current.kind === 'child' && current.id === c.id,
+    select: () => router.setParams({ person: c.id, personName: c.name, partner: '', partnerName: '' }),
+  }))
 
   // Ingen att växla mellan (ensam användare, inget hushåll) → visa ingen knapp.
   const hasChoices = members.length > 1
