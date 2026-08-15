@@ -198,8 +198,14 @@ export default function MyOutfits() {
     const { data } = await supabase.from('outfits').select('*').eq('person_id', person).order('created_at', { ascending: false })
     const all = (data || []) as any[]
     setPersonOutfits(all.filter(x => x.saved))
+    // Barnets kalender ligger i person_outfit_calendar (många datum → outfit).
+    // Resilient: om tabellen inte körts än visas en tom kalender i stället för fel.
+    const { data: cal, error: calErr } = await supabase
+      .from('person_outfit_calendar')
+      .select('*, outfits(*)')
+      .eq('person_id', person)
     const map: Record<string, any> = {}
-    for (const o of all) if (o.worn_on) map[o.worn_on] = { date: o.worn_on, outfit_id: o.id, outfits: o }
+    if (!calErr) (cal || []).forEach((row: any) => { if (row.outfits) map[row.date] = row })
     setPersonCalendar(map)
     const g = await loadGarments().catch(() => [] as any[])
     setPersonGarments((g as any[]).filter(x => x.person_id === person))
@@ -344,16 +350,16 @@ export default function MyOutfits() {
   async function assignOutfitToDay(outfit: any, date: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return false
-    // Barn har ingen outfit_calendar – planera via worn_on på outfit-raden. En
-    // outfit per dag: nolla worn_on på ev. tidigare barn-outfit på samma datum.
+    // Barn har egen kalender (person_outfit_calendar) – samma outfit kan ligga på
+    // flera datum. En outfit per dag via upsert på (person_id, date).
     if (isPerson && person) {
       const prev = personCalendar[date]
       if (prev?.outfit_id === outfit.id) return true
       let ok = false
       try {
         if (prev?.outfits?.garment_ids?.length) await adjustGarmentWear(prev.outfits.garment_ids, -1)
-        await supabase.from('outfits').update({ worn_on: null }).eq('person_id', person).eq('worn_on', date)
-        const { error } = await supabase.from('outfits').update({ worn_on: date, saved: true }).eq('id', outfit.id)
+        const { error } = await supabase.from('person_outfit_calendar')
+          .upsert({ user_id: user.id, person_id: person, outfit_id: outfit.id, date }, { onConflict: 'person_id,date' })
         if (error) throw error
         await adjustGarmentWear(outfit.garment_ids || [], 1, date)
         ok = true
@@ -406,12 +412,13 @@ export default function MyOutfits() {
   async function removeOutfitFromDate(date: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    // Barn: nolla worn_on (och räkna ner plaggen) i stället för outfit_calendar.
+    // Barn: ta bort raden ur person_outfit_calendar (och räkna ner plaggen).
     if (isPerson && person) {
       try {
         const entry = personCalendar[date]
         if (entry?.outfits?.garment_ids?.length) await adjustGarmentWear(entry.outfits.garment_ids, -1)
-        await supabase.from('outfits').update({ worn_on: null }).eq('person_id', person).eq('worn_on', date)
+        const { error } = await supabase.from('person_outfit_calendar').delete().eq('person_id', person).eq('date', date)
+        if (error) throw error
       } catch (e: any) {
         captureError(e, { where: 'removeOutfitFromDate:child' })
         showAlert(tr('Kunde inte ta bort'), tr('Något gick fel – kontrollera din uppkoppling och försök igen.'))
@@ -514,15 +521,10 @@ function isPast(date: Date) {
 
   async function wearOutfit(outfit: any) {
     const today = new Date().toISOString().split('T')[0]
-    // Barn har ingen outfit_calendar – deras "kalender" härleds ur worn_on. Sätt
-    // worn_on på outfiten och räkna barnets plagg som använda (rader ägs av mig).
+    // Barn: lägg outfiten på dagens datum i barnets kalender (person_outfit_calendar).
     if (isPerson) {
-      const { error } = await supabase.from('outfits').update({ worn_on: today, saved: true }).eq('id', outfit.id)
-      if (error) { showAlert(tr('Något gick fel'), error.message); return }
-      const ids = (outfit.garment_ids || []).filter(Boolean)
-      if (ids.length) { try { await adjustGarmentWear(ids, 1, today) } catch { /* icke-kritiskt */ } }
-      loadPersonData()
-      showAlert(tr('Outfit registrerad!'), tr('Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.'))
+      const ok = await assignOutfitToDay(outfit, today)
+      if (ok) showAlert(tr('Outfit registrerad!'), tr('Den ligger nu på dagens datum i kalendern och plaggen räknas som använda.'))
       return
     }
     // Lägg outfiten på dagens datum i kalendern (och räkna plaggen som använda).

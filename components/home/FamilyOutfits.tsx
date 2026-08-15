@@ -279,21 +279,23 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
         markOutfitLoggedToday()
         if (ids.length) await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
       } else if (m.kind === 'child') {
-        // Barnets outfit lagras med person_id + worn_on (ingen kalender – den är
-        // per konto/dag). Plaggens användning räknas upp (mina rader → RLS ok).
+        // Barnets outfit sparas (person_id) och läggs på dagens datum i barnets
+        // egna kalender (person_outfit_calendar). Plaggen räknas som använda.
         let id = savedId[m.key]
-        if (id) {
-          const { error } = await supabase.from('outfits').update({ worn_on: day, saved: true }).eq('id', id)
-          if (error) throw error
-        } else {
+        if (!id) {
           const { data, error } = await supabase.from('outfits').insert([{
             user_id: user?.id, person_id: m.person!.id, name: nameFor(m),
             garment_ids: ids, garment_names: names, image_urls: imageUrls,
-            mood: LEDIG.label, context: LEDIG.label.toLowerCase(), saved: true, worn_on: day,
+            mood: LEDIG.label, context: LEDIG.label.toLowerCase(), saved: true,
           }]).select('id').single()
           if (error) throw error
           id = data.id; setSavedId(s => ({ ...s, [m.key]: id }))
+        } else {
+          await supabase.from('outfits').update({ saved: true }).eq('id', id)
         }
+        const { error: calErr } = await supabase.from('person_outfit_calendar')
+          .upsert({ user_id: user!.id, person_id: m.person!.id, outfit_id: id!, date: day }, { onConflict: 'person_id,date' })
+        if (calErr) throw calErr
         setSaved(s => ({ ...s, [m.key]: true }))
         if (ids.length) await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
       }
