@@ -356,6 +356,8 @@ const enBySource: Dict = {
   'Kunde inte hämta länken automatiskt': 'Couldn’t fetch the link automatically',
   'Fyll i namn och bild manuellt – länken är sparad.': 'Add the name and image manually – the link is saved.',
   'Länk till plagget': 'Link to the item',
+  'Sök butik': 'Search store',
+  'Ingen butik matchar sökningen.': 'No store matches your search.',
   'Fyll i ett namn!': 'Enter a name!',
   'är nu till salu!': 'is now for sale!',
   'Markera som såld': 'Mark as sold',
