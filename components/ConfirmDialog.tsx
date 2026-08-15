@@ -51,14 +51,14 @@ export function ConfirmHost() {
           {!!data?.message && <Text style={styles.message}>{data.message}</Text>}
           <View style={styles.actions}>
             <TouchableOpacity style={[styles.btn, styles.cancelBtn]} onPress={close} accessibilityRole="button">
-              <Text style={styles.cancelText}>{tr('Avbryt')}</Text>
+              <Text style={styles.cancelText} numberOfLines={1}>{tr('Avbryt')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btn, data?.destructive ? styles.destructiveBtn : styles.confirmBtn]}
               onPress={accept}
               accessibilityRole="button"
             >
-              <Text style={styles.confirmText}>{data?.confirmText || tr('OK')}</Text>
+              <Text style={styles.confirmText} numberOfLines={1}>{data?.confirmText || tr('OK')}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

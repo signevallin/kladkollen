@@ -2240,7 +2240,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "app/(tabs)/wardrobe.tsx",
-      "source_location": "L859",
+      "source_location": "L865",
       "_origin": "ast",
       "id": "app_tabs_wardrobe_makestyles",
       "community": 19,
@@ -5664,8 +5664,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_dependencies_expo_apple_authentication",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 15,
+      "community_name": "expo-apple-authentication",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -5675,8 +5675,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "expo_apple_authentication",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 15,
+      "community_name": "expo-apple-authentication",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -5730,8 +5730,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "package_dependencies_expo_calendar",
-      "community": 15,
-      "community_name": "expo-calendar",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-calendar"
     },
     {
@@ -5741,8 +5741,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "expo_calendar",
-      "community": 15,
-      "community_name": "expo-calendar",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-calendar"
     },
     {
@@ -9610,7 +9610,7 @@
       "label": "translations",
       "file_type": "code",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1277",
+      "source_location": "L1278",
       "_origin": "ast",
       "id": "utils_i18n_translations",
       "community": 27,
@@ -9621,7 +9621,7 @@
       "label": "translate()",
       "file_type": "code",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1279",
+      "source_location": "L1280",
       "_origin": "ast",
       "id": "utils_i18n_translate",
       "community": 16,
@@ -19557,7 +19557,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/(tabs)/wardrobe.tsx",
-      "source_location": "L859",
+      "source_location": "L865",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_wardrobe",
@@ -20226,7 +20226,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/(tabs)/wardrobe.tsx",
-      "source_location": "L849",
+      "source_location": "L855",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_wardrobe_wardrobe",
@@ -20250,7 +20250,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/(tabs)/wardrobe.tsx",
-      "source_location": "L781",
+      "source_location": "L787",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_tabs_wardrobe_wardrobe",
@@ -40444,7 +40444,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1279",
+      "source_location": "L1280",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_i18n",
@@ -40455,7 +40455,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1277",
+      "source_location": "L1278",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_i18n",
@@ -43349,5 +43349,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "17c27541416ed1f95d1f52e965e8833650d978dd"
+  "built_at_commit": "3195a0f29fbbbe59ff1432b4bc124bdeeb443d39"
 }
