@@ -4,6 +4,18 @@ import * as Notifications from 'expo-notifications'
 import * as TaskManager from 'expo-task-manager'
 import { Platform } from 'react-native'
 import { ensureCalendarPermission, planForDay } from './calendar'
+import { translate } from './i18n'
+
+// Notiser schemaläggs lokalt, så vi översätter dem till användarens språk.
+// Språket lagras av useSettings under 'kladkollen_lang' (LANG_KEY).
+async function currentLang(): Promise<string> {
+  try { return (await AsyncStorage.getItem('kladkollen_lang')) || 'sv' } catch { return 'sv' }
+}
+function fill(s: string, vars?: Record<string, string | number>): string {
+  if (!vars) return s
+  for (const k in vars) s = s.replace(`{${k}}`, String(vars[k]))
+  return s
+}
 
 // "Smart Push": läser telefonens kalender och schemalägger en morgonnotis med
 // en outfit som passar dagens planer (samt en eftermiddagspåminnelse om man
@@ -158,10 +170,11 @@ export async function scheduleLogReminder(): Promise<void> {
     if (target <= now) target.setDate(target.getDate() + 1) // kvällen har passerat → imorgon
     const loggedDate = await AsyncStorage.getItem(LOGGED_KEY)
     if (target > now && loggedDate !== dayStr(target)) {
+      const lang = await currentLang()
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Vad hade du på dig idag? 📸',
-          body: 'Logga dagens outfit på 2 sekunder.',
+          title: translate(lang, 'Vad hade du på dig idag? 📸'),
+          body: translate(lang, 'Logga dagens outfit på 2 sekunder.'),
           data: { tag: LOG_TAG, route: '/my-outfit' },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: target },
@@ -188,6 +201,7 @@ export async function scheduleSmartPush(): Promise<void> {
   try {
     await cancelSmartPush()
 
+    const lang = await currentLang()
     const { hour, minute } = await getSmartPushTime()
     const now = new Date()
     const morningToday = new Date()
@@ -195,15 +209,15 @@ export async function scheduleSmartPush(): Promise<void> {
     // Har morgonen redan passerat → planera för imorgon.
     const targetDay = morningToday <= now ? new Date(now.getTime() + 86400000) : new Date()
 
-    const plan = await planForDay(targetDay)
+    const plan = await planForDay(targetDay, lang)
 
     const morningTrigger = new Date(targetDay)
     morningTrigger.setHours(hour, minute, 0, 0)
     if (morningTrigger > now) {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'God morgon! ☀️',
-          body: `${plan.summary} – jag har valt ut en outfit som passar!`,
+          title: translate(lang, 'God morgon! ☀️'),
+          body: fill(translate(lang, '{summary} – jag har valt ut en outfit som passar!'), { summary: plan.summary }),
           data: { tag: TAG, route: `/home?smartContext=${encodeURIComponent(plan.contextLabel)}` },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: morningTrigger },
@@ -217,8 +231,8 @@ export async function scheduleSmartPush(): Promise<void> {
       if (eveningTrigger > now) {
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: 'Dags att fixa kvällslooken 👠',
-            body: `${plan.eveningEvent} ikväll – glöm inte att byta om (och ta med klackarna!).`,
+            title: translate(lang, 'Dags att fixa kvällslooken 👠'),
+            body: fill(translate(lang, '{event} ikväll – glöm inte att byta om (och ta med klackarna!).'), { event: plan.eveningEvent }),
             data: { tag: TAG, route: `/home?smartContext=${encodeURIComponent(plan.contextLabel)}` },
           },
           trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: eveningTrigger },
