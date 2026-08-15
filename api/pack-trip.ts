@@ -60,7 +60,9 @@ ${groupedList}
 Din uppgift:
 1. PACKLISTA: Välj ut en smart, mix-and-match-vänlig uppsättning plagg ur garderoben som räcker för ${days} dagar utan att man packar för mycket. Prioritera plagg som passar vädret och som går att kombinera med varandra. Ta med lämpliga skor och ytterplagg om vädret kräver. ${reuseLine}
 2. OUTFITS: Sätt ihop ${outfitCount} färdiga, kompletta outfits av de packade plaggen. Ge varje outfit ett kort namn som antyder tillfälle (t.ex. "Middag ute", "Sightseeing", "Resedag").
-3. EXTRAS: Lista praktiska saker att inte glömma som INTE är plagg i garderoben (t.ex. underkläder, strumpor, pyjamas, necessär, laddare, adapter, badkläder om relevant) – anpassa efter destination och väder.${audience === 'child' && childExtrasHint ? ` För detta barn, ta OVILLKORLIGEN med åldersanpassade förnödenheter i extras: ${childExtrasHint}` : ''}
+${audience === 'child'
+  ? `3. EXTRAS: Lista BARA barn-specifika förnödenheter som INTE är plagg (t.ex. blöjor, våtservetter, extra ombyten, napp, haklappar, badkläder, solskydd, gosedjur). Ta INTE med delade hushållssaker som laddare, adapter, powerbank, necessär eller reseadapter – de packas i den vuxnes lista.${childExtrasHint ? ` Ta OVILLKORLIGEN med åldersanpassade förnödenheter: ${childExtrasHint}` : ''}`
+  : `3. EXTRAS: Lista praktiska saker att inte glömma som INTE är plagg i garderoben (t.ex. underkläder, strumpor, pyjamas, necessär, laddare, adapter, badkläder om relevant) – anpassa efter destination och väder.`}
 
 OBLIGATORISKA REGLER FÖR VARJE OUTFIT – följ EXAKT (samma som vid vanlig outfit-generering):
 1. ${babyMode ? 'SKOR: en bebis behöver inga skor – hoppa över skor helt (strumpor/sockor räcker).' : 'SKOR: Varje outfit MÅSTE ha exakt ETT par skor. En outfit utan skor är ogiltig.'}
