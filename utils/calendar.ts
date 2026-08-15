@@ -81,6 +81,10 @@ export async function planForDay(date = new Date()): Promise<DayPlan> {
     summary = 'Dagen bjuder på skola'
   } else if (sport) {
     summary = 'Dagen bjuder på träning'
+  } else if (timed.length > 0) {
+    // Det finns inbokade händelser (t.ex. i en delad kalender) som inte matchar
+    // våra nyckelord – säg då inte "ledig", utan att dagen har något inplanerat.
+    summary = `Idag har du ${timed.length} ${timed.length === 1 ? 'sak' : 'saker'} inplanerade`
   } else {
     summary = 'En ledig dag'
   }
