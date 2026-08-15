@@ -1146,5 +1146,9 @@
  "Dagen bjuder på träning": "Aujourd’hui, c’est sport",
  "Idag har du {n} sak inplanerad": "Tu as {n} chose de prévue aujourd’hui",
  "Idag har du {n} saker inplanerade": "Tu as {n} choses de prévues aujourd’hui",
- "En ledig dag": "Une journée libre"
+ "En ledig dag": "Une journée libre",
+ "Skapa dagens outfit": "Créer la tenue du jour",
+ "Skapa ny": "Créer une nouvelle",
+ "En outfit anpassad efter dagens väder och barnets aktuella storlek.": "Une tenue adaptée à la météo du jour et à la taille actuelle de votre enfant.",
+ "Lägg till plagg i barnets garderob först!": "Ajoutez d'abord des vêtements à la garde-robe de votre enfant !"
 }

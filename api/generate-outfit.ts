@@ -37,12 +37,53 @@ export default async function handler(request: Request): Promise<Response> {
     const baseSet = clip(body.baseSet, 400)
     const pregnancy = clip(body.pregnancy, 700)
     const retry = body.retry === true
+    // audience 'child' → förenklad barn-prompt (väder/komfort/rätt storlek före
+    // mode, ingen låt, inga stil-/formalitetsregler). Default 'adult'.
+    const audience = body.audience === 'child' ? 'child' : 'adult'
+    const childName = clip(body.childName, 40)
 
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
 
     const retryInstruction = retry
       ? '\nVIKTIGT: Föregående försök saknade obligatoriska plagg. Se till att inkludera SKOR och NEDERDEL (eller klänning) denna gång.'
       : ''
+
+    // ── Barn-outfit: logistik före styling ──────────────────────────────────
+    if (audience === 'child') {
+      const childPrompt = `Du hjälper en förälder att välja dagens outfit till sitt barn${childName ? ` (${childName})` : ''} ur barnets garderob nedan.
+Prioritera i denna ordning: (1) rätt för vädret så barnet varken fryser eller blir för varmt, (2) bekvämt och rörelsevänligt för lek/förskola/skola, (3) att det passar årstiden. Snygg färgmatchning är en bonus, inte huvudsaken – välj hellre praktiskt och bekvämt.
+
+${season ? `Årstid: det är ${season}.` : ''}
+${weatherSummary}
+${previousItems ? `Föregående förslag var: ${previousItems}. Ge ett annorlunda förslag denna gång.` : ''}
+${recentOutfits ? `Nyligen föreslaget (upprepa inte samma kombination):\n${recentOutfits}` : ''}
+${avoid}
+${retryInstruction}
+
+GARDEROB (välj ENDAST plagg från listan nedan, exakt som de heter):
+
+${groupedList}
+
+OBLIGATORISKA REGLER – följ dessa EXAKT:
+1. SKOR: Du MÅSTE välja ett par skor. Outfit utan skor är ogiltig.
+2. NEDERDEL: Du MÅSTE välja byxor/shorts eller kjol – SÅVIDA du inte väljer klänning.
+3. ÖVERDEL: Du MÅSTE välja topp eller tröja – SÅVIDA du inte väljer klänning.
+4. Väljer du klänning → lägg inte till separata byxor/kjol/topp.
+5. INGA DUBBLETTER: exakt EN överdel och EN nederdel, ett par skor. (Ett medvetet lager, t.ex. en tröja över en topp när det är svalt, är ok.)
+${weatherRules ? '6. VÄDER: ' + weatherRules : ''}
+${season ? `7. ÅRSTID: Det är ${season}. Välj plagg som passar årstiden.` : ''}
+8. BEKVÄMT: undvik opraktiska plagg för en aktiv dag om bekvämare alternativ finns.
+
+${langInstruction(body.lang)} OBS: Fälten "items" ska ALLTID vara plaggens namn EXAKT som de står i garderobslistan ovan (översätt dem INTE) – språkvalet gäller bara "outfitName" och "message".
+
+Svara ENDAST med JSON, inga backticks:
+{"outfitName": "kort namn på looken", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Kort, varmt tips till föräldern om dagens outfit och varför den passar vädret (1–2 meningar)."}`
+
+      const text = await openaiChat([{ role: 'user', content: childPrompt }], OPENAI_MODEL, 300, 0.8)
+      const parsed = parseAiJson(text)
+      if (!Array.isArray(parsed.items)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
+      return json(parsed)
+    }
 
     const prompt = `Du är en personlig stylist. Välj en komplett outfit från garderoben nedan.
 

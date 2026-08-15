@@ -588,6 +588,18 @@ export default function Wardrobe() {
               <MaterialIcons name="inventory-2" size={20} color={t.onPrimary} />
             </TouchableOpacity>
           )}
+          {/* Dagens outfit för barnet: väder- och storleksanpassad generering
+              (egen förenklad skärm). Visas bara i barn-läge. */}
+          {isPerson && (
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => router.push(`/child-outfit?person=${person}&personName=${encodeURIComponent(personName || '')}` as any)}
+              accessibilityLabel={tr('Dagens outfit')}
+              accessibilityRole="button"
+            >
+              <MaterialIcons name="auto-awesome" size={20} color={t.onPrimary} />
+            </TouchableOpacity>
+          )}
           {/* Statistiken utgår från egna/barnens rader (person_id) – finns inte
               för partnern, så dölj knappen i partner-läge. */}
           {!isPartner && (
