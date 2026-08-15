@@ -128,11 +128,6 @@ export default function Wardrobe() {
     }, [person, partner])
   )
 
-  // Köp-fliken finns inte i barn-läge – hamna aldrig på den.
-  useEffect(() => {
-    if (isPerson && activeTab === 'köp') setActiveTab('nuvarande')
-  }, [isPerson, activeTab])
-
   // Arkivet är inte tillgängligt i partner-läge (läsläge) – stäng det om man
   // byter till partnern medan arkivet var öppet.
   useEffect(() => {
@@ -230,14 +225,16 @@ export default function Wardrobe() {
     }
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const { data } = await supabase
-      .from('wishlist')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('sort_order', { ascending: true })
-    if (data) {
-      setWishlist(data); cacheSet('wardrobe.wishlist', data)
+    // Barn: barnets egen köplista (person_id). Ägaren: bara egna (person_id null).
+    if (isPerson) {
+      const { data } = await supabase.from('wishlist').select('*').eq('person_id', person).order('sort_order', { ascending: true })
+      setWishlist(data || [])
+      return
     }
+    // Resilient: om person_id-kolumnen inte körts än, hämta utan filtret.
+    let { data, error } = await supabase.from('wishlist').select('*').eq('user_id', user.id).is('person_id', null).order('sort_order', { ascending: true })
+    if (error) { const r = await supabase.from('wishlist').select('*').eq('user_id', user.id).order('sort_order', { ascending: true }); data = r.data }
+    if (data) { setWishlist(data); cacheSet('wardrobe.wishlist', data) }
   }
 
   async function loadCapsule() {
@@ -420,6 +417,8 @@ export default function Wardrobe() {
     if (!user) return
     await supabase.from('garments').insert([{
       user_id: user.id,
+      // Köpt ur ett barns köplista → plagget hamnar i barnets garderob.
+      person_id: item.person_id ?? (isPerson ? person : null),
       name: item.name,
       category: item.category || '',
       color: item.color || '',
@@ -536,6 +535,7 @@ export default function Wardrobe() {
 
       {/* Köplistan: valruta + URL + formulär (egen komponent) */}
       <WishlistAddModals
+        person={isPerson ? person : undefined}
         chooserVisible={showWishChooser}
         onChooserClose={() => setShowWishChooser(false)}
         wishlistCount={wishlist.length}
@@ -626,8 +626,7 @@ export default function Wardrobe() {
       <View style={styles.tabRow}>
         {[
           { id: 'nuvarande', label: `${tr('Garderob')}${garments.length > 0 ? ` (${garments.length})` : ''}` },
-          // Köplista är per person (mig), inte per barn – dölj den i barn-läge.
-          ...(isPerson ? [] : [{ id: 'köp', label: `${tr('Köp')}${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` }]),
+          { id: 'köp', label: `${tr('Köp')}${wishlist.length > 0 ? ` (${wishlist.length})` : ''}` },
           { id: 'sälj', label: `${tr('Sälj')}${forSale.length > 0 ? ` (${forSale.length})` : ''}` },
         ].map(({ id, label }) => (
           <TouchableOpacity

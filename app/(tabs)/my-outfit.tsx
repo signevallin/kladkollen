@@ -106,11 +106,6 @@ export default function MyOutfits() {
   useEffect(() => {
     if (create) { setActiveTab('outfits'); setEditOutfit(null); setCreating(true) }
   }, [create])
-
-  // Barn saknar resa-fliken – hoppa till kalendern om man var där vid personbyte.
-  useEffect(() => {
-    if (isPerson && activeTab === 'resa') setActiveTab('kalender')
-  }, [isPerson, activeTab])
   const [activeStyleFilter, setActiveStyleFilter] = useState('Alla')
   const [showOnlyLiked, setShowOnlyLiked] = useState(false)
   // Filterraden i Outfits-fliken göms bakom en filterknapp i headern (som i
@@ -496,6 +491,8 @@ function isPast(date: Date) {
   const dispGarments = isPartner ? partnerGarments : isPerson ? personGarments : garments
   const dispCalendarEntries = isPartner ? partnerCalendar : isPerson ? personCalendar : calendarEntries
   const dispTrip = isPartner ? partnerTrip : isPerson ? null : tripResult
+  // Barnets del av familjeresan (läsläge) – visas i barnets Resa-flik.
+  const childTrip = isPerson ? (tripResult?.childPacks || []).find((cp: any) => cp.personId === person) : null
 
   // Outfit functions
   // Filtret matchar mot tillfälle (mood/context) ELLER stil, så en och samma
@@ -1293,8 +1290,7 @@ function isPast(date: Date) {
         </View>
 
         <View style={styles.tabRow}>
-          {/* Barn har ingen resa – dölj den fliken i barn-läge. */}
-          {(isPerson ? (['kalender', 'outfits'] as const) : (['kalender', 'outfits', 'resa'] as const)).map(tb => (
+          {(['kalender', 'outfits', 'resa'] as const).map(tb => (
             <TouchableOpacity key={tb} style={[styles.tab, activeTab === tb && styles.tabActive]} onPress={() => setActiveTab(tb)}>
               <Text style={[styles.tabText, activeTab === tb && styles.tabTextActive]}>
                 {tb === 'kalender' ? tr('Kalender') : tb === 'outfits' ? tr('Outfits') : tr('Resa')}
@@ -1492,7 +1488,7 @@ function isPast(date: Date) {
         )}
 
         {/* RESA */}
-        {activeTab === 'resa' && (
+        {activeTab === 'resa' && !isPerson && (
           <>
             {!dispTrip ? (
               readOnly ? (
@@ -1803,6 +1799,65 @@ function isPast(date: Date) {
               </View>
             )}
           </>
+        )}
+
+        {/* Barnets del av familjeresan (läsläge). Planeras under förälderns profil. */}
+        {activeTab === 'resa' && isPerson && (
+          !childTrip ? (
+            <View style={styles.empty}><Text style={styles.emptyText}>{tr('Ingen planerad resa för barnet.')}{'\n'}{tr('Planeras i familjeresan under din egen profil.')}</Text></View>
+          ) : (
+            <View>
+              <View style={styles.tripHeaderCard}>
+                <Text style={styles.tripDest}>{tripResult?.destinationLabel}</Text>
+                <Text style={styles.tripDates}>{tripResult?.dateLabel} · {tripResult?.days} {tr('dagar')}</Text>
+              </View>
+              {(childTrip.outfits || []).length > 0 && (
+                <>
+                  <Text style={styles.tripSectionTitle}>{tr('Outfits att ta med')}</Text>
+                  {(childTrip.outfits || []).map((o: any, i: number) => (
+                    <View key={i} style={styles.outfitCard}>
+                      <Text style={styles.outfitName}>{o.name}</Text>
+                      <View style={styles.outfitImages}>
+                        {(o.itemsWithImages || []).map((it: any, j: number) => (
+                          <View key={j} style={styles.tripItemWrap}>
+                            {it.image_url
+                              ? <SignedImage path={it.image_url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                              : <View style={styles.outfitImageEmpty} />}
+                          </View>
+                        ))}
+                      </View>
+                      <Text style={styles.outfitGarments}>{(o.itemsWithImages || []).map((it: any) => it.name).join(' · ')}</Text>
+                    </View>
+                  ))}
+                </>
+              )}
+              {(childTrip.packingItems || []).length > 0 && (
+                <>
+                  <Text style={styles.tripSectionTitle}>{tr('Packlista')}</Text>
+                  <View style={styles.packCard}>
+                    {childTrip.packingItems.map((it: any, i: number) => (
+                      <View key={i} style={styles.packRow}>
+                        {it.image_url
+                          ? <SignedImage path={it.image_url} style={styles.packThumb} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                          : <View style={styles.packThumbEmpty} />}
+                        <Text style={styles.packName}>{it.name}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+              {(childTrip.extras || []).length > 0 && (
+                <>
+                  <Text style={styles.tripSectionTitle}>{tr('Glöm inte')}</Text>
+                  <View style={styles.packCard}>
+                    {childTrip.extras.map((nm: string, i: number) => (
+                      <View key={i} style={styles.packRow}><Text style={styles.packName}>{nm}</Text></View>
+                    ))}
+                  </View>
+                </>
+              )}
+            </View>
+          )
         )}
       </ScrollView>
 
