@@ -25,9 +25,11 @@ type Props = {
   onChooserClose: () => void
   wishlistCount: number
   onAdded: () => void
+  /** Om satt: lägg köplisteposten på ett barn (person_id) i stället för mig. */
+  person?: string | null
 }
 
-export default function WishlistAddModals({ chooserVisible, onChooserClose, wishlistCount, onAdded }: Props) {
+export default function WishlistAddModals({ chooserVisible, onChooserClose, wishlistCount, onAdded, person }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, currency, toBaseSEK } = useSettings()
@@ -103,6 +105,7 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
       }
       const { error } = await supabase.from('wishlist').insert([{
         user_id: user.id,
+        person_id: person || null,
         name: name.trim(),
         brand: brand.trim() || null,
         price: toBaseSEK(parsePrice(price)),

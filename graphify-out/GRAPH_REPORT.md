@@ -1,16 +1,16 @@
 # Graph Report - kladkollen  (2026-08-15)
 
 ## Corpus Check
-- 192 files · ~474,323 words
+- 193 files · ~474,795 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1088 nodes · 2681 edges · 143 communities (67 shown, 76 thin omitted)
+- 1090 nodes · 2681 edges · 145 communities (68 shown, 77 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.7)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `76c70a25`
+- Built from commit: `e4e6665c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -30,6 +30,7 @@
 - garment-detail.tsx
 - entitlements.tsx
 - expo-apple-authentication
+- expo-calendar
 - app/_layout.tsx
 - dependencies
 - send-notifications.ts
@@ -51,8 +52,8 @@
 - vercel.json
 - expo-audio
 - expo-background-task
+- wishlist
 - ArchiveView.tsx
-- expo-clipboard
 - wardrobe-analysis.tsx
 - expo-file-system
 - expo-font
@@ -157,7 +158,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (143 total, 76 thin omitted)
+## Communities (145 total, 77 thin omitted)
 
 ### Community 0 - "json"
 Cohesion: 0.07
@@ -217,7 +218,7 @@ Nodes (61): PUBLIC_ROUTES, RootLayout(), CATEGORIES, makeStyles(), Notifications
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-calendar, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-clipboard, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.21
@@ -314,15 +315,15 @@ Nodes (3): config, esc(), handler()
 ## Knowledge Gaps
 - **361 isolated node(s):** `AuthedUser`, `hits`, `FREE_AI_PER_WEEK`, `LANG_NAMES`, `config` (+356 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **76 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **77 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `expo-router` connect `supabase.ts` to `stats.tsx`, `family.tsx`, `expo`, `useTheme`, `GarmentSetSection.tsx`, `my-outfit.tsx`, `ArchiveView.tsx`, `garment-detail.tsx`, `entitlements.tsx`, `app/_layout.tsx`, `useSettings`, `alert.ts`, `settings.tsx`, `add-garment.tsx`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+  _High betweenness centrality (0.067) - this node is a cross-community bridge._
 - **Why does `plugins` connect `expo` to `supabase.ts`?**
-  _High betweenness centrality (0.063) - this node is a cross-community bridge._
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
 - **What connects `AuthedUser`, `hits`, `FREE_AI_PER_WEEK` to the rest of the system?**
   _361 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `json` be split into smaller, more focused modules?**

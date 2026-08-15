@@ -760,6 +760,7 @@ export type Database = {
           image_url: string | null
           name: string
           notes: string | null
+          person_id: string | null
           price: number | null
           season: string | null
           sort_order: number | null
@@ -776,6 +777,7 @@ export type Database = {
           image_url?: string | null
           name: string
           notes?: string | null
+          person_id?: string | null
           price?: number | null
           season?: string | null
           sort_order?: number | null
@@ -792,6 +794,7 @@ export type Database = {
           image_url?: string | null
           name?: string
           notes?: string | null
+          person_id?: string | null
           price?: number | null
           season?: string | null
           sort_order?: number | null
