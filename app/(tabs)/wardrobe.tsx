@@ -86,6 +86,12 @@ export default function Wardrobe() {
   const [laundryFilter, setLaundryFilter] = useState<'all' | 'in' | 'out'>('all')
   // Håll inne en tvättikon → visa "Töm tvätten"-knappen (även utan tvättfiltret).
   const [showLaundryClear, setShowLaundryClear] = useState(false)
+  // Den framhållna knappen försvinner av sig själv om man inte använder den.
+  useEffect(() => {
+    if (!showLaundryClear) return
+    const id = setTimeout(() => setShowLaundryClear(false), 5000)
+    return () => clearTimeout(id)
+  }, [showLaundryClear])
   const [prefsLoaded, setPrefsLoaded] = useState(false)
   // Gravidläget styr om gravid-markeringar visas i rutnätet (läses ur cachen).
   const pregnant = cacheGet<boolean>('profile.pregnant') ?? false
@@ -212,7 +218,7 @@ export default function Wardrobe() {
           showAlert(tr('Något gick fel'))
         }
       },
-      tr('Töm tvätten'),
+      tr('Töm'),
     )
   }
 

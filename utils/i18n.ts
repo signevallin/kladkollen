@@ -753,6 +753,7 @@ const enBySource: Dict = {
   'Packat till': 'Packed for',
   'Startdatum valt – tryck på slutdatum': 'Start date selected – tap the end date',
   'Inga sparade outfits för barnet än.': 'No saved outfits for the child yet.',
+  'Töm': 'Empty',
   'Generera via "Familjen idag" på hemskärmen.': 'Generate via “The family today” on the home screen.',
   'Ingen planerad resa för barnet.': 'No trip planned for the child.',
   'Planeras i familjeresan under din egen profil.': 'Planned in the family trip under your own profile.',

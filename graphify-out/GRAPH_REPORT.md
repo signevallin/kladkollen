@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-15)
 
 ## Corpus Check
-- 193 files · ~474,907 words
+- 193 files · ~474,948 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `17c27541`
+- Built from commit: `3195a0f2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -30,7 +30,7 @@
 - garment-detail.tsx
 - entitlements.tsx
 - CreateOutfitView.tsx
-- expo-calendar
+- expo-apple-authentication
 - app/_layout.tsx
 - dependencies
 - send-notifications.ts
@@ -229,7 +229,7 @@ Nodes (61): PUBLIC_ROUTES, RootLayout(), CATEGORIES, makeStyles(), Notifications
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-apple-authentication, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-calendar, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.21
