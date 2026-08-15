@@ -751,6 +751,7 @@ const enBySource: Dict = {
   'Packa även till barnen': 'Pack for the kids too',
   'Packlista och outfits för varje barn.': 'Packing list and outfits for each child.',
   'Packat till': 'Packed for',
+  'Startdatum valt – tryck på slutdatum': 'Start date selected – tap the end date',
   'Återupptäck garderoben': 'Rediscover your wardrobe',
   'Glömda favoriter, veckans statistik och pris-per-användning.': 'Forgotten favourites, weekly stats and cost-per-wear.',
   'Logga dagens outfit': 'Log today’s outfit',
