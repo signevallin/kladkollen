@@ -436,6 +436,33 @@ export type Database = {
           },
         ]
       }
+      person_outfit_calendar: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          outfit_id: string
+          person_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          outfit_id: string
+          person_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          outfit_id?: string
+          person_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       outfits: {
         Row: {
           context: string | null
