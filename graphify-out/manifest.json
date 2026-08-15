@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/home.tsx": {
-    "mtime": 1786807723.7449265,
-    "ast_hash": "e64f162a5b668f02f8477452307e9107",
+    "mtime": 1786808583.4009774,
+    "ast_hash": "24872bd4e42942e7611e1afd1ade49a2",
     "semantic_hash": ""
   },
   "app/(tabs)/inspiration.tsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/my-outfit.tsx": {
-    "mtime": 1786807103.9888895,
-    "ast_hash": "965c2bd16618a6e36240c3a0c4abed2d",
+    "mtime": 1786808589.1729777,
+    "ast_hash": "7f5177aa6ee0e89bd215ad379ba0ddf1",
     "semantic_hash": ""
   },
   "app/(tabs)/wardrobe.tsx": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "app/stats.tsx": {
-    "mtime": 1786289505.3175173,
-    "ast_hash": "e67beb95ba81c4beb8237cc69953eb3d",
+    "mtime": 1786808597.7649784,
+    "ast_hash": "01d6b730e2dff601b70177e94b30d500",
     "semantic_hash": ""
   },
   "app/terms.tsx": {
@@ -645,23 +645,23 @@
     "semantic_hash": ""
   },
   "utils/i18n.de.json": {
-    "mtime": 1786807751.3471775,
-    "ast_hash": "1272274df2866f1464ad782b2078add8",
+    "mtime": 1786808724.0112703,
+    "ast_hash": "81e2eb715b43e037f68303dedd162114",
     "semantic_hash": ""
   },
   "utils/i18n.es.json": {
-    "mtime": 1786807751.349538,
-    "ast_hash": "f5d8bc1291948210207619e190106319",
+    "mtime": 1786808724.0136611,
+    "ast_hash": "770d9455212451cd4a9e9554d37b911d",
     "semantic_hash": ""
   },
   "utils/i18n.fr.json": {
-    "mtime": 1786807751.351835,
-    "ast_hash": "3b843d3db180de3e052612618c768cfd",
+    "mtime": 1786808724.0160937,
+    "ast_hash": "f82ce425301f51c176cfbb4cbb4ff43e",
     "semantic_hash": ""
   },
   "utils/i18n.ts": {
-    "mtime": 1786807745.0009277,
-    "ast_hash": "a3b3407ec545fb4b57f42a48ac56b124",
+    "mtime": 1786808715.6969852,
+    "ast_hash": "ec171522d49adab9aa5792af91cc1efe",
     "semantic_hash": ""
   },
   "utils/id.ts": {
@@ -1000,8 +1000,8 @@
     "semantic_hash": ""
   },
   "types/supabase.ts": {
-    "mtime": 1786807104.0008895,
-    "ast_hash": "3eca6699cdf6923b01d55ed750e2fbff",
+    "mtime": 1786808572.1849768,
+    "ast_hash": "e54625b257f692c3a8837c6698d1c1ae",
     "semantic_hash": ""
   },
   "utils/garmentsStore.ts": {
@@ -1040,8 +1040,13 @@
     "semantic_hash": ""
   },
   "components/home/FamilyOutfits.tsx": {
-    "mtime": 1786807710.0049255,
-    "ast_hash": "6820ab3923ef30ab47b03b275791ec55",
+    "mtime": 1786808687.2649837,
+    "ast_hash": "acabcff2ef7aeb772a3b53173fb21e1e",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260815_outfits_person.sql": {
+    "mtime": 1786808544.672975,
+    "ast_hash": "664ec7ea564df12a57408cff95553af5",
     "semantic_hash": ""
   }
 }

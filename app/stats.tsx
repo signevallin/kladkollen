@@ -156,6 +156,7 @@ export default function Stats() {
     const { data: outfits } = await supabase
       .from('outfits')
       .select('id, mood, context, garment_names, garment_ids, rating, created_at')
+      .is('person_id', null) // egna outfits – barnens familje-outfits räknas inte in
       .order('created_at', { ascending: true })
     setOutfitsRaw(outfits || [])
     if (!outfits || outfits.length === 0) return
