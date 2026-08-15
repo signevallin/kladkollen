@@ -140,6 +140,8 @@ export default function MyOutfits() {
   const [savedExtras, setSavedExtras] = useState<string[]>([])
   const [newExtra, setNewExtra] = useState('')
   const [scheduleOutfit, setScheduleOutfit] = useState<any | null>(null)
+  // Lägg en barn-reseoutfit i barnets kalender (outfit + vilket barn).
+  const [scheduleChild, setScheduleChild] = useState<{ outfit: any; personId: string; name: string } | null>(null)
   // Byt ut / lägg till plagg i en reseoutfit (samma UI som på hemskärmen).
   const [tripSwap, setTripSwap] = useState<{ oi: number; ii: number } | null>(null)
   const [tripAddTarget, setTripAddTarget] = useState<{ oi: number } | null>(null)
@@ -885,6 +887,38 @@ function isPast(date: Date) {
     showAlert(tr('Inlagd i kalendern!'), `${name} ${tr('ligger nu på')} ${new Date(date + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}.`)
   }
 
+  // Lägg en barn-reseoutfit i barnets kalender: spara som barn-outfit (person_id)
+  // och lägg på dagen i person_outfit_calendar (en outfit per barn och dag).
+  async function scheduleChildTripOutfit(tripOutfit: any, personId: string, date: string) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const items: any[] = tripOutfit.itemsWithImages || []
+    const garmentIds = items.map(i => i.id).filter(Boolean)
+    const names = items.map(i => i.name)
+    const imageUrls = items.map(i => i.image_url).filter(Boolean)
+    const name = tripOutfit.name || 'Reseoutfit'
+    try {
+      // Räkna ner ev. tidigare outfit på samma dag för barnet.
+      const { data: prev } = await supabase.from('person_outfit_calendar')
+        .select('outfits(garment_ids)').eq('person_id', personId).eq('date', date).maybeSingle()
+      const prevIds = (prev as any)?.outfits?.garment_ids
+      if (prevIds?.length) await adjustGarmentWear(prevIds, -1)
+      const { data: inserted, error } = await supabase.from('outfits').insert([{
+        user_id: user.id, person_id: personId, name, garment_ids: garmentIds, garment_names: names, image_urls: imageUrls, saved: true,
+      }]).select('id').single()
+      if (error || !inserted) throw error || new Error('insert')
+      const { error: cErr } = await supabase.from('person_outfit_calendar')
+        .upsert({ user_id: user.id, person_id: personId, outfit_id: inserted.id, date }, { onConflict: 'person_id,date' })
+      if (cErr) throw cErr
+      if (garmentIds.length) await adjustGarmentWear(garmentIds, 1, date)
+      showAlert(tr('Inlagd i kalendern!'), `${name} ${tr('ligger nu på')} ${new Date(date + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}.`)
+    } catch (e: any) {
+      showAlert(tr('Något gick fel'), e?.message || tr('Kunde inte spara outfiten.'))
+    } finally {
+      setScheduleChild(null)
+    }
+  }
+
   // Sparar en ändrad reseplan lokalt och speglar den till DB (för partnervyn).
   async function persistTripResult(next: any) {
     setTripResult(next)
@@ -1196,6 +1230,30 @@ function isPast(date: Date) {
             <ScrollView showsVerticalScrollIndicator={false}>
               {tripDays().map(d => (
                 <TouchableOpacity key={d} style={styles.dayPickRow} onPress={() => scheduleTripOutfit(scheduleOutfit, d)}>
+                  <Ionicons name="calendar-outline" size={18} color={t.textSecondary} />
+                  <Text style={styles.dayPickText}>
+                    {new Date(d + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Välj resedag för en BARN-reseoutfit (läggs i barnets kalender) */}
+      <Modal visible={!!scheduleChild} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{tr('Lägg outfit på en dag')}: {scheduleChild?.name}</Text>
+              <TouchableOpacity onPress={() => setScheduleChild(null)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {tripDays().map(d => (
+                <TouchableOpacity key={d} style={styles.dayPickRow} onPress={() => scheduleChild && scheduleChildTripOutfit(scheduleChild.outfit, scheduleChild.personId, d)}>
                   <Ionicons name="calendar-outline" size={18} color={t.textSecondary} />
                   <Text style={styles.dayPickText}>
                     {new Date(d + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -1662,6 +1720,12 @@ function isPast(date: Date) {
                           )}
                         </View>
                         <Text style={styles.outfitGarments}>{(o.itemsWithImages || []).map((it: any) => it.name).join(' · ')}</Text>
+                        {!readOnly && (
+                          <TouchableOpacity style={styles.tripCalBtn} onPress={() => setScheduleChild({ outfit: o, personId: cp.personId, name: cp.name })}>
+                            <Ionicons name="calendar-outline" size={16} color={t.primary} />
+                            <Text style={styles.tripCalBtnText}>{tr('Lägg i kalender')}</Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
                     ))}
                     {(cp.packingItems || []).length > 0 && (
