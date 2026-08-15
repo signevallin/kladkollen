@@ -23,6 +23,8 @@ export default async function handler(request: Request): Promise<Response> {
     const audience = body.audience === 'child' ? 'child' : 'adult'
     const childName = clip(body.childName, 40)
     const babyMode = body.babyMode === true
+    // Åldersanpassade förnödenheter (klienten bygger texten utifrån barnets ålder).
+    const childExtrasHint = clip(body.childExtrasHint, 300)
 
     if (!destination) return json({ error: 'Destination saknas' }, 400)
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -58,7 +60,7 @@ ${groupedList}
 Din uppgift:
 1. PACKLISTA: Välj ut en smart, mix-and-match-vänlig uppsättning plagg ur garderoben som räcker för ${days} dagar utan att man packar för mycket. Prioritera plagg som passar vädret och som går att kombinera med varandra. Ta med lämpliga skor och ytterplagg om vädret kräver. ${reuseLine}
 2. OUTFITS: Sätt ihop ${outfitCount} färdiga, kompletta outfits av de packade plaggen. Ge varje outfit ett kort namn som antyder tillfälle (t.ex. "Middag ute", "Sightseeing", "Resedag").
-3. EXTRAS: Lista praktiska saker att inte glömma som INTE är plagg i garderoben (t.ex. underkläder, strumpor, pyjamas, necessär, laddare, adapter, badkläder om relevant) – anpassa efter destination och väder.
+3. EXTRAS: Lista praktiska saker att inte glömma som INTE är plagg i garderoben (t.ex. underkläder, strumpor, pyjamas, necessär, laddare, adapter, badkläder om relevant) – anpassa efter destination och väder.${audience === 'child' && childExtrasHint ? ` För detta barn, ta OVILLKORLIGEN med åldersanpassade förnödenheter i extras: ${childExtrasHint}` : ''}
 
 OBLIGATORISKA REGLER FÖR VARJE OUTFIT – följ EXAKT (samma som vid vanlig outfit-generering):
 1. ${babyMode ? 'SKOR: en bebis behöver inga skor – hoppa över skor helt (strumpor/sockor räcker).' : 'SKOR: Varje outfit MÅSTE ha exakt ETT par skor. En outfit utan skor är ogiltig.'}

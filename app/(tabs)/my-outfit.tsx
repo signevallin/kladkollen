@@ -26,7 +26,7 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, childSizeFits, isBabyChild } from '../../utils/outfit'
+import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths } from '../../utils/outfit'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
@@ -58,6 +58,18 @@ const TRIP_CHECK_KEY = 'kladkollen_trip_checked'
 // och läggs alltid överst i extras-listan när en ny resa planeras.
 const TRIP_EXTRAS_KEY = 'kladkollen_trip_extras'
 const TRIP_KIDS_KEY = 'kladkollen_trip_include_kids'
+// Egna, återkommande "glöm inte"-saker per barn: { [personId]: string[] }.
+const TRIP_EXTRAS_CHILD_KEY = 'kladkollen_trip_extras_child'
+
+// Åldersanpassade förnödenheter att skicka som ledtråd till AI:n (svensk källtext;
+// AI:n översätter extras till användarens språk). Bygger på barnets ålder.
+function childEssentialsHint(months: number | null): string {
+  if (months == null) return 'extra ombyten, regnkläder vid behov, egen vattenflaska, ev. gosedjur'
+  if (months < 6) return 'blöjor, våtservetter, extra ombyten, haklappar, napp och snuttefilt, filt, solhatt och solskydd om varmt'
+  if (months < 24) return 'blöjor, våtservetter, gott om extra ombyten (barn kladdar), napp/snuttefilt, mellanmål, solhatt och solskydd om varmt'
+  if (months < 60) return 'extra ombyte, regnkläder, gosedjur/napp vid behov, mellanmål, solskydd'
+  return 'extra ombyte, regnkläder, egen vattenflaska, ev. bok/surfplatta för resan'
+}
 
 export default function MyOutfits() {
   const t = useTheme()
@@ -135,6 +147,9 @@ export default function MyOutfits() {
   // (för togglens synlighet) och om toggeln är på (sparas lokalt).
   const [children, setChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
   const [tripIncludeKids, setTripIncludeKids] = useState(false)
+  // Egna sparade "glöm inte"-saker per barn + inmatningsfält per barn.
+  const [childSavedExtras, setChildSavedExtras] = useState<Record<string, string[]>>({})
+  const [newChildExtra, setNewChildExtra] = useState<Record<string, string>>({})
 
   // Partner-läge (läsläge): partnerns data hålls i egen state så den egna aldrig
   // skrivs över. Rendern väljer "disp*"-varianten nedan utifrån isPartner, så
@@ -242,6 +257,8 @@ export default function MyOutfits() {
         if (ex) setSavedExtras(JSON.parse(ex))
         const ik = await AsyncStorage.getItem(TRIP_KIDS_KEY)
         if (ik === '1') setTripIncludeKids(true)
+        const cex = await AsyncStorage.getItem(TRIP_EXTRAS_CHILD_KEY)
+        if (cex) setChildSavedExtras(JSON.parse(cex))
       } catch { /* ignorera */ }
     })()
   }, [])
@@ -626,9 +643,8 @@ function isPast(date: Date) {
               destination: destinationLabel, dateLabel, monthLabel: monthLabelStr, days,
               weatherSummary: weather.summary, groupedList: buildTripGarmentList(usePool),
               vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, lang,
+              childExtrasHint: childEssentialsHint(ageMonths(c.birthdate)),
             })
-            // Bild-lös outfit-plaggen + samla barnets tvättbara plagg-id:n (ur
-            // både outfits och packlista) så "Lägg allt i tvätten" når även barnen.
             const resolveInPool = (nm: string) => {
               const target = (nm || '').trim().toLowerCase()
               return usePool.find(g => (g.name || '').trim().toLowerCase() === target)
@@ -636,18 +652,25 @@ function isPast(date: Date) {
                 || usePool.filter(g => g.name && target.includes(g.name.toLowerCase())).sort((a: any, b: any) => b.name.length - a.name.length)[0]
                 || null
             }
-            const childNames = [
-              ...(Array.isArray(cp.outfits) ? cp.outfits.flatMap((o: any) => o.items || []) : []),
-              ...(Array.isArray(cp.packingList) ? cp.packingList : []),
-            ]
+            // Packlistan visar BARA plagg som faktiskt finns i barnets garderob
+            // (AI:n listar ibland plagg som inte finns) → lös mot poolen, släng omatchat.
+            const packingItems = Array.from(new Map(
+              (Array.isArray(cp.packingList) ? cp.packingList : [])
+                .map(resolveInPool).filter(Boolean)
+                .map((g: any) => [g.id, { id: g.id, name: g.name, image_url: g.image_url || null }])
+            ).values())
+            // Tvättbara plagg-id:n (packlista + outfits) för "Lägg allt i tvätten".
+            const outfitGarments = (Array.isArray(cp.outfits) ? cp.outfits.flatMap((o: any) => o.items || []) : []).map(resolveInPool)
             const garmentIds = Array.from(new Set(
-              childNames.map(resolveInPool).filter((g: any) => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
+              [...packingItems, ...outfitGarments].filter((g: any) => g && isWashable(g)).map((g: any) => g.id).filter(Boolean)
             ))
+            // Egna sparade saker för barnet läggs alltid överst, sedan AI:ns extras.
+            const extras = mergeExtras(childSavedExtras[c.id] || [], Array.isArray(cp.extras) ? cp.extras : [])
             childPacks.push({
               personId: c.id,
               name: c.name,
-              packingList: Array.isArray(cp.packingList) ? cp.packingList : [],
-              extras: Array.isArray(cp.extras) ? cp.extras : [],
+              packingItems,
+              extras,
               garmentIds,
               outfits: (Array.isArray(cp.outfits) ? cp.outfits : []).map((o: any) => ({
                 name: o.name, itemsWithImages: matchItemsToPool(o.items || [], usePool),
@@ -724,6 +747,40 @@ function isPast(date: Date) {
       if (!prev.some(e => e === name)) return prev
       const next = prev.filter(e => e !== name)
       AsyncStorage.setItem(TRIP_EXTRAS_KEY, JSON.stringify(next)).catch(() => {})
+      return next
+    })
+  }
+
+  // ── Egna "glöm inte"-saker per barn (sparas till nästa resa) ──────────────
+  function updateChildPackExtras(personId: string, fn: (extras: string[]) => string[]) {
+    setTripResult((prev: any) => {
+      if (!prev?.childPacks) return prev
+      const childPacks = prev.childPacks.map((cp: any) => cp.personId === personId ? { ...cp, extras: fn(cp.extras || []) } : cp)
+      const next = { ...prev, childPacks }
+      AsyncStorage.setItem(TRIP_KEY, JSON.stringify(next)).catch(() => {})
+      return next
+    })
+  }
+  function addChildExtra(personId: string, name: string) {
+    const v = name.trim()
+    if (!v) return
+    updateChildPackExtras(personId, extras => extras.some(e => e.toLowerCase() === v.toLowerCase()) ? extras : [...extras, v])
+    setChildSavedExtras(prev => {
+      const list = prev[personId] || []
+      if (list.some(e => e.toLowerCase() === v.toLowerCase())) return prev
+      const next = { ...prev, [personId]: [...list, v] }
+      AsyncStorage.setItem(TRIP_EXTRAS_CHILD_KEY, JSON.stringify(next)).catch(() => {})
+      return next
+    })
+    setNewChildExtra(prev => ({ ...prev, [personId]: '' }))
+  }
+  function removeChildExtra(personId: string, name: string) {
+    updateChildPackExtras(personId, extras => extras.filter(e => e !== name))
+    setChildSavedExtras(prev => {
+      const list = prev[personId] || []
+      if (!list.some(e => e === name)) return prev
+      const next = { ...prev, [personId]: list.filter(e => e !== name) }
+      AsyncStorage.setItem(TRIP_EXTRAS_CHILD_KEY, JSON.stringify(next)).catch(() => {})
       return next
     })
   }
@@ -1489,20 +1546,58 @@ function isPast(date: Date) {
                         <Text style={styles.outfitGarments}>{(o.itemsWithImages || []).map((it: any) => it.name).join(' · ')}</Text>
                       </View>
                     ))}
-                    {(cp.packingList || []).length > 0 && (
+                    {(cp.packingItems || []).length > 0 && (
                       <View style={styles.packCard}>
-                        {cp.packingList.map((nm: string, i: number) => {
-                          const key = `child:${cp.personId}:${nm}`
+                        {cp.packingItems.map((it: any, i: number) => {
+                          const key = `child:${cp.personId}:${it.name}`
                           const checked = !!tripChecked[key]
                           return (
                             <TouchableOpacity key={i} style={styles.packRow} activeOpacity={0.2} onPress={() => toggleTripCheck(key)}>
                               <View style={[styles.packCheck, checked && styles.packCheckOn]}>{checked && <Text style={styles.packCheckMark}>✓</Text>}</View>
-                              <Text style={[styles.packName, checked && styles.packNameChecked]}>{nm}</Text>
+                              {it.image_url
+                                ? <SignedImage path={it.image_url} style={styles.packThumb} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                                : <View style={styles.packThumbEmpty} />}
+                              <Text style={[styles.packName, checked && styles.packNameChecked]}>{it.name}</Text>
                             </TouchableOpacity>
                           )
                         })}
                       </View>
                     )}
+
+                    {/* Glöm inte-saker för barnet (åldersanpassade + egna). */}
+                    <Text style={styles.childPackSub}>{tr('Glöm inte')}</Text>
+                    <View style={styles.packCard}>
+                      {(cp.extras || []).map((name: string, i: number) => {
+                        const key = `child:${cp.personId}:x:${name}`
+                        const checked = !!tripChecked[key]
+                        return (
+                          <View key={i} style={styles.packRow}>
+                            <TouchableOpacity style={styles.packRowMain} activeOpacity={0.2} onPress={() => toggleTripCheck(key)}>
+                              <View style={[styles.packCheck, checked && styles.packCheckOn]}>{checked && <Text style={styles.packCheckMark}>✓</Text>}</View>
+                              <Text style={[styles.packName, checked && styles.packNameChecked]}>{name}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => removeChildExtra(cp.personId, name)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                              <MaterialIcons name="close" size={18} color={t.textFaint} />
+                            </TouchableOpacity>
+                          </View>
+                        )
+                      })}
+                      <View style={styles.extraAddRow}>
+                        <TextInput
+                          style={styles.extraInput}
+                          value={newChildExtra[cp.personId] || ''}
+                          onChangeText={(v) => setNewChildExtra(prev => ({ ...prev, [cp.personId]: v }))}
+                          placeholder={tr('Lägg till något eget…')}
+                          placeholderTextColor={t.textFaint}
+                          returnKeyType="done"
+                          onSubmitEditing={() => addChildExtra(cp.personId, newChildExtra[cp.personId] || '')}
+                        />
+                        <TouchableOpacity style={styles.extraAddBtn} onPress={() => addChildExtra(cp.personId, newChildExtra[cp.personId] || '')} disabled={!(newChildExtra[cp.personId] || '').trim()}>
+                          <MaterialIcons name="add" size={20} color={t.onPrimary} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <Text style={styles.extraHint}>{tr('Egna saker sparas och kommer tillbaka nästa resa.')}</Text>
                   </View>
                 ))}
 
@@ -1706,6 +1801,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   childPackBlock: { marginTop: 12 },
   childPackHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 20, marginBottom: 8 },
   childPackTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary },
+  childPackSub: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, marginTop: 14, marginBottom: 8 },
   tripLoadingHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, textAlign: 'center', marginTop: 10, fontStyle: 'italic' },
   tripHeaderCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: t.border, marginBottom: 8 },
   tripDest: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: t.textPrimary },
