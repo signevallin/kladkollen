@@ -25,6 +25,8 @@ export default async function handler(request: Request): Promise<Response> {
     const babyMode = body.babyMode === true
     // Åldersanpassade förnödenheter (klienten bygger texten utifrån barnets ålder).
     const childExtrasHint = clip(body.childExtrasHint, 300)
+    // Användarens personliga färgpalett (färganalys), om hen valt att väga in den.
+    const colorPalette = audience === 'child' ? '' : clip(body.colorPalette, 500)
 
     if (!destination) return json({ error: 'Destination saknas' }, 400)
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -71,6 +73,7 @@ OBLIGATORISKA REGLER FÖR VARJE OUTFIT – följ EXAKT (samma som vid vanlig out
 4. Väljer du en KLÄNNING → lägg INTE till separat nederdel eller överdel (klänningen ersätter båda).
 5. HÖGST ETT plagg per roll: ALDRIG två överdelar (t.ex. inte "T-shirt" + "body" samtidigt – båda är överdelar), aldrig två nederdelar, aldrig två par skor. Ett extra ytterlager (kavaj/jacka/kofta) OVANPÅ överdelen är ok, men basen är EN överdel.
 6. Bygg looken kring en sammanhållen färgpalett; kombinera inte flera skarpt konkurrerande starka färger.
+${colorPalette ? `7. PERSONLIG FÄRGPALETT (från användarens färganalys) – väg in den tydligt: ${colorPalette}. Prioritera plagg nära bas- och komplementfärgerna, använd accentfärgerna som statement och undvik "undvik"-färgerna när garderoben tillåter.` : ''}
 
 VIKTIGT:
 - Använd EXAKT samma plaggnamn som i garderoben (för både packlista och outfits).

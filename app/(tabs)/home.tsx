@@ -39,25 +39,11 @@ import { apiPost } from '../../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
 import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitItems, getCurrentSeason, seasonAppropriate } from '../../utils/outfit'
 import { pregnancyPromptContext, trimesterFromDueDate } from '../../utils/pregnancy'
+import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { useEntitlements, FREE_AI_PER_WEEK } from '../../utils/entitlements'
 import { fetchSets, type GarmentSet } from '../../utils/sets'
 
 const CONTEXTS = OUTFIT_CONTEXTS
-
-// Gör om en sparad färganalys (profiles.color_analysis) till en kort svensk
-// palett-sträng som AI:n kan väga in. Tom sträng om ingen palett finns.
-function buildColorPaletteStr(ca: any): string {
-  const p = ca?.palett
-  if (!p) return ''
-  const names = (arr: any[]) => (arr || []).map((c: any) => c?.namn).filter(Boolean).join(', ')
-  const parts = [
-    names(p.bas) && `Basfärger: ${names(p.bas)}`,
-    names(p.kompletterande) && `Komplementfärger: ${names(p.kompletterande)}`,
-    names(p.accent) && `Accentfärger: ${names(p.accent)}`,
-    names(p.undvik) && `Undvik: ${names(p.undvik)}`,
-  ].filter(Boolean)
-  return parts.join('. ')
-}
 
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
 const RECENT_SONGS_KEY = 'kladkollen_recent_songs'
@@ -202,7 +188,7 @@ export default function Home() {
       setAvoidNote(profile?.avoid_note || '')
       setPregnant(!!profile?.pregnant); cacheSet('profile.pregnant', !!profile?.pregnant)
       setDueDate(profile?.due_date || null)
-      setColorPaletteStr(buildColorPaletteStr(profile?.color_analysis))
+      setColorPaletteStr(colorPalettePrompt(profile?.color_analysis))
     }
   }
 
