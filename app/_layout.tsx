@@ -132,6 +132,7 @@ function RootLayout() {
         <Stack.Screen name="terms" />
         <Stack.Screen name="how-it-works" />
         <Stack.Screen name="pregnancy-wardrobe" />
+        <Stack.Screen name="child-outfit" />
       </Stack>
       <ToastHost />
       <ConfirmHost />
