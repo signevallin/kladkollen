@@ -3,8 +3,8 @@ import { useTheme } from '../theme/ThemeProvider'
 
 // Egen toggle så på/av ser likadant ut på både native och webb.
 // (RN-Switchens tumme får en grön standardfärg på webben som inte går att
-//  styra med thumbColor.) Brun när på, neutral när av, vit tumme.
-const ON_COLOR = '#6C4D38'
+//  styra med thumbColor.) Mörkbrun (temats primary) när på, neutral när av,
+//  vit tumme.
 
 export default function Toggle({
   value, onValueChange, disabled,
@@ -22,7 +22,7 @@ export default function Toggle({
       style={[
         styles.track,
         {
-          backgroundColor: value ? ON_COLOR : t.border,
+          backgroundColor: value ? t.primary : t.border,
           justifyContent: value ? 'flex-end' : 'flex-start',
           opacity: disabled ? 0.5 : 1,
         },

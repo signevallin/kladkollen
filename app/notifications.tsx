@@ -231,7 +231,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   webNoteText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary },
   testBtn: { marginTop: 24, backgroundColor: t.surfaceMuted, borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: t.border },
   testBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
-  masterRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: t.border },
+  masterRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: t.border },
   masterTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary },
   masterDesc: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: t.border },
