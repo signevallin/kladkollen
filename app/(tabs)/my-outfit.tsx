@@ -1288,7 +1288,7 @@ function isPast(date: Date) {
                   <Text style={styles.tripDatesLabel}>
                     {tripEndDate
                       ? `${new Date(tripStartDate + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' })} – ${new Date(tripEndDate + 'T12:00:00').toLocaleDateString(locale, { day: 'numeric', month: 'short' })}  ·  ${tripDayCount()} ${tr('dagar')}`
-                      : 'Startdatum valt – tryck på slutdatum'}
+                      : tr('Startdatum valt – tryck på slutdatum')}
                   </Text>
                 )}
 
