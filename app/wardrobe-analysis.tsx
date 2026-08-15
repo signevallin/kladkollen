@@ -228,7 +228,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   title: { fontFamily: 'Poppins_700Bold', fontSize: 28, color: t.textPrimary, marginBottom: 8 },
   intro: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21, marginBottom: 20 },
 
-  card: { backgroundColor: t.surface, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: t.border, marginBottom: 16 },
+  card: { backgroundColor: t.surfaceMuted, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: t.border, marginBottom: 16 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   cardTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary },
   cardDesc: { fontFamily: 'Lora_400Regular', fontSize: 12.5, color: t.textSecondary, marginTop: 2, lineHeight: 18 },
