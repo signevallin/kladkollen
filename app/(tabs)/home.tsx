@@ -44,6 +44,21 @@ import { fetchSets, type GarmentSet } from '../../utils/sets'
 
 const CONTEXTS = OUTFIT_CONTEXTS
 
+// Gör om en sparad färganalys (profiles.color_analysis) till en kort svensk
+// palett-sträng som AI:n kan väga in. Tom sträng om ingen palett finns.
+function buildColorPaletteStr(ca: any): string {
+  const p = ca?.palett
+  if (!p) return ''
+  const names = (arr: any[]) => (arr || []).map((c: any) => c?.namn).filter(Boolean).join(', ')
+  const parts = [
+    names(p.bas) && `Basfärger: ${names(p.bas)}`,
+    names(p.kompletterande) && `Komplementfärger: ${names(p.kompletterande)}`,
+    names(p.accent) && `Accentfärger: ${names(p.accent)}`,
+    names(p.undvik) && `Undvik: ${names(p.undvik)}`,
+  ].filter(Boolean)
+  return parts.join('. ')
+}
+
 const INTENSITY_LABELS = ['Subtil', 'Diskret', 'Balanserad', 'Uttalad', 'Total']
 const RECENT_SONGS_KEY = 'kladkollen_recent_songs'
 // Minne av de senaste genererade outfitsen (lokalt), så AI:n inte upprepar
@@ -56,7 +71,7 @@ const RECENT_GARMENTS_KEY = 'kladkollen_recent_garments'
 export default function Home() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { tempLabel, t: tr, showDailySong } = useSettings()
+  const { tempLabel, t: tr, showDailySong, useColorAnalysis } = useSettings()
   const { isPro, creditsLeft, refresh: refreshEntitlements } = useEntitlements()
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
@@ -89,6 +104,8 @@ export default function Home() {
   // Antal barn i hushållet – styr om "Familjen idag"-knappen visas (seedas ur
   // samma cache som PersonSwitcher så knappen inte blinkar in vid flikbyte).
   const [childCount, setChildCount] = useState<number>(() => (cacheGet<any[]>('household.children') ?? []).length)
+  // Användarens färgpalett (färganalys) som AI-sträng – väg in om inställningen är på.
+  const [colorPaletteStr, setColorPaletteStr] = useState<string>('')
   const [coupleOutfit, setCoupleOutfit] = useState<any | null>(null)
   const [coupleLoading, setCoupleLoading] = useState(false)
   const [coupleSaving, setCoupleSaving] = useState(false)
@@ -174,7 +191,7 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date, color_analysis').eq('id', user.id).single()
       const name = profile?.name || user.email?.split('@')[0] || ''
       setUserName(name); cacheSet('home.userName', name)
       setUserAvatar(profile?.avatar_url || null); cacheSet('home.userAvatar', profile?.avatar_url || null)
@@ -185,6 +202,7 @@ export default function Home() {
       setAvoidNote(profile?.avoid_note || '')
       setPregnant(!!profile?.pregnant); cacheSet('profile.pregnant', !!profile?.pregnant)
       setDueDate(profile?.due_date || null)
+      setColorPaletteStr(buildColorPaletteStr(profile?.color_analysis))
     }
   }
 
@@ -389,6 +407,7 @@ export default function Home() {
             : '',
           baseSet: baseSetStr,
           pregnancy: pregnancyPromptContext(pregnant, trimesterFromDueDate(dueDate)),
+          colorPalette: useColorAnalysis ? colorPaletteStr : '',
         })
 
         const { valid } = validateOutfit(parsed.items, pool, weatherCtx.requiresOuterwear)

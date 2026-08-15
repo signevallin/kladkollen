@@ -36,6 +36,8 @@ export default async function handler(request: Request): Promise<Response> {
     const baseGarment = clip(body.baseGarment, 120)
     const baseSet = clip(body.baseSet, 400)
     const pregnancy = clip(body.pregnancy, 700)
+    // Användarens personliga färgpalett (färganalys), om hen valt att väga in den.
+    const colorPalette = clip(body.colorPalette, 500)
     const retry = body.retry === true
     // audience 'child' → förenklad barn-prompt (väder/komfort/rätt storlek före
     // mode, ingen låt, inga stil-/formalitetsregler). Default 'adult'.
@@ -138,6 +140,7 @@ F. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stol
    Om två plagg inte passar färgmässigt, välj hellre ett neutralt alternativ – eller
    hoppa över en valfri accessoar helt om den inte lyfter looken.
 ${styleRules ? `\nANVÄNDARENS EGNA STILREGLER – följ dessa NOGA, de väger tungt:\n${styleRules}` : ''}
+${colorPalette ? `\nANVÄNDARENS PERSONLIGA FÄRGPALETT (från färganalysen) – väg in den tydligt:\n${colorPalette}\nVälj i första hand plagg vars färger ligger nära bas- och komplementfärgerna, och använd accentfärgerna som statement. Undvik "undvik"-färgerna när garderoben tillåter (tvinga dock inte fram en ofullständig outfit).` : ''}
 
 Föreslå också EN låt som matchar outfitens känsla och kontexten. Välj en riktig,
 känd låt som går att hitta på Apple Music.

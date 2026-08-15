@@ -5,6 +5,7 @@ import { apiPost } from '../../utils/api'
 import { showAlert } from '../../utils/alert'
 import { pickImageSmart } from '../../utils/imagePicker'
 import { useSettings } from '../../utils/settings'
+import Toggle from '../Toggle'
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 import type { Json } from '../../types/models'
@@ -38,7 +39,7 @@ type Props = { onAnalyzed?: () => void }
 export default function ColorAnalysis({ onAnalyzed }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { t: tr } = useSettings()
+  const { t: tr, useColorAnalysis, setUseColorAnalysis } = useSettings()
 
   const [colorAnalysis, setColorAnalysis] = useState<ColorAnalysisData | null>(null)
   const [analyzingColor, setAnalyzingColor] = useState(false)
@@ -281,6 +282,15 @@ export default function ColorAnalysis({ onAnalyzed }: Props) {
               )}
             </View>
           )}
+
+          {/* Låt AI:n väga in färgpaletten när outfits genereras. */}
+          <View style={styles.aiToggleRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiToggleLabel}>{tr('Använd i outfit-generering')}</Text>
+              <Text style={styles.aiToggleSub}>{tr('Låt AI:n väga in din färgpalett när outfits skapas.')}</Text>
+            </View>
+            <Toggle value={useColorAnalysis} onValueChange={setUseColorAnalysis} />
+          </View>
         </View>
       )}
     </View>
@@ -288,6 +298,9 @@ export default function ColorAnalysis({ onAnalyzed }: Props) {
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
+  aiToggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 16 },
+  aiToggleLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },
+  aiToggleSub: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginTop: 2 },
   hint: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 11, fontStyle: 'italic', marginBottom: 10, marginTop: 4 },
   inputModeRow: { flexDirection: 'row', gap: 8, marginTop: 10, marginBottom: 16 },
   inputModeBtn: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: t.surface, borderWidth: 1, borderColor: t.border },
