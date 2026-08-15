@@ -27,6 +27,7 @@ import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
 import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths } from '../../utils/outfit'
+import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
@@ -75,6 +76,7 @@ export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang } = useSettings()
+  const { tier } = useEntitlements()
   const locale = localeFor(lang)
   const { tab, create, partner, partnerName, person, personName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string; person?: string; personName?: string }>()
   // Partner-läge: visa partnerns outfits (läsläge) i stället för mina egna.
@@ -686,7 +688,7 @@ function isPast(date: Date) {
       // Familjeresa: packa även till barnen (opt-in). Ett pack-trip-anrop per
       // barn med barnets storleks-/säsongsanpassade garderob; plaggen bild-löses
       // direkt mot barnets pool (reseresultatet renderar via image_url).
-      if (tripIncludeKids && children.length) {
+      if (tripIncludeKids && children.length && familyFeaturesEnabled(tier)) {
         const all = await loadGarments().catch(() => [] as any[])
         const childPacks: any[] = []
         const pools: Record<string, any[]> = {}
@@ -1564,7 +1566,7 @@ function isPast(date: Date) {
                   onChangeText={setTripVibe}
                 />
 
-                {children.length > 0 && (
+                {familyFeaturesEnabled(tier) && children.length > 0 && (
                   <View style={styles.tripKidsRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.tripKidsLabel}>{tr('Packa även till barnen')}</Text>

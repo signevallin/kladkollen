@@ -11,7 +11,7 @@ import type { Theme } from '../../theme/theme'
 import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { OUTFIT_CONTEXTS } from '../../utils/constants'
-import { useEntitlements } from '../../utils/entitlements'
+import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { loadGarments } from '../../utils/garmentsStore'
 import { loadPartner } from '../../utils/household'
 import { loadPeople, type Person } from '../../utils/people'
@@ -19,7 +19,6 @@ import {
   buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason,
   isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit,
 } from '../../utils/outfit'
-import { tierAtLeast } from '../../utils/purchases'
 import { useSettings } from '../../utils/settings'
 import { markOutfitLoggedToday } from '../../utils/smartPush'
 import { buildWeatherContext, type WeatherInput } from '../../utils/weather'
@@ -30,10 +29,8 @@ import { buildWeatherContext, type WeatherInput } from '../../utils/weather'
 //
 // Egen state (fetchar/sparar själv). Hemskärmen skickar bara in vädret.
 //
-// Bakom Familj-nivån via REQUIRE_FAMILY_TIER (håll false tills nivån går att
-// köpa; sätt true vid lansering av Familj-nivån).
-const REQUIRE_FAMILY_TIER = false
-
+// Bakom Familj-nivån (familjeläget) via familyFeaturesEnabled() – delad grind
+// med "packa barnen"-toggeln i reseläget.
 const LEDIG = OUTFIT_CONTEXTS[2] // vardaglig kontext för "dagens" outfit
 const MAX_ADDED = 3
 
@@ -161,7 +158,7 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
 
   async function generateAll() {
     if (running || disabled) return
-    if (REQUIRE_FAMILY_TIER && !tierAtLeast(tier, 'family')) { router.push('/paywall'); return }
+    if (!familyFeaturesEnabled(tier)) { router.push('/paywall'); return }
     setRunning(true)
     setResults({}); setSaved({}); setSavedId({}); setWorn({})
     const season = getCurrentSeason()

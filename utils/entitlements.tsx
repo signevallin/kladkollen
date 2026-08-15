@@ -3,13 +3,21 @@ import { supabase } from '../supabase'
 import {
   configurePurchases, getCustomerInfo, getPackages, identifyPurchases,
   purchasePackage, restorePurchases, purchasesAvailable,
-  tierFromInfo, tierFromProductId, TIER_RANK,
+  tierFromInfo, tierFromProductId, TIER_RANK, tierAtLeast,
   type PurchasePackage, type Tier,
 } from './purchases'
 
 // Håll i synk med servern (api/_utils.ts FREE_AI_PER_WEEK).
 export const FREE_AI_PER_WEEK = 3
 const WEEK_SECONDS = 7 * 24 * 60 * 60
+
+// Familje-funktioner ("Familjen idag", packa barnen på resan) ligger bakom
+// Familj-nivån (familjeläget). Håll REQUIRE_FAMILY_TIER = false tills nivån går
+// att köpa så den kan testas; sätt true vid lansering för att gömma bakom nivån.
+export const REQUIRE_FAMILY_TIER = false
+export function familyFeaturesEnabled(tier: Tier): boolean {
+  return !REQUIRE_FAMILY_TIER || tierAtLeast(tier, 'family')
+}
 
 type EntitlementsCtx = {
   isPro: boolean          // tier !== 'none' (bakåtkompatibelt: obegränsad AI m.m.)
