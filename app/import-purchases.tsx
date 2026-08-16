@@ -40,7 +40,7 @@ if (Platform.OS !== 'web') {
 // Startsidor (inte djupa order-URL:er): djupa länkar 404:ar ofta när man inte
 // är inloggad eller när butiken bytt sökväg. Startsidan finns alltid – man
 // loggar in, går till sin orderhistorik och trycker Importera.
-const STORES: { name: string; url: string }[] = [
+const STORES: { name: string; url: string; logo?: string }[] = [
   { name: 'H&M', url: 'https://www2.hm.com/sv_se/' },
   { name: 'Zalando', url: 'https://www.zalando.se/' },
   { name: 'Boozt', url: 'https://www.boozt.com/se/sv' },
@@ -75,7 +75,9 @@ const STORES: { name: string; url: string }[] = [
   { name: 'Nordstrom', url: 'https://www.nordstrom.com/' },
   { name: "Macy's", url: 'https://www.macys.com/' },
   { name: 'Gap', url: 'https://www.gap.com/' },
-  { name: 'Old Navy', url: 'https://oldnavy.gap.com/' },
+  // Old Navy bor på en underdomän till gap.com – ange egen logga-domän så den
+  // inte hämtar Gaps favicon (root-domän-härledningen skulle annars ge gap.com).
+  { name: 'Old Navy', url: 'https://oldnavy.gap.com/', logo: 'oldnavy.gap.com' },
   { name: 'Nike', url: 'https://www.nike.com/' },
   { name: 'Abercrombie & Fitch', url: 'https://www.abercrombie.com/' },
   { name: 'American Eagle', url: 'https://www.ae.com/' },
@@ -84,12 +86,21 @@ const STORES: { name: string; url: string }[] = [
   { name: 'Revolve', url: 'https://www.revolve.com/' },
 ]
 
+// Butiker vars favicon inte går att skilja åt via favicon-tjänsten – båda är
+// H&M-ägda och tjänsten returnerar samma generiska ikon för dem. Visa monogram
+// i stället så de inte krockar med varandra.
+const NO_FAVICON = new Set(['Monki', 'Weekday'])
+
 // Butikens logga hämtas som favicon utifrån rot­domänen (inte underdomäner
 // som my.asos.com, som ofta saknar favicon) – funkar för alla butiker utan
-// att vi behöver bundla bilder, och överlever omdesigner.
-function storeLogoUrl(url: string): string | null {
+// att vi behöver bundla bilder, och överlever omdesigner. Butiker vars varumärke
+// bor på en underdomän till ett annat märke (t.ex. Old Navy på oldnavy.gap.com)
+// anger en egen `logo`-domän så de inte ärver moderdomänens favicon.
+function storeLogoUrl(store: { name: string; url: string; logo?: string }): string | null {
+  if (NO_FAVICON.has(store.name)) return null
+  if (store.logo) return `https://www.google.com/s2/favicons?sz=64&domain=${store.logo}`
   try {
-    const host = new URL(url).hostname.replace(/^www\d*\./, '')
+    const host = new URL(store.url).hostname.replace(/^www\d*\./, '')
     const parts = host.split('.')
     const root = parts.length > 2 ? parts.slice(-2).join('.') : host
     return `https://www.google.com/s2/favicons?sz=64&domain=${root}`
@@ -346,8 +357,8 @@ export default function ImportPurchases() {
           {shownStores.map(s => (
             <TouchableOpacity key={s.name} style={styles.storeRow} onPress={() => { setStore(s); setStep('browse') }}>
               <View style={styles.storeLogoWrap}>
-                {storeLogoUrl(s.url)
-                  ? <Image source={{ uri: storeLogoUrl(s.url)! }} style={styles.storeLogo} resizeMode="contain" />
+                {storeLogoUrl(s)
+                  ? <Image source={{ uri: storeLogoUrl(s)! }} style={styles.storeLogo} resizeMode="contain" />
                   : <Text style={styles.storeLogoFallback}>{s.name.charAt(0)}</Text>}
               </View>
               <Text style={styles.storeName}>{s.name}</Text>
