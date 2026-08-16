@@ -271,9 +271,12 @@ export default function ImportPurchases() {
             person_id: personId,
             name: item.name,
             category: analysis.category || null,
+            subcategory: analysis.subcategory || null,
             color: analysis.color || null,
             season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : null,
             image_url: imageUrl,
+            brand: item.brand || null,
+            price: parsePrice(item.price),
           }])
         } else {
           await supabase.from('garments').insert([{
