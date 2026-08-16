@@ -542,6 +542,7 @@ export default function Wardrobe() {
       {/* Köplistan: valruta + URL + formulär (egen komponent) */}
       <WishlistAddModals
         person={isPerson ? person : undefined}
+        personName={isPerson ? personName : undefined}
         chooserVisible={showWishChooser}
         onChooserClose={() => setShowWishChooser(false)}
         wishlistCount={wishlist.length}
