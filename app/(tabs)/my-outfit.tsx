@@ -147,6 +147,10 @@ export default function MyOutfits() {
   // (för togglens synlighet) och om toggeln är på (sparas lokalt).
   const [children, setChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
   const [tripIncludeKids, setTripIncludeKids] = useState(false)
+  // Livssituation = det som slår på familjeläget (seedas ur cachen).
+  const [lifeMode, setLifeMode] = useState<string>(() => cacheGet('profile.lifeMode') ?? 'single')
+  // Familjeläget aktivt = livssituation Familj + betald åtkomst.
+  const familyModeOn = lifeMode === 'family' && familyFeaturesEnabled(tier)
   // Egna sparade "glöm inte"-saker per barn + inmatningsfält per barn.
   const [childSavedExtras, setChildSavedExtras] = useState<Record<string, string[]>>({})
   const [newChildExtra, setNewChildExtra] = useState<Record<string, string>>({})
@@ -184,6 +188,14 @@ export default function MyOutfits() {
         const kids = ppl.filter(p => p.type === 'child')
         setChildren(kids); cacheSet('household.children', kids)
       }).catch(() => {})
+      // Livssituation (familjeläget) för att styra "packa barnen"-toggeln.
+      ;(async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data } = await supabase.from('profiles').select('life_mode').eq('id', user.id).single()
+        const lm = data?.life_mode || 'single'
+        setLifeMode(lm); cacheSet('profile.lifeMode', lm)
+      })().catch(() => {})
       // Spegla ev. lokal resa till DB vid varje fokus (självläkande) så en
       // sambo kan se den i läsläge – även resor planerade innan speglingen
       // fanns eller på en annan enhet.
@@ -644,7 +656,7 @@ function isPast(date: Date) {
 
     setTripLoading(true)
     try {
-      const geo = await geocodeDestination(tripDestination)
+      const geo = await geocodeDestination(tripDestination, lang)
       if (!geo) {
         showAlert(tr('Hittade inte destinationen'), tr('Prova en annan stavning eller en större stad i närheten.'))
         return
@@ -697,7 +709,7 @@ function isPast(date: Date) {
       // Familjeresa: packa även till barnen (opt-in). Ett pack-trip-anrop per
       // barn med barnets storleks-/säsongsanpassade garderob; plaggen bild-löses
       // direkt mot barnets pool (reseresultatet renderar via image_url).
-      if (tripIncludeKids && children.length && familyFeaturesEnabled(tier)) {
+      if (tripIncludeKids && children.length && familyModeOn) {
         const all = await loadGarments().catch(() => [] as any[])
         const childPacks: any[] = []
         const pools: Record<string, any[]> = {}
@@ -1574,7 +1586,7 @@ function isPast(date: Date) {
                   onChangeText={setTripVibe}
                 />
 
-                {familyFeaturesEnabled(tier) && children.length > 0 && (
+                {familyModeOn && children.length > 0 && (
                   <View style={styles.tripKidsRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.tripKidsLabel}>{tr('Packa även till barnen')}</Text>

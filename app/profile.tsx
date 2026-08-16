@@ -139,7 +139,7 @@ export default function Profile() {
     setGender(data.gender || '')
     setBirthday(data.birthday || '')
     setAvoidNote(data.avoid_note || '')
-    setLifeMode(data.life_mode || 'single')
+    setLifeMode(data.life_mode || 'single'); cacheSet('profile.lifeMode', data.life_mode || 'single')
     setStylePrefs(data.style_prefs ? data.style_prefs.split(', ') : [])
     setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
     setCurrentSeason(data.current_season || '')
@@ -512,7 +512,7 @@ export default function Profile() {
                 <Text style={styles.hint}>{tr('Anpassar appen efter var i livet du är.')}</Text>
                 <View style={styles.pills}>
                   {([['single', 'Singel'], ['couple', 'Partner'], ['family', 'Familj']] as const).map(([v, lbl]) => (
-                    <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => setLifeMode(v)}>
+                    <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => { setLifeMode(v); cacheSet('profile.lifeMode', v) }}>
                       <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{tr(lbl)}</Text>
                     </TouchableOpacity>
                   ))}

@@ -20,9 +20,10 @@ export async function mirrorLocalTripToDb(): Promise<void> {
 
 export type GeoResult = { name: string; country: string; latitude: number; longitude: number }
 
-/** Slår upp en destination (stad/plats) och returnerar koordinater + land. */
-export async function geocodeDestination(query: string): Promise<GeoResult | null> {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=sv&format=json`
+/** Slår upp en destination (stad/plats) och returnerar koordinater + land.
+ *  `lang` styr språket på stads-/landsnamnen så de matchar appspråket. */
+export async function geocodeDestination(query: string, lang: string = 'sv'): Promise<GeoResult | null> {
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=${encodeURIComponent(lang)}&format=json`
   try {
     const res = await fetch(url)
     const data = await res.json()
