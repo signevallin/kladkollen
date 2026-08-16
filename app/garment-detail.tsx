@@ -41,6 +41,8 @@ import { resolveImageUrl, uploadUserImage } from '../utils/storage'
 import { loadPartner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { EU_CHILD_SIZES } from '../utils/childSize'
+import { useEntitlements } from '../utils/entitlements'
+import { tierAtLeast } from '../utils/purchases'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -62,6 +64,9 @@ export default function GarmentDetail() {
   const styles = makeStyles(t)
   const { currency, toBaseSEK, fromBaseSEK, t: tr, lang } = useSettings()
   const locale = localeFor(lang)
+  const { tier } = useEntitlements()
+  // Att tilldela plagg till ett barn ligger bakom familjeläget.
+  const familyOn = tierAtLeast(tier, 'family')
   // Normalisera params till strängar (expo-router kan ge string[] vid dubbletter).
   const rawParams = useLocalSearchParams()
   const id = Array.isArray(rawParams.id) ? rawParams.id[0] : rawParams.id
@@ -163,8 +168,8 @@ export default function GarmentDetail() {
     if (all) setOwnBrands([...new Set(all.map((g: any) => g.brand).filter(Boolean))] as string[])
     // Egna platser (för att välja plats + avgöra arkiv)
     setLocations(await fetchLocations())
-    // Barn i hushållet – styr om familje-sektionen visas.
-    try { setChildren((await loadPeople()).filter(p => p.type === 'child')) } catch { /* inget hushåll än */ }
+    // Barn i hushållet – styr om familje-sektionen visas. Bara i familjeläget.
+    try { setChildren(familyOn ? (await loadPeople()).filter(p => p.type === 'child') : []) } catch { /* inget hushåll än */ }
   }
 
 

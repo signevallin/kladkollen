@@ -31,6 +31,7 @@ import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
 import { invalidateGarments } from '../utils/garmentsStore'
 import { useEntitlements } from '../utils/entitlements'
+import { tierAtLeast } from '../utils/purchases'
 import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
@@ -57,7 +58,8 @@ export default function Profile() {
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
   const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
-  const { isPro } = useEntitlements()
+  const { isPro, tier } = useEntitlements()
+  const familyOn = tierAtLeast(tier, 'family')
 
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)
@@ -382,7 +384,7 @@ export default function Profile() {
         </TouchableOpacity>
         {!!name && <Text style={styles.avatarName}>{name}</Text>}
 
-        {(partner || householdChildren.length > 0) && (
+        {(partner || (familyOn && householdChildren.length > 0)) && (
           <>
             <Text style={styles.sectionTitle}>{tr('Mitt hushåll')}</Text>
             <View style={styles.householdRow}>
@@ -399,7 +401,7 @@ export default function Profile() {
                   <Text style={styles.householdName} numberOfLines={1}>{partner.name}</Text>
                 </TouchableOpacity>
               )}
-              {householdChildren.map(child => (
+              {familyOn && householdChildren.map(child => (
                 <TouchableOpacity
                   key={child.id}
                   style={styles.householdMember}
@@ -572,7 +574,7 @@ export default function Profile() {
             ),
           })}
           {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/partner' : '/paywall') })}
-          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/family' : '/paywall') })}
+          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: familyOn ? undefined : 'Premium', onPress: () => router.push(familyOn ? '/family' : '/paywall') })}
         </View>
         )}
 

@@ -11,6 +11,8 @@ import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useSettings } from '../utils/settings'
 import { addChild, loadPeople, type Person } from '../utils/people'
+import { useEntitlements } from '../utils/entitlements'
+import { tierAtLeast } from '../utils/purchases'
 
 // Gravidgarderob: hjälper dig konsumera smart (köp bara det du behöver) och
 // återanvända dina gravidplagg. Bygger på befintliga köplistan och plagg-taggen.
@@ -43,6 +45,9 @@ export default function PregnancyWardrobe() {
   const t = useTheme()
   const { t: tr } = useSettings()
   const styles = makeStyles(t)
+  const { tier } = useEntitlements()
+  // Nyföddgarderoben skapar ett barn – ligger därför bakom familjeläget.
+  const familyOn = tierAtLeast(tier, 'family')
   const [maternity, setMaternity] = useState<MG[]>([])
   const [wishlist, setWishlist] = useState<Wish[]>([])
   const [loading, setLoading] = useState(true)
@@ -178,7 +183,9 @@ export default function PregnancyWardrobe() {
               </View>
             )}
 
-            {/* ── Nyföddgarderob – knyter ihop gravid → familj ── */}
+            {/* ── Nyföddgarderob – knyter ihop gravid → familj. Skapar ett barn,
+                   så hela sektionen ligger bakom familjeläget. ── */}
+            {familyOn && (<>
             <Text style={styles.sectionTitle}>{tr('Nyföddgarderob')}</Text>
             <Text style={styles.reuseHint}>{tr('Förbered det första bebisen behöver. Lägg bebisen i familjen så hamnar plaggen på bebisens egen köplista.')}</Text>
 
@@ -227,6 +234,7 @@ export default function PregnancyWardrobe() {
                 )
               })}
             </View>
+            </>)}
           </>
         )}
       </ScrollView>

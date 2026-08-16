@@ -33,6 +33,8 @@ import { pickImageSmart } from '../utils/imagePicker'
 import { fetchLocations, type Location } from '../utils/locations'
 import { loadPeople, type Person } from '../utils/people'
 import { EU_CHILD_SIZES } from '../utils/childSize'
+import { useEntitlements } from '../utils/entitlements'
+import { tierAtLeast } from '../utils/purchases'
 
 // Max bredd på lagrade/skickade bilder. En mobilbild är ofta 3000–4000 px;
 // 1400 px räcker gott för en telefonskärm och kapar filstorleken ~85–90 %.
@@ -82,6 +84,9 @@ const FAMILY_STATUS_LABELS: Record<FamilyStatus, string> = {
 export default function AddGarment() {
   const t = useTheme()
   const { currency, toBaseSEK, t: tr } = useSettings()
+  const { tier } = useEntitlements()
+  // Att tilldela plagg till ett barn ligger bakom familjeläget.
+  const familyOn = tierAtLeast(tier, 'family')
   const styles = makeStyles(t)
   const [step, setStep] = useState<'pick' | 'review'>('pick')
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])
@@ -107,7 +112,7 @@ export default function AddGarment() {
     })
     fetchLocations().then(setLocations).catch(() => {})
     loadPeople().then(ppl => {
-      const kids = ppl.filter(p => p.type === 'child')
+      const kids = familyOn ? ppl.filter(p => p.type === 'child') : []
       setChildren(kids)
       // Kom man hit från ett barns garderob: förvälj lådläget för det barnet.
       if (personParam) {
@@ -119,7 +124,7 @@ export default function AddGarment() {
         }
       }
     }).catch(() => {})
-  }, [personParam])
+  }, [personParam, familyOn])
 
   // Kommer man in via "Välj foton" i valrutan – öppna bildväljaren automatiskt.
   // Vi väntar tills skärmen fått fokus OCH animationer/valrutan lagt sig, annars

@@ -8,6 +8,8 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
 import { cacheGet, cacheSet } from '../utils/cache'
+import { useEntitlements } from '../utils/entitlements'
+import { tierAtLeast } from '../utils/purchases'
 import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 
@@ -30,6 +32,9 @@ export default function PersonSwitcher({ scope, current }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
+  const { tier } = useEntitlements()
+  // Barn ligger bakom familjeläget (Familj-nivån). Utan det visas bara Jag + partner.
+  const familyOn = tierAtLeast(tier, 'family')
 
   const [partner, setPartner] = useState<Partner | null>(() => cacheGet<Partner | null>('household.partner') ?? null)
   const [children, setChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
@@ -52,6 +57,14 @@ export default function PersonSwitcher({ scope, current }: Props) {
     })().catch(() => {})
   }, [])
 
+  // Slås familjeläget av medan man tittar på ett barn: växla tillbaka till Jag,
+  // annars kan vyn fastna i barnläge (t.ex. utan partner försvinner väljaren helt).
+  useEffect(() => {
+    if (!familyOn && current.kind === 'child') {
+      router.setParams({ person: '', personName: '', partner: '', partnerName: '' })
+    }
+  }, [familyOn, current.kind])
+
   type Member = { key: string; label: string; avatar: string | null; icon: any; select: () => void; active: boolean }
 
   const members: Member[] = []
@@ -73,7 +86,7 @@ export default function PersonSwitcher({ scope, current }: Props) {
       select: () => router.setParams({ partner: partner.id, partnerName: partner.name, person: '', personName: '' }),
     })
   }
-  children.forEach(c => members.push({
+  if (familyOn) children.forEach(c => members.push({
     key: `child:${c.id}`,
     label: c.name,
     avatar: c.avatar_url,
