@@ -50,3 +50,17 @@ export function pregnancyPromptContext(pregnant: boolean, tri: Trimester | null)
     'gravid-/amningsvänliga plagg i garderoben – prioritera dem.',
   ].join(' ')
 }
+
+// Instruktion för amningsläget. Tom sträng när det är av. Prioriterar plagg med
+// enkel amningsåtkomst framtill (uppknäppbart, omlott, nedvikbart).
+export function nursingPromptContext(nursing: boolean): string {
+  if (!nursing) return ''
+  return [
+    'AMNINGSANPASSNING (VIKTIGT): Användaren ammar.',
+    'Prioritera plagg med enkel åtkomst framtill: knäppning eller dragkedja fram,',
+    'omlott, uppknäppbara skjortor/blusar, nedvikbara eller uppdragbara toppar och',
+    'lager man lätt öppnar. Undvik heldelar utan öppning (t.ex. tajta klänningar',
+    'utan knäppning) och trånga polotröjor. Finns amningsvänliga plagg i garderoben',
+    '(gravid-/amningstaggade) – välj dem i första hand.',
+  ].join(' ')
+}

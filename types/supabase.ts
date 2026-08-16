@@ -642,6 +642,7 @@ export type Database = {
           notif_prefs: Json
           lang: string | null
           outfit_context_notes: Json
+          nursing: boolean
           pregnant: boolean
           push_lat: number | null
           push_lon: number | null
@@ -681,6 +682,7 @@ export type Database = {
           notif_prefs?: Json
           lang?: string | null
           outfit_context_notes?: Json
+          nursing?: boolean
           pregnant?: boolean
           push_lat?: number | null
           push_lon?: number | null
@@ -720,6 +722,7 @@ export type Database = {
           notif_prefs?: Json
           lang?: string | null
           outfit_context_notes?: Json
+          nursing?: boolean
           pregnant?: boolean
           push_lat?: number | null
           push_lon?: number | null
