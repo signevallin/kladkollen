@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "app/(tabs)/my-outfit.tsx": {
-    "mtime": 1786882208.0823092,
-    "ast_hash": "7d06c7e388c5161ebb9935d35954746e",
+    "mtime": 1786883806.07596,
+    "ast_hash": "dc04ca07269699c33312d58daef3ffc3",
     "semantic_hash": ""
   },
   "app/(tabs)/wardrobe.tsx": {
@@ -215,8 +215,8 @@
     "semantic_hash": ""
   },
   "app/import-purchases.tsx": {
-    "mtime": 1786871843.3150163,
-    "ast_hash": "650c7a9bf980fce2ae6547e9c3a689ef",
+    "mtime": 1786883929.023957,
+    "ast_hash": "d51294adc51657653fa7492cacefc931",
     "semantic_hash": ""
   },
   "app/index.tsx": {
@@ -255,8 +255,8 @@
     "semantic_hash": ""
   },
   "app/privacy.tsx": {
-    "mtime": 1786381910.1083932,
-    "ast_hash": "f15265e5087c02966f70b379b6907dc9",
+    "mtime": 1786900733.073118,
+    "ast_hash": "162a9c6edee8cdf8edaf7e532cc29f20",
     "semantic_hash": ""
   },
   "app/profile.tsx": {
@@ -275,8 +275,8 @@
     "semantic_hash": ""
   },
   "app/terms.tsx": {
-    "mtime": 1786381910.108263,
-    "ast_hash": "556fa5009968e04e88ec1bafd64d2a86",
+    "mtime": 1786900756.7571173,
+    "ast_hash": "18e84696876d18c57f91aefaf4ee9502",
     "semantic_hash": ""
   },
   "app/wardrobe-analysis.tsx": {
@@ -775,13 +775,13 @@
     "semantic_hash": ""
   },
   "public/landing.html": {
-    "mtime": 1786881741.26632,
-    "ast_hash": "47dc9131a0a5e9da517617504ee3ae90",
+    "mtime": 1786899729.695875,
+    "ast_hash": "cb03366dd943c917b0775f447ae39aac",
     "semantic_hash": ""
   },
   "public/support.html": {
-    "mtime": 1786381939.4127045,
-    "ast_hash": "57e1099eedfc3f4adb085a6ae09a3079",
+    "mtime": 1786899955.6838696,
+    "ast_hash": "8e418e959014dc4b1111c147300c23ee",
     "semantic_hash": ""
   },
   "assets/Skrud.icon/Assets/Image 2.png": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "public/icon.png": {
-    "mtime": 1785443715.3126285,
-    "ast_hash": "cb975bba2216ce10a60e6c0ffe9941a2",
+    "mtime": 1786882514.9741454,
+    "ast_hash": "8716326b8882e9f0160586e31fca98c6",
     "semantic_hash": ""
   },
   "__tests__/pregnancy.test.ts": {
@@ -870,8 +870,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1786384497.5700557,
-    "ast_hash": "4d18678df2e7beb6946b645e5d80c787",
+    "mtime": 1786882886.9942937,
+    "ast_hash": "de9e138b976ca5b5b64472e8cae87e0b",
     "semantic_hash": ""
   },
   "app/pregnancy-wardrobe.tsx": {
@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "public/privacy.html": {
-    "mtime": 1786381946.9767048,
-    "ast_hash": "a616f826c7ba875165b676eea36ac019",
+    "mtime": 1786899919.7158706,
+    "ast_hash": "1e5449a9d65a1d5fc410da038c22a1b2",
     "semantic_hash": ""
   },
   "components/wardrobe/ListFilterBar.tsx": {
@@ -1025,8 +1025,8 @@
     "semantic_hash": ""
   },
   "public/terms.html": {
-    "mtime": 1786641848.9014335,
-    "ast_hash": "405bced3f52f56f7491bd1a9d1c2568d",
+    "mtime": 1786900192.5118642,
+    "ast_hash": "f685f4bdbb003c135ac3a5335a25f0dc",
     "semantic_hash": ""
   },
   "supabase/email-templates/README.md": {

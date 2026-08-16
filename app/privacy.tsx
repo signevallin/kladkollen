@@ -1,66 +1,63 @@
-import { useTheme } from '../theme/ThemeProvider'
-import type { Theme } from '../theme/theme'
 import { goBack } from '../utils/nav'
-import { useSettings } from '../utils/settings'
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native'
 
-// OBS: Detta är en mall. Låt en jurist granska texten och fyll i
-// företagsuppgifterna innan appen börjar säljas.
+// Juridiskt dokument – hålls på engelska och alltid i ljust läge (som de publika
+// webbsidorna), oberoende av appspråk/tema. OBS: mall – låt en jurist granska
+// texten och fyll i företagsuppgifterna innan appen börjar säljas.
+const C = { bg: '#FEFAF8', primary: '#402D21', secondary: '#6C4D38' }
+
 const SECTIONS: { title: string; body: string }[] = [
   {
-    title: '1. Vem ansvarar för dina uppgifter?',
-    body: 'Skrud ("vi") är personuppgiftsansvarig för de uppgifter som behandlas i appen. Kontakta oss på support@skrud.app vid frågor om din data.',
+    title: '1. Who is responsible for your data?',
+    body: 'Skrud ("we") is the data controller for the data processed in the app. Contact us at support@skrud.app with any questions about your data.',
   },
   {
-    title: '2. Vilka uppgifter samlar vi in?',
-    body: 'Kontouppgifter: e-postadress och lösenord (lösenordet lagras krypterat hos vår driftleverantör Supabase).\n\n' +
-      'Profil- och preferensuppgifter som du själv anger för att förbättra förslagen: namn, kön, födelsedatum, hur snabbt du fryser, livssituation, stil- och färgpreferenser, stilregler, musikgenrer, säsong samt fritextnoteringar (t.ex. sådant du vill undvika eller egna önskemål per tillfälle).\n\n' +
-      'Innehåll du lägger in: foton på plagg och profilbild, garderobsdata (kategori, färg, storlek, märke, pris och var plagget förvaras), outfits, köp- och säljlista, kalender med planerade outfits, reseplaner (destination och datum), moodboard/inspirationsbilder samt hur ofta och när du använder plaggen och dina betyg på outfits.\n\n' +
-      'Valfri färganalys: ett foto eller uppgifter du själv anger om hudton, undertone, hår- och ögonfärg.\n\n' +
-      'Valfritt gravidläge: om du aktiverar det sparas att du är gravid samt ett beräknat datum, enbart för att anpassa förslagen. Ingen annan hälsodata samlas in.\n\n' +
-      'Hushåll och familj (valfritt, Premium): om du kopplar ihop dig med en partner eller lägger till familjemedlemmar sparas deras namn, eventuell avatar och för barn födelsedatum, kön och aktuell storlek. Lägg bara in uppgifter om andra personer om du har rätt att göra det.\n\n' +
-      'Aviseringar (valfritt): slår du på notiser sparar vi en enhetsidentifierare (push-token) och din senast kända position för att kunna skicka väderbaserade påminnelser. Stänger du av notiser tas detta bort.\n\n' +
-      'Plats: när du är i appen används din position i realtid för att hämta aktuellt väder och sparas då inte. (Undantag: väderaviseringar ovan.)\n\n' +
-      'Köp: köp av Premium hanteras av App Store respektive Google Play och vår prenumerationsleverantör RevenueCat, som lagrar en app-användaridentifierare och din prenumerationsstatus. Vi ser aldrig dina kort- eller betaluppgifter.\n\n' +
-      'Import av kvitton (valfritt): använder du import via e-post eller butik behandlar vi innehållet i de kvitton du vidarebefordrar för att skapa plagg i din garderob.',
+    title: '2. What data do we collect?',
+    body: 'Account details: email address and password (the password is stored encrypted with our hosting provider Supabase).\n\n' +
+      'Profile and preference details you provide to improve suggestions: name, gender, date of birth, how easily you get cold, life situation, style and colour preferences, style rules, music genres, season and free-text notes (e.g. things you want to avoid or your own wishes for a given occasion).\n\n' +
+      'Content you add: photos of garments and a profile picture, wardrobe data (category, colour, size, brand, price and where the garment is stored), outfits, wishlist and sale list, a calendar of planned outfits, trip plans (destination and dates), moodboard/inspiration images, and how often and when you wear your garments and your ratings of outfits.\n\n' +
+      'Optional colour analysis: a photo or details you provide about skin tone, undertone, hair and eye colour.\n\n' +
+      'Optional pregnancy mode: if you turn it on, we store that you are pregnant plus a due date, solely to adapt suggestions. No other health data is collected.\n\n' +
+      'Household and family (optional, Premium): if you link up with a partner or add family members, we store their name, any avatar and, for children, date of birth, gender and current size. Only add details about other people if you have the right to do so.\n\n' +
+      'Notifications (optional): if you turn on notifications, we store a device identifier (push token) and your last known location in order to send weather-based reminders. If you turn notifications off, this is removed.\n\n' +
+      'Location: while you are in the app, your location is used in real time to fetch the current weather and is not stored then. (Exception: weather notifications above.)\n\n' +
+      'Purchases: Premium purchases are handled by the App Store or Google Play and our subscription provider RevenueCat, which stores an app user identifier and your subscription status. We never see your card or payment details.\n\n' +
+      'Receipt import (optional): if you use import via email or store, we process the contents of the receipts you forward in order to create garments in your wardrobe.',
   },
   {
-    title: '3. Hur används uppgifterna?',
-    body: 'Uppgifterna används enbart för att leverera appens funktioner: hålla din digitala garderob, generera outfitförslag och färganalyser med hjälp av AI, samt visa väderanpassade rekommendationer. Vi säljer aldrig dina uppgifter och använder dem inte för reklam.',
+    title: '3. How is the data used?',
+    body: 'The data is used solely to deliver the app’s features: keeping your digital wardrobe, generating outfit suggestions and colour analyses with the help of AI, and showing weather-adapted recommendations. We never sell your data and do not use it for advertising.',
   },
   {
-    title: '4. AI-behandling',
-    body: 'När du använder AI-funktionerna skickas relevanta uppgifter (t.ex. ett foto på ett plagg eller din garderobslista) till våra AI-leverantörer (OpenAI och Anthropic) via våra servrar för att generera svaret. Uppgifterna används inte av leverantörerna för att träna deras modeller enligt deras API-villkor.',
+    title: '4. AI processing',
+    body: 'When you use the AI features, relevant data (e.g. a photo of a garment or your wardrobe list) is sent to our AI providers (OpenAI and Anthropic) via our servers to generate the response. The data is not used by the providers to train their models, per their API terms.',
   },
   {
-    title: '5. Lagring och säkerhet',
-    body: 'Din data lagras hos Supabase inom EU (region eu-west-1, Irland). Bilder lagras i privat lagring och nås endast via tidsbegränsade signerade länkar. All trafik är krypterad.',
+    title: '5. Storage and security',
+    body: 'Your data is stored with Supabase within the EU (region eu-west-1, Ireland). Images are stored in private storage and accessed only via time-limited signed links. All traffic is encrypted.',
   },
   {
-    title: '6. Dina rättigheter',
-    body: 'Enligt GDPR har du rätt att få tillgång till, rätta och radera dina uppgifter samt invända mot behandling. Du kan när som helst radera ditt konto och all din data direkt i appen under Min profil → Radera konto. Du kan också kontakta oss på support@skrud.app.',
+    title: '6. Your rights',
+    body: 'Under GDPR you have the right to access, rectify and erase your data, and to object to processing. You can delete your account and all your data at any time directly in the app under My profile → Delete account. You can also contact us at support@skrud.app.',
   },
   {
-    title: '7. Ändringar',
-    body: 'Vi kan uppdatera denna policy. Väsentliga ändringar meddelas i appen. Senast uppdaterad: augusti 2026.',
+    title: '7. Changes',
+    body: 'We may update this policy. Significant changes are announced in the app. Last updated: August 2026.',
   },
 ]
 
 export default function Privacy() {
-  const t = useTheme()
-  const styles = makeStyles(t)
-  const { t: tr } = useSettings()
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity style={styles.backButton} onPress={() => goBack('/')}>
-          <Text style={styles.backButtonText}>← {tr('Tillbaka')}</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{tr('Integritetspolicy')}</Text>
+        <Text style={styles.title}>Privacy policy</Text>
         {SECTIONS.map(s => (
           <Text key={s.title}>
-            <Text style={styles.heading}>{'\n'}{tr(s.title)}{'\n'}</Text>
-            <Text style={styles.body}>{tr(s.body)}{'\n'}</Text>
+            <Text style={styles.heading}>{'\n'}{s.title}{'\n'}</Text>
+            <Text style={styles.body}>{s.body}{'\n'}</Text>
           </Text>
         ))}
       </ScrollView>
@@ -68,12 +65,12 @@ export default function Privacy() {
   )
 }
 
-const makeStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.bg },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: 24, paddingBottom: 60, maxWidth: 720, alignSelf: 'center', width: '100%' },
   backButton: { marginBottom: 16 },
-  backButtonText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 15 },
-  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: t.textPrimary, marginBottom: 8 },
-  heading: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary, lineHeight: 28 },
-  body: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 22 },
+  backButtonText: { fontFamily: 'Lora_400Regular', color: C.secondary, fontSize: 15 },
+  title: { fontFamily: 'Poppins_700Bold', fontSize: 32, color: C.primary, marginBottom: 8 },
+  heading: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: C.primary, lineHeight: 28 },
+  body: { fontFamily: 'Lora_400Regular', fontSize: 14, color: C.secondary, lineHeight: 22 },
 })
