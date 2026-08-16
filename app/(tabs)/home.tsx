@@ -40,7 +40,7 @@ import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
 import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitItems, getCurrentSeason, seasonAppropriate } from '../../utils/outfit'
 import { pregnancyPromptContext, trimesterFromDueDate, nursingPromptContext } from '../../utils/pregnancy'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
-import { useEntitlements, FREE_AI_PER_WEEK, partnerFeaturesEnabled } from '../../utils/entitlements'
+import { useEntitlements, FREE_AI_PER_WEEK, partnerFeaturesEnabled, familyFeaturesEnabled } from '../../utils/entitlements'
 import { fetchSets, type GarmentSet } from '../../utils/sets'
 
 const CONTEXTS = OUTFIT_CONTEXTS
@@ -59,9 +59,6 @@ export default function Home() {
   const styles = makeStyles(t)
   const { tempLabel, t: tr, showDailySong, useColorAnalysis } = useSettings()
   const { isPro, tier, creditsLeft, refresh: refreshEntitlements } = useEntitlements()
-  // Par-funktioner ligger bakom partnerläget. Tills nivåprodukterna finns räcker
-  // valfri betald nivå (Premium) – gratisanvändare ser dem inte.
-  const partnerOn = partnerFeaturesEnabled(tier)
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
   const [weather, setWeather] = useState<any>(() => cacheGet('home.weather') ?? null)
@@ -94,6 +91,13 @@ export default function Home() {
   // Antal barn i hushållet – styr om "Familjen idag"-knappen visas (seedas ur
   // samma cache som PersonSwitcher så knappen inte blinkar in vid flikbyte).
   const [childCount, setChildCount] = useState<number>(() => (cacheGet<any[]>('household.children') ?? []).length)
+  // Livssituation (Singel/Partner/Familj) = det som slår på partner-/familjeläget.
+  // Seedas ur cachen så knapparna inte blinkar in vid flikbyte.
+  const [lifeMode, setLifeMode] = useState<string>(() => cacheGet('profile.lifeMode') ?? 'single')
+  // Läge aktivt = rätt livssituation OCH betald åtkomst (Premium). Slår man av
+  // familje-/partnerläget (byter livssituation) försvinner knapparna.
+  const partnerModeOn = (lifeMode === 'couple' || lifeMode === 'family') && partnerFeaturesEnabled(tier)
+  const familyModeOn = lifeMode === 'family' && familyFeaturesEnabled(tier)
   // Användarens färgpalett (färganalys) som AI-sträng – väg in om inställningen är på.
   const [colorPaletteStr, setColorPaletteStr] = useState<string>('')
   const [coupleOutfit, setCoupleOutfit] = useState<any | null>(null)
@@ -181,7 +185,7 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date, nursing, color_analysis').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date, nursing, color_analysis, life_mode').eq('id', user.id).single()
       const name = profile?.name || user.email?.split('@')[0] || ''
       setUserName(name); cacheSet('home.userName', name)
       setUserAvatar(profile?.avatar_url || null); cacheSet('home.userAvatar', profile?.avatar_url || null)
@@ -193,6 +197,7 @@ export default function Home() {
       setPregnant(!!profile?.pregnant); cacheSet('profile.pregnant', !!profile?.pregnant)
       setDueDate(profile?.due_date || null)
       setNursing(!!profile?.nursing)
+      setLifeMode(profile?.life_mode || 'single'); cacheSet('profile.lifeMode', profile?.life_mode || 'single')
       setColorPaletteStr(colorPalettePrompt(profile?.color_analysis))
     }
   }
@@ -1072,8 +1077,8 @@ export default function Home() {
           </TouchableOpacity>
         )}
 
-        {/* Par-generering – bara i samboläge och bakom partnerläget. Använder samma valda kontext/väder. */}
-        {partner && partnerOn && (
+        {/* Par-generering – bara i partnerläget (livssituation Partner/Familj + åtkomst). */}
+        {partner && partnerModeOn && (
           <TouchableOpacity style={styles.coupleBtn} onPress={generateCouple} disabled={coupleLoading || loading}>
             {coupleLoading
               ? <ActivityIndicator color={t.primary} />
@@ -1081,9 +1086,9 @@ export default function Home() {
           </TouchableOpacity>
         )}
 
-        {/* Generera outfits för hela hushållet, direkt här. Visas när det finns
-            partner och/eller barn. Egen komponent (egen state + inline-resultat). */}
-        {(partner || childCount > 0) && (
+        {/* Generera outfits för hela hushållet, direkt här. Bara i familjeläget
+            (livssituation Familj + åtkomst). Egen komponent (state + inline-resultat). */}
+        {familyModeOn && (partner || childCount > 0) && (
           <FamilyOutfits weather={weather} disabled={loading || coupleLoading} />
         )}
 
