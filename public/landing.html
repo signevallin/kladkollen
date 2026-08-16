@@ -103,7 +103,7 @@ em{font-style:italic;color:var(--brand-soft);}
 .hero-grid{display:flex;align-items:center;gap:64px;}
 .hero-copy{flex:1;min-width:340px;position:relative;z-index:2;}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--cream);padding:8px 16px;border-radius:999px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--brand-soft);margin-bottom:26px;}
-.hero-h1{font-family:'Lora',serif;font-weight:600;font-size:72px;line-height:1.04;letter-spacing:-.01em;margin:0 0 24px;max-width:640px;}
+.hero-h1{font-family:'Lora',serif;font-weight:600;font-size:50px;line-height:1.1;letter-spacing:-.01em;margin:0 0 24px;max-width:660px;}
 .hero-sub{font-size:19px;line-height:1.65;color:var(--muted);max-width:470px;margin:0 0 36px;}
 .hero-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
 .hero-actions .btn-primary{padding:16px 30px;font-size:15px;border-radius:999px;}
@@ -195,7 +195,7 @@ em{font-style:italic;color:var(--brand-soft);}
   #hero{padding:110px 0 40px;}
   .hero-grid{flex-direction:column;gap:44px;text-align:center;}
   .hero-copy{min-width:0;}
-  .hero-h1{font-size:48px;}
+  .hero-h1{font-size:32px;}
   .hero-sub{margin-left:auto;margin-right:auto;}
   .hero-actions{justify-content:center;}
   .section-h2{font-size:34px;}
@@ -228,8 +228,8 @@ em{font-style:italic;color:var(--brand-soft);}
   <div class="wrap hero-grid">
     <div class="hero-copy reveal">
       <div class="hero-badge" data-i18n="hero.badge">Din digitala garderob</div>
-      <h1 class="hero-h1" data-i18n-html="hero.h1">Klä hela familjen —<br><em>med ett tryck.</em></h1>
-      <p class="hero-sub" data-i18n="hero.sub">Skrud sätter ihop dagens outfit till dig, din partner och varje barn på en gång — anpassat efter vädret och i barnens rätt storlek. En morgon mindre kaos.</p>
+      <h1 class="hero-h1" data-i18n-html="hero.h1">Sluta stirra på en full garderob och ha inget att ha på dig. <em>Skrud gör jobbet åt dig och familjen.</em></h1>
+      <p class="hero-sub" data-i18n="hero.sub">Den första garderobsappen för hela hushållet. Få proaktiva väderanpassade outfits, dela kläder med partnern, håll koll på växande barn och stoppa impulsköpen – i en rofylld, skandinavisk design.</p>
       <div class="hero-actions">
         <a href="#waitlist" class="btn-primary" data-i18n="hero.cta1">Gå med i väntelistan</a>
         <a href="#features" class="btn-ghost" data-i18n="hero.cta2">Se hur det funkar</a>
@@ -257,7 +257,7 @@ em{font-style:italic;color:var(--brand-soft);}
   <div class="standout reveal">
     <div><div class="s-num serif" data-i18n="so.1n">Familj</div><div class="s-lbl" data-i18n="so.1l">dig, partnern &amp; varje barn</div></div>
     <div><div class="s-num serif" data-i18n="so.2n">Väder</div><div class="s-lbl" data-i18n="so.2l">anpassat för hela dagen</div></div>
-    <div><div class="s-num serif" data-i18n="so.3n">5 språk</div><div class="s-lbl" data-i18n="so.3l">sv · en · de · es · fr</div></div>
+    <div><div class="s-num serif" data-i18n="so.3n">Gravid</div><div class="s-lbl" data-i18n="so.3l">en trygg hand genom nio månader</div></div>
   </div>
 </div>
 
@@ -286,16 +286,16 @@ em{font-style:italic;color:var(--brand-soft);}
     <div class="txt reveal">
       <div class="f-num serif" data-i18n="f1.num">01</div>
       <h3 class="f-title" data-i18n="f1.title">Klä hela familjen med ett tryck</h3>
-      <p class="f-desc" data-i18n="f1.desc">Skrud skapar dagens outfit till dig, din partner och varje barn samtidigt — väderanpassat och i barnens aktuella storlek. Bebisar slipper skor. Det ingen annan garderobsapp gör.</p>
+      <p class="f-desc" data-i18n="f1.desc">Ingen mer stress med för små barnkläder eller borttappade favoriter. Som första app någonsin erbjuder Skrud ett äkta familjeläge med delade garderober, barnstorlekar och smarta påminnelser när det är dags att uppdatera.</p>
     </div>
   </div>
 
-  <!-- 02 Weather -->
+  <!-- 02 Proaktivt väder -->
   <div class="frow rev">
     <div class="txt reveal">
       <div class="f-num serif" data-i18n="f2.num">02</div>
-      <h3 class="f-title" data-i18n="f2.title">Rätt för vädret — hela dagen</h3>
-      <p class="f-desc" data-i18n="f2.desc">AI:n väger in hela dagens prognos: temperatur, väderomslag och risk för regn — och hur snabbt du fryser. Ser det ut att regna får du en påminnelse att ta med jackan innan du går.</p>
+      <h3 class="f-title" data-i18n="f2.title">Väntar inte på dig – ligger steget före</h3>
+      <p class="f-desc" data-i18n="f2.desc">Andra appar kräver att du själv letar fram dagens kläder. Skrud skickar rätt outfit direkt till din telefon baserat på dagens väderprognos och kalender – komplett med regn- och UV-varningar.</p>
     </div>
     <div class="visual reveal">
       <div class="phone">
@@ -332,31 +332,51 @@ em{font-style:italic;color:var(--brand-soft);}
     </div>
     <div class="txt reveal">
       <div class="f-num serif" data-i18n="f3.num">03</div>
-      <h3 class="f-title" data-i18n="f3.title">Allt du äger — och färgerna som klär dig</h3>
-      <p class="f-desc" data-i18n="f3.desc">Fota garderoben en gång; AI fyller i namn, färg och säsong automatiskt och tar bort bakgrunden. Din personliga färganalys visar vilka toner som lyfter just dig.</p>
+      <h3 class="f-title" data-i18n="f3.title">Få en överblick på allt du äger — och färgerna som klär dig</h3>
+      <p class="f-desc" data-i18n="f3.desc">Fota garderoben en gång; AI fyller i namn, färg och säsong automatiskt och tar bort bakgrunden. Din personliga färganalys visar vilka toner som lyfter just dig. Appen matchar mot det du redan äger hemma – spara pengar och minska överkonsumtionen.</p>
     </div>
   </div>
 
-  <!-- 04 Trips -->
+  <!-- 04 Gravidläge -->
   <div class="frow rev">
     <div class="txt reveal">
       <div class="f-num serif" data-i18n="f4.num">04</div>
-      <h3 class="f-title" data-i18n="f4.title">Packa resan — för alla</h3>
-      <p class="f-desc" data-i18n="f4.desc">Lägg in resmål och datum. Skrud packar kompletta outfits och en packlista ur det ni redan äger — även till barnen, med åldersanpassade förnödenheter. Kom hem och lägg allt i tvätten med ett tryck.</p>
+      <h3 class="f-title" data-i18n="f4.title">Kläder som följer med under förändring</h3>
+      <p class="f-desc" data-i18n="f4.desc">Väntar du barn? Aktivera vårt unika gravidläge. Få magvänliga outfitförslag, pausa plaggen som tillfälligt inte passar och följ en smart essentials-checklista.</p>
     </div>
     <div class="visual reveal">
       <div class="phone">
         <div class="phone-notch"></div>
         <div class="screen">
-          <div class="scr-eyebrow" data-i18n="mock.trip">RESA</div>
-          <div class="scr-title" data-i18n="f4.mock">Barcelona · 5 dagar</div>
-          <div style="display:flex;gap:6px;margin-bottom:8px;"><span class="chip" data-i18n="mock.me">Jag</span><span class="chip" data-i18n="mock.child">Nova</span></div>
-          <div class="pack-row"><span class="check">✓</span><span data-i18n="f4.p1">Linnebyxor</span></div>
-          <div class="pack-row"><span class="check">✓</span><span data-i18n="f4.p2">Solhatt</span></div>
-          <div class="pack-row"><span class="check open"></span><span data-i18n="f4.p3">Extra ombyten ×3</span></div>
-          <div class="pack-row"><span class="check open"></span><span data-i18n="f4.p4">Solkräm &amp; blöjor</span></div>
+          <div class="scr-eyebrow" data-i18n="f4.eyebrow">GRAVIDLÄGE</div>
+          <div class="scr-title" data-i18n="f4.mock">Magvänligt &amp; bekvämt</div>
+          <div class="thumbs" style="margin-bottom:10px;"><div class="thumb g4" style="height:80px;"></div><div class="thumb g2" style="height:80px;"></div><div class="thumb g5" style="height:80px;"></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="chip" data-i18n="f4.chip1">Andra trimestern</span><span class="chip" data-i18n="f4.chip2">Essentials-checklista</span></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 05 Resa -->
+  <div class="frow">
+    <div class="visual reveal">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen">
+          <div class="scr-eyebrow" data-i18n="mock.trip">RESA</div>
+          <div class="scr-title" data-i18n="f5.mock">Barcelona · 5 dagar</div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;"><span class="chip" data-i18n="mock.me">Jag</span><span class="chip" data-i18n="mock.child">Nova</span></div>
+          <div class="pack-row"><span class="check">✓</span><span data-i18n="f5.p1">Linnebyxor</span></div>
+          <div class="pack-row"><span class="check">✓</span><span data-i18n="f5.p2">Solhatt</span></div>
+          <div class="pack-row"><span class="check open"></span><span data-i18n="f5.p3">Extra ombyten ×3</span></div>
+          <div class="pack-row"><span class="check open"></span><span data-i18n="f5.p4">Solkräm &amp; blöjor</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="txt reveal">
+      <div class="f-num serif" data-i18n="f5.num">05</div>
+      <h3 class="f-title" data-i18n="f5.title">Packa resan — för alla</h3>
+      <p class="f-desc" data-i18n="f5.desc">Lägg in resmål och datum. Skrud packar kompletta outfits och en packlista ur det ni redan äger — även till barnen, med åldersanpassade förnödenheter. Kom hem och lägg allt i tvätten med ett tryck.</p>
     </div>
   </div>
 </section>
@@ -372,7 +392,7 @@ em{font-style:italic;color:var(--brand-soft);}
       <div class="reveal">
         <div class="f-num serif">01</div>
         <h3 class="f-title" style="font-size:24px;" data-i18n="s1.t">Fota garderoben</h3>
-        <p class="f-desc" data-i18n="s1.d">Ta ett foto på ett plagg — AI känner igen det och sparar det med namn, färg och säsong. Lägg till barnens och partnerns kläder på samma sätt.</p>
+        <p class="f-desc" data-i18n="s1.d">Fota ett plagg, importera orderhistorik eller kvitton — AI känner igen det och sparar det med namn, färg och säsong. Lägg till barnens och partnerns kläder på samma sätt.</p>
       </div>
       <div class="reveal" style="transition-delay:.08s">
         <div class="f-num serif">02</div>
@@ -417,8 +437,8 @@ em{font-style:italic;color:var(--brand-soft);}
 <section id="cta">
   <div class="blob drift" style="bottom:-160px;left:-140px;width:460px;height:460px;"></div>
   <div class="reveal" style="position:relative;z-index:2;max-width:640px;margin:0 auto;">
-    <h2 class="cta-h2" data-i18n-html="cta.h2">Din familjs morgon,<br><em>redan uträknad.</em></h2>
-    <p class="cta-sub" data-i18n="cta.sub">Gå med i väntelistan så hör vi av oss så fort Skrud är redo för dig.</p>
+    <h2 class="cta-h2" data-i18n-html="cta.h2">Redo att upptäcka <em>en enklare vardag?</em></h2>
+    <p class="cta-sub" data-i18n="cta.sub">Gå med i Skrud och upplev hur mycket tid du kan spara med ordning i familjens garderober. Gå med i väntelistan så hör vi av oss så fort Skrud är redo för dig.</p>
     <a href="#waitlist" class="btn-primary" style="padding:16px 34px;font-size:15px;" data-i18n="cta.btn">Gå med i väntelistan</a>
   </div>
 </section>
@@ -452,20 +472,21 @@ em{font-style:italic;color:var(--brand-soft);}
       'mock.wardrobe': 'GARDEROB', 'mock.trip': 'RESA', 'mock.me': 'Jag', 'mock.child': 'Nova',
       'so.1n': 'Familj', 'so.1l': 'dig, partnern & varje barn',
       'so.2n': 'Väder', 'so.2l': 'anpassat för hela dagen',
-      'so.3n': '5 språk', 'so.3l': 'sv · en · de · es · fr',
+      'so.3n': 'Gravid', 'so.3l': 'en trygg hand genom nio månader',
       'feat.label': 'Funktioner', 'feat.h2': 'Gjord för hela livet,<br><em>inte bara garderoben.</em>',
-      'f1.num': '01', 'f1.title': 'Klä hela familjen med ett tryck', 'f1.desc': 'Skrud skapar dagens outfit till dig, din partner och varje barn samtidigt — väderanpassat och i barnens aktuella storlek. Bebisar slipper skor. Det ingen annan garderobsapp gör.', 'f1.mock': 'Alla påklädda på 20 sekunder', 'f1.chip1': 'Rätt storlek', 'f1.chip2': 'Väderanpassat',
-      'f2.num': '02', 'f2.title': 'Rätt för vädret — hela dagen', 'f2.desc': 'AI:n väger in hela dagens prognos: temperatur, väderomslag och risk för regn — och hur snabbt du fryser. Ser det ut att regna får du en påminnelse att ta med jackan innan du går.', 'f2.mockw': 'Svalt · 10–15° · regn ikväll', 'f2.mockchip': 'Ta med jackan — regn 60 %',
-      'f3.num': '03', 'f3.title': 'Allt du äger — och färgerna som klär dig', 'f3.desc': 'Fota garderoben en gång; AI fyller i namn, färg och säsong automatiskt och tar bort bakgrunden. Din personliga färganalys visar vilka toner som lyfter just dig.', 'f3.mock': 'Allt du äger — sorterat', 'f3.palette': 'DIN FÄRGPALETT',
-      'f4.num': '04', 'f4.title': 'Packa resan — för alla', 'f4.desc': 'Lägg in resmål och datum. Skrud packar kompletta outfits och en packlista ur det ni redan äger — även till barnen, med åldersanpassade förnödenheter. Kom hem och lägg allt i tvätten med ett tryck.', 'f4.mock': 'Barcelona · 5 dagar', 'f4.p1': 'Linnebyxor', 'f4.p2': 'Solhatt', 'f4.p3': 'Extra ombyten ×3', 'f4.p4': 'Solkräm & blöjor',
+      'f1.num': '01', 'f1.title': 'Klä hela familjen med ett tryck', 'f1.desc': 'Ingen mer stress med för små barnkläder eller borttappade favoriter. Som första app någonsin erbjuder Skrud ett äkta familjeläge med delade garderober, barnstorlekar och smarta påminnelser när det är dags att uppdatera.', 'f1.mock': 'Alla påklädda på 20 sekunder', 'f1.chip1': 'Rätt storlek', 'f1.chip2': 'Väderanpassat',
+      'f2.num': '02', 'f2.title': 'Väntar inte på dig – ligger steget före', 'f2.desc': 'Andra appar kräver att du själv letar fram dagens kläder. Skrud skickar rätt outfit direkt till din telefon baserat på dagens väderprognos och kalender – komplett med regn- och UV-varningar.', 'f2.mockw': 'Svalt · 10–15° · regn ikväll', 'f2.mockchip': 'Ta med jackan — regn 60 %',
+      'f3.num': '03', 'f3.title': 'Få en överblick på allt du äger — och färgerna som klär dig', 'f3.desc': 'Fota garderoben en gång; AI fyller i namn, färg och säsong automatiskt och tar bort bakgrunden. Din personliga färganalys visar vilka toner som lyfter just dig. Appen matchar mot det du redan äger hemma – spara pengar och minska överkonsumtionen.', 'f3.mock': 'Allt du äger — sorterat', 'f3.palette': 'DIN FÄRGPALETT',
+      'f4.num': '04', 'f4.title': 'Kläder som följer med under förändring', 'f4.desc': 'Väntar du barn? Aktivera vårt unika gravidläge. Få magvänliga outfitförslag, pausa plaggen som tillfälligt inte passar och följ en smart essentials-checklista.', 'f4.eyebrow': 'GRAVIDLÄGE', 'f4.mock': 'Magvänligt & bekvämt', 'f4.chip1': 'Andra trimestern', 'f4.chip2': 'Essentials-checklista',
+      'f5.num': '05', 'f5.title': 'Packa resan — för alla', 'f5.desc': 'Lägg in resmål och datum. Skrud packar kompletta outfits och en packlista ur det ni redan äger — även till barnen, med åldersanpassade förnödenheter. Kom hem och lägg allt i tvätten med ett tryck.', 'f5.mock': 'Barcelona · 5 dagar', 'f5.p1': 'Linnebyxor', 'f5.p2': 'Solhatt', 'f5.p3': 'Extra ombyten ×3', 'f5.p4': 'Solkräm & blöjor',
       'how.label': 'Så fungerar det', 'how.h2': 'Tre steg till<br><em>en enklare morgon.</em>',
-      's1.t': 'Fota garderoben', 's1.d': 'Ta ett foto på ett plagg — AI känner igen det och sparar det med namn, färg och säsong. Lägg till barnens och partnerns kläder på samma sätt.',
+      's1.t': 'Fota garderoben', 's1.d': 'Fota ett plagg, importera orderhistorik eller kvitton — AI känner igen det och sparar det med namn, färg och säsong. Lägg till barnens och partnerns kläder på samma sätt.',
       's2.t': 'Berätta om er', 's2.d': 'Sätt stil, livssituation och barnens storlekar. Gör en färganalys. Ju mer Skrud vet, desto träffsäkrare blir förslagen.',
       's3.t': 'Tryck en gång', 's3.d': 'Generera dagens outfit — för dig eller hela familjen. Väderanpassad och redo, ur det ni redan äger.',
       'wl.label': 'Väntelista', 'wl.h2': 'Var först in<br><em>när vi lanserar.</em>', 'wl.sub': 'Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.', 'wl.placeholder': 'Din e-postadress', 'wl.button': 'Gå med', 'wl.note': 'Vi mejlar bara när appen är redo. Ingen spam, avsluta när du vill.',
       'wl.stageLabel': 'Var i livet är du?', 'wl.stageSingle': 'Singel', 'wl.stageCouple': 'Par', 'wl.stageFamily': 'Familj', 'wl.stagePregnant': 'Gravid',
       'wl.success': 'Tack! Du är med på väntelistan. 🎉', 'wl.invalid': 'Ange en giltig e-postadress.', 'wl.error': 'Något gick fel. Försök igen om en stund.',
-      'cta.h2': 'Din familjs morgon,<br><em>redan uträknad.</em>', 'cta.sub': 'Gå med i väntelistan så hör vi av oss så fort Skrud är redo för dig.', 'cta.btn': 'Gå med i väntelistan',
+      'cta.h2': 'Redo att upptäcka <em>en enklare vardag?</em>', 'cta.sub': 'Gå med i Skrud och upplev hur mycket tid du kan spara med ordning i familjens garderober. Gå med i väntelistan så hör vi av oss så fort Skrud är redo för dig.', 'cta.btn': 'Gå med i väntelistan',
       'footer.privacy': 'Integritetspolicy', 'footer.terms': 'Villkor', 'footer.support': 'Support', 'footer.contact': 'Kontakt'
     },
     en: {
@@ -473,28 +494,29 @@ em{font-style:italic;color:var(--brand-soft);}
       'meta.desc': 'Skrud dresses the whole family in one tap. AI builds today’s outfit for you, your partner and every child — weather-aware and in the right size. Your digital wardrobe.',
       'nav.features': 'Features', 'nav.how': 'How it works', 'nav.cta': 'Join',
       'hero.badge': 'Your digital wardrobe',
-      'hero.h1': 'Dress the whole family —<br><em>in one tap.</em>',
-      'hero.sub': 'Skrud builds today’s outfit for you, your partner and every child at once — adapted to the weather and in your children’s right size. One less chaotic morning.',
+      'hero.h1': 'Stop staring at a full wardrobe with nothing to wear. <em>Skrud does the work for you and your family.</em>',
+      'hero.sub': 'The first wardrobe app for the whole household. Get proactive, weather-aware outfits, share clothes with your partner, keep up with growing kids and curb impulse buys — in a calm, Scandinavian design.',
       'hero.cta1': 'Join the waitlist', 'hero.cta2': 'See how it works',
       'mock.familyToday': 'THE FAMILY TODAY', 'mock.familyTitle': 'An outfit for everyone',
       'mock.weatherChip': '14° · light rain tonight', 'mock.today': 'TODAY’S OUTFIT',
       'mock.wardrobe': 'WARDROBE', 'mock.trip': 'TRIP', 'mock.me': 'Me', 'mock.child': 'Nova',
       'so.1n': 'Family', 'so.1l': 'you, your partner & every child',
       'so.2n': 'Weather', 'so.2l': 'adapted for the whole day',
-      'so.3n': '5 languages', 'so.3l': 'sv · en · de · es · fr',
+      'so.3n': 'Pregnancy', 'so.3l': 'a steady hand through all nine months',
       'feat.label': 'Features', 'feat.h2': 'Made for real life,<br><em>not just the wardrobe.</em>',
-      'f1.num': '01', 'f1.title': 'Dress the whole family in one tap', 'f1.desc': 'Skrud builds today’s outfit for you, your partner and every child at once — weather-aware and in each child’s current size. Babies skip shoes. Something no other wardrobe app does.', 'f1.mock': 'Everyone dressed in 20 seconds', 'f1.chip1': 'Right size', 'f1.chip2': 'Weather-aware',
-      'f2.num': '02', 'f2.title': 'Right for the weather — all day', 'f2.desc': 'The AI factors in the whole day’s forecast: temperature, changing conditions and chance of rain — plus how quickly you get cold. If rain is likely, you get a reminder to grab a jacket before you leave.', 'f2.mockw': 'Cool · 10–15° · rain tonight', 'f2.mockchip': 'Bring a jacket — 60% rain',
-      'f3.num': '03', 'f3.title': 'Everything you own — and the colours that suit you', 'f3.desc': 'Photograph your wardrobe once; AI fills in name, colour and season and removes the background. Your personal colour analysis shows which tones lift you.', 'f3.mock': 'Everything you own — sorted', 'f3.palette': 'YOUR COLOUR PALETTE',
-      'f4.num': '04', 'f4.title': 'Pack the trip — for everyone', 'f4.desc': 'Enter destination and dates. Skrud packs complete outfits and a packing list from what you already own — for the kids too, with age-appropriate essentials. Come home and send it all to the wash in one tap.', 'f4.mock': 'Barcelona · 5 days', 'f4.p1': 'Linen trousers', 'f4.p2': 'Sun hat', 'f4.p3': 'Spare changes ×3', 'f4.p4': 'Sunscreen & nappies',
+      'f1.num': '01', 'f1.title': 'Dress the whole family in one tap', 'f1.desc': 'No more stress over outgrown kids’ clothes or lost favourites. As the first app ever, Skrud offers a true family mode with shared wardrobes, children’s sizes and smart reminders when it’s time to update.', 'f1.mock': 'Everyone dressed in 20 seconds', 'f1.chip1': 'Right size', 'f1.chip2': 'Weather-aware',
+      'f2.num': '02', 'f2.title': 'Doesn’t wait for you — stays a step ahead', 'f2.desc': 'Other apps make you dig out today’s clothes yourself. Skrud sends the right outfit straight to your phone based on the day’s forecast and calendar — complete with rain and UV warnings.', 'f2.mockw': 'Cool · 10–15° · rain tonight', 'f2.mockchip': 'Bring a jacket — 60% rain',
+      'f3.num': '03', 'f3.title': 'See everything you own — and the colours that suit you', 'f3.desc': 'Photograph your wardrobe once; AI fills in name, colour and season automatically and removes the background. Your personal colour analysis shows which tones lift you. The app matches against what you already own at home — saving money and cutting overconsumption.', 'f3.mock': 'Everything you own — sorted', 'f3.palette': 'YOUR COLOUR PALETTE',
+      'f4.num': '04', 'f4.title': 'Clothes that adapt as you change', 'f4.desc': 'Expecting? Turn on our unique pregnancy mode. Get bump-friendly outfit suggestions, pause the pieces that don’t fit right now and follow a smart essentials checklist.', 'f4.eyebrow': 'PREGNANCY MODE', 'f4.mock': 'Bump-friendly & comfy', 'f4.chip1': 'Second trimester', 'f4.chip2': 'Essentials checklist',
+      'f5.num': '05', 'f5.title': 'Pack the trip — for everyone', 'f5.desc': 'Enter destination and dates. Skrud packs complete outfits and a packing list from what you already own — for the kids too, with age-appropriate essentials. Come home and send it all to the wash in one tap.', 'f5.mock': 'Barcelona · 5 days', 'f5.p1': 'Linen trousers', 'f5.p2': 'Sun hat', 'f5.p3': 'Spare changes ×3', 'f5.p4': 'Sunscreen & nappies',
       'how.label': 'How it works', 'how.h2': 'Three steps to<br><em>an easier morning.</em>',
-      's1.t': 'Photograph your wardrobe', 's1.d': 'Take a photo of a garment — AI recognises it and saves it with name, colour and season. Add the kids’ and your partner’s clothes the same way.',
+      's1.t': 'Photograph your wardrobe', 's1.d': 'Photograph a garment, import order history or receipts — AI recognises it and saves it with name, colour and season. Add the kids’ and your partner’s clothes the same way.',
       's2.t': 'Tell us about you', 's2.d': 'Set style, life stage and the children’s sizes. Do a colour analysis. The more Skrud knows, the sharper the suggestions.',
       's3.t': 'Tap once', 's3.d': 'Generate today’s outfit — for yourself or the whole family. Weather-aware and ready, from what you already own.',
       'wl.label': 'Waitlist', 'wl.h2': 'Be first in<br><em>when we launch.</em>', 'wl.sub': 'Skrud is rolling out step by step. Leave your email and we’ll let you know the moment you can get started.', 'wl.placeholder': 'Your email address', 'wl.button': 'Join', 'wl.note': 'We’ll only email you when the app is ready. No spam, unsubscribe anytime.',
       'wl.stageLabel': 'Where are you in life?', 'wl.stageSingle': 'Single', 'wl.stageCouple': 'Couple', 'wl.stageFamily': 'Family', 'wl.stagePregnant': 'Expecting',
       'wl.success': 'Thanks! You’re on the waitlist. 🎉', 'wl.invalid': 'Please enter a valid email address.', 'wl.error': 'Something went wrong. Please try again shortly.',
-      'cta.h2': 'Your family’s morning,<br><em>already figured out.</em>', 'cta.sub': 'Join the waitlist and we’ll reach out the moment Skrud is ready for you.', 'cta.btn': 'Join the waitlist',
+      'cta.h2': 'Ready to discover <em>an easier everyday?</em>', 'cta.sub': 'Join Skrud and see how much time you save with your family’s wardrobes in order. Join the waitlist and we’ll reach out the moment Skrud is ready for you.', 'cta.btn': 'Join the waitlist',
       'footer.privacy': 'Privacy policy', 'footer.terms': 'Terms', 'footer.support': 'Support', 'footer.contact': 'Contact'
     }
   };
