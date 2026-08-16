@@ -2,7 +2,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { MaterialIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   SafeAreaView,
   ScrollView,
@@ -27,11 +27,19 @@ import {
 import { computeSizeReminders, type SizeReminder } from '../utils/sizeReminders'
 import { loadSizedGarments } from '../utils/people'
 import { useSettings } from '../utils/settings'
+import { useEntitlements } from '../utils/entitlements'
+import { tierAtLeast } from '../utils/purchases'
 
 export default function Family() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang } = useSettings()
+  // Barnfunktioner ligger bakom familjeläget (Familj-nivån). Nås skärmen ändå
+  // utan nivån (t.ex. gammal djuplänk) – skicka till paywall.
+  const { tier, loading: tierLoading } = useEntitlements()
+  useEffect(() => {
+    if (!tierLoading && !tierAtLeast(tier, 'family')) router.replace('/paywall')
+  }, [tierLoading, tier])
   const { data, loading, error, refetch } = useQuery(loadChildren, [], { cacheKey: 'people.children' })
   const children = data ?? []
   const { data: sizedGarments } = useQuery(loadSizedGarments, [], { cacheKey: 'family.sizedGarments' })
