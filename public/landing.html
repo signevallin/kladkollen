@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Skrud — En morgon mindre kaos</title>
-<meta name="description" content="Skrud klär hela familjen med ett tryck. AI skapar dagens outfit till dig, partnern och varje barn — väderanpassat och i rätt storlek. Din digitala garderob.">
+<title>Skrud — One less chaotic morning</title>
+<meta name="description" content="Skrud dresses the whole family in one tap. AI builds today’s outfit for you, your partner and every child — weather-aware and in the right size. Your digital wardrobe.">
 <meta name="keywords" content="digital garderob, AI outfit, garderobsapp, familjegarderob, outfit hela familjen, väderbaserad outfit, barnkläder storlek, färganalys, packlista resa, Skrud">
 <meta name="robots" content="index,follow">
 <meta name="theme-color" content="#FEFAF8">
@@ -18,16 +18,16 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Skrud">
 <meta property="og:url" content="https://skrud.app/">
-<meta property="og:title" content="Skrud — En morgon mindre kaos">
-<meta property="og:description" content="Skrud klär hela familjen med ett tryck. AI skapar dagens outfit till dig, partnern och varje barn — väderanpassat och i rätt storlek.">
+<meta property="og:title" content="Skrud — One less chaotic morning">
+<meta property="og:description" content="Skrud dresses the whole family in one tap. AI builds today’s outfit for you, your partner and every child — weather-aware and in the right size.">
 <meta property="og:image" content="https://skrud.app/icon.png">
-<meta property="og:locale" content="sv_SE">
-<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="sv_SE">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Skrud — En morgon mindre kaos">
-<meta name="twitter:description" content="Klär hela familjen med ett tryck — dig, partnern och varje barn, väderanpassat och i rätt storlek.">
+<meta name="twitter:title" content="Skrud — One less chaotic morning">
+<meta name="twitter:description" content="Dresses the whole family in one tap — you, your partner and every child, weather-aware and in the right size.">
 <meta name="twitter:image" content="https://skrud.app/icon.png">
 
 <!-- Strukturerad data -->
@@ -40,7 +40,7 @@
   "operatingSystem": "iOS",
   "url": "https://skrud.app/",
   "image": "https://skrud.app/icon.png",
-  "description": "Skrud klär hela familjen med ett tryck. AI skapar dagens outfit till dig, partnern och varje barn — väderanpassat och i rätt storlek.",
+  "description": "Skrud dresses the whole family in one tap. AI builds today’s outfit for you, your partner and every child — weather-aware and in the right size.",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "SEK" },
   "publisher": { "@type": "Organization", "name": "Skrud", "url": "https://skrud.app/" }
 }
@@ -103,7 +103,8 @@ em{font-style:italic;color:var(--brand-soft);}
 .hero-grid{display:flex;align-items:center;gap:64px;}
 .hero-copy{flex:1;min-width:340px;position:relative;z-index:2;}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--cream);padding:8px 16px;border-radius:999px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--brand-soft);margin-bottom:26px;}
-.hero-h1{font-family:'Lora',serif;font-weight:600;font-size:50px;line-height:1.1;letter-spacing:-.01em;margin:0 0 24px;max-width:660px;}
+.hero-h1{font-family:'Lora',serif;font-weight:600;font-size:50px;line-height:1.1;letter-spacing:-.01em;margin:0 0 14px;max-width:660px;}
+.hero-tagline{font-family:'Lora',serif;font-style:italic;font-size:24px;line-height:1.3;color:var(--brand-soft);margin:0 0 20px;max-width:560px;}
 .hero-sub{font-size:19px;line-height:1.65;color:var(--muted);max-width:470px;margin:0 0 36px;}
 .hero-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
 .hero-actions .btn-primary{padding:16px 30px;font-size:15px;border-radius:999px;}
@@ -196,6 +197,7 @@ em{font-style:italic;color:var(--brand-soft);}
   .hero-grid{flex-direction:column;gap:44px;text-align:center;}
   .hero-copy{min-width:0;}
   .hero-h1{font-size:32px;}
+  .hero-tagline{font-size:20px;margin-left:auto;margin-right:auto;}
   .hero-sub{margin-left:auto;margin-right:auto;}
   .hero-actions{justify-content:center;}
   .section-h2{font-size:34px;}
@@ -228,7 +230,8 @@ em{font-style:italic;color:var(--brand-soft);}
   <div class="wrap hero-grid">
     <div class="hero-copy reveal">
       <div class="hero-badge" data-i18n="hero.badge">Din digitala garderob</div>
-      <h1 class="hero-h1" data-i18n-html="hero.h1">Sluta stirra på en full garderob och ha inget att ha på dig. <em>Skrud gör jobbet åt dig och familjen.</em></h1>
+      <h1 class="hero-h1" data-i18n="hero.h1">Sluta stirra på en full garderob och ha inget att ha på dig.</h1>
+      <p class="hero-tagline" data-i18n="hero.tagline">Skrud gör jobbet åt dig och familjen.</p>
       <p class="hero-sub" data-i18n="hero.sub">Den första garderobsappen för hela hushållet. Få proaktiva väderanpassade outfits, dela kläder med partnern, håll koll på växande barn och stoppa impulsköpen – i en rofylld, skandinavisk design.</p>
       <div class="hero-actions">
         <a href="#waitlist" class="btn-primary" data-i18n="hero.cta1">Gå med i väntelistan</a>
@@ -464,8 +467,9 @@ em{font-style:italic;color:var(--brand-soft);}
       'meta.desc': 'Skrud klär hela familjen med ett tryck. AI skapar dagens outfit till dig, partnern och varje barn — väderanpassat och i rätt storlek. Din digitala garderob.',
       'nav.features': 'Funktioner', 'nav.how': 'Så fungerar det', 'nav.cta': 'Gå med',
       'hero.badge': 'Din digitala garderob',
-      'hero.h1': 'Klä hela familjen —<br><em>med ett tryck.</em>',
-      'hero.sub': 'Skrud sätter ihop dagens outfit till dig, din partner och varje barn på en gång — anpassat efter vädret och i barnens rätt storlek. En morgon mindre kaos.',
+      'hero.h1': 'Sluta stirra på en full garderob och ha inget att ha på dig.',
+      'hero.tagline': 'Skrud gör jobbet åt dig och familjen.',
+      'hero.sub': 'Den första garderobsappen för hela hushållet. Få proaktiva väderanpassade outfits, dela kläder med partnern, håll koll på växande barn och stoppa impulsköpen – i en rofylld, skandinavisk design.',
       'hero.cta1': 'Gå med i väntelistan', 'hero.cta2': 'Se hur det funkar',
       'mock.familyToday': 'FAMILJEN IDAG', 'mock.familyTitle': 'En outfit till var och en',
       'mock.weatherChip': '14° · lätt regn ikväll', 'mock.today': 'DAGENS OUTFIT',
@@ -494,7 +498,8 @@ em{font-style:italic;color:var(--brand-soft);}
       'meta.desc': 'Skrud dresses the whole family in one tap. AI builds today’s outfit for you, your partner and every child — weather-aware and in the right size. Your digital wardrobe.',
       'nav.features': 'Features', 'nav.how': 'How it works', 'nav.cta': 'Join',
       'hero.badge': 'Your digital wardrobe',
-      'hero.h1': 'Stop staring at a full wardrobe with nothing to wear. <em>Skrud does the work for you and your family.</em>',
+      'hero.h1': 'Stop staring at a full wardrobe with nothing to wear.',
+      'hero.tagline': 'Skrud does the work for you and your family.',
       'hero.sub': 'The first wardrobe app for the whole household. Get proactive, weather-aware outfits, share clothes with your partner, keep up with growing kids and curb impulse buys — in a calm, Scandinavian design.',
       'hero.cta1': 'Join the waitlist', 'hero.cta2': 'See how it works',
       'mock.familyToday': 'THE FAMILY TODAY', 'mock.familyTitle': 'An outfit for everyone',
@@ -538,8 +543,8 @@ em{font-style:italic;color:var(--brand-soft);}
   (function initLang() {
     let saved = null;
     try { saved = localStorage.getItem('skrud_lang'); } catch (e) {}
-    const nav = (navigator.language || 'sv').toLowerCase();
-    applyLang(saved || (nav.startsWith('sv') ? 'sv' : 'en'));
+    // Engelska är standard; ett tidigare val (sv) respekteras.
+    applyLang(saved === 'sv' || saved === 'en' ? saved : 'en');
     const lb = document.getElementById('langBtn');
     if (lb) lb.addEventListener('click', () => applyLang(document.documentElement.lang === 'sv' ? 'en' : 'sv'));
   })();
