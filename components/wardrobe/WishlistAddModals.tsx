@@ -27,9 +27,10 @@ type Props = {
   onAdded: () => void
   /** Om satt: lägg köplisteposten på ett barn (person_id) i stället för mig. */
   person?: string | null
+  personName?: string | null
 }
 
-export default function WishlistAddModals({ chooserVisible, onChooserClose, wishlistCount, onAdded, person }: Props) {
+export default function WishlistAddModals({ chooserVisible, onChooserClose, wishlistCount, onAdded, person, personName }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, currency, toBaseSEK } = useSettings()
@@ -141,7 +142,7 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
               <Text style={styles.wishChoiceTitle}>{tr('Välj foto')}</Text>
               <Text style={styles.wishChoiceHint}>{tr('Ta eller välj en bild och fyll i detaljerna själv')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { onChooserClose(); router.push('/import-purchases?target=wishlist') }}>
+            <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { onChooserClose(); router.push(`/import-purchases?target=wishlist${person ? `&person=${person}&personName=${encodeURIComponent(personName || '')}` : ''}`) }}>
               <Text style={styles.wishChoiceTitle}>{tr('Importera via butiker')}</Text>
               <Text style={styles.wishChoiceHint}>{tr('Bläddra i en butik och lägg köpta/önskade plagg på köplistan')}</Text>
             </TouchableOpacity>
