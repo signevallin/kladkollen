@@ -518,16 +518,23 @@ export default function Profile() {
                     </TouchableOpacity>
                   ))}
                 </View>
-                {/* Gravid är ett eget val (kan kombineras med ovan). När det slås
-                    på dyker en egen "Gravidläge"-rad upp nedanför. */}
+                {/* Gravid- och amningsläget ligger bakom partnerläget (Partner-
+                    nivån; Familj räknas med). Utan nivån visas "Premium" → paywall.
+                    När Gravid slås på dyker en egen "Gravidläge"-rad upp nedanför. */}
                 <View style={styles.gravidToggleRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.gravidFieldLabel, { marginTop: 0 }]}>{tr('Gravid')}</Text>
                     <Text style={styles.hint}>{tr('Anpassar outfits efter magen och låter dig pausa plagg som inte passar just nu.')}</Text>
                   </View>
-                  <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
-                    <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
-                  </TouchableOpacity>
+                  {partnerOn ? (
+                    <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
+                      <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity onPress={() => router.push('/paywall')}>
+                      <Text style={styles.rowValue}>{tr('Premium')}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 {/* Amningsläge – eget val (t.ex. efter förlossningen). AI:n väljer
@@ -537,14 +544,20 @@ export default function Profile() {
                     <Text style={[styles.gravidFieldLabel, { marginTop: 0 }]}>{tr('Ammar')}</Text>
                     <Text style={styles.hint}>{tr('Anpassar outfits för amning – plagg som är lätta att öppna framtill.')}</Text>
                   </View>
-                  <TouchableOpacity onPress={() => setNursing(v => !v)} style={[styles.toggle, nursing && styles.toggleOn]}>
-                    <View style={[styles.toggleKnob, nursing && styles.toggleKnobOn]} />
-                  </TouchableOpacity>
+                  {partnerOn ? (
+                    <TouchableOpacity onPress={() => setNursing(v => !v)} style={[styles.toggle, nursing && styles.toggleOn]}>
+                      <View style={[styles.toggleKnob, nursing && styles.toggleKnobOn]} />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity onPress={() => router.push('/paywall')}>
+                      <Text style={styles.rowValue}>{tr('Premium')}</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </>
             ),
           })}
-          {pregnant && renderRow('gravidlage', 'Gravidläge', {
+          {pregnant && partnerOn && renderRow('gravidlage', 'Gravidläge', {
             icon: 'pregnant-woman',
             value: trimesterLabel(trimesterFromDueDate(dueDate || null)) || undefined,
             body: (
