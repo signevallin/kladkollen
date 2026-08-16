@@ -81,7 +81,8 @@ em{font-style:italic;color:var(--brand-soft);}
 #nav{position:fixed;top:0;left:0;right:0;z-index:100;transition:background .35s,border-color .35s,box-shadow .35s;border-bottom:1px solid transparent;}
 #nav.scrolled{background:rgba(254,250,248,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-color:var(--border);}
 .nav-inner{max-width:1240px;margin:0 auto;padding:0 40px;height:74px;display:flex;align-items:center;gap:28px;}
-.wordmark{font-family:'Lora',serif;font-size:25px;font-weight:600;letter-spacing:.02em;color:var(--brand);text-decoration:none;}
+.wordmark{font-family:'Lora',serif;font-size:25px;font-weight:600;letter-spacing:.02em;color:var(--brand);text-decoration:none;display:inline-flex;align-items:center;gap:11px;}
+.wordmark img{width:34px;height:34px;border-radius:9px;display:block;}
 .nav-links{margin-left:auto;display:flex;gap:6px;align-items:center;}
 .nav-link{font-family:'Poppins',sans-serif;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:8px;transition:.15s;}
 .nav-link:hover{color:var(--brand);background:rgba(207,181,158,.16);}
@@ -181,7 +182,8 @@ em{font-style:italic;color:var(--brand-soft);}
 /* Footer */
 .footer{border-top:1px solid var(--border);}
 .footer-inner{max-width:1240px;margin:0 auto;padding:34px 40px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:13px;}
-.footer-logo{font-family:'Lora',serif;font-size:19px;font-weight:600;color:var(--brand);}
+.footer-logo{font-family:'Lora',serif;font-size:19px;font-weight:600;color:var(--brand);display:inline-flex;align-items:center;gap:10px;}
+.footer-logo img{width:28px;height:28px;border-radius:7px;display:block;}
 .footer-links{display:flex;gap:22px;flex-wrap:wrap;}
 .footer-link{font-family:'Poppins',sans-serif;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;}
 .footer-link:hover{color:var(--brand);}
@@ -209,7 +211,7 @@ em{font-style:italic;color:var(--brand-soft);}
 
 <nav id="nav">
   <div class="nav-inner">
-    <a href="#" class="wordmark">Skrud</a>
+    <a href="#" class="wordmark"><img src="/icon.png" alt="Skrud" width="34" height="34">Skrud</a>
     <div class="nav-links">
       <a href="#features" class="nav-link" data-i18n="nav.features">Funktioner</a>
       <a href="#how" class="nav-link" data-i18n="nav.how">Så fungerar det</a>
@@ -422,7 +424,7 @@ em{font-style:italic;color:var(--brand-soft);}
 
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-logo">Skrud</div>
+    <div class="footer-logo"><img src="/icon.png" alt="Skrud" width="28" height="28">Skrud</div>
     <div class="footer-links">
       <a href="/privacy" class="footer-link" data-i18n="footer.privacy">Integritetspolicy</a>
       <a href="/terms" class="footer-link" data-i18n="footer.terms">Villkor</a>
