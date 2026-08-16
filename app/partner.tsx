@@ -19,8 +19,7 @@ import { supabase } from '../supabase'
 import { showAlert, showConfirm } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useSettings } from '../utils/settings'
-import { useEntitlements } from '../utils/entitlements'
-import { tierAtLeast } from '../utils/purchases'
+import { useEntitlements, partnerFeaturesEnabled } from '../utils/entitlements'
 
 type Member = { user_id: string; role: string; name: string; avatar_url: string | null }
 
@@ -32,7 +31,7 @@ export default function Partner() {
   // ändå utan nivån (t.ex. gammal djuplänk) – skicka till paywall.
   const { tier, loading: tierLoading } = useEntitlements()
   useEffect(() => {
-    if (!tierLoading && !tierAtLeast(tier, 'partner')) router.replace('/paywall')
+    if (!tierLoading && !partnerFeaturesEnabled(tier)) router.replace('/paywall')
   }, [tierLoading, tier])
 
   const [myId, setMyId] = useState<string | null>(null)

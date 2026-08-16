@@ -11,12 +11,21 @@ import {
 export const FREE_AI_PER_WEEK = 3
 const WEEK_SECONDS = 7 * 24 * 60 * 60
 
-// Familje-funktioner ("Familjen idag", packa barnen på resan) ligger bakom
-// Familj-nivån (familjeläget). Håll REQUIRE_FAMILY_TIER = false tills nivån går
-// att köpa så den kan testas; sätt true vid lansering för att gömma bakom nivån.
+// Nivå-funktioner: par ("mig och partner", partnervy), familj ("Familjen idag",
+// barn, packa barnen) och gravid-/amningsläget ska ligga bakom sina egna nivåer
+// (partnerläget resp. familjeläget) NÄR de nivåindelade produkterna går att köpa.
+//
+// Tills dess (REQUIRE_*_TIER = false) räcker VALFRI betald nivå (Premium =
+// 'single') för att låsa upp dem, så de kan användas/testas – men gratis-
+// användare (tier 'none') ser dem inte. Sätt flaggan true vid lansering av
+// partner-/familjeprodukterna för att kräva rätt nivå.
+export const REQUIRE_PARTNER_TIER = false
 export const REQUIRE_FAMILY_TIER = false
+export function partnerFeaturesEnabled(tier: Tier): boolean {
+  return REQUIRE_PARTNER_TIER ? tierAtLeast(tier, 'partner') : tier !== 'none'
+}
 export function familyFeaturesEnabled(tier: Tier): boolean {
-  return !REQUIRE_FAMILY_TIER || tierAtLeast(tier, 'family')
+  return REQUIRE_FAMILY_TIER ? tierAtLeast(tier, 'family') : tier !== 'none'
 }
 
 type EntitlementsCtx = {

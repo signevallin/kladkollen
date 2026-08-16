@@ -12,7 +12,6 @@ import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { OUTFIT_CONTEXTS } from '../../utils/constants'
 import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
-import { tierAtLeast } from '../../utils/purchases'
 import { loadGarments } from '../../utils/garmentsStore'
 import { loadPartner } from '../../utils/household'
 import { loadPeople, type Person } from '../../utils/people'
@@ -310,7 +309,7 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
   // Visas bara när familjeläget är påslaget (Familj-nivån). Slås det av
   // försvinner "Generera outfits för familjen"-knappen helt – samma grind som
   // "packa barnen"-toggeln i reseläget.
-  if (!tierAtLeast(tier, 'family')) return null
+  if (!familyFeaturesEnabled(tier)) return null
 
   return (
     <>
