@@ -33,7 +33,9 @@ export default function PersonSwitcher({ scope, current }: Props) {
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
   const { tier } = useEntitlements()
-  // Barn ligger bakom familjeläget (Familj-nivån). Utan det visas bara Jag + partner.
+  // Partner ligger bakom partnerläget, barn bakom familjeläget. Utan nivåerna
+  // visas bara Jag (resp. Jag + partner).
+  const partnerOn = tierAtLeast(tier, 'partner')
   const familyOn = tierAtLeast(tier, 'family')
 
   const [partner, setPartner] = useState<Partner | null>(() => cacheGet<Partner | null>('household.partner') ?? null)
@@ -57,13 +59,13 @@ export default function PersonSwitcher({ scope, current }: Props) {
     })().catch(() => {})
   }, [])
 
-  // Slås familjeläget av medan man tittar på ett barn: växla tillbaka till Jag,
-  // annars kan vyn fastna i barnläge (t.ex. utan partner försvinner väljaren helt).
+  // Slås nivån av medan man tittar på partner/barn: växla tillbaka till Jag,
+  // annars kan vyn fastna (t.ex. utan andra val försvinner väljaren helt).
   useEffect(() => {
-    if (!familyOn && current.kind === 'child') {
+    if ((!familyOn && current.kind === 'child') || (!partnerOn && current.kind === 'partner')) {
       router.setParams({ person: '', personName: '', partner: '', partnerName: '' })
     }
-  }, [familyOn, current.kind])
+  }, [familyOn, partnerOn, current.kind])
 
   type Member = { key: string; label: string; avatar: string | null; icon: any; select: () => void; active: boolean }
 
@@ -76,7 +78,7 @@ export default function PersonSwitcher({ scope, current }: Props) {
     active: current.kind === 'me',
     select: () => router.setParams({ person: '', personName: '', partner: '', partnerName: '' }),
   })
-  if (partner) {
+  if (partner && partnerOn) {
     members.push({
       key: `partner:${partner.id}`,
       label: partner.name,
