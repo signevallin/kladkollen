@@ -1,6 +1,6 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
-import { useCallback, useState } from 'react'
-import { useFocusEffect } from 'expo-router'
+import { useCallback, useEffect, useState } from 'react'
+import { router, useFocusEffect } from 'expo-router'
 import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import SignedImage from '../components/SignedImage'
 import { useTheme } from '../theme/ThemeProvider'
@@ -45,9 +45,14 @@ export default function PregnancyWardrobe() {
   const t = useTheme()
   const { t: tr } = useSettings()
   const styles = makeStyles(t)
-  const { tier } = useEntitlements()
-  // Nyföddgarderoben skapar ett barn – ligger därför bakom familjeläget.
+  const { tier, loading: tierLoading } = useEntitlements()
+  // Gravidläget ligger bakom partnerläget; Nyföddgarderoben (skapar ett barn)
+  // bakom familjeläget. Nås skärmen utan partnerläget → paywall.
+  const partnerOn = tierAtLeast(tier, 'partner')
   const familyOn = tierAtLeast(tier, 'family')
+  useEffect(() => {
+    if (!tierLoading && !partnerOn) router.replace('/paywall')
+  }, [tierLoading, partnerOn])
   const [maternity, setMaternity] = useState<MG[]>([])
   const [wishlist, setWishlist] = useState<Wish[]>([])
   const [loading, setLoading] = useState(true)
