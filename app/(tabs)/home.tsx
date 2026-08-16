@@ -41,6 +41,7 @@ import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitI
 import { pregnancyPromptContext, trimesterFromDueDate, nursingPromptContext } from '../../utils/pregnancy'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { useEntitlements, FREE_AI_PER_WEEK } from '../../utils/entitlements'
+import { tierAtLeast } from '../../utils/purchases'
 import { fetchSets, type GarmentSet } from '../../utils/sets'
 
 const CONTEXTS = OUTFIT_CONTEXTS
@@ -58,7 +59,9 @@ export default function Home() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { tempLabel, t: tr, showDailySong, useColorAnalysis } = useSettings()
-  const { isPro, creditsLeft, refresh: refreshEntitlements } = useEntitlements()
+  const { isPro, tier, creditsLeft, refresh: refreshEntitlements } = useEntitlements()
+  // Par-funktioner ligger bakom partnerläget (Partner-nivån; Familj räknas med).
+  const partnerOn = tierAtLeast(tier, 'partner')
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
   const [weather, setWeather] = useState<any>(() => cacheGet('home.weather') ?? null)
@@ -1069,8 +1072,8 @@ export default function Home() {
           </TouchableOpacity>
         )}
 
-        {/* Par-generering – bara i samboläge. Använder samma valda kontext/väder. */}
-        {partner && (
+        {/* Par-generering – bara i samboläge och bakom partnerläget. Använder samma valda kontext/väder. */}
+        {partner && partnerOn && (
           <TouchableOpacity style={styles.coupleBtn} onPress={generateCouple} disabled={coupleLoading || loading}>
             {coupleLoading
               ? <ActivityIndicator color={t.primary} />

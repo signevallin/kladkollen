@@ -59,6 +59,7 @@ export default function Profile() {
   const { preference, setPreference } = useThemeControl()
   const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
   const { isPro, tier } = useEntitlements()
+  const partnerOn = tierAtLeast(tier, 'partner')
   const familyOn = tierAtLeast(tier, 'family')
 
   const [name, setName] = useState('')
@@ -384,11 +385,11 @@ export default function Profile() {
         </TouchableOpacity>
         {!!name && <Text style={styles.avatarName}>{name}</Text>}
 
-        {(partner || (familyOn && householdChildren.length > 0)) && (
+        {((partnerOn && partner) || (familyOn && householdChildren.length > 0)) && (
           <>
             <Text style={styles.sectionTitle}>{tr('Mitt hushåll')}</Text>
             <View style={styles.householdRow}>
-              {partner && (
+              {partnerOn && partner && (
                 <TouchableOpacity
                   style={styles.householdMember}
                   onPress={() => router.push(`/wardrobe?partner=${partner.id}&partnerName=${encodeURIComponent(partner.name)}` as any)}
@@ -573,7 +574,7 @@ export default function Profile() {
               </>
             ),
           })}
-          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: isPro ? undefined : 'Premium', onPress: () => router.push(isPro ? '/partner' : '/paywall') })}
+          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: partnerOn ? undefined : 'Premium', onPress: () => router.push(partnerOn ? '/partner' : '/paywall') })}
           {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: familyOn ? undefined : 'Premium', onPress: () => router.push(familyOn ? '/family' : '/paywall') })}
         </View>
         )}

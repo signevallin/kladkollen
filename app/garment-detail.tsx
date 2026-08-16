@@ -65,7 +65,9 @@ export default function GarmentDetail() {
   const { currency, toBaseSEK, fromBaseSEK, t: tr, lang } = useSettings()
   const locale = localeFor(lang)
   const { tier } = useEntitlements()
-  // Att tilldela plagg till ett barn ligger bakom familjeläget.
+  // Att tilldela plagg till ett barn ligger bakom familjeläget, "får lånas av
+  // partner" bakom partnerläget.
+  const partnerOn = tierAtLeast(tier, 'partner')
   const familyOn = tierAtLeast(tier, 'family')
   // Normalisera params till strängar (expo-router kan ge string[] vid dubbletter).
   const rawParams = useLocalSearchParams()
@@ -623,7 +625,7 @@ export default function GarmentDetail() {
               ))}
             </View>
 
-            {hasPartner && (
+            {hasPartner && partnerOn && (
               <TouchableOpacity style={styles.lendRow} onPress={() => setLendable(v => !v)}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.label}>{tr('Får lånas av partner')}</Text>
