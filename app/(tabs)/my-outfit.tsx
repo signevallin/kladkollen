@@ -2078,7 +2078,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tripDatesLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary, textAlign: 'center', marginBottom: 16 },
   tripGenBtn: { backgroundColor: t.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
   tripGenBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
-  tripKidsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 14, marginBottom: 4 },
+  tripKidsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: t.border, marginTop: 14, marginBottom: 16 },
   tripKidsLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary },
   tripKidsSub: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, marginTop: 2 },
   childPackBlock: { marginTop: 12 },
