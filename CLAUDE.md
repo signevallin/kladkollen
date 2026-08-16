@@ -145,6 +145,13 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   källtext som wrappas i `tr()` vid render, med en\/de\/es\/fr-nycklar i i18n.
 - Webb: `public/landing.html` (startsida) och `public/support.html`
   (Apple Support URL) – Skrud-branding, inga emojis.
+- **Varumärke/wordmark:** Skrivs alltid **SKRUD** i versaler, med luftig
+  teckenspärr (`letter-spacing` ~.22em på webben, `letterSpacing` ~6 i appen),
+  i **Poppins** (700) och **mörkbrunt** (`var(--brand)` #402D21 på webben,
+  `t.primary` i appen). Undantag: på mörk bakgrund (inloggningens hero) ritas
+  ordmärket ljust (`C.ink`) för kontrast. Gäller logga/ordmärke – i löptext
+  skrivs "Skrud" normalt (versal S, gemener). Ställen: landningssidans topp/
+  sidfot, `support/terms/privacy.html`, samt `app/login.tsx` (referensstilen).
 - **Gravidläge** (valfritt, privat – ingen hälsodata): togglas som en rad i
   "Min information" i profilen (bredvid Livssituation). Data: `profiles.pregnant`
   + `profiles.due_date`; `garments.maternity_friendly` + `garments.paused_pregnancy`
