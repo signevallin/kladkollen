@@ -8,6 +8,7 @@ Lägg PNG-filerna här med exakt dessa namn (stående, ca 9:19.5, t.ex. 1179×25
 | `wardrobe.png` | Garderoben (Wardrobe) | Hero, högst upp |
 | `home.png` | Hemskärmen (Generate outfits) | Funktion 01 |
 | `palette.png` | Färgpaletten (Palette) | Funktion 03 |
+| `pregnancy.png` | Gravidläget (Pregnancy) | Funktion 04 |
 | `trip.png` | Reseplanering (Plan the trip) | Funktion 05 |
 
 Tills en fil finns visas en enkel "SKRUD"-platshållare i ramen (sidan ser inte
