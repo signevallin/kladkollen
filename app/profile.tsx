@@ -73,6 +73,7 @@ export default function Profile() {
   // bakgrunden – annars väntar raden på en DB-fråga varje gång man öppnar profilen.
   const [pregnant, setPregnant] = useState(false)
   const [dueDate, setDueDate] = useState('')
+  const [nursing, setNursing] = useState(false)
   const [partner, setPartner] = useState<Partner | null>(() => cacheGet<Partner | null>('household.partner') ?? null)
   const [householdChildren, setHouseholdChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
   // Autospar: sparar tyst en stund efter senaste ändringen (ingen spara-knapp att glömma).
@@ -126,7 +127,7 @@ export default function Profile() {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoaded, name, avatar, gender, birthday, avoidNote, lifeMode, stylePrefs, colorPrefs,
-      currentSeason, coldSensitivity, pregnant, dueDate, stilProfil, livsstil, contextNotes, musicGenres, styleRules])
+      currentSeason, coldSensitivity, pregnant, dueDate, nursing, stilProfil, livsstil, contextNotes, musicGenres, styleRules])
 
   // Skriver profildata till alla fält. Anropas både med cachad rad (direkt vid
   // montering, för snabb rendering) och med den färska raden från nätet.
@@ -143,6 +144,7 @@ export default function Profile() {
     if (data.cold_sensitivity != null) setColdSensitivity(data.cold_sensitivity)
     setPregnant(!!data.pregnant); cacheSet('profile.pregnant', !!data.pregnant)
     setDueDate(data.due_date || '')
+    setNursing(!!data.nursing)
     setHasColorAnalysis(!!data.color_analysis)
     if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
     if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
@@ -183,6 +185,7 @@ export default function Profile() {
       cold_sensitivity: coldSensitivity,
       pregnant,
       due_date: dueDate || null,
+      nursing,
       stil_profil: stilProfil.join(', '),
       livsstil: livsstil.join(', '),
       outfit_context_notes: contextNotes,
@@ -521,6 +524,18 @@ export default function Profile() {
                   </View>
                   <TouchableOpacity onPress={togglePregnant} style={[styles.toggle, pregnant && styles.toggleOn]}>
                     <View style={[styles.toggleKnob, pregnant && styles.toggleKnobOn]} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Amningsläge – eget val (t.ex. efter förlossningen). AI:n väljer
+                    då plagg med enkel amningsåtkomst framtill. */}
+                <View style={styles.gravidToggleRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.gravidFieldLabel, { marginTop: 0 }]}>{tr('Ammar')}</Text>
+                    <Text style={styles.hint}>{tr('Anpassar outfits för amning – plagg som är lätta att öppna framtill.')}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setNursing(v => !v)} style={[styles.toggle, nursing && styles.toggleOn]}>
+                    <View style={[styles.toggleKnob, nursing && styles.toggleKnobOn]} />
                   </TouchableOpacity>
                 </View>
               </>

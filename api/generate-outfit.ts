@@ -36,6 +36,7 @@ export default async function handler(request: Request): Promise<Response> {
     const baseGarment = clip(body.baseGarment, 120)
     const baseSet = clip(body.baseSet, 400)
     const pregnancy = clip(body.pregnancy, 700)
+    const nursing = clip(body.nursing, 500)
     // Användarens personliga färgpalett (färganalys), om hen valt att väga in den.
     const colorPalette = clip(body.colorPalette, 500)
     const retry = body.retry === true
@@ -97,6 +98,7 @@ Intensitet: ${intensity}
 ${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}
 ${pregnancy ? '\n' + pregnancy + '\n' : ''}
+${nursing ? '\n' + nursing + '\n' : ''}
 VIKTIGT: Anpassa valet TYDLIGT efter kontexten "${contextLabel}". En festoutfit
 ska skilja sig markant från en vardags-/jobboutfit – annan känsla, andra plagg.
 Välj inte samma look oavsett tillfälle.

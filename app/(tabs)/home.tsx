@@ -38,7 +38,7 @@ import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
 import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitItems, getCurrentSeason, seasonAppropriate } from '../../utils/outfit'
-import { pregnancyPromptContext, trimesterFromDueDate } from '../../utils/pregnancy'
+import { pregnancyPromptContext, trimesterFromDueDate, nursingPromptContext } from '../../utils/pregnancy'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { useEntitlements, FREE_AI_PER_WEEK } from '../../utils/entitlements'
 import { fetchSets, type GarmentSet } from '../../utils/sets'
@@ -78,6 +78,7 @@ export default function Home() {
   const [coldSensitivity, setColdSensitivity] = useState(3)
   const [pregnant, setPregnant] = useState(false)
   const [dueDate, setDueDate] = useState<string | null>(null)
+  const [nursing, setNursing] = useState(false)
   const [styleRuleKeys, setStyleRuleKeys] = useState<string[]>([])
   const [avoidNote, setAvoidNote] = useState('')
   const [sharing, setSharing] = useState(false)
@@ -177,7 +178,7 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date, color_analysis').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date, nursing, color_analysis').eq('id', user.id).single()
       const name = profile?.name || user.email?.split('@')[0] || ''
       setUserName(name); cacheSet('home.userName', name)
       setUserAvatar(profile?.avatar_url || null); cacheSet('home.userAvatar', profile?.avatar_url || null)
@@ -188,6 +189,7 @@ export default function Home() {
       setAvoidNote(profile?.avoid_note || '')
       setPregnant(!!profile?.pregnant); cacheSet('profile.pregnant', !!profile?.pregnant)
       setDueDate(profile?.due_date || null)
+      setNursing(!!profile?.nursing)
       setColorPaletteStr(colorPalettePrompt(profile?.color_analysis))
     }
   }
@@ -393,6 +395,7 @@ export default function Home() {
             : '',
           baseSet: baseSetStr,
           pregnancy: pregnancyPromptContext(pregnant, trimesterFromDueDate(dueDate)),
+          nursing: nursingPromptContext(nursing),
           colorPalette: useColorAnalysis ? colorPaletteStr : '',
         })
 

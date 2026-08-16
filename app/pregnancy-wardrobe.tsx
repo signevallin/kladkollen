@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { useCallback, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import SignedImage from '../components/SignedImage'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
@@ -10,6 +10,7 @@ import { invalidateGarments } from '../utils/garmentsStore'
 import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useSettings } from '../utils/settings'
+import { addChild, loadPeople, type Person } from '../utils/people'
 
 // Gravidgarderob: hjälper dig konsumera smart (köp bara det du behöver) och
 // återanvända dina gravidplagg. Bygger på befintliga köplistan och plagg-taggen.
@@ -24,6 +25,17 @@ const ESSENTIALS: Essential[] = [
   { key: 'skor', label: 'Bekväma skor', category: 'Skor', hint: 'Sköna även när fötterna svullnar.' },
 ]
 
+// Nyföddgarderob – det första bebisen behöver. Läggs på köplistan (bebisens om
+// bebisen skapats i familjen, annars din egen).
+const NEWBORN: { key: string; label: string; category: string | null; hint: string }[] = [
+  { key: 'body', label: 'Bodys (stl 50/56)', category: 'Toppar', hint: 'Kortärmade + långärmade, 6–8 st att börja med.' },
+  { key: 'spark', label: 'Sparkdräkter/pyjamas', category: null, hint: 'Mjuka heldräkter för dygnet runt, 4–6 st.' },
+  { key: 'mossa', label: 'Mössa', category: 'Accessoarer', hint: 'Tunn för inne, varmare för ute.' },
+  { key: 'sockor', label: 'Sockor eller tossor', category: 'Accessoarer', hint: 'Håller små fötter varma.' },
+  { key: 'ytter', label: 'Överdragsdräkt eller ytterplagg', category: 'Ytterkläder', hint: 'Efter årstid – varmt för vinterbebis.' },
+  { key: 'filt', label: 'Filt eller åkpåse', category: null, hint: 'För vagnen och bärandet.' },
+]
+
 type MG = { id: string; name: string; category: string; image_url: string | null; lendable: boolean }
 type Wish = { name: string; category: string | null }
 
@@ -34,6 +46,10 @@ export default function PregnancyWardrobe() {
   const [maternity, setMaternity] = useState<MG[]>([])
   const [wishlist, setWishlist] = useState<Wish[]>([])
   const [loading, setLoading] = useState(true)
+  // Bebisen i familjen (om skapad) + namn-input för att skapa den.
+  const [baby, setBaby] = useState<Person | null>(null)
+  const [babyName, setBabyName] = useState('')
+  const [creatingBaby, setCreatingBaby] = useState(false)
 
   const load = useCallback(async () => {
     const { data: g } = await supabase
@@ -43,19 +59,45 @@ export default function PregnancyWardrobe() {
     setMaternity((g as MG[]) || [])
     const { data: w } = await supabase.from('wishlist').select('name, category')
     setWishlist((w as Wish[]) || [])
+    // Hitta en ev. redan skapad bebis (litet barn, ≤ 68 cm) så nyfödd-sektionen
+    // pekar på rätt köplista över omstarter.
+    try {
+      const ppl = await loadPeople()
+      const babies = ppl.filter(p => p.type === 'child' && p.current_size_cm != null && p.current_size_cm <= 68)
+        .sort((a, b) => (a.current_size_cm || 0) - (b.current_size_cm || 0))
+      setBaby(babies[0] || null)
+    } catch { /* ignorera */ }
     setLoading(false)
   }, [])
 
   useFocusEffect(useCallback(() => { load() }, [load]))
 
-  async function addToWishlist(e: Essential) {
+  // Lägger en post på köplistan – för mig, eller för bebisen (person_id) om angivet.
+  async function addToWishlist(e: { label: string; category: string | null }, personId?: string | null) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from('wishlist').insert([{
-      user_id: user.id, name: e.label, category: e.category, sort_order: wishlist.length,
+      user_id: user.id, person_id: personId || null, name: e.label, category: e.category, sort_order: wishlist.length,
     }])
     if (error) { showAlert(tr('Något gick fel'), tr('Försök igen om en stund.')); return }
     setWishlist(prev => [...prev, { name: e.label, category: e.category }])
+  }
+
+  // Skapar bebisen som familjemedlem (startstorlek 50 cm) → knyter ihop gravid
+  // med familjeläget, och nyfödd-plaggen kan läggas på bebisens köplista.
+  async function createBaby() {
+    if (creatingBaby) return
+    setCreatingBaby(true)
+    try {
+      const child = await addChild({ name: babyName.trim() || tr('Bebis'), current_size_cm: 50 })
+      setBaby(child)
+      setBabyName('')
+      showAlert(tr('Klart!'), tr('Bebisen finns nu i familjen – nyfödd-plaggen läggs på bebisens köplista.'))
+    } catch {
+      showAlert(tr('Något gick fel'), tr('Försök igen om en stund.'))
+    } finally {
+      setCreatingBaby(false)
+    }
   }
 
   async function toggleLend(g: MG) {
@@ -135,6 +177,56 @@ export default function PregnancyWardrobe() {
                 ))}
               </View>
             )}
+
+            {/* ── Nyföddgarderob – knyter ihop gravid → familj ── */}
+            <Text style={styles.sectionTitle}>{tr('Nyföddgarderob')}</Text>
+            <Text style={styles.reuseHint}>{tr('Förbered det första bebisen behöver. Lägg bebisen i familjen så hamnar plaggen på bebisens egen köplista.')}</Text>
+
+            {baby ? (
+              <View style={styles.babyBanner}>
+                <Ionicons name="happy-outline" size={18} color={t.primary} />
+                <Text style={styles.babyBannerText}>{tr('Bebisen finns i familjen')}: {baby.name}</Text>
+              </View>
+            ) : (
+              <View style={styles.card}>
+                <View style={{ padding: 16, gap: 10 }}>
+                  <TextInput
+                    style={styles.babyInput}
+                    placeholder={tr('Bebisens namn (valfritt)')}
+                    placeholderTextColor={t.placeholder}
+                    value={babyName}
+                    onChangeText={setBabyName}
+                  />
+                  <TouchableOpacity style={styles.babyCreateBtn} onPress={createBaby} disabled={creatingBaby}>
+                    <Ionicons name="add" size={18} color={t.onPrimary} />
+                    <Text style={styles.babyCreateText}>{creatingBaby ? tr('Skapar...') : tr('Lägg till bebisen i familjen')}</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.essentialHint}>{tr('Skapar bebisen som familjemedlem med startstorlek 50 cm.')}</Text>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.card}>
+              {NEWBORN.map((e, i) => {
+                const listed = wishlist.some(w => w.name === e.label)
+                return (
+                  <View key={e.key} style={[styles.essential, i > 0 && styles.essentialBorder]}>
+                    <View style={styles.essentialText}>
+                      <Text style={styles.essentialLabel}>{tr(e.label)}</Text>
+                      <Text style={styles.essentialHint}>{tr(e.hint)}</Text>
+                    </View>
+                    {listed ? (
+                      <Text style={styles.listedText}>{tr('På köplistan')}</Text>
+                    ) : (
+                      <TouchableOpacity style={styles.addBtn} onPress={() => addToWishlist(e, baby?.id)}>
+                        <Ionicons name="add" size={16} color={t.onPrimary} />
+                        <Text style={styles.addBtnText}>{tr('Köplista')}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )
+              })}
+            </View>
           </>
         )}
       </ScrollView>
@@ -164,6 +256,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   addBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.onPrimary },
 
   reuseHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 19, marginBottom: 10 },
+  babyBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.surfaceMuted, borderRadius: 16, borderWidth: 1, borderColor: t.border, padding: 14, marginBottom: 8 },
+  babyBannerText: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, flex: 1 },
+  babyInput: { fontFamily: 'Lora_400Regular', backgroundColor: t.surface, borderRadius: 12, padding: 12, color: t.textPrimary, fontSize: 15, borderWidth: 1, borderColor: t.border },
+  babyCreateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.primary, borderRadius: 12, paddingVertical: 12 },
+  babyCreateText: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.onPrimary },
   emptyBox: { backgroundColor: t.surface, borderRadius: 16, padding: 18 },
   emptyText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 21 },
   mgRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 },
