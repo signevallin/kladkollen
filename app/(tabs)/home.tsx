@@ -40,8 +40,7 @@ import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
 import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitItems, getCurrentSeason, seasonAppropriate } from '../../utils/outfit'
 import { pregnancyPromptContext, trimesterFromDueDate, nursingPromptContext } from '../../utils/pregnancy'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
-import { useEntitlements, FREE_AI_PER_WEEK } from '../../utils/entitlements'
-import { tierAtLeast } from '../../utils/purchases'
+import { useEntitlements, FREE_AI_PER_WEEK, partnerFeaturesEnabled } from '../../utils/entitlements'
 import { fetchSets, type GarmentSet } from '../../utils/sets'
 
 const CONTEXTS = OUTFIT_CONTEXTS
@@ -60,8 +59,9 @@ export default function Home() {
   const styles = makeStyles(t)
   const { tempLabel, t: tr, showDailySong, useColorAnalysis } = useSettings()
   const { isPro, tier, creditsLeft, refresh: refreshEntitlements } = useEntitlements()
-  // Par-funktioner ligger bakom partnerläget (Partner-nivån; Familj räknas med).
-  const partnerOn = tierAtLeast(tier, 'partner')
+  // Par-funktioner ligger bakom partnerläget. Tills nivåprodukterna finns räcker
+  // valfri betald nivå (Premium) – gratisanvändare ser dem inte.
+  const partnerOn = partnerFeaturesEnabled(tier)
   const [fontsLoaded] = useFonts({ Poppins_600SemiBold })
   // Seedas från cachen så vädret syns direkt vid flikbyte (uppdateras i bakgrunden).
   const [weather, setWeather] = useState<any>(() => cacheGet('home.weather') ?? null)

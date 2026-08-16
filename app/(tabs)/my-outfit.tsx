@@ -27,8 +27,7 @@ import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
 import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths } from '../../utils/outfit'
-import { useEntitlements } from '../../utils/entitlements'
-import { tierAtLeast } from '../../utils/purchases'
+import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
@@ -698,7 +697,7 @@ function isPast(date: Date) {
       // Familjeresa: packa även till barnen (opt-in). Ett pack-trip-anrop per
       // barn med barnets storleks-/säsongsanpassade garderob; plaggen bild-löses
       // direkt mot barnets pool (reseresultatet renderar via image_url).
-      if (tripIncludeKids && children.length && tierAtLeast(tier, 'family')) {
+      if (tripIncludeKids && children.length && familyFeaturesEnabled(tier)) {
         const all = await loadGarments().catch(() => [] as any[])
         const childPacks: any[] = []
         const pools: Record<string, any[]> = {}
@@ -1575,7 +1574,7 @@ function isPast(date: Date) {
                   onChangeText={setTripVibe}
                 />
 
-                {tierAtLeast(tier, 'family') && children.length > 0 && (
+                {familyFeaturesEnabled(tier) && children.length > 0 && (
                   <View style={styles.tripKidsRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.tripKidsLabel}>{tr('Packa även till barnen')}</Text>

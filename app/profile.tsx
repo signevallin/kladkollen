@@ -30,8 +30,7 @@ import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
 import { invalidateGarments } from '../utils/garmentsStore'
-import { useEntitlements } from '../utils/entitlements'
-import { tierAtLeast } from '../utils/purchases'
+import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
 import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
@@ -59,8 +58,8 @@ export default function Profile() {
   const { preference, setPreference } = useThemeControl()
   const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
   const { isPro, tier } = useEntitlements()
-  const partnerOn = tierAtLeast(tier, 'partner')
-  const familyOn = tierAtLeast(tier, 'family')
+  const partnerOn = partnerFeaturesEnabled(tier)
+  const familyOn = familyFeaturesEnabled(tier)
 
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState<string | null>(null)

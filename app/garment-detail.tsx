@@ -41,8 +41,7 @@ import { resolveImageUrl, uploadUserImage } from '../utils/storage'
 import { loadPartner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { EU_CHILD_SIZES } from '../utils/childSize'
-import { useEntitlements } from '../utils/entitlements'
-import { tierAtLeast } from '../utils/purchases'
+import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -67,8 +66,8 @@ export default function GarmentDetail() {
   const { tier } = useEntitlements()
   // Att tilldela plagg till ett barn ligger bakom familjeläget, "får lånas av
   // partner" bakom partnerläget.
-  const partnerOn = tierAtLeast(tier, 'partner')
-  const familyOn = tierAtLeast(tier, 'family')
+  const partnerOn = partnerFeaturesEnabled(tier)
+  const familyOn = familyFeaturesEnabled(tier)
   // Normalisera params till strängar (expo-router kan ge string[] vid dubbletter).
   const rawParams = useLocalSearchParams()
   const id = Array.isArray(rawParams.id) ? rawParams.id[0] : rawParams.id

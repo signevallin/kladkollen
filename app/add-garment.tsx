@@ -33,8 +33,7 @@ import { pickImageSmart } from '../utils/imagePicker'
 import { fetchLocations, type Location } from '../utils/locations'
 import { loadPeople, type Person } from '../utils/people'
 import { EU_CHILD_SIZES } from '../utils/childSize'
-import { useEntitlements } from '../utils/entitlements'
-import { tierAtLeast } from '../utils/purchases'
+import { useEntitlements, familyFeaturesEnabled } from '../utils/entitlements'
 
 // Max bredd på lagrade/skickade bilder. En mobilbild är ofta 3000–4000 px;
 // 1400 px räcker gott för en telefonskärm och kapar filstorleken ~85–90 %.
@@ -86,7 +85,7 @@ export default function AddGarment() {
   const { currency, toBaseSEK, t: tr } = useSettings()
   const { tier } = useEntitlements()
   // Att tilldela plagg till ett barn ligger bakom familjeläget.
-  const familyOn = tierAtLeast(tier, 'family')
+  const familyOn = familyFeaturesEnabled(tier)
   const styles = makeStyles(t)
   const [step, setStep] = useState<'pick' | 'review'>('pick')
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])

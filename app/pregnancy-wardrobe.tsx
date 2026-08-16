@@ -11,8 +11,7 @@ import { showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useSettings } from '../utils/settings'
 import { addChild, loadPeople, type Person } from '../utils/people'
-import { useEntitlements } from '../utils/entitlements'
-import { tierAtLeast } from '../utils/purchases'
+import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
 
 // Gravidgarderob: hjälper dig konsumera smart (köp bara det du behöver) och
 // återanvända dina gravidplagg. Bygger på befintliga köplistan och plagg-taggen.
@@ -48,8 +47,8 @@ export default function PregnancyWardrobe() {
   const { tier, loading: tierLoading } = useEntitlements()
   // Gravidläget ligger bakom partnerläget; Nyföddgarderoben (skapar ett barn)
   // bakom familjeläget. Nås skärmen utan partnerläget → paywall.
-  const partnerOn = tierAtLeast(tier, 'partner')
-  const familyOn = tierAtLeast(tier, 'family')
+  const partnerOn = partnerFeaturesEnabled(tier)
+  const familyOn = familyFeaturesEnabled(tier)
   useEffect(() => {
     if (!tierLoading && !partnerOn) router.replace('/paywall')
   }, [tierLoading, partnerOn])

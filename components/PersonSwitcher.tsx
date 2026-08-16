@@ -8,8 +8,7 @@ import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
 import { cacheGet, cacheSet } from '../utils/cache'
-import { useEntitlements } from '../utils/entitlements'
-import { tierAtLeast } from '../utils/purchases'
+import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
 import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 
@@ -35,8 +34,8 @@ export default function PersonSwitcher({ scope, current }: Props) {
   const { tier } = useEntitlements()
   // Partner ligger bakom partnerläget, barn bakom familjeläget. Utan nivåerna
   // visas bara Jag (resp. Jag + partner).
-  const partnerOn = tierAtLeast(tier, 'partner')
-  const familyOn = tierAtLeast(tier, 'family')
+  const partnerOn = partnerFeaturesEnabled(tier)
+  const familyOn = familyFeaturesEnabled(tier)
 
   const [partner, setPartner] = useState<Partner | null>(() => cacheGet<Partner | null>('household.partner') ?? null)
   const [children, setChildren] = useState<Person[]>(() => cacheGet<Person[]>('household.children') ?? [])
