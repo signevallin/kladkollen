@@ -172,6 +172,7 @@ em{font-style:italic;color:var(--brand-soft);}
 .f-num{font-family:'Lora',serif;font-style:italic;font-size:17px;color:var(--tan);margin-bottom:8px;}
 .f-title{font-family:'Lora',serif;font-weight:600;font-size:32px;line-height:1.15;margin:0 0 16px;}
 .f-desc{font-size:17px;line-height:1.7;color:var(--muted);max-width:440px;}
+.how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;}
 
 /* Waitlist */
 #waitlist{background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
@@ -194,7 +195,7 @@ em{font-style:italic;color:var(--brand-soft);}
 .wl-note{font-size:13px;color:var(--dim);margin-top:12px;}
 
 /* CTA */
-#cta{position:relative;overflow:hidden;text-align:center;padding:140px 40px;}
+#cta{position:relative;overflow:hidden;text-align:center;padding:120px 40px;background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .cta-h2{font-family:'Lora',serif;font-weight:600;font-size:50px;line-height:1.1;margin:0 0 22px;}
 .cta-sub{font-size:18px;color:var(--muted);margin:0 0 36px;}
 
@@ -222,6 +223,7 @@ em{font-style:italic;color:var(--brand-soft);}
   .frow .visual{order:-1;}
   .frow.rev .txt{order:2;}
   .f-desc{margin-left:auto;margin-right:auto;}
+  .how-steps{grid-template-columns:1fr;gap:40px;text-align:center;}
   .cta-h2{font-size:36px;}
   .footer-inner{flex-direction:column;text-align:center;}
 }
@@ -368,14 +370,24 @@ em{font-style:italic;color:var(--brand-soft);}
   </div>
 </section>
 
-<!-- HOW -->
-<section id="how" style="background:var(--cream);border-top:1px solid var(--border);">
+<!-- CTA (flyttad hit: beige, mellan features och how) -->
+<section id="cta">
+  <div class="blob drift" style="bottom:-160px;left:-140px;width:460px;height:460px;"></div>
+  <div class="reveal" style="position:relative;z-index:2;max-width:640px;margin:0 auto;">
+    <h2 class="cta-h2" data-i18n-html="cta.h2">Ready to discover <em>an easier everyday?</em></h2>
+    <p class="cta-sub" data-i18n="cta.sub">Join Skrud and see how much time you save with your family’s wardrobes in order. Join the waitlist and we’ll reach out the moment Skrud is ready for you.</p>
+    <a href="#waitlist" class="btn-primary" style="padding:16px 34px;font-size:15px;" data-i18n="cta.btn">Join the waitlist</a>
+  </div>
+</section>
+
+<!-- HOW (ljus bakgrund, så det inte blir två beiga avsnitt i rad) -->
+<section id="how" style="background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
   <div class="wrap" style="padding:104px 40px;">
     <div class="feat-head reveal" style="margin-bottom:64px;">
       <div class="eyebrow" data-i18n="how.label">How it works</div>
       <h2 class="section-h2" data-i18n-html="how.h2">Three steps to<br><em>an easier morning.</em></h2>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;">
+    <div class="how-steps">
       <div class="reveal">
         <div class="f-num serif">01</div>
         <h3 class="f-title" style="font-size:24px;" data-i18n="s1.t">Photograph your wardrobe</h3>
@@ -417,16 +429,6 @@ em{font-style:italic;color:var(--brand-soft);}
       <p id="wlMsg" class="wl-msg" role="status" aria-live="polite"></p>
       <p class="wl-note" data-i18n="wl.note">We’ll only email you when the app is ready. No spam, unsubscribe anytime.</p>
     </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section id="cta">
-  <div class="blob drift" style="bottom:-160px;left:-140px;width:460px;height:460px;"></div>
-  <div class="reveal" style="position:relative;z-index:2;max-width:640px;margin:0 auto;">
-    <h2 class="cta-h2" data-i18n-html="cta.h2">Ready to discover <em>an easier everyday?</em></h2>
-    <p class="cta-sub" data-i18n="cta.sub">Join Skrud and see how much time you save with your family’s wardrobes in order. Join the waitlist and we’ll reach out the moment Skrud is ready for you.</p>
-    <a href="#waitlist" class="btn-primary" style="padding:16px 34px;font-size:15px;" data-i18n="cta.btn">Join the waitlist</a>
   </div>
 </section>
 
