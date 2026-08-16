@@ -24,14 +24,13 @@ export default async function handler(request: Request): Promise<Response> {
     const body = (await request.json()) as any
     const store = clip(body.store, 40)
     const content = clip(body.content, 60000)
+    // 'wishlist' = användaren bläddrar och vill lägga plagg på köplistan (produkt-
+    // sida/varukorg/favoriter). 'orders' (default) = orderhistorik till garderoben.
+    const wishlist = body.mode === 'wishlist'
     if (!content) return json({ error: 'Sidinnehåll saknas' }, 400)
 
-    const prompt = `Nedan är det synliga innehållet på en orderhistorik-sida från nätbutiken ${store || 'okänd butik'}.
-Rader som börjar med [BILD] är bild-URL:er som förekom på samma plats på sidan.
-
-Extrahera alla KÖPTA PRODUKTER som är kläder, skor, väskor eller accessoarer.
-Ignorera allt annat: heminredning, skönhetsprodukter, navigering, rekommendationer
-("du kanske gillar", "liknande produkter"), varukorg och annonser.
+    // Gemensamma delar oavsett läge.
+    const shared = `Rader som börjar med [BILD] är bild-URL:er som förekom på samma plats på sidan.
 
 VIKTIGT – INTEGRITET: Ta ALDRIG med personuppgifter i svaret. Uteslut köparens
 namn, adress, e-post, telefonnummer och alla betalningsuppgifter.
@@ -40,7 +39,34 @@ För varje produkt, para ihop den med den [BILD]-URL som ligger närmast produkt
 (produktbilder är oftast från butikens CDN – ignorera logotyper och ikoner).
 
 Svara ENDAST med JSON, inga backticks:
-{"items": [{"name": "produktnamn", "brand": "märke eller null", "price": "pris som text eller null", "orderDate": "datum som text eller null", "imageUrl": "bild-URL eller null"}]}
+{"items": [{"name": "produktnamn", "brand": "märke eller null", "price": "pris som text eller null", "orderDate": "datum som text eller null", "imageUrl": "bild-URL eller null"}]}`
+
+    const prompt = wishlist
+      ? `Nedan är det synliga innehållet på en produktsida, varukorg eller favoritlista från nätbutiken ${store || 'okänd butik'}.
+
+Extrahera de plagg, skor, väskor och accessoarer som visas som produkter på sidan
+just nu – t.ex. huvudprodukten på en produktsida, eller alla varor i varukorgen/
+favoritlistan. Produkterna behöver INTE vara köpta; användaren tittar på dem för att
+lägga dem på sin köplista.
+
+Ignorera navigering, sidfot, annonser, heminredning/skönhet och rekommendations-
+sektioner ("du kanske också gillar", "liknande produkter", "andra köpte"). Om sidan
+visar en tydlig huvudprodukt: ta med den även om den står ensam.
+
+${shared}
+
+Hittar du inga produkter alls (t.ex. om sidan är en start-/inloggningssida eller
+kategorilista utan tydlig produkt), svara {"items": []}.
+
+SIDINNEHÅLL:
+${content}`
+      : `Nedan är det synliga innehållet på en orderhistorik-sida från nätbutiken ${store || 'okänd butik'}.
+
+Extrahera alla KÖPTA PRODUKTER som är kläder, skor, väskor eller accessoarer.
+Ignorera allt annat: heminredning, skönhetsprodukter, navigering, rekommendationer
+("du kanske gillar", "liknande produkter"), varukorg och annonser.
+
+${shared}
 
 Hittar du inga produkter alls (t.ex. om sidan är en inloggningssida eller tom
 orderhistorik), svara {"items": []}.

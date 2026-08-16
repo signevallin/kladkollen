@@ -13955,7 +13955,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/parse-purchases.ts",
-      "source_location": "L52",
+      "source_location": "L78",
       "weight": 1.0,
       "_origin": "ast",
       "source": "api_parse_purchases_handler",
@@ -14315,7 +14315,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/parse-purchases.ts",
-      "source_location": "L51",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "api_parse_purchases_handler",
@@ -43604,5 +43604,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "1c408c4ac39f59802f1641ff793c5b38e1e0a23d"
+  "built_at_commit": "9b022050e393afc215697700b600b7de25b6ff31"
 }

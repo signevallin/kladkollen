@@ -178,7 +178,7 @@ export default function ImportPurchases() {
     try { msg = JSON.parse(event.nativeEvent.data) } catch { return }
     if (!msg?.ok) { setParsing(false); showAlert(tr('Kunde inte läsa sidan'), msg?.error || tr('okänt fel')); return }
     try {
-      const { items: found } = await apiPost('/api/parse-purchases', { store: store?.name, content: msg.content })
+      const { items: found } = await apiPost('/api/parse-purchases', { store: store?.name, content: msg.content, mode: toWishlist ? 'wishlist' : 'orders' })
       if (!found || found.length === 0) {
         showAlert(tr('Inga plagg hittades'), toWishlist
           ? tr('Öppna ett plagg du gillar eller din varukorg och försök igen.')
