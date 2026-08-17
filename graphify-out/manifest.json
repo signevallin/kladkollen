@@ -250,8 +250,8 @@
     "semantic_hash": ""
   },
   "app/paywall.tsx": {
-    "mtime": 1786807103.9928894,
-    "ast_hash": "8f4e1a8249b2312b07ee50ff6151b076",
+    "mtime": 1786952292.5921218,
+    "ast_hash": "7f1473c8dab9caff198284f24e6fdc4f",
     "semantic_hash": ""
   },
   "app/privacy.tsx": {
@@ -645,23 +645,23 @@
     "semantic_hash": ""
   },
   "utils/i18n.de.json": {
-    "mtime": 1786867237.8805382,
-    "ast_hash": "1b8d424500c664c3f34c709829a192a8",
+    "mtime": 1786952316.8065653,
+    "ast_hash": "7fd659d63885dee22422d6a44a08cfc9",
     "semantic_hash": ""
   },
   "utils/i18n.es.json": {
-    "mtime": 1786867237.8841019,
-    "ast_hash": "7cec5d39459bfee07abc609f270a778f",
+    "mtime": 1786952316.8108585,
+    "ast_hash": "66d7098b49e8e29e7e262f2534db2e34",
     "semantic_hash": ""
   },
   "utils/i18n.fr.json": {
-    "mtime": 1786867237.8864233,
-    "ast_hash": "dabc64fe86fe578a9477eedff3826da5",
+    "mtime": 1786952316.8148792,
+    "ast_hash": "a2713151b56ef3a8c8d1d36d470a2327",
     "semantic_hash": ""
   },
   "utils/i18n.ts": {
-    "mtime": 1786867259.8961031,
-    "ast_hash": "76a8d9f4c15fef457637919dec8df988",
+    "mtime": 1786952301.8401225,
+    "ast_hash": "eaeaed3a1bab901ddea71644b6a19427",
     "semantic_hash": ""
   },
   "utils/id.ts": {
@@ -775,8 +775,8 @@
     "semantic_hash": ""
   },
   "public/landing.html": {
-    "mtime": 1786899729.695875,
-    "ast_hash": "cb03366dd943c917b0775f447ae39aac",
+    "mtime": 1786905692.3637438,
+    "ast_hash": "1e4aba403983ffcbf23f9b727274ee5c",
     "semantic_hash": ""
   },
   "public/support.html": {
@@ -1067,6 +1067,36 @@
   "supabase/migrations/20260818_profiles_nursing.sql": {
     "mtime": 1786866683.480069,
     "ast_hash": "639b2563dd5183e559b6d4c1cc093fec",
+    "semantic_hash": ""
+  },
+  "public/screens/README.md": {
+    "mtime": 1786902855.5153677,
+    "ast_hash": "470899986749022c475b8b9a2504be30",
+    "semantic_hash": ""
+  },
+  "public/screens/home.png": {
+    "mtime": 1786902624.983373,
+    "ast_hash": "151479bf51c07c0eccda499b36ff6359",
+    "semantic_hash": ""
+  },
+  "public/screens/palette.png": {
+    "mtime": 1786902624.9873729,
+    "ast_hash": "78081e51a408d3839f3bb80294c8442c",
+    "semantic_hash": ""
+  },
+  "public/screens/pregnancy.png": {
+    "mtime": 1786903071.4513626,
+    "ast_hash": "92b3883a7f960c0e9b952aff720ca66b",
+    "semantic_hash": ""
+  },
+  "public/screens/trip.png": {
+    "mtime": 1786902624.9873729,
+    "ast_hash": "a80d6be1acb288204ae2b351f675e990",
+    "semantic_hash": ""
+  },
+  "public/screens/wardrobe.png": {
+    "mtime": 1786902624.9913728,
+    "ast_hash": "cb4d31d2e3efb70d4507155041cd2bf6",
     "semantic_hash": ""
   }
 }

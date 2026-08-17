@@ -1271,6 +1271,7 @@ const enBySource: Dict = {
   "Enligt GDPR har du rätt att få tillgång till, rätta och radera dina uppgifter samt invända mot behandling. Du kan när som helst radera ditt konto och all din data direkt i appen under Min profil → Radera konto. Du kan också kontakta oss på support@skrud.app.": "Under GDPR you have the right to access, rectify and erase your data, and to object to processing. You can delete your account and all your data at any time in the app under My profile → Delete account. You can also contact us at support@skrud.app.",
   "7. Ändringar": "7. Changes",
   "Vi kan uppdatera denna policy. Väsentliga ändringar meddelas i appen. Senast uppdaterad: augusti 2026.": "We may update this policy. Significant changes are announced in the app.",
+  "Skrud Premium är en prenumeration som förnyas automatiskt. Betalningen dras från ditt Apple-ID vid köp och förnyas till samma pris om den inte sägs upp minst 24 timmar före periodens slut. Hantera eller säg upp i App Store-inställningarna.": "Skrud Premium is an auto-renewing subscription. Payment is charged to your Apple ID at purchase and renews at the same price unless cancelled at least 24 hours before the end of the period. Manage or cancel in your App Store settings.",
   "Ammar": "Nursing",
   "Anpassar outfits för amning – plagg som är lätta att öppna framtill.": "Adapts outfits for nursing – garments that are easy to open at the front.",
   "Nyföddgarderob": "Newborn wardrobe",
