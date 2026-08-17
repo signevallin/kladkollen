@@ -89,6 +89,8 @@ export default function Paywall() {
           <Text style={styles.restoreText}>{tr('Återställ köp')}</Text>
         </TouchableOpacity>
 
+        <Text style={styles.subLegal}>{tr('Skrud Premium är en prenumeration som förnyas automatiskt. Betalningen dras från ditt Apple-ID vid köp och förnyas till samma pris om den inte sägs upp minst 24 timmar före periodens slut. Hantera eller säg upp i App Store-inställningarna.')}</Text>
+
         <View style={styles.legal}>
           <TouchableOpacity onPress={() => router.push('/terms')}><Text style={styles.legalLink}>{tr('Villkor')}</Text></TouchableOpacity>
           <Text style={styles.legalDot}>·</Text>
@@ -126,6 +128,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   restoreBtn: { alignItems: 'center', paddingVertical: 16 },
   restoreText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textFaint, textDecorationLine: 'underline' },
+  subLegal: { fontFamily: 'Lora_400Regular', fontSize: 11, lineHeight: 16, color: t.textFaint, textAlign: 'center', marginBottom: 12 },
 
   legal: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 4 },
   legalLink: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, textDecorationLine: 'underline' },
