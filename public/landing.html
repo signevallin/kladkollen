@@ -87,8 +87,9 @@ em{font-style:italic;color:var(--brand-soft);}
 .nav-links{margin-left:auto;display:flex;gap:6px;align-items:center;}
 .nav-link{font-family:'Poppins',sans-serif;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:8px;transition:.15s;}
 .nav-link:hover{color:var(--brand);background:rgba(207,181,158,.16);}
-.lang-btn{font-family:'Poppins',sans-serif;background:transparent;color:var(--brand-soft);border:1px solid rgba(108,77,56,.26);padding:8px 13px;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.05em;cursor:pointer;transition:.15s;}
-.lang-btn:hover{background:rgba(207,181,158,.16);color:var(--brand);}
+.lang-sel{font-family:'Poppins',sans-serif;color:var(--brand-soft);border:1px solid rgba(108,77,56,.26);padding:8px 30px 8px 13px;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;transition:.15s;-webkit-appearance:none;-moz-appearance:none;appearance:none;background-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236C4D38' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.lang-sel:hover{background-color:rgba(207,181,158,.16);color:var(--brand);}
+.lang-sel option{color:#402D21;background:#FEFAF8;}
 .btn-primary{font-family:'Poppins',sans-serif;background:var(--brand);color:#FEFAF8;border:none;padding:11px 22px;border-radius:999px;font-weight:600;font-size:13.5px;text-decoration:none;display:inline-block;transition:background .2s,transform .15s;cursor:pointer;}
 .btn-primary:hover{background:var(--brand-soft);transform:translateY(-1px);}
 .btn-ghost{font-family:'Poppins',sans-serif;background:transparent;color:var(--brand);border:1px solid rgba(108,77,56,.28);padding:15px 28px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;display:inline-block;transition:.2s;}
@@ -237,7 +238,13 @@ em{font-style:italic;color:var(--brand-soft);}
     <div class="nav-links">
       <a href="#features" class="nav-link" data-i18n="nav.features">Features</a>
       <a href="#how" class="nav-link" data-i18n="nav.how">How it works</a>
-      <button id="langBtn" class="lang-btn">EN</button>
+      <select id="langSel" class="lang-sel" aria-label="Language / Språk">
+        <option value="en">English</option>
+        <option value="sv">Svenska</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+      </select>
       <a href="#waitlist" class="btn-primary" data-i18n="nav.cta">Join</a>
     </div>
   </div>
@@ -509,6 +516,210 @@ em{font-style:italic;color:var(--brand-soft);}
       'wl.success': 'Thanks! You’re on the waitlist. 🎉', 'wl.invalid': 'Please enter a valid email address.', 'wl.error': 'Something went wrong. Please try again shortly.',
       'cta.h2': 'Ready to discover <em>an easier everyday?</em>', 'cta.sub': 'Join Skrud and see how much time you save with your family’s wardrobes in order. Join the waitlist and we’ll reach out the moment Skrud is ready for you.', 'cta.btn': 'Join the waitlist',
       'footer.privacy': 'Privacy policy', 'footer.terms': 'Terms', 'footer.support': 'Support', 'footer.contact': 'Contact'
+    },
+    de: {
+      'meta.title': 'Skrud – Ein Morgen weniger Chaos',
+      'meta.desc': 'Skrud kleidet die ganze Familie mit einem Tipp. Die KI stellt das heutige Outfit für dich, deine Partnerin/deinen Partner und jedes Kind zusammen – wetterbasiert und in der richtigen Größe. Deine digitale Garderobe.',
+      'nav.features': 'Funktionen',
+      'nav.how': 'So funktioniert’s',
+      'nav.cta': 'Beitreten',
+      'hero.badge': 'Deine digitale Garderobe',
+      'hero.h1': 'Schluss mit dem Blick in den vollen Schrank und dem Gefühl, nichts anzuziehen zu haben.',
+      'hero.tagline': 'Skrud übernimmt die Arbeit für dich und deine Familie.',
+      'hero.sub': 'Die erste Garderoben-App für den ganzen Haushalt. Erhalte proaktive, wetterbasierte Outfits, teile Kleidung mit deiner Partnerin oder deinem Partner, behalte wachsende Kinder im Blick und stoppe Impulskäufe – in einem ruhigen, skandinavischen Design.',
+      'hero.cta1': 'Auf die Warteliste',
+      'hero.cta2': 'So funktioniert’s',
+      'so.1n': 'Familie',
+      'so.1l': 'du, Partner & jedes Kind',
+      'so.2n': 'Wetter',
+      'so.2l': 'an den ganzen Tag angepasst',
+      'so.3n': 'Schwangerschaft',
+      'so.3l': 'eine sichere Begleitung durch alle neun Monate',
+      'feat.label': 'Funktionen',
+      'feat.h2': 'Gemacht fürs echte Leben,<br><em>nicht nur für die Garderobe.</em>',
+      'f1.num': '01',
+      'f1.title': 'Kleide die ganze Familie mit einem Tipp',
+      'f1.desc': 'Kein Stress mehr mit herausgewachsener Kinderkleidung oder verlorenen Lieblingsstücken. Als erste App überhaupt bietet Skrud einen echten Familienmodus mit geteilten Garderoben, Kindergrößen und smarten Erinnerungen, wenn es Zeit für ein Update ist.',
+      'f2.num': '02',
+      'f2.title': 'Wartet nicht auf dich – ist einen Schritt voraus',
+      'f2.desc': 'Andere Apps lassen dich die Kleidung für heute selbst heraussuchen. Skrud schickt das passende Outfit direkt auf dein Handy – basierend auf der Tagesprognose und deinem Kalender, inklusive Regen- und UV-Warnungen.',
+      'f2.notifTitle': 'Sieht nach Regen aus 🌧️',
+      'f2.notifBody': '63 % Regenwahrscheinlichkeit – vergiss Regenjacke oder Schirm nicht.',
+      'f2.lockDate': 'Dienstag, 20. August',
+      'f3.num': '03',
+      'f3.title': 'Sieh alles, was du besitzt – und die Farben, die dir stehen',
+      'f3.desc': 'Fotografiere deine Garderobe einmal; die KI ergänzt Name, Farbe und Saison automatisch und entfernt den Hintergrund. Deine persönliche Farbanalyse zeigt, welche Töne dich zum Strahlen bringen. Die App kombiniert mit dem, was du zu Hause schon besitzt – das spart Geld und reduziert Überkonsum.',
+      'f4.num': '04',
+      'f4.title': 'Kleidung, die sich mit dir verändert',
+      'f4.desc': 'Schwanger? Aktiviere unseren einzigartigen Schwangerschaftsmodus. Erhalte bauchfreundliche Outfitvorschläge, pausiere Teile, die gerade nicht passen, und folge einer smarten Essentials-Checkliste.',
+      'f5.num': '05',
+      'f5.title': 'Pack die Reise – für alle',
+      'f5.desc': 'Gib Ziel und Datum ein. Skrud packt komplette Outfits und eine Packliste aus dem, was du schon besitzt – auch für die Kinder, mit altersgerechten Essentials. Komm nach Hause und gib alles mit einem Tipp in die Wäsche.',
+      'how.label': 'So funktioniert’s',
+      'how.h2': 'Drei Schritte zu<br><em>einem leichteren Morgen.</em>',
+      's1.t': 'Fotografiere deine Garderobe',
+      's1.d': 'Fotografiere ein Kleidungsstück, importiere Bestellverlauf oder Belege – die KI erkennt es und speichert es mit Name, Farbe und Saison. Füge die Kleidung der Kinder und deiner Partnerin/deines Partners genauso hinzu.',
+      's2.t': 'Erzähl uns von dir',
+      's2.d': 'Lege Stil, Lebenssituation und die Größen der Kinder fest. Mach eine Farbanalyse. Je mehr Skrud weiß, desto treffsicherer die Vorschläge.',
+      's3.t': 'Einmal tippen',
+      's3.d': 'Generiere das heutige Outfit – für dich oder die ganze Familie. Wetterbasiert und bereit, aus dem, was du schon besitzt.',
+      'wl.label': 'Warteliste',
+      'wl.h2': 'Sei von Anfang an<br><em>dabei, wenn wir starten.</em>',
+      'wl.sub': 'Skrud wird Schritt für Schritt ausgerollt. Hinterlasse deine E-Mail und wir melden uns, sobald du loslegen kannst.',
+      'wl.placeholder': 'Deine E-Mail-Adresse',
+      'wl.button': 'Beitreten',
+      'wl.note': 'Wir schreiben dir nur, wenn die App bereit ist. Kein Spam, jederzeit abbestellbar.',
+      'wl.stageLabel': 'Wo stehst du im Leben?',
+      'wl.stageSingle': 'Single',
+      'wl.stageCouple': 'Paar',
+      'wl.stageFamily': 'Familie',
+      'wl.stagePregnant': 'Schwanger',
+      'wl.success': 'Danke! Du bist auf der Warteliste. 🎉',
+      'wl.invalid': 'Bitte gib eine gültige E-Mail-Adresse ein.',
+      'wl.error': 'Etwas ist schiefgelaufen. Bitte versuche es gleich noch einmal.',
+      'cta.h2': 'Bereit für <em>einen leichteren Alltag?</em>',
+      'cta.sub': 'Werde Teil von Skrud und sieh, wie viel Zeit du sparst, wenn die Garderobe der ganzen Familie geordnet ist. Trag dich in die Warteliste ein und wir melden uns, sobald Skrud für dich bereit ist.',
+      'cta.btn': 'Auf die Warteliste',
+      'footer.privacy': 'Datenschutz',
+      'footer.terms': 'Nutzungsbedingungen',
+      'footer.support': 'Support',
+      'footer.contact': 'Kontakt',
+    },
+    es: {
+      'meta.title': 'Skrud: una mañana menos caótica',
+      'meta.desc': 'Skrud viste a toda la familia con un toque. La IA crea el conjunto de hoy para ti, tu pareja y cada hijo, adaptado al tiempo y en la talla correcta. Tu armario digital.',
+      'nav.features': 'Funciones',
+      'nav.how': 'Cómo funciona',
+      'nav.cta': 'Unirme',
+      'hero.badge': 'Tu armario digital',
+      'hero.h1': 'Deja de mirar un armario lleno sin nada que ponerte.',
+      'hero.tagline': 'Skrud hace el trabajo por ti y por tu familia.',
+      'hero.sub': 'La primera app de armario para todo el hogar. Consigue conjuntos proactivos adaptados al tiempo, comparte ropa con tu pareja, sigue el ritmo de niños que crecen y frena las compras impulsivas, con un diseño escandinavo y sereno.',
+      'hero.cta1': 'Unirme a la lista de espera',
+      'hero.cta2': 'Ver cómo funciona',
+      'so.1n': 'Familia',
+      'so.1l': 'tú, tu pareja y cada hijo',
+      'so.2n': 'Tiempo',
+      'so.2l': 'adaptado a todo el día',
+      'so.3n': 'Embarazo',
+      'so.3l': 'un apoyo seguro durante los nueve meses',
+      'feat.label': 'Funciones',
+      'feat.h2': 'Hecha para la vida real,<br><em>no solo para el armario.</em>',
+      'f1.num': '01',
+      'f1.title': 'Viste a toda la familia con un toque',
+      'f1.desc': 'Se acabó el estrés por la ropa de niños que se queda pequeña o los favoritos perdidos. Como primera app de la historia, Skrud ofrece un verdadero modo familia con armarios compartidos, tallas de los niños y recordatorios inteligentes cuando toca renovar.',
+      'f2.num': '02',
+      'f2.title': 'No te espera: va un paso por delante',
+      'f2.desc': 'Otras apps te obligan a buscar tú mismo la ropa del día. Skrud envía el conjunto adecuado directamente a tu móvil según la previsión del día y tu calendario, con avisos de lluvia y UV.',
+      'f2.notifTitle': 'Parece que hoy lloverá 🌧️',
+      'f2.notifBody': '63 % de probabilidad de lluvia: no olvides un chubasquero o paraguas.',
+      'f2.lockDate': 'Martes 20 de agosto',
+      'f3.num': '03',
+      'f3.title': 'Ve todo lo que tienes y los colores que te favorecen',
+      'f3.desc': 'Fotografía tu armario una vez; la IA rellena nombre, color y temporada automáticamente y quita el fondo. Tu análisis de color personal muestra qué tonos te favorecen. La app combina con lo que ya tienes en casa: ahorras dinero y reduces el consumo excesivo.',
+      'f4.num': '04',
+      'f4.title': 'Ropa que se adapta a tus cambios',
+      'f4.desc': '¿Esperando un bebé? Activa nuestro modo embarazo único. Recibe sugerencias de conjuntos cómodos para la barriga, pausa las prendas que ahora no te sirven y sigue una checklist de básicos.',
+      'f5.num': '05',
+      'f5.title': 'Prepara el viaje, para todos',
+      'f5.desc': 'Introduce destino y fechas. Skrud prepara conjuntos completos y una lista de equipaje con lo que ya tienes, también para los niños, con básicos según su edad. Vuelve a casa y manda todo a lavar con un toque.',
+      'how.label': 'Cómo funciona',
+      'how.h2': 'Tres pasos hacia<br><em>una mañana más fácil.</em>',
+      's1.t': 'Fotografía tu armario',
+      's1.d': 'Fotografía una prenda, importa el historial de pedidos o los tickets: la IA la reconoce y la guarda con nombre, color y temporada. Añade la ropa de los niños y de tu pareja de la misma forma.',
+      's2.t': 'Cuéntanos sobre ti',
+      's2.d': 'Define estilo, situación vital y las tallas de los niños. Hazte un análisis de color. Cuanto más sabe Skrud, más acertadas son las sugerencias.',
+      's3.t': 'Un solo toque',
+      's3.d': 'Genera el conjunto de hoy, para ti o para toda la familia. Adaptado al tiempo y listo, con lo que ya tienes.',
+      'wl.label': 'Lista de espera',
+      'wl.h2': 'Sé de los primeros<br><em>cuando lancemos.</em>',
+      'wl.sub': 'Skrud se lanza paso a paso. Déjanos tu correo y te avisaremos en cuanto puedas empezar.',
+      'wl.placeholder': 'Tu dirección de correo',
+      'wl.button': 'Unirme',
+      'wl.note': 'Solo te escribiremos cuando la app esté lista. Sin spam, cancela cuando quieras.',
+      'wl.stageLabel': '¿En qué momento de la vida estás?',
+      'wl.stageSingle': 'Soltero/a',
+      'wl.stageCouple': 'Pareja',
+      'wl.stageFamily': 'Familia',
+      'wl.stagePregnant': 'Embarazada',
+      'wl.success': '¡Gracias! Estás en la lista de espera. 🎉',
+      'wl.invalid': 'Introduce una dirección de correo válida.',
+      'wl.error': 'Algo salió mal. Inténtalo de nuevo en un momento.',
+      'cta.h2': '¿Listo para descubrir <em>un día a día más fácil?</em>',
+      'cta.sub': 'Únete a Skrud y descubre cuánto tiempo ahorras con los armarios de tu familia en orden. Apúntate a la lista de espera y te avisaremos en cuanto Skrud esté listo para ti.',
+      'cta.btn': 'Unirme a la lista de espera',
+      'footer.privacy': 'Política de privacidad',
+      'footer.terms': 'Términos',
+      'footer.support': 'Soporte',
+      'footer.contact': 'Contacto',
+    },
+    fr: {
+      'meta.title': 'Skrud — Une matinée de moins dans le chaos',
+      'meta.desc': 'Skrud habille toute la famille en un geste. L’IA compose la tenue du jour pour vous, votre partenaire et chaque enfant — adaptée à la météo et à la bonne taille. Votre garde-robe numérique.',
+      'nav.features': 'Fonctionnalités',
+      'nav.how': 'Comment ça marche',
+      'nav.cta': 'Rejoindre',
+      'hero.badge': 'Votre garde-robe numérique',
+      'hero.h1': 'Arrêtez de fixer une penderie pleine sans rien à vous mettre.',
+      'hero.tagline': 'Skrud fait le travail pour vous et votre famille.',
+      'hero.sub': 'La première appli de garde-robe pour tout le foyer. Recevez des tenues proactives adaptées à la météo, partagez des vêtements avec votre partenaire, suivez les enfants qui grandissent et freinez les achats impulsifs — dans un design scandinave et apaisant.',
+      'hero.cta1': 'Rejoindre la liste d’attente',
+      'hero.cta2': 'Voir comment ça marche',
+      'so.1n': 'Famille',
+      'so.1l': 'vous, votre partenaire & chaque enfant',
+      'so.2n': 'Météo',
+      'so.2l': 'adapté à toute la journée',
+      'so.3n': 'Grossesse',
+      'so.3l': 'un accompagnement rassurant pendant les neuf mois',
+      'feat.label': 'Fonctionnalités',
+      'feat.h2': 'Pensée pour la vraie vie,<br><em>pas seulement la garde-robe.</em>',
+      'f1.num': '01',
+      'f1.title': 'Habillez toute la famille en un geste',
+      'f1.desc': 'Fini le stress des vêtements d’enfants devenus trop petits ou des favoris égarés. Première application du genre, Skrud propose un vrai mode famille avec garde-robes partagées, tailles des enfants et rappels intelligents quand il est temps de renouveler.',
+      'f2.num': '02',
+      'f2.title': 'N’attend pas après vous — a une longueur d’avance',
+      'f2.desc': 'Les autres applis vous obligent à chercher vous-même la tenue du jour. Skrud envoie la bonne tenue directement sur votre téléphone selon la météo du jour et votre agenda, avec alertes pluie et UV.',
+      'f2.notifTitle': 'On dirait qu’il va pleuvoir 🌧️',
+      'f2.notifBody': '63 % de risque de pluie – n’oubliez pas un imperméable ou un parapluie.',
+      'f2.lockDate': 'Mardi 20 août',
+      'f3.num': '03',
+      'f3.title': 'Voyez tout ce que vous possédez — et les couleurs qui vous vont',
+      'f3.desc': 'Photographiez votre garde-robe une fois ; l’IA renseigne le nom, la couleur et la saison automatiquement et supprime l’arrière-plan. Votre analyse colorimétrique personnelle montre les tons qui vous subliment. L’appli assortit avec ce que vous possédez déjà — vous économisez et réduisez la surconsommation.',
+      'f4.num': '04',
+      'f4.title': 'Des vêtements qui vous suivent dans le changement',
+      'f4.desc': 'Enceinte ? Activez notre mode grossesse unique. Recevez des suggestions de tenues adaptées au ventre, mettez en pause les pièces qui ne conviennent pas pour l’instant et suivez une checklist d’essentiels.',
+      'f5.num': '05',
+      'f5.title': 'Faites la valise — pour tout le monde',
+      'f5.desc': 'Indiquez destination et dates. Skrud prépare des tenues complètes et une liste de bagages à partir de ce que vous possédez déjà — pour les enfants aussi, avec des essentiels adaptés à leur âge. Rentrez et mettez tout au lavage en un geste.',
+      'how.label': 'Comment ça marche',
+      'how.h2': 'Trois étapes vers<br><em>une matinée plus simple.</em>',
+      's1.t': 'Photographiez votre garde-robe',
+      's1.d': 'Photographiez un vêtement, importez l’historique de commandes ou des reçus — l’IA le reconnaît et l’enregistre avec nom, couleur et saison. Ajoutez les vêtements des enfants et de votre partenaire de la même façon.',
+      's2.t': 'Parlez-nous de vous',
+      's2.d': 'Définissez le style, la situation de vie et les tailles des enfants. Faites une analyse colorimétrique. Plus Skrud en sait, plus les suggestions sont justes.',
+      's3.t': 'Un seul geste',
+      's3.d': 'Générez la tenue du jour — pour vous ou toute la famille. Adaptée à la météo et prête, à partir de ce que vous avez déjà.',
+      'wl.label': 'Liste d’attente',
+      'wl.h2': 'Soyez parmi les premiers<br><em>au lancement.</em>',
+      'wl.sub': 'Skrud se déploie étape par étape. Laissez votre e-mail et nous vous préviendrons dès que vous pourrez commencer.',
+      'wl.placeholder': 'Votre adresse e-mail',
+      'wl.button': 'Rejoindre',
+      'wl.note': 'Nous vous écrirons uniquement quand l’appli sera prête. Pas de spam, désinscription à tout moment.',
+      'wl.stageLabel': 'Où en êtes-vous dans la vie ?',
+      'wl.stageSingle': 'Célibataire',
+      'wl.stageCouple': 'En couple',
+      'wl.stageFamily': 'Famille',
+      'wl.stagePregnant': 'Enceinte',
+      'wl.success': 'Merci ! Vous êtes sur la liste d’attente. 🎉',
+      'wl.invalid': 'Saisissez une adresse e-mail valide.',
+      'wl.error': 'Une erreur s’est produite. Réessayez dans un instant.',
+      'cta.h2': 'Prêt à découvrir <em>un quotidien plus simple ?</em>',
+      'cta.sub': 'Rejoignez Skrud et voyez combien de temps vous gagnez avec les garde-robes de toute la famille bien rangées. Inscrivez-vous à la liste d’attente et nous vous contacterons dès que Skrud est prêt pour vous.',
+      'cta.btn': 'Rejoindre la liste d’attente',
+      'footer.privacy': 'Confidentialité',
+      'footer.terms': 'Conditions',
+      'footer.support': 'Assistance',
+      'footer.contact': 'Contact',
     }
   };
 
@@ -521,18 +732,19 @@ em{font-style:italic;color:var(--brand-soft);}
     if (dict['meta.title']) document.title = dict['meta.title'];
     const md = document.querySelector('meta[name="description"]');
     if (md && dict['meta.desc']) md.setAttribute('content', dict['meta.desc']);
-    const lb = document.getElementById('langBtn');
-    if (lb) lb.textContent = lang === 'sv' ? 'EN' : 'SV';
+    const ls = document.getElementById('langSel');
+    if (ls) ls.value = lang;
     try { localStorage.setItem('skrud_lang', lang); } catch (e) {}
   }
 
   (function initLang() {
     let saved = null;
     try { saved = localStorage.getItem('skrud_lang'); } catch (e) {}
-    // Engelska är standard; ett tidigare val (sv) respekteras.
-    applyLang(saved === 'sv' || saved === 'en' ? saved : 'en');
-    const lb = document.getElementById('langBtn');
-    if (lb) lb.addEventListener('click', () => applyLang(document.documentElement.lang === 'sv' ? 'en' : 'sv'));
+    // Engelska är standard; ett tidigare val (något av språken) respekteras.
+    const LANGS = ['sv', 'en', 'de', 'es', 'fr'];
+    applyLang(LANGS.indexOf(saved) !== -1 ? saved : 'en');
+    const ls = document.getElementById('langSel');
+    if (ls) ls.addEventListener('change', () => applyLang(ls.value));
   })();
 
   // ── Waitlist ─────────────────────────────────────────────────────────
