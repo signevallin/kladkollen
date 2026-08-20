@@ -94,7 +94,7 @@ export default function Paywall() {
             <Text style={styles.soonText}>{tr('Premium går snart att köpa här.')}</Text>
             {__DEV__ && (
               <Text style={styles.debugText}>
-                {`SDK: ${purchasesAvailable ? 'på' : 'AV'} · paket: ${packages.length}\n${purchasesDebug}`}
+                {`SDK: ${purchasesAvailable ? 'på' : 'AV'} · RC-paywall-UI: ${paywallUiAvailable ? 'på' : 'AV (kräver native-bygge)'} · paket: ${packages.length}\n${purchasesDebug}`}
               </Text>
             )}
           </View>
