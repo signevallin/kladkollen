@@ -241,7 +241,7 @@ export default function Inspiration() {
     setOutfit(null)
     setAddedToWishlist([])
     try {
-      const { data: currentGarments } = await supabase.from('garments').select('id, name, category, subcategory, color, season, archived, for_sale, image_url')
+      const { data: currentGarments } = await supabase.from('garments').select('id, name, category, subcategory, color, season, archived, for_sale, image_url').is('person_id', null)
       const garments = (currentGarments || []).filter((g: any) => !g.archived && !g.for_sale)
       // Ta med typ + färg så AI:n kan matcha t.ex. "brun mockaväska" mot ett plagg
       // och inte felaktigt tro att det saknas.
@@ -333,11 +333,12 @@ export default function Inspiration() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       const [mine, theirs] = await Promise.all([
-        supabase.from('garments').select('id, name, category, subcategory, color, archived, for_sale, image_url').eq('user_id', user!.id),
+        supabase.from('garments').select('id, name, category, subcategory, color, archived, for_sale, image_url, person_id').eq('user_id', user!.id).is('person_id', null),
         supabase.rpc('partner_garments', { target: partner.id }),
       ])
+      // Bara egna resp. partnerns EGNA plagg (person_id null) – aldrig barnens.
       const myG = (mine.data || []).filter((g: any) => !g.archived && !g.for_sale)
-      const parG = (theirs.data || []).filter((g: any) => !g.archived && !g.for_sale)
+      const parG = (theirs.data || []).filter((g: any) => !g.archived && !g.for_sale && g.person_id == null)
       if (myG.length === 0 || parG.length === 0) {
         showAlert(tt('För få plagg'), tt('Ni behöver båda ha plagg i garderoben.'))
         return

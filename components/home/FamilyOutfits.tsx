@@ -127,7 +127,9 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
     if (m.kind === 'me') pool = myGarments.filter(g => !g.archived && !g.in_laundry)
     else if (m.kind === 'partner' && m.partnerId) {
       const { data } = await supabase.rpc('partner_garments', { target: m.partnerId })
-      pool = (data || []).filter((g: any) => !g.archived && !g.for_sale)
+      // Bara partnerns EGNA plagg (person_id null) – annars kunde deras barns
+      // plagg hamna i partnerns outfit.
+      pool = (data || []).filter((g: any) => !g.archived && !g.for_sale && g.person_id == null)
     } else if (m.kind === 'child') {
       const active = (childGarments[m.person!.id] || []).filter(g => !g.archived && !g.in_laundry)
       pool = active.filter(g => childSizeFits(g, m.person?.current_size_cm ?? null))
