@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-20)
 
 ## Corpus Check
-- 196 files · ~585,386 words
+- 196 files · ~585,487 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `18588263`
+- Built from commit: `6a609c48`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -137,7 +137,7 @@
 - waitlist-list.ts
 - 20260814_waitlist.sql
 - profiles
-- expo-apple-authentication
+- expo-background-task
 
 ## God Nodes (most connected - your core abstractions)
 1. `useTheme()` - 103 edges
@@ -234,7 +234,7 @@ Nodes (9): makeStyles(), monthLabel(), MyOutfits(), STYLE_TAGS, weekdayLabels(),
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-background-task, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-apple-authentication, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.21
@@ -326,11 +326,11 @@ Nodes (4): Button(), Props, styles, Variant
 
 ### Community 139 - "CreateOutfitView.tsx"
 Cohesion: 0.25
-Nodes (7): CATEGORIES, COLORS, makeStyles(), Props, SEASONS, STYLE_TAGS, COLOR_NAMES
+Nodes (7): CATEGORIES, COLORS, makeStyles(), Props, SEASONS, STYLE_TAGS, CATEGORIES
 
 ### Community 140 - "constants.ts"
 Cohesion: 0.22
-Nodes (12): buildPrompt(), config, handler(), SUBCATEGORY_HINT, langName(), CATEGORIES, isWashable(), MUSIC_GENRES (+4 more)
+Nodes (12): buildPrompt(), config, handler(), SUBCATEGORY_HINT, langName(), COLOR_NAMES, isWashable(), MUSIC_GENRES (+4 more)
 
 ### Community 144 - "GarmentSetSection.tsx"
 Cohesion: 0.35

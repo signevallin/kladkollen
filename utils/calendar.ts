@@ -93,8 +93,12 @@ export async function planForDay(date = new Date(), lang: string = 'sv'): Promis
     summary = tt('Dagen bjuder på träning')
   } else if (timed.length > 0) {
     // Det finns inbokade händelser (t.ex. i en delad kalender) som inte matchar
-    // våra nyckelord – säg då inte "ledig", utan att dagen har något inplanerat.
-    summary = tt(timed.length === 1 ? 'Idag har du {n} sak inplanerad' : 'Idag har du {n} saker inplanerade', { n: timed.length })
+    // våra nyckelord – skriv då ut vad som är inplanerat i stället för bara antalet.
+    const firstTitle = timed[0].title || ''
+    const rest = timed.length - 1
+    summary = rest > 0
+      ? tt('Idag: {event} + {n} till', { event: firstTitle, n: rest })
+      : tt('Idag har du {event} inplanerat', { event: firstTitle })
   } else {
     summary = tt('En ledig dag')
   }

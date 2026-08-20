@@ -1197,5 +1197,7 @@
  "Efter årstid – varmt för vinterbebis.": "Selon la saison – chaud pour un bébé d'hiver.",
  "Filt eller åkpåse": "Couverture ou chancelière",
  "För vagnen och bärandet.": "Pour la poussette et le portage.",
- "Skrud Premium är en prenumeration som förnyas automatiskt. Betalningen dras från ditt Apple-ID vid köp och förnyas till samma pris om den inte sägs upp minst 24 timmar före periodens slut. Hantera eller säg upp i App Store-inställningarna.": "Skrud Premium est un abonnement à renouvellement automatique. Le paiement est débité de votre identifiant Apple à l’achat et se renouvelle au même prix sauf résiliation au moins 24 heures avant la fin de la période. Gérez ou résiliez dans les réglages de l’App Store."
+ "Skrud Premium är en prenumeration som förnyas automatiskt. Betalningen dras från ditt Apple-ID vid köp och förnyas till samma pris om den inte sägs upp minst 24 timmar före periodens slut. Hantera eller säg upp i App Store-inställningarna.": "Skrud Premium est un abonnement à renouvellement automatique. Le paiement est débité de votre identifiant Apple à l’achat et se renouvelle au même prix sauf résiliation au moins 24 heures avant la fin de la période. Gérez ou résiliez dans les réglages de l’App Store.",
+ "Idag har du {event} inplanerat": "Aujourd’hui tu as {event} de prévu",
+ "Idag: {event} + {n} till": "Aujourd’hui : {event} + {n} autres"
 }
