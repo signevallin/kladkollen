@@ -13,6 +13,14 @@ import { Platform } from 'react-native'
 let Purchases: any = null
 try { Purchases = require('react-native-purchases').default } catch { Purchases = null }
 
+// RevenueCats färdigdesignade paywall (byggd i RevenueCats editor). Kräver
+// native-modulen react-native-purchases-ui – laddas skyddat precis som ovan, så
+// appen bygger/kör även utan den (t.ex. web) och faller då tillbaka på den egna
+// paywall-skärmen. Renderas som <PurchasesUI.Paywall/> i app/paywall.tsx.
+let PurchasesUI: any = null
+try { PurchasesUI = require('react-native-purchases-ui').default } catch { PurchasesUI = null }
+export { PurchasesUI }
+
 const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || ''
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || ''
 const API_KEY = Platform.OS === 'android' ? ANDROID_KEY : IOS_KEY
@@ -51,6 +59,8 @@ export function tierFromProductId(pid: string | null | undefined): Tier {
 }
 
 export const purchasesAvailable = !!Purchases && !!API_KEY
+// RevenueCat-paywallen kan visas när både köp-SDK:t och UI-modulen finns.
+export const paywallUiAvailable = !!PurchasesUI && !!API_KEY
 
 export type PurchasePackage = { id: string; title: string; priceString: string; period?: string; raw: any }
 

@@ -8,7 +8,7 @@ import type { Theme } from '../theme/theme'
 import { useEntitlements } from '../utils/entitlements'
 import { useSettings } from '../utils/settings'
 import { showAlert } from '../utils/alert'
-import type { PurchasePackage } from '../utils/purchases'
+import { PurchasesUI, paywallUiAvailable, type PurchasePackage } from '../utils/purchases'
 
 const BENEFITS: { icon: any; text: string }[] = [
   { icon: 'sparkles-outline', text: 'Obegränsade AI-outfits' },
@@ -20,8 +20,23 @@ export default function Paywall() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
-  const { packages, purchasesAvailable, isPro, purchase, restore, purchasesDebug } = useEntitlements()
+  const { packages, purchasesAvailable, isPro, purchase, restore, refresh, purchasesDebug } = useEntitlements()
   const [busy, setBusy] = useState(false)
+
+  // RevenueCats designade paywall (från deras editor). Visas när UI-modulen finns
+  // och användaren inte redan är Premium; annars faller vi tillbaka på den egna
+  // skärmen nedan (web/utan native, eller om ingen paywall är kopplad).
+  if (paywallUiAvailable && !isPro) {
+    const RCPaywall = PurchasesUI.Paywall
+    return (
+      <RCPaywall
+        style={{ flex: 1 }}
+        onPurchaseCompleted={async () => { await refresh(); router.back() }}
+        onRestoreCompleted={async () => { await refresh(); router.back() }}
+        onDismiss={() => router.back()}
+      />
+    )
+  }
 
   async function buy(pkg: PurchasePackage) {
     setBusy(true)
