@@ -21,9 +21,13 @@ export default async function handler(request: Request): Promise<Response> {
   try {
     if (request.method !== 'POST') return jsonResponse({ error: 'Method not allowed' }, 405)
 
+    // Fail closed: utan hemlighet vore endpointen en öppen dörr där vem som helst
+    // kunde POSTa ett app_user_id och ge sig själv Premium (user_id är bara ett
+    // auth-uid som användaren känner till). Saknas den ska vi vägra, inte släppa in.
     const secret = process.env.REVENUECAT_WEBHOOK_SECRET
+    if (!secret) return jsonResponse({ error: 'Webhook not configured' }, 500)
     const auth = request.headers.get('authorization') || ''
-    if (secret && auth !== secret && auth !== `Bearer ${secret}`) {
+    if (auth !== secret && auth !== `Bearer ${secret}`) {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
 
@@ -42,7 +46,18 @@ export default async function handler(request: Request): Promise<Response> {
       return jsonResponse({ ok: true, skipped: 'no app user' }, 200)
     }
 
-    const proUntil = ev.expiration_at_ms ? new Date(Number(ev.expiration_at_ms)).toISOString() : null
+    // Utan expiration_at_ms vet vi ingenting om giltighetstiden. Att skriva null
+    // vore att dra in Premium – och flera eventtyper saknar fältet (TRANSFER,
+    // SUBSCRIBER_ALIAS, SUBSCRIPTION_PAUSED), så en betalande kund skulle tappa
+    // åtkomsten av ett event som inte handlar om att prenumerationen upphört.
+    // Riktiga indragningar (EXPIRATION, REFUND) har fältet satt till en tidpunkt
+    // som passerat, så de går igenom nedan. Gäller så länge vi bara säljer
+    // auto-förnyande prenumerationer – en livstidsprodukt saknar också fältet.
+    if (!ev.expiration_at_ms) {
+      return jsonResponse({ ok: true, skipped: 'no expiration in event' }, 200)
+    }
+
+    const proUntil = new Date(Number(ev.expiration_at_ms)).toISOString()
     const row = {
       user_id: userId,
       pro_until: proUntil,
@@ -51,7 +66,7 @@ export default async function handler(request: Request): Promise<Response> {
     }
 
     // Upsert via PostgREST (merge på primärnyckeln user_id).
-    const res = await fetch(`${supabaseUrl}/rest/v1/entitlements`, {
+    const res = await fetch(`${supabaseUrl}/rest/v1/entitlements?on_conflict=user_id`, {
       method: 'POST',
       headers: {
         apikey: serviceKey,

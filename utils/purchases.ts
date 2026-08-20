@@ -37,14 +37,28 @@ export function tierAtLeast(tier: Tier, min: Tier): boolean { return TIER_RANK[t
 // Entitlement-namn i RevenueCat per nivå.
 const ENT_SINGLE = 'single', ENT_PARTNER = 'partner', ENT_FAMILY = 'family'
 
+// Slår upp ett aktivt entitlement skiftlägesokänsligt. RevenueCats id:n är
+// skiftlägeskänsliga i API:t, men det är lätt att råka skapa "Premium" i
+// dashboarden i stället för "premium" – och id:t går inte att döpa om i
+// efterhand. Ett sådant felstavat id skulle annars tyst ge gratis-läge trots
+// ett giltigt köp, vilket är det dyraste tänkbara felet i den här koden.
+function activeEntitlement(info: any, id: string): any {
+  const active = info?.entitlements?.active
+  if (!active) return null
+  const want = id.toLowerCase()
+  for (const key of Object.keys(active)) {
+    if (key.toLowerCase() === want) return active[key]
+  }
+  return null
+}
+
 // Högsta aktiva nivån ur RevenueCats customerInfo.
 export function tierFromInfo(info: any): Tier {
   try {
-    const active = info?.entitlements?.active || {}
-    if (active[ENT_FAMILY]) return 'family'
-    if (active[ENT_PARTNER]) return 'partner'
-    if (active[ENT_SINGLE]) return 'single'
-    if (active[PREMIUM_ENTITLEMENT]) return 'single' // ev. äldre enkel-entitlement
+    if (activeEntitlement(info, ENT_FAMILY)) return 'family'
+    if (activeEntitlement(info, ENT_PARTNER)) return 'partner'
+    if (activeEntitlement(info, ENT_SINGLE)) return 'single'
+    if (activeEntitlement(info, PREMIUM_ENTITLEMENT)) return 'single' // ev. äldre enkel-entitlement
   } catch { /* none */ }
   return 'none'
 }
@@ -62,6 +76,14 @@ export const purchasesAvailable = !!Purchases && !!API_KEY
 // RevenueCat-paywallen kan visas när både köp-SDK:t och UI-modulen finns.
 export const paywallUiAvailable = !!PurchasesUI && !!API_KEY
 
+// Diagnostik till paywall-skärmen: visar exakt vilken av de tre delarna som
+// saknas när RevenueCats egen paywall inte kan renderas. Nyckelns prefix
+// avslöjar typen: appl_ = App Store, goog_ = Google Play, test_ = RevenueCats
+// testbutik (inga riktiga App Store-produkter, inga skarpa köp).
+export const purchasesEnv =
+  `SDK: ${Purchases ? 'på' : 'AV'} · UI-modul: ${PurchasesUI ? 'på' : 'AV'} · ` +
+  `nyckel: ${API_KEY ? API_KEY.slice(0, 5) + '…' : 'saknas'}`
+
 export type PurchasePackage = { id: string; title: string; priceString: string; period?: string; raw: any }
 
 let configured = false
@@ -74,13 +96,13 @@ export function configurePurchases() {
 }
 
 export function isProFromInfo(info: any): boolean {
-  try { return !!info?.entitlements?.active?.[PREMIUM_ENTITLEMENT] } catch { return false }
+  try { return !!activeEntitlement(info, PREMIUM_ENTITLEMENT) } catch { return false }
 }
 
 // pro_until ur customerInfo (ISO-sträng) om det finns – används för att
 // spegla status lokalt tills webhooken hunnit skriva i databasen.
 export function proUntilFromInfo(info: any): string | null {
-  try { return info?.entitlements?.active?.[PREMIUM_ENTITLEMENT]?.expirationDate ?? null } catch { return null }
+  try { return activeEntitlement(info, PREMIUM_ENTITLEMENT)?.expirationDate ?? null } catch { return null }
 }
 
 export async function getCustomerInfo(): Promise<any | null> {

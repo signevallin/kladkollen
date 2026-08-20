@@ -8,7 +8,7 @@ import type { Theme } from '../theme/theme'
 import { useEntitlements } from '../utils/entitlements'
 import { useSettings } from '../utils/settings'
 import { showAlert } from '../utils/alert'
-import { PurchasesUI, paywallUiAvailable, type PurchasePackage } from '../utils/purchases'
+import { PurchasesUI, paywallUiAvailable, purchasesEnv, type PurchasePackage } from '../utils/purchases'
 
 const BENEFITS: { icon: any; text: string }[] = [
   { icon: 'sparkles-outline', text: 'Obegränsade AI-outfits' },
@@ -26,7 +26,12 @@ export default function Paywall() {
   // RevenueCats designade paywall (från deras editor). Visas när UI-modulen finns
   // och användaren inte redan är Premium; annars faller vi tillbaka på den egna
   // skärmen nedan (web/utan native, eller om ingen paywall är kopplad).
-  if (paywallUiAvailable && !isPro) {
+  //
+  // packages.length > 0 krävs: utan en *current offering* i RevenueCats dashboard
+  // renderar deras paywall ett tomt skelett och kastar upp en engelsk felruta
+  // ("The RevenueCat dashboard does not have a current offering configured") som
+  // användaren inte kan ta sig ur. Då är den egna skärmen nedan bättre.
+  if (paywallUiAvailable && !isPro && packages.length > 0) {
     const RCPaywall = PurchasesUI.Paywall
     return (
       <RCPaywall
@@ -92,12 +97,18 @@ export default function Paywall() {
         ) : (
           <View style={styles.soonBox}>
             <Text style={styles.soonText}>{tr('Premium går snart att köpa här.')}</Text>
-            {__DEV__ && (
-              <Text style={styles.debugText}>
-                {`SDK: ${purchasesAvailable ? 'på' : 'AV'} · RC-paywall-UI: ${paywallUiAvailable ? 'på' : 'AV (kräver native-bygge)'} · paket: ${packages.length}\n${purchasesDebug}`}
-              </Text>
-            )}
           </View>
+        )}
+
+        {/* Diagnostik. Den här skärmen är fallbacken – syns den alls betyder det
+            att RevenueCats egen paywall inte kunde renderas (UI-modulen saknas i
+            bygget, eller ingen API-nyckel). Raden säger vilket. Den visas även i
+            TestFlight/produktion, inte bara __DEV__, eftersom det är där
+            felsökningen sker – ta bort den inför App Store-release. */}
+        {!isPro && (
+          <Text style={styles.debugText}>
+            {`${purchasesEnv} · paket: ${packages.length}\n${purchasesDebug}`}
+          </Text>
         )}
 
         <TouchableOpacity style={styles.restoreBtn} onPress={onRestore} disabled={busy}>
