@@ -68,6 +68,7 @@ const MSG: Record<string, Record<string, string>> = {
     'right.title': 'Perfekt väder idag ({temp}°C) 🌤', 'right.body': 'Äntligen läge för din {desc} som legat orörd ett tag.',
     'forgot.title': 'Glömd skatt i garderoben ✨', 'forgot.body': 'Din {desc} {when}. Ska vi styla den idag?', 'forgot.whenNever': 'har aldrig burits', 'forgot.whenDays': 'har legat orörd i {d} dagar',
     'ootd.title': 'Dagens outfit väntar 👀', 'ootd.body': 'Öppna Skrud för ett outfitförslag anpassat efter vädret.',
+    'planned.title': 'Dagens outfit är planerad 👗', 'planned.body': '{name} står på schemat idag. Tryck för att se den.',
     'season.title': '{season} är här 🍂', 'season.body': 'Dags att arkivera förra säsongens plagg och lyfta fram de nya?',
     'from': 'från', 'Vår': 'Vår', 'Sommar': 'Sommar', 'Höst': 'Höst', 'Vinter': 'Vinter',
   },
@@ -79,6 +80,7 @@ const MSG: Record<string, Record<string, string>> = {
     'right.title': 'Perfect weather today ({temp}°C) 🌤', 'right.body': 'Finally the moment for your {desc} that’s been untouched for a while.',
     'forgot.title': 'Forgotten gem in your wardrobe ✨', 'forgot.body': 'Your {desc} {when}. Shall we style it today?', 'forgot.whenNever': 'has never been worn', 'forgot.whenDays': 'has been untouched for {d} days',
     'ootd.title': 'Today’s outfit awaits 👀', 'ootd.body': 'Open Skrud for an outfit suggestion tailored to the weather.',
+    'planned.title': 'Today’s outfit is planned 👗', 'planned.body': '{name} is on today’s schedule. Tap to see it.',
     'season.title': '{season} is here 🍂', 'season.body': 'Time to archive last season’s clothes and bring out the new?',
     'from': 'from', 'Vår': 'Spring', 'Sommar': 'Summer', 'Höst': 'Autumn', 'Vinter': 'Winter',
   },
@@ -90,6 +92,7 @@ const MSG: Record<string, Record<string, string>> = {
     'right.title': 'Perfektes Wetter heute ({temp}°C) 🌤', 'right.body': 'Endlich der Moment für deine {desc}, die schon eine Weile ungetragen ist.',
     'forgot.title': 'Vergessenes Schmuckstück im Schrank ✨', 'forgot.body': 'Deine {desc} {when}. Sollen wir sie heute stylen?', 'forgot.whenNever': 'wurde noch nie getragen', 'forgot.whenDays': 'ist seit {d} Tagen ungetragen',
     'ootd.title': 'Das heutige Outfit wartet 👀', 'ootd.body': 'Öffne Skrud für einen wettergerechten Outfit-Vorschlag.',
+    'planned.title': 'Das heutige Outfit ist geplant 👗', 'planned.body': '{name} steht heute auf dem Plan. Tippe, um es anzusehen.',
     'season.title': '{season} ist da 🍂', 'season.body': 'Zeit, die Teile der letzten Saison zu archivieren und die neuen hervorzuholen?',
     'from': 'von', 'Vår': 'Frühling', 'Sommar': 'Sommer', 'Höst': 'Herbst', 'Vinter': 'Winter',
   },
@@ -101,6 +104,7 @@ const MSG: Record<string, Record<string, string>> = {
     'right.title': 'Tiempo perfecto hoy ({temp}°C) 🌤', 'right.body': 'Por fin el momento para tu {desc}, que llevaba tiempo sin usarse.',
     'forgot.title': 'Tesoro olvidado en tu armario ✨', 'forgot.body': 'Tu {desc} {when}. ¿La combinamos hoy?', 'forgot.whenNever': 'nunca se ha usado', 'forgot.whenDays': 'lleva {d} días sin usarse',
     'ootd.title': 'El look de hoy te espera 👀', 'ootd.body': 'Abre Skrud para una sugerencia de look según el tiempo.',
+    'planned.title': 'El look de hoy está planificado 👗', 'planned.body': '{name} está en la agenda de hoy. Toca para verlo.',
     'season.title': '{season} ya está aquí 🍂', 'season.body': '¿Hora de archivar la ropa de la temporada pasada y sacar la nueva?',
     'from': 'de', 'Vår': 'Primavera', 'Sommar': 'Verano', 'Höst': 'Otoño', 'Vinter': 'Invierno',
   },
@@ -112,6 +116,7 @@ const MSG: Record<string, Record<string, string>> = {
     'right.title': 'Météo parfaite aujourd’hui ({temp}°C) 🌤', 'right.body': 'Enfin le moment pour ton {desc}, resté de côté un moment.',
     'forgot.title': 'Trésor oublié dans ta garde-robe ✨', 'forgot.body': 'Ton {desc} {when}. On le style aujourd’hui ?', 'forgot.whenNever': 'n’a jamais été porté', 'forgot.whenDays': 'est resté de côté depuis {d} jours',
     'ootd.title': 'La tenue du jour t’attend 👀', 'ootd.body': 'Ouvre Skrud pour une suggestion de tenue adaptée à la météo.',
+    'planned.title': 'La tenue du jour est planifiée 👗', 'planned.body': '{name} est au programme aujourd’hui. Touche pour la voir.',
     'season.title': '{season} est là 🍂', 'season.body': 'Le moment d’archiver les vêtements de la saison passée et de sortir les nouveaux ?',
     'from': 'de', 'Vår': 'Le printemps', 'Sommar': 'L’été', 'Höst': 'L’automne', 'Vinter': 'L’hiver',
   },
@@ -153,6 +158,7 @@ async function buildNotif(
   p: Profile,
   garments: Garment[],
   hasOutfitToday: boolean,
+  plannedOutfitName: string | null,
 ): Promise<Notif | null> {
   const prefs = p.notif_prefs || {}
   const lang = p.lang || 'sv' // notistexten översätts till användarens språk
@@ -176,6 +182,17 @@ async function buildNotif(
   }
 
   // ── Morgon ──
+  // Har användaren redan planerat dagens outfit i kalendern? Påminn om den och
+  // skriv ut vilken det är. Går före väder-/förslagsnotiser eftersom valet är gjort.
+  if (prefs.ootd && plannedOutfitName) {
+    return {
+      kind: 'planned',
+      title: t(lang, 'planned.title'),
+      body: t(lang, 'planned.body', { name: plannedOutfitName }),
+      route: '/my-outfit',
+    }
+  }
+
   const weather = (prefs.weather && p.push_lat != null && p.push_lon != null)
     ? await getWeather(p.push_lat, p.push_lon)
     : null
@@ -335,13 +352,42 @@ export default async function handler(request: Request): Promise<Response> {
     }
   }
 
+  // Morgon: hämta dagens planerade outfit (namn) per användare, så notisen kan
+  // skriva ut vad det är. Två steg (kalender → outfit-namn) för att slippa join.
+  const plannedByUser = new Map<string, string>()
+  if (slot === 'morning') {
+    const calRows: { user_id: string; outfit_id: string }[] = []
+    for (const idsChunk of chunk(ids, ID_CHUNK)) {
+      const { data: cal } = await admin
+        .from('outfit_calendar')
+        .select('user_id, outfit_id')
+        .in('user_id', idsChunk)
+        .eq('date', day)
+      for (const c of (cal || []) as { user_id: string; outfit_id: string | null }[]) {
+        if (c.outfit_id) calRows.push({ user_id: c.user_id, outfit_id: c.outfit_id })
+      }
+    }
+    if (calRows.length) {
+      const outfitIds = [...new Set(calRows.map(c => c.outfit_id))]
+      const nameById = new Map<string, string>()
+      for (const idsChunk of chunk(outfitIds, ID_CHUNK)) {
+        const { data: outs } = await admin.from('outfits').select('id, name').in('id', idsChunk)
+        for (const o of (outs || []) as { id: string; name: string | null }[]) if (o.name) nameById.set(o.id, o.name)
+      }
+      for (const c of calRows) {
+        const nm = nameById.get(c.outfit_id)
+        if (nm && !plannedByUser.has(c.user_id)) plannedByUser.set(c.user_id, nm)
+      }
+    }
+  }
+
   const messages: any[] = []
   // Samla vilka användare som fick vilken notistyp, så dedup-uppdateringen kan
   // göras som en fråga per notistyp (max ~8) i stället för en per användare.
   const notifiedByKind = new Map<string, string[]>()
 
   for (const p of candidates) {
-    const notif = await buildNotif(slot, p, garmentsByUser.get(p.id) || [], hasOutfitSet.has(p.id))
+    const notif = await buildNotif(slot, p, garmentsByUser.get(p.id) || [], hasOutfitSet.has(p.id), plannedByUser.get(p.id) || null)
     if (!notif) continue
 
     messages.push({
