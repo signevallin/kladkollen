@@ -1611,7 +1611,7 @@ function isPast(date: Date) {
               <View>
                 <View style={styles.tripHeaderCard}>
                   <Text style={styles.tripDest}>{dispTrip.destinationLabel}</Text>
-                  <Text style={styles.tripDates}>{dispTrip.dateLabel} · {dispTrip.days} dagar</Text>
+                  <Text style={styles.tripDates}>{dispTrip.dateLabel} · {dispTrip.days} {tr('dagar')}</Text>
                   {!!dispTrip.climateNote && <Text style={styles.tripClimate}>{dispTrip.climateNote}</Text>}
                 </View>
 
