@@ -34,6 +34,12 @@ export type Tier = 'none' | 'single' | 'partner' | 'family'
 export const TIER_RANK: Record<Tier, number> = { none: 0, single: 1, partner: 2, family: 3 }
 export function tierAtLeast(tier: Tier, min: Tier): boolean { return TIER_RANK[tier] >= TIER_RANK[min] }
 
+// Visningsnamn per nivå. Medvetet samma strängar som livssituations-pillren i
+// profilen, så de redan finns i i18n och inte behöver översättas på nytt.
+export const TIER_LABEL: Record<Tier, string> = {
+  none: '', single: 'Singel', partner: 'Partner', family: 'Familj',
+}
+
 // Entitlement-namn i RevenueCat per nivå.
 const ENT_SINGLE = 'single', ENT_PARTNER = 'partner', ENT_FAMILY = 'family'
 

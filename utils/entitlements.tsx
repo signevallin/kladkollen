@@ -83,6 +83,12 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
     }
     setTier(t)
     setIsPro(t !== 'none')
+    // Premium har obegränsat med AI-outfits. Sätt -1 direkt i stället för att
+    // fråga servern: RevenueCat vet om köpet omedelbart, medan ai_credits_left
+    // läser entitlements-tabellen som webhooken skriver några sekunder senare.
+    // Utan det här står "3 av 3 kvar" kvar på skärmen tills appen startas om.
+    // Serverns use_ai_credit är fortfarande den bindande kontrollen.
+    if (t !== 'none') { setCreditsLeft(-1); return }
     await readCredits()
   }, [readDbTier, readCredits])
 
@@ -111,8 +117,11 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   const purchase = useCallback(async (pkg: PurchasePackage) => {
     const res = await purchasePackage(pkg)
     if (res.ok && res.isPro) setIsPro(true)
-    // Webhooken skriver entitlements i databasen strax efter – läs om för säkerhets skull.
-    setTimeout(() => { refresh() }, 1500)
+    // Webhooken skriver entitlements i databasen några sekunder efter köpet – i
+    // ett skarpt sandbox-köp tog det 8 sekunder, alltså långt efter den enda
+    // omläsning som gjordes här förut. Läs om flera gånger med växande
+    // fördröjning så att nivån hinner dyka upp utan omstart av appen.
+    if (res.ok) for (const delay of [1500, 5000, 12000]) setTimeout(() => { refresh() }, delay)
     return { ok: res.ok, cancelled: res.cancelled, error: res.error }
   }, [refresh])
 

@@ -31,6 +31,7 @@ import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
 import { invalidateGarments } from '../utils/garmentsStore'
 import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
+import { TIER_LABEL } from '../utils/purchases'
 import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
@@ -694,9 +695,11 @@ export default function Profile() {
         {sectionHeader('premium', 'Skrud Premium')}
         {!collapsedSections.has('premium') && (
         <View style={styles.listCard}>
+          {/* Visa vilken nivå som gäller, inte bara "Aktiv" – en Partner-köpare
+              ska se "Partner" här, annars går det inte att se vad man betalar för. */}
           {renderRow('premium', 'Skrud Premium', {
             icon: 'workspace-premium',
-            value: isPro ? 'Aktiv' : 'Uppgradera',
+            value: isPro ? (TIER_LABEL[tier] || 'Aktiv') : 'Uppgradera',
             onPress: () => router.push('/paywall'),
           })}
         </View>
