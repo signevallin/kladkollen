@@ -14,7 +14,7 @@
         "EXPO_PUBLIC_API_URL": "https://kladkollen.vercel.app",
         "EXPO_PUBLIC_SUPABASE_URL": "https://kplapbfyetzeyplmllto.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_aefhw7c4tjSHqFeUAjWHag_yLkjBeLW",
-        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "test_QNVbQNguQDruwyAfspvpPEBhziI"
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_YcBOniGqJMxMZRksmqJKKqLJplr"
       }
     },
     "production": {
@@ -23,7 +23,7 @@
         "EXPO_PUBLIC_API_URL": "https://kladkollen.vercel.app",
         "EXPO_PUBLIC_SUPABASE_URL": "https://kplapbfyetzeyplmllto.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_aefhw7c4tjSHqFeUAjWHag_yLkjBeLW",
-        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "test_QNVbQNguQDruwyAfspvpPEBhziI"
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_YcBOniGqJMxMZRksmqJKKqLJplr"
       }
     }
   },
