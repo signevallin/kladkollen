@@ -542,7 +542,9 @@ export default function Home() {
 
       const { data: theirs } = await supabase.rpc('partner_garments', { target: partner.id })
       const myActive = garments.filter(g => !g.archived && !g.for_sale)
-      const parActive = (theirs || []).filter((g: any) => !g.archived && !g.for_sale)
+      // Bara partnerns EGNA plagg (person_id null) – partner_garments returnerar
+      // annars även deras barns plagg, som då kunde hamna i partnerns outfit.
+      const parActive = (theirs || []).filter((g: any) => !g.archived && !g.for_sale && g.person_id == null)
       if (myActive.length === 0 || parActive.length === 0) {
         showAlert(tr('För få plagg'), tr('Ni behöver båda ha plagg i garderoben.'))
         return
