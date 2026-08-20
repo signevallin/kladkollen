@@ -376,6 +376,8 @@ const enBySource: Dict = {
   'Dagen bjuder på träning': 'A workout’s on the agenda today',
   'Idag har du {n} sak inplanerad': 'You have {n} thing planned today',
   'Idag har du {n} saker inplanerade': 'You have {n} things planned today',
+  'Idag har du {event} inplanerat': 'You have {event} planned today',
+  'Idag: {event} + {n} till': 'Today: {event} + {n} more',
   'En ledig dag': 'A free day',
   'Fyll i ett namn!': 'Enter a name!',
   'är nu till salu!': 'is now for sale!',

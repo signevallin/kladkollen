@@ -5697,8 +5697,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_dependencies_expo_apple_authentication",
-      "community": 153,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -5708,8 +5708,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "expo_apple_authentication",
-      "community": 153,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -5741,8 +5741,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "package_dependencies_expo_background_task",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 153,
+      "community_name": "expo-background-task",
       "norm_label": "expo-background-task"
     },
     {
@@ -5752,8 +5752,8 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "expo_background_task",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 153,
+      "community_name": "expo-background-task",
       "norm_label": "expo-background-task"
     },
     {
@@ -9272,8 +9272,8 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "utils_constants_categories",
-      "community": 140,
-      "community_name": "constants.ts",
+      "community": 139,
+      "community_name": "CreateOutfitView.tsx",
       "norm_label": "categories"
     },
     {
@@ -9338,8 +9338,8 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "utils_constants_color_names",
-      "community": 139,
-      "community_name": "CreateOutfitView.tsx",
+      "community": 140,
+      "community_name": "constants.ts",
       "norm_label": "color_names"
     },
     {
@@ -9709,7 +9709,7 @@
       "label": "translations",
       "file_type": "code",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1303",
+      "source_location": "L1305",
       "_origin": "ast",
       "id": "utils_i18n_translations",
       "community": 37,
@@ -9720,7 +9720,7 @@
       "label": "translate()",
       "file_type": "code",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1305",
+      "source_location": "L1307",
       "_origin": "ast",
       "id": "utils_i18n_translate",
       "community": 15,
@@ -41122,7 +41122,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1305",
+      "source_location": "L1307",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_i18n",
@@ -41133,7 +41133,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "utils/i18n.ts",
-      "source_location": "L1303",
+      "source_location": "L1305",
       "weight": 1.0,
       "_origin": "ast",
       "source": "utils_i18n",
@@ -44049,5 +44049,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "1858826360e64a3629a6f05c4c08b7749e69638b"
+  "built_at_commit": "6a609c4842b55762f2a44fb309ba630809c3bc1f"
 }
