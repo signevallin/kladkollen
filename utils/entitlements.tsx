@@ -15,12 +15,12 @@ const WEEK_SECONDS = 7 * 24 * 60 * 60
 // barn, packa barnen) och gravid-/amningsläget ska ligga bakom sina egna nivåer
 // (partnerläget resp. familjeläget) NÄR de nivåindelade produkterna går att köpa.
 //
-// Tills dess (REQUIRE_*_TIER = false) räcker VALFRI betald nivå (Premium =
-// 'single') för att låsa upp dem, så de kan användas/testas – men gratis-
-// användare (tier 'none') ser dem inte. Sätt flaggan true vid lansering av
-// partner-/familjeprodukterna för att kräva rätt nivå.
-export const REQUIRE_PARTNER_TIER = false
-export const REQUIRE_FAMILY_TIER = false
+// Nu PÅSLAGET (true): partner- resp. familjefunktionerna kräver rätt nivå.
+// Kräver att RevenueCat-nivåerna finns som entitlements 'single'/'partner'/
+// 'family' (tierFromInfo läser dem). Sätt tillfälligt false igen om du behöver
+// testa utan att köpa.
+export const REQUIRE_PARTNER_TIER = true
+export const REQUIRE_FAMILY_TIER = true
 export function partnerFeaturesEnabled(tier: Tier): boolean {
   return REQUIRE_PARTNER_TIER ? tierAtLeast(tier, 'partner') : tier !== 'none'
 }
