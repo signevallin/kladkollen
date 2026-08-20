@@ -1,4 +1,4 @@
-import { Platform } from 'react-native'
+import { Platform, UIManager } from 'react-native'
 
 // Byggsäker wrapper runt RevenueCat (react-native-purchases). Modulen är native
 // och laddas skyddat, precis som Apple-inloggningen – så appen fungerar även
@@ -72,9 +72,19 @@ export function tierFromProductId(pid: string | null | undefined): Tier {
   return 'single' // känd betald produkt utan nivå-nyckel → minsta betalda nivå
 }
 
+// Att require:t av react-native-purchases-ui lyckas säger INGENTING om att
+// native-sidan är länkad – JS-paketet ligger alltid i bundlen. RevenueCatUI:s
+// egen kontroll är view managern 'Paywall'; saknas den kastar <Paywall> vid
+// montering, och den Objective-C-exceptionen kraschar hela appen (RN konverterar
+// den på modulkön i stället för JS-tråden och korrumperar Hermes heap). Vi gör
+// därför samma kontroll i förväg och faller tillbaka på vår egen skärm.
+const paywallViewLinked = (() => {
+  try { return !!UIManager.getViewManagerConfig?.('Paywall') } catch { return false }
+})()
+
 export const purchasesAvailable = !!Purchases && !!API_KEY
-// RevenueCat-paywallen kan visas när både köp-SDK:t och UI-modulen finns.
-export const paywallUiAvailable = !!PurchasesUI && !!API_KEY
+// RevenueCat-paywallen kan visas när köp-SDK:t, UI-modulen OCH dess native-vy finns.
+export const paywallUiAvailable = !!PurchasesUI && !!API_KEY && paywallViewLinked
 
 // Diagnostik till paywall-skärmen: visar exakt vilken av de tre delarna som
 // saknas när RevenueCats egen paywall inte kan renderas. Nyckelns prefix
@@ -82,6 +92,7 @@ export const paywallUiAvailable = !!PurchasesUI && !!API_KEY
 // testbutik (inga riktiga App Store-produkter, inga skarpa köp).
 export const purchasesEnv =
   `SDK: ${Purchases ? 'på' : 'AV'} · UI-modul: ${PurchasesUI ? 'på' : 'AV'} · ` +
+  `native-vy: ${paywallViewLinked ? 'på' : 'AV'} · ` +
   `nyckel: ${API_KEY ? API_KEY.slice(0, 5) + '…' : 'saknas'}`
 
 export type PurchasePackage = { id: string; title: string; priceString: string; period?: string; raw: any }
