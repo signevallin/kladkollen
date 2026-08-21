@@ -19,7 +19,7 @@ import {
 const TIERS: { tier: Exclude<Tier, 'none'>; name: string; perks: string[] }[] = [
   {
     tier: 'single', name: 'Singel',
-    perks: ['Obegränsade AI-outfits', 'Obegränsade packningar', 'Personlig färganalys', 'Djup garderobsstatistik'],
+    perks: ['Obegränsade AI-outfits och packningar', 'Personlig färganalys', 'Djup garderobsstatistik'],
   },
   {
     tier: 'partner', name: 'Partner',
