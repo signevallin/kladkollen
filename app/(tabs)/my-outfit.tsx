@@ -616,7 +616,19 @@ function isPast(date: Date) {
     return matchGarment(tripName(it))
   }
   // Gör om ett AI-namn till ett {id, name}-plagg (id null om det inte matchar).
-  const toTripItem = (name: string) => { const g = matchGarment(name); return { id: g?.id ?? null, name } }
+  // AI:n listar ibland plagg som inte finns i garderoben. Tidigare behölls namnet
+  // med id: null, så det hamnade i packlistan ändå – och att upptäcka kvällen
+  // före avresa att ett plagg på listan inte existerar är värdelöst, man kan
+  // inte skaffa det. Omatchade namn slängs därför, precis som barnens packlista
+  // redan gjorde. Namnet tas dessutom från garderoben, inte från AI:ns
+  // omskrivning, så användaren ser plagget hen känner igen.
+  type TripItem = { id: string; name: string }
+  const toTripItem = (name: string): TripItem | null => {
+    const g = matchGarment(name)
+    return g ? { id: g.id, name: g.name } : null
+  }
+  const toTripItems = (names: any): TripItem[] =>
+    (Array.isArray(names) ? names : []).map(toTripItem).filter((x): x is TripItem => !!x)
 
   // Bygger en kategorigrupperad lista av garderoben som AI:n kan packa ur.
   function buildTripGarmentList(list: any[]) {
@@ -696,8 +708,8 @@ function isPast(date: Date) {
         climateNote: parsed.climateNote || weather.summary || '',
         // Plagg lagras som { id, name } (id löst mot garderoben) för pålitlig
         // bild-/tvätt-/byt-hantering. extras är icke-plagg → rena strängar.
-        packingList: (Array.isArray(parsed.packingList) ? parsed.packingList : []).map(toTripItem),
-        outfits: (Array.isArray(parsed.outfits) ? parsed.outfits : []).map((o: any) => ({ ...o, items: (o.items || []).map(toTripItem) })),
+        packingList: toTripItems(parsed.packingList),
+        outfits: (Array.isArray(parsed.outfits) ? parsed.outfits : []).map((o: any) => ({ ...o, items: toTripItems(o.items) })),
         // Egna återkommande saker läggs alltid överst, sedan AI:ns förslag (utan dubbletter).
         extras: mergeExtras(savedExtras, Array.isArray(parsed.extras) ? parsed.extras : []),
         destinationLabel,
