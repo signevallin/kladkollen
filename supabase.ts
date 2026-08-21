@@ -11,7 +11,10 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     storage: Platform.OS === 'web' ? undefined : AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
+    // Ren webbmekanism: läser window.location. På native är den en no-op, och
+    // att lämna den true har lurat läsaren att tro att djuplänkade tokens
+    // plockas upp automatiskt – det gör de inte (se app/reset-password.tsx).
+    detectSessionInUrl: Platform.OS === 'web',
     flowType: 'pkce',
   },
 })

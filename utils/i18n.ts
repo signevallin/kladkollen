@@ -837,6 +837,8 @@ const enBySource: Dict = {
   'Lösenord': 'Password',
   'Logga in': 'Log in',
   'Glömt lösenord?': 'Forgot password?',
+  'Länken har gått ut eller är redan använd. Begär en ny återställningslänk från inloggningssidan.': 'The link has expired or has already been used. Request a new reset link from the login screen.',
+  'Till inloggningen': 'Go to login',
   'Fortsätt med Apple': 'Continue with Apple',
   'Fortsätt med Google': 'Continue with Google',
   'Fortsätt med e-post': 'Continue with email',

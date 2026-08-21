@@ -707,6 +707,8 @@
  "Lösenord": "Contraseña",
  "Logga in": "Iniciar sesión",
  "Glömt lösenord?": "¿Olvidaste la contraseña?",
+ "Länken har gått ut eller är redan använd. Begär en ny återställningslänk från inloggningssidan.": "El enlace ha caducado o ya se ha usado. Solicita uno nuevo desde la pantalla de inicio de sesión.",
+ "Till inloggningen": "Ir al inicio de sesión",
  "Fortsätt med Apple": "Continuar con Apple",
  "Fortsätt med Google": "Continuar con Google",
  "Har du redan ett konto? ": "¿Ya tienes una cuenta? ",
