@@ -26,7 +26,7 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths, renderGarmentGroups } from '../../utils/outfit'
+import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip } from '../../utils/outfit'
 import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
@@ -678,7 +678,12 @@ function isPast(date: Date) {
         return
       }
       const weather = await fetchTripWeather(geo.latitude, geo.longitude, tripStartDate, tripEndDate)
-      const groupedList = buildTripGarmentList(garments)
+      // Packa ur en garderob som passar destinationen, inte ur hela. En resa till
+      // 28 grader behöver inga vinterkappor i listan – det gör listan kortare OCH
+      // förslagen bättre, utan att kosta något extra.
+      const seasons = tripSeasons(weather.minTemp, weather.maxTemp)
+      const tripPool = filterForTrip(garments, seasons)
+      const groupedList = buildTripGarmentList(tripPool)
       const start = new Date(tripStartDate + 'T12:00:00')
       const end = new Date(tripEndDate + 'T12:00:00')
       const days = tripDayCount()
@@ -736,7 +741,8 @@ function isPast(date: Date) {
           try {
             const active = (all as any[]).filter(g => g.person_id === c.id && !g.archived && !g.in_laundry)
             const sized = active.filter(g => childSizeFits(g, c.current_size_cm ?? null))
-            const usePool = sized.length ? sized : active
+            const seasonal = filterForTrip(sized.length ? sized : active, seasons)
+            const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
             if (usePool.length === 0) continue
             const baby = isBabyChild(c.birthdate, c.current_size_cm ?? null)
             const cp = await apiPost('/api/pack-trip', {

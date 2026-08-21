@@ -22,6 +22,41 @@ export function seasonAppropriate(g: any, season: string): boolean {
   return s.includes(season)
 }
 
+// ── Säsongsfilter för resor ────────────────────────────────────────────────
+// Vilka av plaggens säsonger som är relevanta för destinationens temperaturspann.
+// Bygger på TEMPERATUR och inte på resans månad: juli i Australien är vinter, och
+// en månadsbaserad gissning hade packat fel åt halva jordklotet.
+//
+// Generöst tilltaget med flit – hellre ett plagg för mycket i listan än att
+// modellen står utan alternativ. Vår och Höst är samma temperaturband i praktiken
+// och följs därför åt.
+export function tripSeasons(minTemp?: number | null, maxTemp?: number | null): string[] | null {
+  const lo = typeof minTemp === 'number' ? minTemp : (typeof maxTemp === 'number' ? maxTemp : null)
+  const hi = typeof maxTemp === 'number' ? maxTemp : lo
+  if (lo == null || hi == null) return null
+  const out = new Set<string>()
+  if (lo <= 8) out.add('Vinter')
+  if (lo <= 18 && hi >= 8) { out.add('Vår'); out.add('Höst') }
+  if (hi >= 17) out.add('Sommar')
+  return out.size ? [...out] : null
+}
+
+// Filtrerar garderoben inför en resa. Kategorivis, och en kategori som skulle bli
+// HELT tom lämnas ofiltrerad: annars kunde en varm resa sluta utan enda par skor
+// i listan, och då hittar modellen på ett par – exakt det felet vi jagade.
+export function filterForTrip(garments: any[], seasons: string[] | null): any[] {
+  if (!seasons || !seasons.length) return garments
+  const byCat: Record<string, any[]> = {}
+  for (const g of garments) (byCat[g.category || 'Övrigt'] ||= []).push(g)
+
+  const out: any[] = []
+  for (const items of Object.values(byCat)) {
+    const keep = items.filter(g => seasons.some(s => seasonAppropriate(g, s)))
+    out.push(...(keep.length ? keep : items))
+  }
+  return out
+}
+
 // Ålder i månader från födelsedatum (null om okänt).
 export function ageMonths(birthdate: string | null | undefined): number | null {
   if (!birthdate) return null
