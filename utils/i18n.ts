@@ -837,6 +837,7 @@ const enBySource: Dict = {
   'Lösenord': 'Password',
   'Logga in': 'Log in',
   'Glömt lösenord?': 'Forgot password?',
+  'Byt språk': 'Change language',
   'Sista steget sker i Skrud-appen. Av säkerhetsskäl kan lösenordet bara bytas där du begärde länken.': 'The last step happens in the Skrud app. For security, the password can only be changed where you requested the link.',
   'Öppna i Skrud': 'Open in Skrud',
   'Kunde inte öppna Skrud': 'Couldn’t open Skrud',

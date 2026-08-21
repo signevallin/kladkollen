@@ -4,11 +4,13 @@ import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { StatusBar } from 'expo-status-bar'
 import * as WebBrowser from 'expo-web-browser'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet, Text,
@@ -20,6 +22,8 @@ import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-nati
 import { supabase } from '../supabase'
 import { showAlert } from '../utils/alert'
 import { useSettings } from '../utils/settings'
+import { useTheme } from '../theme/ThemeProvider'
+import { LANGS } from '../utils/i18n'
 import GoogleIcon from '../components/GoogleIcon'
 
 // Se till att en ev. öppnad auth-webbsession avslutas snyggt (OAuth-återhopp).
@@ -34,23 +38,48 @@ try { AppleAuthentication = require('expo-apple-authentication') } catch { Apple
 const LAST_METHOD_KEY = 'skrud.lastLoginMethod'
 type Method = 'google' | 'apple' | 'email'
 
-// Mörk, editorial palett – login-sidan har en egen fullskärmslook oavsett tema.
-const C = {
-  bg: '#181009',
-  ink: '#F6ECE2',
-  sub: '#CBB199',
-  pill: '#FFFFFF',
-  pillInk: '#1A120B',
-  gold: '#E4C39B',
+// Login har en egen fullskärmslook med egna färger – inte temats tokens, som är
+// gjorda för kort och listor mot en lugn bakgrund. Men den ska följa ljust/mörkt
+// läge, så paletten finns i två uppsättningar i stället för en hårdkodad mörk.
+//
+// Knapparna byter roll mellan lägena: mot mörk bakgrund är de ljusa, mot ljus
+// bakgrund mörkbruna. Vita knappar hade försvunnit rakt in i den ljusa ytan.
+type Palette = {
+  bg: string; ink: string; sub: string; pill: string; pillInk: string; gold: string
+  sheetBg: string; hairline: string; fieldBg: string; fieldBorder: string
 }
+
+const DARK: Palette = {
+  bg: '#181009', ink: '#F6ECE2', sub: '#CBB199',
+  pill: '#FFFFFF', pillInk: '#1A120B', gold: '#E4C39B',
+  sheetBg: '#241811', hairline: 'rgba(245,233,223,0.10)',
+  fieldBg: 'rgba(245,233,223,0.08)', fieldBorder: 'rgba(245,233,223,0.12)',
+}
+
+const LIGHT: Palette = {
+  bg: '#FEFAF8', ink: '#402D21', sub: '#6C4D38',
+  pill: '#402D21', pillInk: '#FEFAF8', gold: '#8C5A3C',
+  sheetBg: '#F8EADE', hairline: 'rgba(64,45,33,0.12)',
+  fieldBg: 'rgba(64,45,33,0.05)', fieldBorder: 'rgba(64,45,33,0.14)',
+}
+
 // Varma toner till collage-mosaiken bakom (fungerar som tygrutor utan foton).
-const TILES = ['#4A3120', '#8C5A3C', '#CFB59E', '#5E3E28', '#DBB48D', '#6C4D38', '#A9764F', '#3A2417']
+// Ljusa läget använder blekare toner så gradienten ovanpå kan vara ljus utan att
+// mosaiken blir gyttjig.
+const TILES_DARK = ['#4A3120', '#8C5A3C', '#CFB59E', '#5E3E28', '#DBB48D', '#6C4D38', '#A9764F', '#3A2417']
+const TILES_LIGHT = ['#EADFD3', '#DBB48D', '#CFB59E', '#F0E5DD', '#E7D8C9', '#D9C3AC', '#EFE2D4', '#E2CDB6']
 const COL_LEFT = [168, 220, 130, 196]
 const COL_RIGHT = [210, 138, 226, 150]
 const { width: SCREEN_W } = Dimensions.get('window')
 
 export default function Login() {
-  const { t: tr, lang } = useSettings()
+  const { t: tr, lang, setLang } = useSettings()
+  const theme = useTheme()
+  const isDark = theme.mode === 'dark'
+  const C = isDark ? DARK : LIGHT
+  const TILES = isDark ? TILES_DARK : TILES_LIGHT
+  const styles = useMemo(() => makeStyles(C), [C])
+  const [langOpen, setLangOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -240,7 +269,7 @@ export default function Login() {
 
   return (
     <View style={styles.root}>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       {/* Collage-mosaik i varma toner (bakgrund) */}
       <View style={styles.collage} pointerEvents="none">
@@ -272,7 +301,36 @@ export default function Login() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.topRow}>
           <Text style={styles.wordmark}>SKRUD</Text>
+          {/* Språkväljaren ligger absolut placerad så ordmärket förblir optiskt
+              centrerat oavsett hur brett språkets namn är. */}
+          <TouchableOpacity
+            style={styles.langBtn}
+            onPress={() => setLangOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={tr('Byt språk')}
+          >
+            <Ionicons name="globe-outline" size={15} color={C.ink} />
+            <Text style={styles.langBtnText}>{lang.toUpperCase()}</Text>
+          </TouchableOpacity>
         </View>
+
+        <Modal visible={langOpen} transparent animationType="fade" onRequestClose={() => setLangOpen(false)}>
+          <TouchableOpacity style={styles.langBackdrop} activeOpacity={1} onPress={() => setLangOpen(false)}>
+            <View style={styles.langSheet}>
+              <Text style={styles.langTitle}>{tr('Språk')}</Text>
+              {LANGS.map(l => (
+                <TouchableOpacity
+                  key={l.code}
+                  style={styles.langRow}
+                  onPress={() => { setLang(l.code); setLangOpen(false) }}
+                >
+                  <Text style={[styles.langLabel, l.code === lang && styles.langLabelActive]}>{l.label}</Text>
+                  {l.code === lang && <Ionicons name="checkmark" size={18} color={C.ink} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         {mode === 'providers' ? (
           <View style={styles.bottom}>
@@ -389,7 +447,7 @@ export default function Login() {
 
 const TILE_COL_W = (SCREEN_W - 30) / 2
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
 
   collage: { ...StyleSheet.absoluteFillObject, flexDirection: 'row', gap: 10, padding: 10, paddingTop: 40 },
@@ -397,7 +455,26 @@ const styles = StyleSheet.create({
   tile: { width: '100%', borderRadius: 18 },
 
   safe: { flex: 1, justifyContent: 'space-between' },
-  topRow: { alignItems: 'center', paddingTop: 12 },
+  topRow: { alignItems: 'center', justifyContent: 'center', paddingTop: 12 },
+
+  langBtn: {
+    position: 'absolute', right: 18, top: 8, flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999,
+    borderWidth: 1, borderColor: C.hairline, backgroundColor: C.fieldBg,
+  },
+  langBtnText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: C.ink, letterSpacing: 0.5 },
+  langBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', paddingHorizontal: 34 },
+  langSheet: { backgroundColor: C.sheetBg, borderRadius: 22, padding: 10, borderWidth: 1, borderColor: C.hairline },
+  langTitle: {
+    fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: C.sub, letterSpacing: 1.2,
+    textTransform: 'uppercase', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6,
+  },
+  langRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14,
+  },
+  langLabel: { fontFamily: 'Lora_400Regular', fontSize: 16, color: C.sub },
+  langLabelActive: { fontFamily: 'Poppins_600SemiBold', color: C.ink },
   wordmark: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: C.ink, letterSpacing: 6 },
 
   bottom: { paddingHorizontal: 22, paddingBottom: 12 },
@@ -427,11 +504,11 @@ const styles = StyleSheet.create({
   emailWrap: { flex: 1, justifyContent: 'flex-end' },
   emailScroll: { flexGrow: 1, justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: '#241811', borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    padding: 24, paddingBottom: 34, borderWidth: 1, borderColor: 'rgba(245,233,223,0.10)',
+    backgroundColor: C.sheetBg, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    padding: 24, paddingBottom: 34, borderWidth: 1, borderColor: C.hairline,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(245,233,223,0.08)',
+    width: 40, height: 40, borderRadius: 20, backgroundColor: C.fieldBg,
     alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
   sheetTitle: { fontFamily: 'Lora_500Medium', fontSize: 26, color: C.ink },
@@ -439,8 +516,8 @@ const styles = StyleSheet.create({
 
   label: { fontFamily: 'Poppins_600SemiBold', color: C.ink, fontSize: 13, marginTop: 10, marginBottom: 6 },
   input: {
-    fontFamily: 'Lora_400Regular', backgroundColor: 'rgba(245,233,223,0.08)', borderRadius: 14,
-    padding: 15, color: C.ink, fontSize: 16, borderWidth: 1, borderColor: 'rgba(245,233,223,0.12)',
+    fontFamily: 'Lora_400Regular', backgroundColor: C.fieldBg, borderRadius: 14,
+    padding: 15, color: C.ink, fontSize: 16, borderWidth: 1, borderColor: C.fieldBorder,
   },
   submit: {
     backgroundColor: C.pill, borderRadius: 28, height: 56, alignItems: 'center', justifyContent: 'center', marginTop: 20,
