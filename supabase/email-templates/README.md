@@ -47,11 +47,15 @@ metadatan började skickas – och OAuth-konton – saknar `lang` och får svens
 - **"gäller i en timme" / "valid for one hour"** speglar Email OTP Expiration
   (Authentication → Providers → Email), som är 3600 s som standard. Ändrar du
   den, ändra texten i båda språken.
-- **Ingen "samma enhet"-varning behövs.** Trots att klienten kör
-  `flowType: 'pkce'` skickar Supabase återställningslänken som *implicit flow* –
-  svaret är en 303 till `…#access_token=…&refresh_token=…`. Riktiga tokens, ingen
-  code verifier, alltså ingen enhetsbindning. (Verifierat genom att anropa
-  `/auth/v1/verify` med en ogiltig token och läsa Location-headern.)
+- **Länken är bunden till klienten som begärde den.** Supabase kör PKCE här och
+  redirectar till `…/reset-password?code=<uuid>`. Code verifier ligger i den
+  klientens lagring, så koden kan bara lösas in där begäran gjordes. Begärs den
+  i appen måste bytet ske i appen.
+
+  Obs: felsvar kommer alltid tillbaka som *fragment*
+  (`#error=…&error_code=otp_expired`) oavsett flöde. Att sondera med en ogiltig
+  token säger alltså ingenting om vilket flöde en giltig länk använder – det var
+  så jag först drog fel slutsats.
 
 ### Redirect – måste vara https, inte app-schemat
 Länken pekar på `https://kladkollen.vercel.app/reset-password`, som måste ligga i
@@ -62,9 +66,14 @@ redirect-målet, och Safari kan varken rendera ett custom scheme eller lämna ö
 till appen utan en användargest – resultatet blir en tom sida och användaren kommer
 aldrig vidare. Det var precis felet innan.
 
-https-sidan är Expo-webbygget (samma `app/reset-password.tsx`). Där är
-`detectSessionInUrl` sant, så supabase-js läser tokens ur fragmentet och sessionen
-finns när formuläret visas.
+https-sidan är Expo-webbygget (samma `app/reset-password.tsx`). Saknar den
+webbklienten en code verifier – vilket den gör när länken begärdes i appen –
+visar sidan i stället en "Öppna i Skrud"-knapp som djuplänkar vidare med koden.
+Knapptrycket är en användargest, och det är just vad iOS kräver för att öppna ett
+custom scheme; en redirect räcker inte.
+
+Sidan försöker medvetet INTE lösa in koden utan verifierare: ett misslyckat
+försök riskerar att bränna en engångskod.
 
 ### Att tänka på inför lansering
 - **Egen SMTP:** Supabases inbyggda mejltjänst har hård rate limit och generisk

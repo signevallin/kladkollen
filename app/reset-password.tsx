@@ -30,6 +30,15 @@ import { useSettings } from '../utils/settings'
 // Med flowType 'pkce' kommer länken som ?code=… och löses in med
 // exchangeCodeForSession. Äldre länkar (implicit flow) bär i stället
 // access_token/refresh_token – båda hanteras nedan.
+// supabase-js sparar PKCE-verifieraren i localStorage under en nyckel som slutar
+// på "code-verifier". Finns den inte har den här klienten inte begärt länken.
+function hasCodeVerifier(): boolean {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return false
+    return Object.keys(window.localStorage).some(k => k.includes('code-verifier'))
+  } catch { return false }
+}
+
 export default function ResetPassword() {
   const t = useTheme()
   const { t: tr } = useSettings()
@@ -54,7 +63,7 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
-  const [linkState, setLinkState] = useState<'checking' | 'ready' | 'invalid'>('checking')
+  const [linkState, setLinkState] = useState<'checking' | 'ready' | 'invalid' | 'openInApp'>('checking')
 
   useEffect(() => {
     let alive = true
@@ -64,6 +73,19 @@ export default function ResetPassword() {
         // t.ex. otp_expired när länken redan använts eller hunnit gå ut.
         const err = params.error_description || fragment?.error_description
         if (err) throw new Error(String(err))
+
+        // PKCE binder inlösen till klienten som BEGÄRDE länken: code verifier
+        // ligger i den klientens lagring. Begäran görs i appen, men Supabase
+        // redirectar till webbsidan (Safari kan inte lämna över till ett custom
+        // scheme från en redirect). Safari har alltså aldrig sett verifieraren.
+        //
+        // Försök därför inte lösa in koden här utan den – ett misslyckat försök
+        // riskerar bara att bränna en engångskod. Lämna i stället över till
+        // appen via ett knapptryck; en användargest får iOS att öppna schemat.
+        if (Platform.OS === 'web' && params.code && !hasCodeVerifier()) {
+          if (alive) setLinkState('openInApp')
+          return
+        }
 
         const access = params.access_token || fragment?.access_token
         const refresh = params.refresh_token || fragment?.refresh_token
@@ -86,6 +108,13 @@ export default function ResetPassword() {
     })()
     return () => { alive = false }
   }, [params.code, params.access_token, params.refresh_token, params.error_description, fragment])
+
+  function openInApp() {
+    const code = params.code ? `?code=${encodeURIComponent(String(params.code))}` : ''
+    Linking.openURL(`kladkollen://reset-password${code}`).catch(() => {
+      showAlert(tr('Kunde inte öppna Skrud'), tr('Öppna appen manuellt och begär en ny återställningslänk.'))
+    })
+  }
 
   async function updatePassword() {
     if (password.length < 8) {
@@ -122,6 +151,13 @@ export default function ResetPassword() {
 
         {linkState === 'checking' ? (
           <ActivityIndicator color={t.primary} />
+        ) : linkState === 'openInApp' ? (
+          <View style={styles.form}>
+            <Text style={styles.subtitle}>{tr('Sista steget sker i Skrud-appen. Av säkerhetsskäl kan lösenordet bara bytas där du begärde länken.')}</Text>
+            <TouchableOpacity style={styles.button} onPress={openInApp}>
+              <Text style={styles.buttonText}>{tr('Öppna i Skrud')}</Text>
+            </TouchableOpacity>
+          </View>
         ) : linkState === 'invalid' ? (
           <View style={styles.form}>
             <Text style={styles.subtitle}>{tr('Länken har gått ut eller är redan använd. Begär en ny återställningslänk från inloggningssidan.')}</Text>
