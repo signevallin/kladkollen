@@ -22,6 +22,28 @@ export function seasonAppropriate(g: any, season: string): boolean {
   return s.includes(season)
 }
 
+// Sovkläder ingår aldrig i en outfit – kategorin saknas med flit i categoryMap
+// ovan, man går inte till förskolan i pyjamas. Följden blev att packlistan
+// aldrig nämnde dem, eftersom AI:n bygger listan runt outfitsen. Men pyjamas är
+// bland det första en förälder packar.
+//
+// Matchar brett: kategorin heter "Sovkläder" i dagens data, men plagg importeras
+// också från butiker med egna benämningar.
+const SLEEPWEAR_RE = /sovkl(ä|a)der|nattkl(ä|a)der|pyjamas?|nattlinne|nattdr(ä|a)kt|sovdr(ä|a)kt|sparkdr(ä|a)kt|footie/i
+
+export function isSleepwear(g: any): boolean {
+  return SLEEPWEAR_RE.test([g?.category, g?.subcategory, g?.name].filter(Boolean).join(' '))
+}
+
+// Hur många sovplagg som är rimligt att packa för en resa. Ett ombyte per tre
+// dygn, minst ett – fler än så är sällan vad man vill släpa på.
+export function sleepwearForTrip(pool: any[], days: number, alreadyPacked: any[] = []): any[] {
+  const packed = new Set(alreadyPacked.map((p: any) => p?.id).filter(Boolean))
+  return pool
+    .filter(g => isSleepwear(g) && !packed.has(g.id))
+    .slice(0, Math.max(1, Math.ceil(days / 3)))
+}
+
 // ── Säsongsfilter för resor ────────────────────────────────────────────────
 // Vilka av plaggens säsonger som är relevanta för destinationens temperaturspann.
 // Bygger på TEMPERATUR och inte på resans månad: juli i Australien är vinter, och

@@ -26,7 +26,7 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip } from '../../utils/outfit'
+import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
 import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
@@ -770,6 +770,14 @@ function isPast(date: Date) {
                 .map(resolveInPool).filter(Boolean)
                 .map((g: any) => [g.id, { id: g.id, name: g.name, image_url: g.image_url || null }])
             ).values())
+            // Pyjamas kan aldrig hamna i en outfit (Sovkläder saknas med flit i
+            // outfit-kategorierna), så AI:n nämner dem aldrig i packlistan heller.
+            // Lägg till dem deterministiskt – det är bland det första en förälder
+            // packar, och att upptäcka att de saknas på plats är för sent.
+            const sleepwear = sleepwearForTrip(usePool, days, packingItems)
+              .map((g: any) => ({ id: g.id, name: g.name, image_url: g.image_url || null }))
+            packingItems.push(...sleepwear)
+
             // Tvättbara plagg-id:n (packlista + outfits) för "Lägg allt i tvätten".
             const outfitGarments = (Array.isArray(cp.outfits) ? cp.outfits.flatMap((o: any) => o.items || []) : []).map(resolveInPool)
             const garmentIds = Array.from(new Set(
