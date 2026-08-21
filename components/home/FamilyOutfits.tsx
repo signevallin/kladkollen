@@ -20,6 +20,8 @@ import { ageMonths,
   isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit,
 } from '../../utils/outfit'
 import { useSettings } from '../../utils/settings'
+import SongCard from '../SongCard'
+import { resolveSong, songHistory } from '../../utils/song'
 import { markOutfitLoggedToday } from '../../utils/smartPush'
 import { buildWeatherContext, childHeadwearRule, type WeatherInput } from '../../utils/weather'
 
@@ -52,16 +54,22 @@ function seasonalOrFull(pool: any[], season: string): any[] {
 
 function today(): string { return new Date().toISOString().split('T')[0] }
 
-export default function FamilyOutfits({ weather, disabled }: { weather: (WeatherInput & { emoji?: string }) | null; disabled?: boolean }) {
+export default function FamilyOutfits(
+  { weather, disabled, musicGenres = '' }:
+  { weather: (WeatherInput & { emoji?: string }) | null; disabled?: boolean; musicGenres?: string },
+) {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { t: tr, lang } = useSettings()
+  const { t: tr, lang, showDailySong } = useSettings()
   const { tier } = useEntitlements()
 
   const [members, setMembers] = useState<Member[]>([])
   const [myGarments, setMyGarments] = useState<any[]>([])
   const [childGarments, setChildGarments] = useState<Record<string, any[]>>({})
   const [results, setResults] = useState<Record<string, any>>({}) // key → { outfit } | { error }
+  // Dagens låt gäller HELA familjen – en låt för stunden, inte en per person.
+  // Fyra låtkort under varandra hade varit brus, och "Dagens låt" är singular.
+  const [song, setSong] = useState<any>(null)
   const [pools, setPools] = useState<Record<string, any[]>>({})   // key → plaggpool (för byt/lägg till)
   const [pending, setPending] = useState<Record<string, boolean>>({})
   const [running, setRunning] = useState(false)
@@ -122,7 +130,7 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
     resetMemberState(key)
   }
 
-  async function genForMember(m: Member, season: string, weatherCtx: { summary: string; rules: string; requiresOuterwear: boolean }) {
+  async function genForMember(m: Member, season: string, weatherCtx: { summary: string; rules: string; requiresOuterwear: boolean }, songHist: { avoidSongs: string; previousSong: string }) {
     let pool: any[] = []
     if (m.kind === 'me') pool = myGarments.filter(g => !g.archived && !g.in_laundry)
     else if (m.kind === 'partner' && m.partnerId) {
@@ -153,30 +161,38 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
     while (attempts < 3) {
       attempts++
       const base = { weatherSummary: ctx.summary, weatherRules: [ctx.rules, headwear].filter(Boolean).join(' '), season, groupedList, retry: attempts > 1, lang }
+      // Bara den vuxnes prompt kan ge en låt; barnprompten har inget song-fält.
+      // Därför bärs familjens låt av "mig"-genereringen.
+      const songFields = m.kind === 'child' || !showDailySong
+        ? { wantSong: false }
+        : { wantSong: true, musicGenres, avoidSongs: songHist.avoidSongs, previousSong: songHist.previousSong }
       const body = m.kind === 'child'
         ? { ...base, audience: 'child', childName: m.name, babyMode: baby }
-        : { ...base, contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)' }
+        : { ...base, ...songFields, contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)' }
       parsed = await apiPost('/api/generate-outfit', body)
       const { valid } = validateOutfit(parsed.items || [], scoped, ctx.requiresOuterwear, { requireShoes: !baby })
       if (valid) break
     }
     if (!parsed?.items?.length) return { error: tr('AI:n gav inget giltigt förslag – försök igen.') }
-    return { outfit: { ...parsed, itemsWithImages: dedupOutfitItems(matchItemsToPool(parsed.items, scoped), scoped) } }
+    return { outfit: { ...parsed, itemsWithImages: dedupOutfitItems(matchItemsToPool(parsed.items, scoped), scoped) }, rawSong: parsed.song }
   }
 
   async function generateAll() {
     if (running || disabled) return
     if (!familyFeaturesEnabled(tier)) { router.push('/paywall'); return }
     setRunning(true)
-    setResults({}); setSaved({}); setSavedId({}); setWorn({})
+    setResults({}); setSaved({}); setSavedId({}); setWorn({}); setSong(null)
     const season = getCurrentSeason()
     const weatherCtx = weather ? buildWeatherContext(weather, 3) : { summary: '', rules: '', requiresOuterwear: false }
+    const songHist = showDailySong ? await songHistory() : { avoidSongs: '', previousSong: '' }
+    let rawSong: any = null
     try {
       for (const m of members) {
         setPending(p => ({ ...p, [m.key]: true }))
         try {
-          const r = await genForMember(m, season, weatherCtx)
+          const r = await genForMember(m, season, weatherCtx, songHist)
           setResults(prev => ({ ...prev, [m.key]: r }))
+          if (!rawSong && r.rawSong) rawSong = r.rawSong
         } catch (e: any) {
           if (e?.code === 'quota_exceeded') { router.push('/paywall'); return }
           setResults(prev => ({ ...prev, [m.key]: { error: e?.message || tr('Något gick fel') } }))
@@ -186,6 +202,10 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
       }
     } finally {
       setRunning(false)
+    }
+    if (showDailySong && rawSong) {
+      const resolved = await resolveSong(rawSong)
+      if (resolved) setSong(resolved)
     }
   }
 
@@ -398,6 +418,7 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
               </View>
             )
           })}
+          {song && showDailySong && <SongCard song={song} />}
         </View>
       )}
 

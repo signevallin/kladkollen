@@ -26,6 +26,12 @@ export default async function handler(request: Request): Promise<Response> {
     const contextNote = clip(body.contextNote, 400)
     const season = clip(body.season, 20)
     const baseA = clip(body.baseA, 120)
+    // Dagens låt: hoppas över helt när användaren dolt den (Profil → Musik) –
+    // då slipper vi både tokens och ett svarsfält ingen tittar på.
+    const wantSong = body.wantSong !== false
+    const musicGenres = clip(body.musicGenres, 200)
+    const previousSong = clip(body.previousSong, 120)
+    const avoidSongs = clip(body.avoidSongs, 1500)
 
     if (!listA || !listB) return json({ error: 'Bådas garderober behövs' }, 400)
 
@@ -58,12 +64,22 @@ ${weatherRules ? `\nVÄDERREGLER (gäller BÅDA):\n${weatherRules}` : ''}
 ${styleRules ? `\nSTILREGLER (gäller BÅDA, väger tungt):\n${styleRules}` : ''}
 ${avoid ? `\nUNDVIK (respektera för båda): ${avoid}` : ''}
 
-${langInstruction(body.lang)} OBS: "items" och "borrowed" ska vara plaggens namn EXAKT som i garderoberna ovan (översätt dem INTE). Språkvalet gäller bara "vibe" och "tip".
+${wantSong ? `
+Föreslå också EN låt som matchar parets gemensamma känsla och kontexten. Välj en
+riktig, känd låt som går att hitta på Apple Music.
+LÅTREGLER:
+- VARIERA! Fastna inte i självklara klichéer. Överraska med olika artister och årtionden VARJE gång.
+- Låten ska matcha känslan i just "${contextLabel}" – välj INTE samma stämning oavsett tillfälle.
+${musicGenres ? `- Användaren lyssnar helst på: ${musicGenres}. Välj ENDAST en låt som hör hemma i någon av dessa genrer.` : '- Variera mellan olika genrer från gång till gång.'}
+${previousSong ? `- Du föreslog ALLDELES NYSS "${previousSong}". Det är FÖRBJUDET att föreslå den låten igen OCH förbjudet att välja en annan låt av samma artist.` : ''}
+${avoidSongs ? `- FÖRBJUDET att föreslå någon av dessa nyligen använda låtar eller en annan låt av samma artister: ${avoidSongs}` : ''}
+` : ''}
+${langInstruction(body.lang)} OBS: "items" och "borrowed" ska vara plaggens namn EXAKT som i garderoberna ovan (översätt dem INTE). Språkvalet gäller bara "vibe", "tip"${wantSong ? ' och "song.reason"' : ''}.
 
 Svara ENDAST med JSON, inga backticks:
-{"vibe":"1 mening om den gemensamma känslan","outfits":[{"person":"${nameA}","items":["exakt plaggnamn","..."],"borrowed":["ev. plagg lånat från partnern"]},{"person":"${nameB}","items":["..."],"borrowed":[]}],"tip":"kort parstyling-tips (1 mening)"}`
+{"vibe":"1 mening om den gemensamma känslan","outfits":[{"person":"${nameA}","items":["exakt plaggnamn","..."],"borrowed":["ev. plagg lånat från partnern"]},{"person":"${nameB}","items":["..."],"borrowed":[]}],"tip":"kort parstyling-tips (1 mening)"${wantSong ? ',"song":{"title":"låttitel","artist":"artist","reason":"kort varför den passar er känsla (max 1 mening)"}' : ''}}`
 
-    const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 700, 0.8)
+    const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, wantSong ? 820 : 700, 0.8)
     const parsed = parseAiJson(text)
     if (!Array.isArray(parsed.outfits)) return json({ error: 'AI:n gav ett ogiltigt svar' }, 502)
     parsed.outfits = parsed.outfits.map((o: any) => ({

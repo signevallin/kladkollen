@@ -25,6 +25,8 @@ export default async function handler(request: Request): Promise<Response> {
     const avoid = clip(body.avoid, 400)
     const feedback = clip(body.feedback, 800)
     const groupedList = clip(body.groupedList, 8000)
+    // Dagens låt kan vara avstängd (Profil → Musik) – be då inte om den alls.
+    const wantSong = body.wantSong !== false
     const season = clip(body.season, 20)
     const avoidSongs = clip(body.avoidSongs, 600)
     const previousSong = clip(body.previousSong, 120)
@@ -144,7 +146,7 @@ F. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stol
 ${styleRules ? `\nANVÄNDARENS EGNA STILREGLER – följ dessa NOGA, de väger tungt:\n${styleRules}` : ''}
 ${colorPalette ? `\nANVÄNDARENS PERSONLIGA FÄRGPALETT (från färganalysen) – väg in den tydligt:\n${colorPalette}\nVälj i första hand plagg vars färger ligger nära bas- och komplementfärgerna, och använd accentfärgerna som statement. Undvik "undvik"-färgerna när garderoben tillåter (tvinga dock inte fram en ofullständig outfit).` : ''}
 
-Föreslå också EN låt som matchar outfitens känsla och kontexten. Välj en riktig,
+${wantSong ? `Föreslå också EN låt som matchar outfitens känsla och kontexten. Välj en riktig,
 känd låt som går att hitta på Apple Music.
 LÅTREGLER:
 - VARIERA! Fastna inte i självklara klichéer (t.ex. Uptown Funk, Happy, Good as Hell).
@@ -153,12 +155,12 @@ LÅTREGLER:
   låta annorlunda än en för fest eller date. Välj INTE samma stämning oavsett tillfälle.
 ${musicGenres ? `- Användaren lyssnar helst på: ${musicGenres}. Välj ENDAST en låt som hör hemma i någon av dessa genrer.` : '- Variera mellan olika genrer från gång till gång.'}
 ${previousSong ? `- Du föreslog ALLDELES NYSS "${previousSong}". Det är FÖRBJUDET att föreslå den låten igen OCH förbjudet att välja en annan låt av samma artist – välj en HELT annan artist och en helt annan låt.` : ''}
-${avoidSongs ? `- FÖRBJUDET att föreslå någon av dessa nyligen använda låtar eller en annan låt av samma artister (välj en helt annan): ${avoidSongs}` : ''}
+${avoidSongs ? `- FÖRBJUDET att föreslå någon av dessa nyligen använda låtar eller en annan låt av samma artister (välj en helt annan): ${avoidSongs}` : ''}` : ''}
 
-${langInstruction(body.lang)} OBS: Fälten "items" ska ALLTID vara plaggens namn EXAKT som de står i garderobslistan ovan (översätt dem INTE) – språkvalet gäller bara den text du själv skapar: "outfitName", "message" och "song.reason".
+${langInstruction(body.lang)} OBS: Fälten "items" ska ALLTID vara plaggens namn EXAKT som de står i garderobslistan ovan (översätt dem INTE) – språkvalet gäller bara den text du själv skapar: "outfitName", "message"${wantSong ? ' och "song.reason"' : ''}.
 
 Svara ENDAST med JSON, inga backticks:
-{"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar).", "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}}`
+{"outfitName": "namn", "items": ["exakt plaggnamn 1", "exakt plaggnamn 2", "exakt plaggnamn 3"], "message": "Personligt, emotionellt budskap om looken (1–2 meningar)."${wantSong ? ', "song": {"title": "låttitel", "artist": "artist", "reason": "kort varför den passar dagens känsla (max 1 mening)"}' : ''}}`
 
     const text = await openaiChat([{ role: 'user', content: prompt }], OPENAI_MODEL, 350, 0.9)
     const parsed = parseAiJson(text)

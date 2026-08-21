@@ -30,6 +30,7 @@ import { loadPeople } from '../../utils/people'
 import OutfitShareCard from '../../components/OutfitShareCard'
 import SignedImage from '../../components/SignedImage'
 import SongCard from '../../components/SongCard'
+import { resolveSong, songHistory } from '../../utils/song'
 import FamilyOutfits from '../../components/home/FamilyOutfits'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
@@ -395,6 +396,7 @@ export default function Home() {
           recentOutfits: recentOutfitsStr,
           contextNote: contextNotes[ctx.label] || '',
           musicGenres,
+          wantSong: showDailySong,
           styleRules: STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n'),
           previousItems: attempts === 1 ? previousItems : '',
           retry: attempts > 1,
@@ -464,20 +466,11 @@ export default function Home() {
       outfitAnim.setValue(0)
       Animated.spring(outfitAnim, { toValue: 1, friction: 7, useNativeDriver: true }).start()
 
-      // Hämta matchande låt + Apple Music-preview (blockerar inte outfiten om det failar).
-      // Hoppas över helt om användaren dolt "Dagens låt" (Profil → Musik).
-      if (parsed.song?.title && showDailySong) {
-        // Minns låten (som "Titel – Artist") så vi undviker upprepning nästa
-        // gång – både samma låt och samma artist (senaste 50).
-        try {
-          const entry = parsed.song.artist ? `${parsed.song.title} – ${parsed.song.artist}` : parsed.song.title
-          const next = [entry, ...recentSongs.filter(s => s !== entry)].slice(0, 50)
-          await AsyncStorage.setItem(RECENT_SONGS_KEY, JSON.stringify(next))
-        } catch { /* ignorera */ }
-        try {
-          const { song } = await apiPost('/api/song-preview', { title: parsed.song.title, artist: parsed.song.artist })
-          if (song) setOutfit((prev: any) => prev ? { ...prev, song: { ...song, reason: parsed.song.reason } } : prev)
-        } catch { /* låten är bonus – ignorera fel */ }
+      // Dagens låt (blockerar inte outfiten om det failar). Hoppas över helt när
+      // användaren dolt den – då har vi heller inte bett AI:n om någon.
+      if (showDailySong) {
+        const song = await resolveSong(parsed.song)
+        if (song) setOutfit((prev: any) => prev ? { ...prev, song } : prev)
       }
 
     } catch (e: any) {
@@ -567,8 +560,12 @@ export default function Home() {
 
       const styleRules = STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n')
 
+      // Dagens låt gäller paret gemensamt – en låt, inte en per person.
+      const songHist = showDailySong ? await songHistory() : { avoidSongs: '', previousSong: '' }
       const parsed = await apiPost('/api/match-couple', {
         nameA: userName || tr('Jag'), nameB: partner.name,
+        wantSong: showDailySong, musicGenres,
+        avoidSongs: songHist.avoidSongs, previousSong: songHist.previousSong,
         // Min outfit: mina plagg + partnerns lånbara. Partnerns: sina + mina lånbara.
         listA: coupleList(mySeason, parLendable),
         listB: coupleList(parSeason, myLendable),
@@ -599,6 +596,11 @@ export default function Home() {
         borrowed: o.itemsWithImages.filter((i: any) => i.id && lentIds[oi].has(i.id)).map((i: any) => i.name),
       }))
       setCoupleOutfit({ ...parsed, outfits: withBorrowed, pools: [myPool, parPool], lentIds })
+
+      if (showDailySong) {
+        const song = await resolveSong(parsed.song)
+        if (song) setCoupleOutfit((prev: any) => prev ? { ...prev, song } : prev)
+      }
     } catch (e: any) {
       showAlert(tr('Något gick fel'), e.message)
     } finally {
@@ -1091,7 +1093,7 @@ export default function Home() {
         {/* Generera outfits för hela hushållet, direkt här. Bara i familjeläget
             (livssituation Familj + åtkomst). Egen komponent (state + inline-resultat). */}
         {familyModeOn && (partner || childCount > 0) && (
-          <FamilyOutfits weather={weather} disabled={loading || coupleLoading} />
+          <FamilyOutfits weather={weather} disabled={loading || coupleLoading} musicGenres={musicGenres} />
         )}
 
         {/* Outfit result */}
@@ -1260,6 +1262,7 @@ export default function Home() {
             {!!coupleOutfit.tip && (
               <View style={styles.messageBox}><Text style={styles.messageText}>{coupleOutfit.tip}</Text></View>
             )}
+            {coupleOutfit.song && showDailySong && <SongCard song={coupleOutfit.song} />}
             <View style={styles.outfitActions}>
               <TouchableOpacity
                 style={[styles.saveBtn, coupleSaved && styles.saveBtnDone]}
