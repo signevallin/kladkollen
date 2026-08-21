@@ -13,14 +13,6 @@ import { Platform } from 'react-native'
 let Purchases: any = null
 try { Purchases = require('react-native-purchases').default } catch { Purchases = null }
 
-// RevenueCats färdigdesignade paywall (byggd i RevenueCats editor). Kräver
-// native-modulen react-native-purchases-ui – laddas skyddat precis som ovan, så
-// appen bygger/kör även utan den (t.ex. web) och faller då tillbaka på den egna
-// paywall-skärmen. Renderas som <PurchasesUI.Paywall/> i app/paywall.tsx.
-let PurchasesUI: any = null
-try { PurchasesUI = require('react-native-purchases-ui').default } catch { PurchasesUI = null }
-export { PurchasesUI }
-
 const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || ''
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || ''
 const API_KEY = Platform.OS === 'android' ? ANDROID_KEY : IOS_KEY
@@ -79,18 +71,28 @@ export function tierFromProductId(pid: string | null | undefined): Tier {
 }
 
 export const purchasesAvailable = !!Purchases && !!API_KEY
-// RevenueCat-paywallen kan visas när både köp-SDK:t och UI-modulen finns.
-export const paywallUiAvailable = !!PurchasesUI && !!API_KEY
 
-// Diagnostik till paywall-skärmen: visar exakt vilken av de tre delarna som
-// saknas när RevenueCats egen paywall inte kan renderas. Nyckelns prefix
-// avslöjar typen: appl_ = App Store, goog_ = Google Play, test_ = RevenueCats
-// testbutik (inga riktiga App Store-produkter, inga skarpa köp).
+// Diagnostik till paywall-skärmen: visar vilken del som saknas när inga paket
+// kan hämtas. Nyckelns prefix avslöjar typen: appl_ = App Store, goog_ = Google
+// Play, test_ = RevenueCats testbutik (inga riktiga produkter, inga skarpa köp).
 export const purchasesEnv =
-  `SDK: ${Purchases ? 'på' : 'AV'} · UI-modul: ${PurchasesUI ? 'på' : 'AV'} · ` +
-  `nyckel: ${API_KEY ? API_KEY.slice(0, 5) + '…' : 'saknas'}`
+  `SDK: ${Purchases ? 'på' : 'AV'} · nyckel: ${API_KEY ? API_KEY.slice(0, 5) + '…' : 'saknas'}`
 
-export type PurchasePackage = { id: string; title: string; priceString: string; period?: string; raw: any }
+export type BillingPeriod = 'month' | 'year'
+
+// Perioden härleds ur produkt-id:t och INTE ur RevenueCats packageType: bara
+// $rc_monthly/$rc_annual rapporteras som MONTHLY/ANNUAL, medan egna paket-
+// identifierare (partner_annual, family_monthly …) kommer tillbaka som CUSTOM.
+export function periodFromProductId(pid: string | null | undefined): BillingPeriod | null {
+  const s = (pid || '').toLowerCase()
+  if (s.includes('year') || s.includes('annual')) return 'year'
+  if (s.includes('month')) return 'month'
+  return null
+}
+
+export type PurchasePackage = {
+  id: string; productId: string; title: string; priceString: string; price: number; period?: string; raw: any
+}
 
 let configured = false
 export function configurePurchases() {
@@ -133,8 +135,10 @@ export async function getPackages(): Promise<{ packages: PurchasePackage[]; debu
     if (!current) return { packages: [], debug: `ingen current offering (all: ${allCount})` }
     const packages: PurchasePackage[] = (current.availablePackages || []).map((p: any) => ({
       id: p.identifier,
+      productId: p.product?.identifier || '',
       title: p.product?.title || p.identifier,
       priceString: p.product?.priceString || '',
+      price: typeof p.product?.price === 'number' ? p.product.price : 0,
       period: p.packageType,
       raw: p,
     }))
