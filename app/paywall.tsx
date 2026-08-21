@@ -9,7 +9,7 @@ import { useEntitlements } from '../utils/entitlements'
 import { useSettings } from '../utils/settings'
 import { showAlert } from '../utils/alert'
 import {
-  periodFromProductId, purchasesEnv, tierFromProductId,
+  periodFromProductId, purchasesEnv, tierFromProductId, TIER_RANK,
   type BillingPeriod, type PurchasePackage, type Tier,
 } from '../utils/purchases'
 
@@ -35,7 +35,7 @@ export default function Paywall() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
-  const { packages, purchasesAvailable, isPro, purchase, restore, purchasesDebug } = useEntitlements()
+  const { packages, purchasesAvailable, isPro, tier, purchase, restore, purchasesDebug } = useEntitlements()
   const [busy, setBusy] = useState(false)
   const [period, setPeriod] = useState<BillingPeriod>('year')
 
@@ -103,12 +103,7 @@ export default function Paywall() {
         <Text style={styles.title}>{tr('Skrud Premium')}</Text>
         <Text style={styles.subtitle}>{tr('Lås upp hela din digitala garderob.')}</Text>
 
-        {isPro ? (
-          <View style={styles.activeBox}>
-            <Ionicons name="checkmark-circle" size={20} color={t.primary} />
-            <Text style={styles.activeText}>{tr('Du har Skrud Premium.')}</Text>
-          </View>
-        ) : rows.length > 0 ? (
+        {rows.length > 0 ? (
           <>
             {hasMonthly && hasYearly && (
               <View style={styles.periodSwitch}>
@@ -128,31 +123,58 @@ export default function Paywall() {
             )}
 
             <View style={styles.plans}>
-              {rows.map(row => (
-                <TouchableOpacity
-                  key={row.tier}
-                  style={[styles.plan, busy && styles.disabled]}
-                  onPress={() => buy(row.pkg)}
-                  disabled={busy}
-                >
-                  <View style={styles.planHead}>
-                    <Text style={styles.planTitle}>{tr(row.name)}</Text>
-                    <Text style={styles.planPrice}>
-                      {row.pkg.priceString}
-                      <Text style={styles.planPer}>{tr(shown === 'month' ? '/mån' : '/år')}</Text>
-                    </Text>
-                  </View>
-                  {row.perks.map(perk => (
-                    <View key={perk} style={styles.perkRow}>
-                      <Ionicons name="checkmark" size={15} color={t.primary} />
-                      <Text style={styles.perkText}>{tr(perk)}</Text>
+              {rows.map(row => {
+                // Den som redan betalar ska kunna gå uppåt. Tidigare doldes alla
+                // kort så fort isPro var sant, så en Partner-kund mötte en
+                // återvändsgräns och kunde inte nå Familj.
+                //
+                // Nedgradering erbjuds inte här: den hanteras av App Store och
+                // en knapp som råkar sänka någons nivå är värre än en som saknas.
+                const state = !isPro ? 'buy'
+                  : TIER_RANK[row.tier] === TIER_RANK[tier] ? 'current'
+                  : TIER_RANK[row.tier] > TIER_RANK[tier] ? 'upgrade'
+                  : 'included'
+                const locked = state === 'current' || state === 'included'
+                return (
+                  <TouchableOpacity
+                    key={row.tier}
+                    style={[styles.plan, (busy || locked) && styles.disabled]}
+                    onPress={() => buy(row.pkg)}
+                    disabled={busy || locked}
+                  >
+                    <View style={styles.planHead}>
+                      <View style={styles.planTitleWrap}>
+                        <Text style={styles.planTitle}>{tr(row.name)}</Text>
+                        {state !== 'buy' && (
+                          <Text style={[styles.badge, state === 'current' && styles.badgeCurrent]}>
+                            {tr(state === 'current' ? 'Din nivå' : state === 'upgrade' ? 'Uppgradera' : 'Ingår redan')}
+                          </Text>
+                        )}
+                      </View>
+                      <Text style={styles.planPrice}>
+                        {row.pkg.priceString}
+                        <Text style={styles.planPer}>{tr(shown === 'month' ? '/mån' : '/år')}</Text>
+                      </Text>
                     </View>
-                  ))}
-                </TouchableOpacity>
-              ))}
+                    {row.perks.map(perk => (
+                      <View key={perk} style={styles.perkRow}>
+                        <Ionicons name="checkmark" size={15} color={t.primary} />
+                        <Text style={styles.perkText}>{tr(perk)}</Text>
+                      </View>
+                    ))}
+                  </TouchableOpacity>
+                )
+              })}
               {busy && <ActivityIndicator color={t.primary} style={{ marginTop: 12 }} />}
             </View>
           </>
+        ) : isPro ? (
+          // Premium men inga paket att visa (offeringen nere) – bekräfta i alla
+          // fall statusen i stället för att antyda att köpet inte gått igenom.
+          <View style={styles.activeBox}>
+            <Ionicons name="checkmark-circle" size={20} color={t.primary} />
+            <Text style={styles.activeText}>{tr('Du har Skrud Premium.')}</Text>
+          </View>
         ) : purchasesAvailable && packages.length > 0 ? (
           // Reserv: offeringen ser inte ut som tre nivåer × två perioder (t.ex.
           // ommöblerad i RevenueCat). Lista paketen rakt av i stället för att
@@ -215,7 +237,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     backgroundColor: t.mode === 'dark' ? t.surface : '#F0E5DD',
     borderRadius: 18, padding: 18, borderWidth: 1, borderColor: t.border, gap: 8,
   },
-  planHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  planHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  planTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  badge: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: t.textSecondary, backgroundColor: t.surfaceMuted, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
+  badgeCurrent: { color: t.onPrimary, backgroundColor: t.primary },
   planTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 17, color: t.textPrimary },
   planPrice: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.primary },
   planPer: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint },

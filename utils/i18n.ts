@@ -853,6 +853,8 @@ const enBySource: Dict = {
   'Integritetspolicy': 'Privacy Policy',
   // Premium / paywall ('Aktiv' finns redan via outfit-kontexten)
   'Uppgradera': 'Upgrade',
+  'Din nivå': 'Your plan',
+  'Ingår redan': 'Already included',
   'Lås upp hela din digitala garderob.': 'Unlock your whole digital wardrobe.',
   'Obegränsade AI-outfits': 'Unlimited AI outfits',
   'Personlig färganalys': 'Personal colour analysis',
