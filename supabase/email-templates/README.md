@@ -38,6 +38,15 @@ Mejlet som skickas när någon trycker "Glömt lösenord?" i inloggningen
   ```
 - **Body:** klistra in hela innehållet i `reset-password.html`.
 - Behåll `{{ .ConfirmationURL }}` – utan den finns ingen väg till nytt lösenord.
+- Klistra in under fliken **Reset Password**, inte Confirm signup eller Magic
+  Link. Får du Supabases standardtext ("Follow this link to reset the password
+  for your user") är mallen inte sparad, eller sparad på fel flik.
+
+Språkraden är medvetet nil-säker (`{{ if .Data }}` + `index`). `.Data` är
+kontots `raw_user_meta_data`, och till skillnad från vid registrering kan den
+saknas helt här – OAuth-konton och konton skapade innan appen började skicka
+`lang`. Ett rakt `.Data.lang` kraschar Go-mallen då, och Supabase skickar
+ingenting alls.
 
 Samma språkval som bekräftelsemejlet: `.Data` är användarens
 `raw_user_meta_data`, satt vid registreringen. Konton som skapades innan
