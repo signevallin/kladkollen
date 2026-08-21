@@ -42,11 +42,19 @@ Mejlet som skickas när någon trycker "Glömt lösenord?" i inloggningen
   Link. Får du Supabases standardtext ("Follow this link to reset the password
   for your user") är mallen inte sparad, eller sparad på fel flik.
 
-Språkraden är medvetet nil-säker (`{{ if .Data }}` + `index`). `.Data` är
-kontots `raw_user_meta_data`, och till skillnad från vid registrering kan den
-saknas helt här – OAuth-konton och konton skapade innan appen började skicka
-`lang`. Ett rakt `.Data.lang` kraschar Go-mallen då, och Supabase skickar
-ingenting alls.
+### Mallen är byggd från confirm-signup.html med flit
+En tidigare version hade en nil-säker språkrad
+(`{{ $lang := "" }}{{ if .Data }}…`). Den gjorde att GoTrue tyst föll tillbaka på
+Supabases standardmall – mejlet kom fram, men som standardtext. Bekräftelsemallen
+med samma struktur fungerade hela tiden, så felet låg i det som skilde dem åt.
+
+Håll därför konstruktionerna identiska med `confirm-signup.html`. Behöver du
+ändra språkraden: verifiera med ett testutskick, för dashboarden sparar utan att
+klaga även när GoTrue inte kan rendera mallen.
+
+**Känd begränsning:** OAuth-konton saknar `lang` i `raw_user_meta_data` (den
+sätts bara av `signUp`). De får svenska. Att lösa det kräver en nil-säker
+språkrad, och den måste i så fall testas skarpt först.
 
 Samma språkval som bekräftelsemejlet: `.Data` är användarens
 `raw_user_meta_data`, satt vid registreringen. Konton som skapades innan
