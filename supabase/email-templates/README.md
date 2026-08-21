@@ -11,7 +11,7 @@ Bekräftelsemejlet som skickas när en ny användare registrerar sig.
 - **Ämnesrad (Subject):** klistra in den språkvillkorliga varianten så utländska
   användare får engelska:
   ```
-  {{ if or (eq .Data.lang "en") (eq .Data.lang "de") (eq .Data.lang "es") (eq .Data.lang "fr") }}Welcome to Skrud – confirm your email{{ else }}Välkommen till Skrud – bekräfta din e-post{{ end }}
+  {{ if ne (printf "%v" .Data.lang) "sv" }}Welcome to Skrud – confirm your email{{ else }}Välkommen till Skrud – bekräfta din e-post{{ end }}
   ```
 - **Body:** klistra in hela innehållet i `confirm-signup.html`.
 - Behåll `{{ .ConfirmationURL }}` (bekräftelselänken) – tas den bort kan
@@ -20,9 +20,19 @@ Bekräftelsemejlet som skickas när en ny användare registrerar sig.
 ### Språk (svenska/engelska)
 Mallen väljer språk via `{{ .Data.lang }}`, som sätts när appen anropar
 `supabase.auth.signUp(..., { options: { data: { lang } } })` (se `app/login.tsx`).
-Svenska är standard; är appspråket en/de/es/fr visas engelska (universellt för
-utländska användare). Vill du ha fullständig de/es/fr i mejlet får du lägga till
-fler `{{ else if eq .Data.lang "de" }}…`-grenar per textsträng.
+
+**Engelska är default.** Bara `lang == "sv"` ger svenska; allt annat – inklusive
+saknat värde – ger engelska. Det är avsiktligt: en användare vi inte vet något om
+förstår med större sannolikhet engelska än svenska.
+
+`printf "%v"` i språkraden är inte kosmetik. Saknas `lang` helt kraschar en rak
+`eq`-jämförelse mot nil, och GoTrue faller då tyst tillbaka på Supabases
+standardmall. `printf` gör om värdet till en sträng först, så jämförelsen alltid
+går att göra. Det gäller OAuth-konton, som aldrig går via `signUp` och därför
+saknar `lang`.
+
+Vill du ha fullständig de/es/fr får du lägga till fler
+`{{ else if eq .Data.lang "de" }}…`-grenar per textsträng.
 
 Gäller bara nya registreringar efter att metadatan börjat skickas; saknas
 `lang` (äldre flöden, OAuth) faller mallen tillbaka på svenska.
@@ -34,7 +44,7 @@ Mejlet som skickas när någon trycker "Glömt lösenord?" i inloggningen
 
 - **Ämnesrad (Subject):**
   ```
-  {{ if or (eq .Data.lang "en") (eq .Data.lang "de") (eq .Data.lang "es") (eq .Data.lang "fr") }}Reset your Skrud password{{ else }}Återställ ditt lösenord i Skrud{{ end }}
+  {{ if ne (printf "%v" .Data.lang) "sv" }}Reset your Skrud password{{ else }}Återställ ditt lösenord i Skrud{{ end }}
   ```
 - **Body:** klistra in hela innehållet i `reset-password.html`.
 - Behåll `{{ .ConfirmationURL }}` – utan den finns ingen väg till nytt lösenord.
@@ -52,13 +62,12 @@ Håll därför konstruktionerna identiska med `confirm-signup.html`. Behöver du
 ändra språkraden: verifiera med ett testutskick, för dashboarden sparar utan att
 klaga även när GoTrue inte kan rendera mallen.
 
-**Känd begränsning:** OAuth-konton saknar `lang` i `raw_user_meta_data` (den
-sätts bara av `signUp`). De får svenska. Att lösa det kräver en nil-säker
-språkrad, och den måste i så fall testas skarpt först.
+OAuth-konton saknar `lang` i `raw_user_meta_data` (den sätts bara av `signUp`)
+och får engelska via `printf`-varianten ovan.
 
 Samma språkval som bekräftelsemejlet: `.Data` är användarens
-`raw_user_meta_data`, satt vid registreringen. Konton som skapades innan
-metadatan började skickas – och OAuth-konton – saknar `lang` och får svenska.
+`raw_user_meta_data`, satt vid registreringen. Konton utan `lang` – OAuth-konton
+och äldre konton – får engelska.
 
 ### Två påståenden i mallen som måste stämma med inställningarna
 - **"gäller i en timme" / "valid for one hour"** speglar Email OTP Expiration
