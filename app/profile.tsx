@@ -526,7 +526,7 @@ export default function Profile() {
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity onPress={() => router.push('/paywall')}>
-                      <Text style={styles.rowValue}>{tr('Premium')}</Text>
+                      <Text style={styles.rowValue}>{tr('Partner Premium')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -544,7 +544,7 @@ export default function Profile() {
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity onPress={() => router.push('/paywall')}>
-                      <Text style={styles.rowValue}>{tr('Premium')}</Text>
+                      <Text style={styles.rowValue}>{tr('Partner Premium')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -581,8 +581,8 @@ export default function Profile() {
               </>
             ),
           })}
-          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: partnerOn ? undefined : 'Premium', onPress: () => router.push(partnerOn ? '/partner' : '/paywall') })}
-          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: familyOn ? undefined : 'Premium', onPress: () => router.push(familyOn ? '/family' : '/paywall') })}
+          {(lifeMode === 'couple' || lifeMode === 'family') && renderRow('partner', 'Min partner', { icon: 'people-outline', value: partnerOn ? undefined : 'Partner Premium', onPress: () => router.push(partnerOn ? '/partner' : '/paywall') })}
+          {lifeMode === 'family' && renderRow('familj', 'Familj & barn', { icon: 'family-restroom', value: familyOn ? undefined : 'Familj Premium', onPress: () => router.push(familyOn ? '/family' : '/paywall') })}
         </View>
         )}
 
