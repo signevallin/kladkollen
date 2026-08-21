@@ -53,6 +53,49 @@ export function childSizeFits(g: any, currentCm: number | null): boolean {
 
 // Bygger den grupperade garderobslistan som AI:n väljer ur. requiresOuterwear
 // styr bara ordvalet i ytterplagg-rubriken (väderdrivet).
+// Serialiserar kategorigrupperna till prompttext inom en teckenbudget.
+//
+// Servern klipper listan med ett rakt slice() vid 8000 tecken. En garderob på
+// ett par hundra plagg är längre än så, och eftersom grupperna skrivs i ordning
+// försvann de SISTA helt – i praktiken skor och accessoarer. Modellen fick
+// samtidigt regeln "varje outfit MÅSTE ha exakt ett par skor" och hittade då på
+// ett par som inte finns.
+//
+// Fördela därför budgeten runt-om mellan grupperna: ett plagg från varje grupp i
+// tur och ordning tills budgeten är slut. Då överlever alltid minst några skor,
+// oavsett hur många toppar garderoben råkar innehålla. Grupper som beskurits får
+// en rad som säger hur många som inte fick plats, så modellen vet att listan är
+// ett urval och inte hela sanningen.
+export function renderGarmentGroups(groups: Record<string, string[]>, budget = 7500): string {
+  const entries = Object.entries(groups).filter(([, items]) => items.length > 0)
+  if (!entries.length) return ''
+
+  const headerCost = entries.reduce((n, [g]) => n + g.length + 3, 0)
+  let left = budget - headerCost
+  const taken: Record<string, string[]> = {}
+  for (const [g] of entries) taken[g] = []
+
+  let round = 0, added = true
+  while (added && left > 0) {
+    added = false
+    for (const [g, items] of entries) {
+      if (round >= items.length) continue
+      const cost = items[round].length + 1
+      if (cost > left) continue
+      taken[g].push(items[round]); left -= cost; added = true
+    }
+    round++
+  }
+
+  return entries
+    .map(([g, items]) => {
+      const rest = items.length - taken[g].length
+      const more = rest > 0 ? `\n  … och ${rest} till i den här kategorin` : ''
+      return `${g}:\n${taken[g].join('\n')}${more}`
+    })
+    .join('\n\n')
+}
+
 export function buildGroupedGarmentList(garmentList: any[], requiresOuterwear: boolean): string {
   const outerwearLabel = requiresOuterwear
     ? 'YTTERPLAGG / KAVAJ – OBLIGATORISK pga vädret (välj 1 om tillgängligt)'
@@ -89,10 +132,7 @@ export function buildGroupedGarmentList(garmentList: any[], requiresOuterwear: b
       groups[group].push(`  • ${g.name}${meta ? ' (' + meta + ')' : ''}`)
     }
   }
-  return Object.entries(groups)
-    .filter(([, items]) => items.length > 0)
-    .map(([group, items]) => `${group}:\n${items.join('\n')}`)
-    .join('\n\n')
+  return renderGarmentGroups(groups)
 }
 
 // Validerar att ett förslag har de obligatoriska rollerna (skor + över-/nederdel

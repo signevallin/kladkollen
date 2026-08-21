@@ -26,7 +26,7 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths } from '../../utils/outfit'
+import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths, renderGarmentGroups } from '../../utils/outfit'
 import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
@@ -639,9 +639,12 @@ function isPast(date: Date) {
       const line = parts ? `${g.name} (${parts})` : g.name
       ;(byCat[cat] ||= []).push(line)
     }
-    return Object.entries(byCat)
-      .map(([cat, items]) => `${cat.toUpperCase()}:\n${items.map(i => '- ' + i).join('\n')}`)
-      .join('\n\n')
+    // Samma budgetfördelning som vardagsoutfitsen: utan den kapade servern de
+    // sista kategorierna helt, och här finns dessutom ingen fast ordning – vilken
+    // kategori som föll bort avgjordes av när plaggen råkade läggas till.
+    const prefixed: Record<string, string[]> = {}
+    for (const [cat, items] of Object.entries(byCat)) prefixed[cat.toUpperCase()] = items.map(i => '- ' + i)
+    return renderGarmentGroups(prefixed)
   }
 
   function handleTripDayPress(day: Date) {
