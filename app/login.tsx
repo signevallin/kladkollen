@@ -117,9 +117,14 @@ export default function Login() {
       return
     }
     try {
-      const redirectTo = Platform.OS === 'web'
-        ? `${window.location.origin}/reset-password`
-        : 'kladkollen://reset-password'
+      // Måste vara en https-adress, inte kladkollen://reset-password. Supabase
+      // svarar med en 303 till redirect-målet, och Safari kan varken rendera ett
+      // custom scheme eller lämna över till appen utan en användargest – man
+      // fick en tom sida och kom aldrig vidare. https-sidan laddar däremot, och
+      // eftersom återställningslänken kör implicit flow ligger tokens i URL:ens
+      // fragment där webbklientens detectSessionInUrl plockar upp dem.
+      const webBase = Platform.OS === 'web' ? window.location.origin : (process.env.EXPO_PUBLIC_API_URL || '')
+      const redirectTo = `${webBase}/reset-password`
       const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
       if (error) throw error
       showAlert(tr('Mail skickat!'), tr('Kolla din inkorg för en länk att återställa lösenordet.'))

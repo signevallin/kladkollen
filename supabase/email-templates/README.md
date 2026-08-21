@@ -47,15 +47,24 @@ metadatan började skickas – och OAuth-konton – saknar `lang` och får svens
 - **"gäller i en timme" / "valid for one hour"** speglar Email OTP Expiration
   (Authentication → Providers → Email), som är 3600 s som standard. Ändrar du
   den, ändra texten i båda språken.
-- **"öppna den på samma enhet"** följer av att klienten kör `flowType: 'pkce'`
-  (se `supabase.ts`). Code verifier ligger i enhetens AsyncStorage, så en länk
-  som begärts på telefonen fungerar inte om den öppnas på datorn. Byter ni bort
-  PKCE kan raden tas bort.
+- **Ingen "samma enhet"-varning behövs.** Trots att klienten kör
+  `flowType: 'pkce'` skickar Supabase återställningslänken som *implicit flow* –
+  svaret är en 303 till `…#access_token=…&refresh_token=…`. Riktiga tokens, ingen
+  code verifier, alltså ingen enhetsbindning. (Verifierat genom att anropa
+  `/auth/v1/verify` med en ogiltig token och läsa Location-headern.)
 
-### Redirect
-Länken pekar på `kladkollen://reset-password`, som måste ligga i Authentication
-→ URL Configuration → Redirect URLs. Appen upprättar sessionen själv i
-`app/reset-password.tsx`; `detectSessionInUrl` gör ingenting på native.
+### Redirect – måste vara https, inte app-schemat
+Länken pekar på `https://kladkollen.vercel.app/reset-password`, som måste ligga i
+Authentication → URL Configuration → Redirect URLs.
+
+Peka den INTE på `kladkollen://reset-password`. Supabase svarar med en 303 till
+redirect-målet, och Safari kan varken rendera ett custom scheme eller lämna över
+till appen utan en användargest – resultatet blir en tom sida och användaren kommer
+aldrig vidare. Det var precis felet innan.
+
+https-sidan är Expo-webbygget (samma `app/reset-password.tsx`). Där är
+`detectSessionInUrl` sant, så supabase-js läser tokens ur fragmentet och sessionen
+finns när formuläret visas.
 
 ### Att tänka på inför lansering
 - **Egen SMTP:** Supabases inbyggda mejltjänst har hård rate limit och generisk

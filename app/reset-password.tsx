@@ -1,7 +1,8 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
+import * as Linking from 'expo-linking'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -36,6 +37,20 @@ export default function ResetPassword() {
   const params = useLocalSearchParams<{
     code?: string; access_token?: string; refresh_token?: string; error_description?: string
   }>()
+  // Återställningslänken bär sina tokens i URL:ens FRAGMENT (#access_token=…),
+  // inte som query-parametrar – useLocalSearchParams ser aldrig fragment. På
+  // webben plockar detectSessionInUrl upp dem åt oss; öppnas skärmen i stället
+  // via en djuplänk måste vi läsa fragmentet själva.
+  const incomingUrl = Linking.useURL()
+  const fragment = useMemo(() => {
+    const raw = incomingUrl?.split('#')[1]
+    if (!raw) return null
+    const q = new URLSearchParams(raw)
+    return {
+      access_token: q.get('access_token'), refresh_token: q.get('refresh_token'),
+      error_description: q.get('error_description'),
+    }
+  }, [incomingUrl])
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,15 +62,18 @@ export default function ResetPassword() {
       try {
         // Supabase skickar tillbaka fel i URL:en i stället för att bara utebli,
         // t.ex. otp_expired när länken redan använts eller hunnit gå ut.
-        if (params.error_description) throw new Error(String(params.error_description))
+        const err = params.error_description || fragment?.error_description
+        if (err) throw new Error(String(err))
+
+        const access = params.access_token || fragment?.access_token
+        const refresh = params.refresh_token || fragment?.refresh_token
 
         if (params.code) {
           const { error } = await supabase.auth.exchangeCodeForSession(String(params.code))
           if (error) throw error
-        } else if (params.access_token && params.refresh_token) {
+        } else if (access && refresh) {
           const { error } = await supabase.auth.setSession({
-            access_token: String(params.access_token),
-            refresh_token: String(params.refresh_token),
+            access_token: String(access), refresh_token: String(refresh),
           })
           if (error) throw error
         }
@@ -67,7 +85,7 @@ export default function ResetPassword() {
       }
     })()
     return () => { alive = false }
-  }, [params.code, params.access_token, params.refresh_token, params.error_description])
+  }, [params.code, params.access_token, params.refresh_token, params.error_description, fragment])
 
   async function updatePassword() {
     if (password.length < 8) {
