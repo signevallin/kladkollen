@@ -32,17 +32,11 @@ import { CURRENCIES, useSettings } from '../utils/settings'
 import { invalidateGarments } from '../utils/garmentsStore'
 import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
 import { TIER_LABEL } from '../utils/purchases'
+import { COLD_LEVELS } from '../utils/weather'
 import { LANGS } from '../utils/i18n'
 
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 // Hur frusen användaren är – justerar hur AI:n tolkar temperaturen vid outfit-förslag.
-const COLD_LEVELS = [
-  { v: 1, label: 'Alltid varm' },
-  { v: 2, label: 'Sällan frusen' },
-  { v: 3, label: 'Lagom' },
-  { v: 4, label: 'Ofta frusen' },
-  { v: 5, label: 'Fryser lätt' },
-]
 const GENDERS = ['Kvinna', 'Man', 'Annat', 'Vill ej ange']
 const STIL_PROFIL = ['Minimal', 'Casual', 'Elegant', 'Sport', 'Bohemisk', 'Streetwear']
 const LIFESTYLE = ['Kontor', 'Hybridjobb', 'Fritid', 'Träning']

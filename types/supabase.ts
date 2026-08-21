@@ -569,6 +569,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           birthdate: string | null
+          cold_sensitivity: number
           created_at: string | null
           current_size_cm: number | null
           gender: string | null
@@ -581,6 +582,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           birthdate?: string | null
+          cold_sensitivity?: number
           created_at?: string | null
           current_size_cm?: number | null
           gender?: string | null
@@ -593,6 +595,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           birthdate?: string | null
+          cold_sensitivity?: number
           created_at?: string | null
           current_size_cm?: number | null
           gender?: string | null

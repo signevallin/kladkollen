@@ -133,3 +133,47 @@ export function buildWeatherContext(
 
   return { summary, rules: rules.join('\n'), requiresOuterwear }
 }
+
+// ── Köldkänslighet & mössa för barn ────────────────────────────────────────
+// Samma skala som för vuxna: 1–5 där 3 är lagom. Delas av profil och barn.
+export const COLD_LEVELS = [
+  { v: 1, label: 'Alltid varm' },
+  { v: 2, label: 'Sällan frusen' },
+  { v: 3, label: 'Lagom' },
+  { v: 4, label: 'Ofta frusen' },
+  { v: 5, label: 'Fryser lätt' },
+] as const
+
+// Under vilken temperatur ett barn behöver mössa. Små barn tappar värme via
+// huvudet betydligt snabbare än vuxna – därför ligger gränsen långt över noll
+// för de yngsta och sjunker med åldern.
+//
+// De tre första stegen är angivna av produktägaren. Stegen över ett år är
+// utfyllnad i samma anda och kan justeras utan att röra logiken.
+function headwearThreshold(months: number | null): number {
+  if (months == null) return 12
+  if (months < 3) return 20
+  if (months < 6) return 18
+  if (months < 12) return 15
+  if (months < 24) return 12
+  return 10
+}
+
+// Returnerar en promptregel när mössa behövs, annars tom sträng. Köldkänslighet
+// justerar den upplevda temperaturen precis som för vuxna, så ett lättfruset barn
+// får mössa vid en högre faktisk temperatur.
+export function childHeadwearRule(
+  months: number | null,
+  temp: number | null | undefined,
+  coldSensitivity = 3,
+): string {
+  if (typeof temp !== 'number' || Number.isNaN(temp)) return ''
+  const perceived = temp - (coldSensitivity - 3) * 2
+  const limit = headwearThreshold(months)
+  if (perceived >= limit) return ''
+  const age = months == null ? 'barnet' : `barnet är ${months} mån`
+  const thin = months != null && months < 12 ? ' Välj en TUNN mössa om garderoben har flera.' : ''
+  return `MÖSSA: ${age} och det känns som ${Math.round(perceived)}°C, vilket är under ${limit}°C. `
+    + `Outfiten MÅSTE innehålla en mössa om det finns en i garderoben.${thin} `
+    + `Mössan är en EGEN roll – den ersätter inte överdel, nederdel eller ytterlager och bryter inte dubblettregeln.`
+}

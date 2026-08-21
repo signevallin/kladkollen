@@ -11,9 +11,10 @@ import { apiPost } from '../utils/api'
 import { loadGarments } from '../utils/garmentsStore'
 import { goBack } from '../utils/nav'
 import { loadPeople, type Person } from '../utils/people'
+import { ageMonths } from '../utils/outfit'
 import { useSettings } from '../utils/settings'
 import { buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit } from '../utils/outfit'
-import { buildWeatherContext, summarizeDayForecast, type WeatherInput } from '../utils/weather'
+import { buildWeatherContext, childHeadwearRule, summarizeDayForecast, type WeatherInput } from '../utils/weather'
 
 // Dagens outfit för ett barn: en fristående, förenklad version av hemskärmens
 // generering. Barn stylas efter LOGISTIK, inte mode – rätt för vädret, bekvämt,
@@ -78,7 +79,11 @@ export default function ChildOutfit() {
     try {
       const season = getCurrentSeason()
       // Barn upplever inte köld annorlunda som standard → neutral känslighet (3).
-      const weatherCtx = weather ? buildWeatherContext(weather, 3) : { summary: '', rules: '', requiresOuterwear: false }
+      // Barnets egen köldkänslighet styr den upplevda temperaturen – syskon
+      // skiljer sig ofta åt, och för de minsta avgör den när mössa krävs.
+      const cold = child?.cold_sensitivity ?? 3
+      const weatherCtx = weather ? buildWeatherContext(weather, cold) : { summary: '', rules: '', requiresOuterwear: false }
+      const headwear = childHeadwearRule(ageMonths(child?.birthdate), weather?.temp, cold)
 
       // Filtrera på rätt storlek + säsong. Faller tillbaka bredare om urvalet blir
       // för smalt för en komplett outfit (skor + över-/nederdel eller klänning).
@@ -105,7 +110,7 @@ export default function ChildOutfit() {
           childName: name,
           babyMode: baby,
           weatherSummary: weatherCtx.summary,
-          weatherRules: weatherCtx.rules,
+          weatherRules: [weatherCtx.rules, headwear].filter(Boolean).join(' '),
           season,
           groupedList,
           previousItems: attempts === 1 ? previousItems : '',

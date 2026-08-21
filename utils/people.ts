@@ -11,6 +11,9 @@ export type Person = {
   current_size_cm: number | null
   size_updated_at: string | null
   avatar_url: string | null
+  // 1–5, 3 = lagom. Samma skala som profiles.cold_sensitivity. Justerar den
+  // upplevda temperaturen i outfit-genereringen – och därmed mössgränsen.
+  cold_sensitivity: number | null
   created_at: string
 }
 

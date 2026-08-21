@@ -39,6 +39,7 @@ import { captureError } from '../../utils/sentry'
 import { loadPartner } from '../../utils/household'
 import { geocodeDestination, fetchTripWeather, mirrorLocalTripToDb } from '../../utils/trip'
 import { useSettings } from '../../utils/settings'
+import { childHeadwearRule } from '../../utils/weather'
 import { localeFor } from '../../utils/i18n'
 import { markOutfitLoggedToday } from '../../utils/smartPush'
 
@@ -728,6 +729,11 @@ function isPast(date: Date) {
               weatherSummary: weather.summary, groupedList: buildTripGarmentList(usePool),
               vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, lang,
               childExtrasHint: childEssentialsHint(ageMonths(c.birthdate)),
+              // Samma mössregel som vardagsoutfitsen, annars packas mössan men
+              // används aldrig i reseoutfitsen – precis det glappet vi rättade.
+              // Resan spänner över flera dagar, så gränsen prövas mot resans
+              // KALLASTE temperatur och inte ett medelvärde.
+              childHeadwear: childHeadwearRule(ageMonths(c.birthdate), weather.minTemp ?? null, c.cold_sensitivity ?? 3),
             })
             const resolveInPool = (nm: string) => {
               const target = (nm || '').trim().toLowerCase()

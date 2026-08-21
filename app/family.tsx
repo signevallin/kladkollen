@@ -18,6 +18,7 @@ import { showConfirm, showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useQuery } from '../utils/useQuery'
 import { addChild, deletePerson, loadPeople, setChildSize, updatePerson, type Person } from '../utils/people'
+import { COLD_LEVELS } from '../utils/weather'
 import { pickImageSmart } from '../utils/imagePicker'
 import { uploadUserImage } from '../utils/storage'
 import { downscaleForUpload } from '../utils/image'
@@ -119,6 +120,11 @@ export default function Family() {
     try { await setChildSize(child.id, next); refetch() } catch { showAlert(tr('Kunde inte uppdatera storleken')) }
   }
 
+  async function setCold(child: Person, v: number) {
+    try { await updatePerson(child.id, { cold_sensitivity: v } as any); refetch() }
+    catch { showAlert(tr('Kunde inte spara')) }
+  }
+
   function removeChild(child: Person) {
     showConfirm(tr('Ta bort'), `${tr('Ta bort ur familjen?')} – ${child.name}`, async () => {
       try { await deletePerson(child.id); refetch() } catch { showAlert(tr('Kunde inte ta bort')) }
@@ -183,7 +189,8 @@ export default function Family() {
         <QueryState loading={loading} error={error} onRetry={refetch} isEmpty={children.length === 0}
           emptyText={tr('Inga barn tillagda än. Lägg till ditt första barn nedan.')}>
           {children.map(child => (
-            <View key={child.id} style={styles.childRow}>
+            <View key={child.id} style={styles.childCard}>
+              <View style={styles.childRow}>
               <TouchableOpacity
                 onPress={() => changePhoto(child)}
                 activeOpacity={0.8}
@@ -220,6 +227,29 @@ export default function Family() {
               <TouchableOpacity onPress={() => removeChild(child)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Text style={styles.remove}>✕</Text>
               </TouchableOpacity>
+              </View>
+
+              {/* Köldkänslighet per barn. Syskon skiljer sig ofta rejält, och för
+                  de minsta avgör den dessutom när mössa läggs till automatiskt. */}
+              <View style={styles.coldRow}>
+                <Text style={styles.coldLabel}>{tr('Frusen')}</Text>
+                <View style={styles.coldPills}>
+                  {COLD_LEVELS.map(l => {
+                    const active = (child.cold_sensitivity ?? 3) === l.v
+                    return (
+                      <TouchableOpacity
+                        key={l.v}
+                        style={[styles.coldPill, active && styles.coldPillActive]}
+                        onPress={() => setCold(child, l.v)}
+                        accessibilityLabel={tr(l.label)}
+                      >
+                        <Text style={[styles.coldPillText, active && styles.coldPillTextActive]}>{l.v}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+                <Text style={styles.coldValue}>{tr(COLD_LEVELS.find(l => l.v === (child.cold_sensitivity ?? 3))!.label)}</Text>
+              </View>
             </View>
           ))}
         </QueryState>
@@ -326,7 +356,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   reminderBadgeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 11, color: t.textSecondary },
   reminderBadgeTextReady: { color: t.onPrimary },
 
-  childRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: t.border },
+  childCard: { backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: t.border },
+  childRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   childAvatar: { width: 48, height: 48, borderRadius: 24 },
   childAvatarEmpty: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   childAvatarBadge: { position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.surfaceMuted },
@@ -342,6 +373,18 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   sizeValue: { alignItems: 'center', minWidth: 34 },
   sizeNum: { fontFamily: 'Poppins_700Bold', fontSize: 16, color: t.textPrimary },
   sizeUnit: { fontFamily: 'Lora_400Regular', fontSize: 10, color: t.textSecondary },
+  coldRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
+  coldLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
+  coldPills: { flexDirection: 'row', gap: 5 },
+  coldPill: {
+    width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border,
+  },
+  coldPillActive: { backgroundColor: t.primary, borderColor: t.primary },
+  coldPillText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
+  coldPillTextActive: { color: t.onPrimary },
+  coldValue: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, flexShrink: 1 },
+
   remove: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.textSecondary, marginLeft: 2 },
 
   addBox: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: t.border, marginTop: 12 },

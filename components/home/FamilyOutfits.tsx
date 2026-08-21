@@ -15,13 +15,13 @@ import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements
 import { loadGarments } from '../../utils/garmentsStore'
 import { loadPartner } from '../../utils/household'
 import { loadPeople, type Person } from '../../utils/people'
-import {
+import { ageMonths,
   buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason,
   isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit,
 } from '../../utils/outfit'
 import { useSettings } from '../../utils/settings'
 import { markOutfitLoggedToday } from '../../utils/smartPush'
-import { buildWeatherContext, type WeatherInput } from '../../utils/weather'
+import { buildWeatherContext, childHeadwearRule, type WeatherInput } from '../../utils/weather'
 
 // "Generera outfits för familjen": klär hela hushållet efter dagens väder direkt
 // på hemskärmen. Varje medlem kan – precis som singel-/par-flödet – byta ut
@@ -137,21 +137,27 @@ export default function FamilyOutfits({ weather, disabled }: { weather: (Weather
     }
 
     const baby = m.kind === 'child' && isBabyChild(m.person?.birthdate, m.person?.current_size_cm ?? null)
+    // Egen upplevd temperatur per medlem: barn har köldkänslighet på sin
+    // people-rad, vuxna kör lagom. Därför byggs kontexten här och inte en gång
+    // för hela familjen – annars hade alla delat samma känsla för vädret.
+    const cold = m.kind === 'child' ? (m.person?.cold_sensitivity ?? 3) : 3
+    const ctx = weather ? buildWeatherContext(weather, cold) : weatherCtx
+    const headwear = m.kind === 'child' ? childHeadwearRule(ageMonths(m.person?.birthdate), weather?.temp, cold) : ''
     const scoped = seasonalOrFull(pool, season)
     setPools(prev => ({ ...prev, [m.key]: scoped }))
     if (scoped.length === 0) return { error: tr('För få plagg i garderoben.') }
 
-    const groupedList = buildGroupedGarmentList(scoped, weatherCtx.requiresOuterwear)
+    const groupedList = buildGroupedGarmentList(scoped, ctx.requiresOuterwear)
     let parsed: any = null
     let attempts = 0
     while (attempts < 3) {
       attempts++
-      const base = { weatherSummary: weatherCtx.summary, weatherRules: weatherCtx.rules, season, groupedList, retry: attempts > 1, lang }
+      const base = { weatherSummary: ctx.summary, weatherRules: [ctx.rules, headwear].filter(Boolean).join(' '), season, groupedList, retry: attempts > 1, lang }
       const body = m.kind === 'child'
         ? { ...base, audience: 'child', childName: m.name, babyMode: baby }
         : { ...base, contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)' }
       parsed = await apiPost('/api/generate-outfit', body)
-      const { valid } = validateOutfit(parsed.items || [], scoped, weatherCtx.requiresOuterwear, { requireShoes: !baby })
+      const { valid } = validateOutfit(parsed.items || [], scoped, ctx.requiresOuterwear, { requireShoes: !baby })
       if (valid) break
     }
     if (!parsed?.items?.length) return { error: tr('AI:n gav inget giltigt förslag – försök igen.') }
