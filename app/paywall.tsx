@@ -208,7 +208,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   periodTextActive: { color: t.bg },
 
   plans: { gap: 12 },
-  plan: { backgroundColor: t.surface, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: t.border, gap: 8 },
+  // Nivåkorten har en egen, varmare ton än vanliga kort (t.surface är #F8EADE)
+  // så att de sticker ut som det man ska välja mellan. Literalen gäller bara
+  // ljust läge – i mörkt läge vore en ljus beige yta oläsbar mot ljus text.
+  plan: {
+    backgroundColor: t.mode === 'dark' ? t.surface : '#F0E5DD',
+    borderRadius: 18, padding: 18, borderWidth: 1, borderColor: t.border, gap: 8,
+  },
   planHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   planTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 17, color: t.textPrimary },
   planPrice: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.primary },
