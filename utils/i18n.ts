@@ -297,6 +297,7 @@ const enBySource: Dict = {
   'Sovsäck': 'Sleep sack', 'Morgonrock': 'Dressing gown', 'Trosor': 'Knickers',
   'Kalsonger': 'Boxers', 'Strumpor': 'Socks', 'Strumpbyxor': 'Tights', 'Tights': 'Tights',
   'Baddräkt': 'Swimsuit', 'Badbyxor': 'Swim trunks', 'UV-tröja': 'UV top',
+  'Bikini': 'Bikini',
   'Blöjbadbyxa': 'Swim nappy', 'Sandaler': 'Sandals', 'Ballerinaskor': 'Ballet flats',
   'Seglarskor': 'Boat shoes', 'Gummistövlar': 'Wellies', 'Stövlar': 'Boots', 'Tofflor': 'Slippers',
   'Handväska': 'Handbag', 'Ryggsäck': 'Backpack', 'Kuvertväska': 'Clutch', 'Halsduk': 'Scarf',

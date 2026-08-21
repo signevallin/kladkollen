@@ -18,7 +18,7 @@ export const SUBCATEGORIES: Record<string, string[]> = {
   'Ytterkläder': ['Kappa', 'Vinterjacka', 'Regnrock', 'Trenchcoat', 'Pufferjacka', 'Läderjacka', 'Dunjacka', 'Täckoverall', 'Skaloverall', 'Regnställ', 'Regnbyxor', 'Fleecetröja'],
   'Sovkläder': ['Pyjamas', 'Nattlinne', 'Pyjamasoverall', 'Sovsäck', 'Morgonrock'],
   'Underkläder': ['Body', 'Trosor', 'Kalsonger', 'Linne', 'Strumpor', 'Strumpbyxor', 'Tights'],
-  'Badkläder': ['Baddräkt', 'Badbyxor', 'UV-tröja', 'Blöjbadbyxa'],
+  'Badkläder': ['Baddräkt', 'Bikini', 'Badbyxor', 'UV-tröja', 'Blöjbadbyxa'],
   'Skor': ['Sneakers', 'Boots', 'Pumps', 'Sandaler', 'Loafers', 'Ballerinaskor', 'Seglarskor', 'Gummistövlar', 'Stövlar', 'Tofflor'],
   'Väskor': ['Handväska', 'Ryggsäck', 'Tote bag', 'Kuvertväska', 'Crossbody'],
   'Accessoarer': ['Halsduk', 'Sjal', 'Bälte', 'Hatt', 'Keps', 'Mössa', 'Solglasögon', 'Håraccessoarer'],
