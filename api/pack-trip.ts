@@ -1,4 +1,4 @@
-import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPENAI_MODEL } from './_utils'
+import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, useAiCredit, OPENAI_MODEL } from './_utils'
 
 export const config = { runtime: 'edge' }
 
@@ -21,6 +21,14 @@ export default async function handler(request: Request): Promise<Response> {
     // audience 'child' → packa till ett barn (bekvämt/praktiskt/väderanpassat före
     // mode; bebisar behöver inga skor). Default 'adult'.
     const audience = body.audience === 'child' ? 'child' : 'adult'
+
+    // Freemium: gratis-användare får ett fåtal packningar per vecka, Premium är
+    // obegränsat. Kvoten dras BARA på vuxenanropet – en familjeresa gör ett
+    // extra anrop per barn, och de hör till samma packning. Klienten anropar
+    // alltid vuxenvägen först, så en resa kostar exakt en kredit.
+    if (audience === 'adult' && !(await useAiCredit(request, 'trip'))) {
+      return json({ error: 'Gratiskvoten för packningar är slut den här veckan.', code: 'quota_exceeded' }, 402)
+    }
     const childName = clip(body.childName, 40)
     const babyMode = body.babyMode === true
     // Åldersanpassade förnödenheter (klienten bygger texten utifrån barnets ålder).

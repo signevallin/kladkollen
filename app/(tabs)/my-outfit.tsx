@@ -27,7 +27,7 @@ import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
 import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip } from '../../utils/outfit'
-import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
+import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
@@ -78,7 +78,7 @@ export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang, useColorAnalysis } = useSettings()
-  const { tier } = useEntitlements()
+  const { tier, tripCreditsLeft } = useEntitlements()
   const locale = localeFor(lang)
   const { tab, create, partner, partnerName, person, personName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string; person?: string; personName?: string }>()
   // Partner-läge: visa partnerns outfits (läsläge) i stället för mina egna.
@@ -803,6 +803,9 @@ function isPast(date: Date) {
       // Spegla resan till databasen så en ev. sambo kan se den (read-only).
       await syncLocalTripToDb()
     } catch (e: any) {
+      // Gratiskvoten slut → paywall i stället för ett generiskt fel, samma
+      // mönster som outfit-genereringen på hemskärmen.
+      if (e?.code === 'quota_exceeded') { router.push('/paywall'); return }
       showAlert(tr('Något gick fel'), e.message)
     } finally {
       setTripLoading(false)
@@ -1632,6 +1635,16 @@ function isPast(date: Date) {
                     : <Text style={styles.tripGenBtnText}>{tr('Planera resan')}</Text>}
                 </TouchableOpacity>
                 {tripLoading && <Text style={styles.tripLoadingHint}>{tr('Kollar vädret och packar väskan…')}</Text>}
+                {/* Gratis-kvot för packningar: dold för Premium (-1). Klickbar → paywall. */}
+                {tripCreditsLeft >= 0 && !tripLoading && (
+                  <TouchableOpacity style={styles.tripQuotaHint} onPress={() => router.push('/paywall')}>
+                    <Text style={styles.tripQuotaText}>
+                      {tripCreditsLeft > 0
+                        ? tr('{n} av {max} gratis packningar kvar denna vecka').replace('{n}', String(tripCreditsLeft)).replace('{max}', String(FREE_TRIPS_PER_WEEK))
+                        : tr('Gratiskvoten för packningar är slut · Uppgradera')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
               )
             ) : (
@@ -2112,6 +2125,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   childPackHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 20, marginBottom: 8 },
   childPackTitle: { fontFamily: 'Poppins_700Bold', fontSize: 17, color: t.textPrimary },
   childPackSub: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: t.textPrimary, marginTop: 14, marginBottom: 8 },
+  tripQuotaHint: { alignItems: 'center', paddingVertical: 10 },
+  tripQuotaText: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, textDecorationLine: 'underline' },
   tripLoadingHint: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, textAlign: 'center', marginTop: 10, fontStyle: 'italic' },
   tripHeaderCard: { backgroundColor: t.surfaceMuted, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: t.border, marginBottom: 8 },
   tripDest: { fontFamily: 'Poppins_700Bold', fontSize: 22, color: t.textPrimary },

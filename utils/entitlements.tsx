@@ -7,8 +7,11 @@ import {
   type PurchasePackage, type Tier,
 } from './purchases'
 
-// Håll i synk med servern (api/_utils.ts FREE_AI_PER_WEEK).
+// Håll i synk med servern (api/_utils.ts FREE_AI_PER_WEEK / FREE_TRIPS_PER_WEEK).
 export const FREE_AI_PER_WEEK = 3
+// Resepackningar har en EGEN veckokvot – en packning är tyngre än en outfit och
+// ska inte äta ur samma pott.
+export const FREE_TRIPS_PER_WEEK = 3
 const WEEK_SECONDS = 7 * 24 * 60 * 60
 
 // Nivå-funktioner: par ("mig och partner", partnervy), familj ("Familjen idag",
@@ -35,6 +38,7 @@ type EntitlementsCtx = {
   packages: PurchasePackage[]
   purchasesAvailable: boolean
   creditsLeft: number   // -1 = obegränsat (Premium), annars antal kvar denna vecka
+  tripCreditsLeft: number // samma, men för resepackningar
   purchasesDebug: string // dev-diagnostik för varför paket ev. saknas
   refresh: () => Promise<void>
   purchase: (pkg: PurchasePackage) => Promise<{ ok: boolean; cancelled?: boolean; error?: string }>
@@ -53,6 +57,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   // Premium-statusen hunnit laddas. readCredits sätter sedan rätt värde: -1
   // för Premium (då förblir kvoten dold), annars antal kvar (då visas den).
   const [creditsLeft, setCreditsLeft] = useState<number>(-1)
+  const [tripCreditsLeft, setTripCreditsLeft] = useState<number>(-1)
   const [purchasesDebug, setPurchasesDebug] = useState<string>(purchasesAvailable ? 'laddar…' : 'SDK/nyckel av')
 
   // Läser nivå ur databasen (entitlements.pro_until + product_id, satt av
@@ -73,6 +78,12 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.rpc('ai_credits_left', { max_free: FREE_AI_PER_WEEK, window_seconds: WEEK_SECONDS })
       if (!error && typeof data === 'number') setCreditsLeft(data)
     } catch { /* behåll tidigare värde */ }
+    try {
+      const { data, error } = await (supabase.rpc as any)('ai_credits_left', {
+        max_free: FREE_TRIPS_PER_WEEK, window_seconds: WEEK_SECONDS, quota_kind: 'trip',
+      })
+      if (!error && typeof data === 'number') setTripCreditsLeft(data)
+    } catch { /* behåll tidigare värde */ }
   }, [])
 
   const refresh = useCallback(async () => {
@@ -88,7 +99,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
     // läser entitlements-tabellen som webhooken skriver några sekunder senare.
     // Utan det här står "3 av 3 kvar" kvar på skärmen tills appen startas om.
     // Serverns use_ai_credit är fortfarande den bindande kontrollen.
-    if (t !== 'none') { setCreditsLeft(-1); return }
+    if (t !== 'none') { setCreditsLeft(-1); setTripCreditsLeft(-1); return }
     await readCredits()
   }, [readDbTier, readCredits])
 
@@ -141,7 +152,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   return (
-    <Ctx.Provider value={{ isPro, tier, loading, packages, purchasesAvailable, creditsLeft, purchasesDebug, refresh, purchase, restore }}>
+    <Ctx.Provider value={{ isPro, tier, loading, packages, purchasesAvailable, creditsLeft, tripCreditsLeft, purchasesDebug, refresh, purchase, restore }}>
       {children}
     </Ctx.Provider>
   )

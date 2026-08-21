@@ -858,6 +858,8 @@ const enBySource: Dict = {
   'Integritetspolicy': 'Privacy Policy',
   // Premium / paywall ('Aktiv' finns redan via outfit-kontexten)
   'Uppgradera': 'Upgrade',
+  '{n} av {max} gratis packningar kvar denna vecka': '{n} of {max} free packing lists left this week',
+  'Gratiskvoten för packningar är slut · Uppgradera': 'Free packing lists used up · Upgrade',
   'Din nivå': 'Your plan',
   'Ingår redan': 'Already included',
   'Lås upp hela din digitala garderob.': 'Unlock your whole digital wardrobe.',
