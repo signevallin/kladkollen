@@ -51,7 +51,7 @@ type Palette = {
 
 const DARK: Palette = {
   bg: '#181009', ink: '#F6ECE2', sub: '#CBB199',
-  pill: '#FFFFFF', pillInk: '#1A120B', gold: '#E4C39B',
+  pill: '#FEFAF8', pillInk: '#1A120B', gold: '#E4C39B',
   sheetBg: '#241811', hairline: 'rgba(245,233,223,0.10)',
   fieldBg: 'rgba(245,233,223,0.08)', fieldBorder: 'rgba(245,233,223,0.12)',
 }
