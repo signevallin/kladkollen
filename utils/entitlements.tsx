@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../supabase'
 import {
-  configurePurchases, getCustomerInfo, getPackages, identifyPurchases,
+  configurePurchases, getCustomerInfo, getPackages, identifyPurchases, logOutPurchases,
   purchasePackage, restorePurchases, purchasesAvailable,
   tierFromInfo, tierFromProductId, TIER_RANK, tierAtLeast,
   type PurchasePackage, type Tier,
@@ -109,8 +109,16 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
       await refresh()
       if (alive) setLoading(false)
     })()
-    // Uppdatera vid inloggning/utloggning.
-    const { data: sub } = supabase.auth.onAuthStateChange(() => { refresh() })
+    // Uppdatera vid inloggning/utloggning – och låt RevenueCat följa med. Att
+    // bara köra refresh() räckte inte: SDK:n låg kvar inloggad som föregående
+    // användare och rapporterade DERAS entitlements på det nya kontot.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      ;(async () => {
+        if (session?.user) await identifyPurchases(session.user.id)
+        else await logOutPurchases()
+        await refresh()
+      })()
+    })
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [refresh])
 

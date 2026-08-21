@@ -120,9 +120,24 @@ export async function getCustomerInfo(): Promise<any | null> {
 
 // Loggar in RevenueCat med Supabase-user-id så entitlements följer kontot över
 // enheter och kan kopplas till rätt användare i webhooken.
+//
+// Cachen töms i samma veva. RevenueCat sparar customerInfo på disk och svarar ur
+// den, så en status som hunnit bli inaktuell på servern (t.ex. efter att
+// sandbox-köphistoriken rensats) överlever både kontobyte och appomstart. Utan
+// det här kunde ett nyskapat konto visa en Familj-nivå som någon annan köpt.
 export async function identifyPurchases(userId: string) {
   if (!purchasesAvailable || !userId) return
-  try { await Purchases.logIn(userId) } catch { /* ignorera */ }
+  try {
+    await Purchases.logIn(userId)
+    await Purchases.invalidateCustomerInfoCache()
+  } catch { /* ignorera */ }
+}
+
+// Kopplar loss RevenueCat från kontot vid utloggning, annars ärver nästa
+// inloggade användare föregående användares entitlements på samma enhet.
+export async function logOutPurchases() {
+  if (!purchasesAvailable) return
+  try { await Purchases.logOut() } catch { /* redan anonym – strunt samma */ }
 }
 
 export async function getPackages(): Promise<{ packages: PurchasePackage[]; debug: string }> {
