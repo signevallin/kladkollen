@@ -865,6 +865,8 @@ const enBySource: Dict = {
   'Ingår redan': 'Already included',
   'Lås upp hela din digitala garderob.': 'Unlock your whole digital wardrobe.',
   'Obegränsade AI-outfits': 'Unlimited AI outfits',
+  'Lås upp hela din digitala garderob för dig, din partner och hela familjen.': 'Unlock your whole digital wardrobe – for you, your partner and the whole family.',
+  'Obegränsade packningar': 'Unlimited packing lists',
   'Personlig färganalys': 'Personal colour analysis',
   'Djup garderobsstatistik': 'In-depth wardrobe statistics',
   'Allt i Singel': 'Everything in Single',

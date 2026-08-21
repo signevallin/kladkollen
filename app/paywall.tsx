@@ -19,7 +19,7 @@ import {
 const TIERS: { tier: Exclude<Tier, 'none'>; name: string; perks: string[] }[] = [
   {
     tier: 'single', name: 'Singel',
-    perks: ['Obegränsade AI-outfits', 'Personlig färganalys', 'Djup garderobsstatistik'],
+    perks: ['Obegränsade AI-outfits', 'Obegränsade packningar', 'Personlig färganalys', 'Djup garderobsstatistik'],
   },
   {
     tier: 'partner', name: 'Partner',
@@ -101,7 +101,7 @@ export default function Paywall() {
 
         <Text style={styles.brand}>SKRUD</Text>
         <Text style={styles.title}>{tr('Skrud Premium')}</Text>
-        <Text style={styles.subtitle}>{tr('Lås upp hela din digitala garderob.')}</Text>
+        <Text style={styles.subtitle}>{tr('Lås upp hela din digitala garderob för dig, din partner och hela familjen.')}</Text>
 
         {rows.length > 0 ? (
           <>
