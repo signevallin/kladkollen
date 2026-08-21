@@ -9,7 +9,7 @@ import { useEntitlements } from '../utils/entitlements'
 import { useSettings } from '../utils/settings'
 import { showAlert } from '../utils/alert'
 import {
-  periodFromProductId, purchasesEnv, tierFromProductId, TIER_RANK,
+  codeRedemptionAvailable, periodFromProductId, presentCodeRedemption, purchasesEnv, tierFromProductId, TIER_RANK,
   type BillingPeriod, type PurchasePackage, type Tier,
 } from '../utils/purchases'
 
@@ -35,7 +35,7 @@ export default function Paywall() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
-  const { packages, purchasesAvailable, isPro, tier, purchase, restore, purchasesDebug } = useEntitlements()
+  const { packages, purchasesAvailable, isPro, tier, purchase, restore, refresh, purchasesDebug } = useEntitlements()
   const [busy, setBusy] = useState(false)
   const [period, setPeriod] = useState<BillingPeriod>('year')
 
@@ -82,6 +82,14 @@ export default function Paywall() {
     setBusy(false)
     if (res.ok) { showAlert(tr('Välkommen till Skrud Premium! 🎉')); router.back() }
     else if (!res.cancelled) showAlert(tr('Något gick fel'), res.error || tr('Försök igen.'))
+  }
+
+  async function onRedeemCode() {
+    await presentCodeRedemption()
+    // Arket lovar bara att det stängts, inte att något lösts in. Läs om nivån
+    // några gånger – webhooken skriver entitlements ett par sekunder senare,
+    // precis som efter ett vanligt köp.
+    for (const delay of [1500, 5000, 12000]) setTimeout(() => { refresh() }, delay)
   }
 
   async function onRestore() {
@@ -203,6 +211,16 @@ export default function Paywall() {
           <Text style={styles.restoreText}>{tr('Återställ köp')}</Text>
         </TouchableOpacity>
 
+        {/* Inlösen av Apples offer codes. Bara iOS – funktionen finns inte
+            någon annanstans. Visas ÄVEN för den som redan betalar: en
+            Singel-kund som får en Familj-kod ska kunna lösa in den, precis som
+            uppgraderingsknappen på korten ovan. */}
+        {codeRedemptionAvailable && (
+          <TouchableOpacity style={styles.redeemBtn} onPress={onRedeemCode} disabled={busy}>
+            <Text style={styles.restoreText}>{tr('Har du en kod?')}</Text>
+          </TouchableOpacity>
+        )}
+
         <Text style={styles.subLegal}>{tr('Skrud Premium är en prenumeration som förnyas automatiskt. Betalningen dras från ditt Apple-ID vid köp och förnyas till samma pris om den inte sägs upp minst 24 timmar före periodens slut. Hantera eller säg upp i App Store-inställningarna.')}</Text>
 
         <View style={styles.legal}>
@@ -255,6 +273,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   debugText: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint, textAlign: 'center', marginTop: 8 },
 
   restoreBtn: { alignItems: 'center', paddingVertical: 16 },
+  redeemBtn: { alignItems: 'center', paddingTop: 0, paddingBottom: 14 },
   restoreText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textFaint, textDecorationLine: 'underline' },
   subLegal: { fontFamily: 'Lora_400Regular', fontSize: 11, lineHeight: 16, color: t.textFaint, textAlign: 'center', marginBottom: 12 },
 

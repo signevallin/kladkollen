@@ -174,6 +174,19 @@ export async function purchasePackage(pkg: PurchasePackage): Promise<{ ok: boole
   }
 }
 
+// Apples inlösenark för offer codes (App Store Connect → Offer Codes). Koden
+// löses in hos Apple och går sedan samma väg som ett riktigt köp: StoreKit →
+// RevenueCat → webhooken → entitlements. Ingen egen inlösenlogik behövs.
+//
+// Bara iOS – offer codes är en Apple-funktion. Löftet infrias när arket stängs,
+// inte när en kod faktiskt lösts in, så anroparen får läsa om nivån efteråt.
+export const codeRedemptionAvailable = purchasesAvailable && Platform.OS === 'ios'
+
+export async function presentCodeRedemption(): Promise<void> {
+  if (!codeRedemptionAvailable) return
+  try { await Purchases.presentCodeRedemptionSheet() } catch { /* användaren avbröt */ }
+}
+
 export async function restorePurchases(): Promise<{ isPro: boolean; proUntil: string | null }> {
   if (!purchasesAvailable) return { isPro: false, proUntil: null }
   try {

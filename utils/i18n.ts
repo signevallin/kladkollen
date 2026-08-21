@@ -886,6 +886,7 @@ const enBySource: Dict = {
   'Du har Skrud Premium.': 'You have Skrud Premium.',
   'Premium går snart att köpa här.': 'Premium will be available to buy here soon.',
   'Återställ köp': 'Restore purchases',
+  'Har du en kod?': 'Have a code?',
   'Välkommen till Skrud Premium! 🎉': 'Welcome to Skrud Premium! 🎉',
   'Ditt köp återställdes ✓': 'Your purchase was restored ✓',
   'Inget köp att återställa': 'No purchase to restore',
