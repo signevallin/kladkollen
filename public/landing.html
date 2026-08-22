@@ -143,18 +143,6 @@ em{font-style:italic;color:var(--brand-soft);}
 .shot{position:relative;width:300px;max-width:82vw;aspect-ratio:9/19.5;border-radius:42px;overflow:hidden;border:1px solid rgba(108,77,56,.12);box-shadow:0 44px 90px rgba(64,45,33,.20);background:linear-gradient(165deg,var(--cream),var(--tan));}
 .shot > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;display:block;}
 .shot-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;letter-spacing:.22em;color:var(--brand-soft);opacity:.5;z-index:0;}
-/* Push-notis på låsskärm (byggd i HTML så Skrud-loggan blir rätt) */
-.shot.notif-phone{background:linear-gradient(165deg,#7c6a5a,#4c3b2d);}
-.lock-clock{position:absolute;top:9%;left:0;right:0;z-index:2;text-align:center;color:rgba(255,255,255,.94);}
-.lock-date{font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;letter-spacing:.02em;opacity:.85;margin-bottom:2px;}
-.lock-time{font-family:'Poppins',sans-serif;font-weight:700;font-size:58px;line-height:1;letter-spacing:-.02em;}
-.notif{position:absolute;top:34%;left:16px;right:16px;z-index:2;display:flex;gap:11px;background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:22px;padding:13px 15px;box-shadow:0 14px 34px rgba(0,0,0,.22);}
-.notif-icon{width:34px;height:34px;border-radius:9px;flex-shrink:0;object-fit:cover;}
-.notif-text{flex:1;min-width:0;}
-.notif-row{display:flex;align-items:baseline;gap:8px;}
-.notif-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:14px;color:#1c1c1e;flex:1;line-height:1.25;}
-.notif-time{font-family:'Poppins',sans-serif;font-size:12px;color:#8a8a8e;flex-shrink:0;}
-.notif-body{font-family:'Poppins',sans-serif;font-size:13.5px;color:#3a3a3c;line-height:1.35;margin-top:4px;}
 
 /* Standout row */
 .standout{display:flex;justify-content:space-around;gap:24px;flex-wrap:wrap;padding:34px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
@@ -312,21 +300,9 @@ em{font-style:italic;color:var(--brand-soft);}
       <p class="f-desc" data-i18n="f2.desc">Other apps make you dig out today’s clothes yourself. Skrud sends the right outfit straight to your phone based on the day’s forecast and calendar — complete with rain and UV warnings.</p>
     </div>
     <div class="visual reveal">
-      <div class="shot notif-phone">
-        <div class="lock-clock">
-          <div class="lock-date" data-i18n="f2.lockDate">Tuesday 20 August</div>
-          <div class="lock-time">9:09</div>
-        </div>
-        <div class="notif">
-          <img class="notif-icon" src="/icon.png" alt="Skrud">
-          <div class="notif-text">
-            <div class="notif-row">
-              <div class="notif-title" data-i18n="f2.notifTitle">Looks like rain today 🌧️</div>
-              <div class="notif-time">09:09</div>
-            </div>
-            <div class="notif-body" data-i18n="f2.notifBody">63% chance of rain – don’t forget a rain jacket or umbrella.</div>
-          </div>
-        </div>
+      <div class="shot">
+        <span class="shot-ph">SKRUD</span>
+        <img src="/screens/notification.jpg" alt="Skrud – rain notification on the lock screen" loading="lazy" onerror="this.remove()">
       </div>
     </div>
   </div>
@@ -472,7 +448,7 @@ em{font-style:italic;color:var(--brand-soft);}
       'so.3n': 'Gravid', 'so.3l': 'en trygg hand genom nio månader',
       'feat.label': 'Funktioner', 'feat.h2': 'Gjord för hela livet,<br><em>inte bara garderoben.</em>',
       'f1.num': '01', 'f1.title': 'Klä hela familjen med ett tryck', 'f1.desc': 'Ingen mer stress med för små barnkläder eller borttappade favoriter. Som första app någonsin erbjuder Skrud ett äkta familjeläge med delade garderober, barnstorlekar och smarta påminnelser när det är dags att uppdatera.', 'f1.mock': 'Alla påklädda på 20 sekunder', 'f1.chip1': 'Rätt storlek', 'f1.chip2': 'Väderanpassat',
-      'f2.num': '02', 'f2.title': 'Väntar inte på dig – ligger steget före', 'f2.desc': 'Andra appar kräver att du själv letar fram dagens kläder. Skrud skickar rätt outfit direkt till din telefon baserat på dagens väderprognos och kalender – komplett med regn- och UV-varningar.', 'f2.mockw': 'Svalt · 10–15° · regn ikväll', 'f2.mockchip': 'Ta med jackan — regn 60 %', 'f2.notifTitle': 'Ser ut att bli regn idag 🌧️', 'f2.notifBody': '63% risk för regn – glöm inte regnjacka eller paraply.', 'f2.lockDate': 'Tisdag 20 augusti',
+      'f2.num': '02', 'f2.title': 'Väntar inte på dig – ligger steget före', 'f2.desc': 'Andra appar kräver att du själv letar fram dagens kläder. Skrud skickar rätt outfit direkt till din telefon baserat på dagens väderprognos och kalender – komplett med regn- och UV-varningar.', 'f2.mockw': 'Svalt · 10–15° · regn ikväll', 'f2.mockchip': 'Ta med jackan — regn 60 %',
       'f3.num': '03', 'f3.title': 'Få en överblick på allt du äger — och färgerna som klär dig', 'f3.desc': 'Fota garderoben en gång; AI fyller i namn, färg och säsong automatiskt och tar bort bakgrunden. Din personliga färganalys visar vilka toner som lyfter just dig. Appen matchar mot det du redan äger hemma – spara pengar och minska överkonsumtionen.', 'f3.mock': 'Allt du äger — sorterat', 'f3.palette': 'DIN FÄRGPALETT',
       'f4.num': '04', 'f4.title': 'Kläder som följer med under förändring', 'f4.desc': 'Väntar du barn? Aktivera vårt unika gravidläge. Få magvänliga outfitförslag, pausa plaggen som tillfälligt inte passar och följ en smart essentials-checklista.', 'f4.eyebrow': 'GRAVIDLÄGE', 'f4.mock': 'Magvänligt & bekvämt', 'f4.chip1': 'Andra trimestern', 'f4.chip2': 'Essentials-checklista',
       'f5.num': '05', 'f5.title': 'Packa resan — för alla', 'f5.desc': 'Lägg in resmål och datum. Skrud packar kompletta outfits och en packlista ur det ni redan äger — även till barnen, med åldersanpassade förnödenheter. Kom hem och lägg allt i tvätten med ett tryck.', 'f5.mock': 'Barcelona · 5 dagar', 'f5.p1': 'Linnebyxor', 'f5.p2': 'Solhatt', 'f5.p3': 'Extra ombyten ×3', 'f5.p4': 'Solkräm & blöjor',
@@ -503,7 +479,7 @@ em{font-style:italic;color:var(--brand-soft);}
       'so.3n': 'Pregnancy', 'so.3l': 'a steady hand through all nine months',
       'feat.label': 'Features', 'feat.h2': 'Made for real life,<br><em>not just the wardrobe.</em>',
       'f1.num': '01', 'f1.title': 'Dress the whole family in one tap', 'f1.desc': 'No more stress over outgrown kids’ clothes or lost favourites. As the first app ever, Skrud offers a true family mode with shared wardrobes, children’s sizes and smart reminders when it’s time to update.', 'f1.mock': 'Everyone dressed in 20 seconds', 'f1.chip1': 'Right size', 'f1.chip2': 'Weather-aware',
-      'f2.num': '02', 'f2.title': 'Doesn’t wait for you — stays a step ahead', 'f2.desc': 'Other apps make you dig out today’s clothes yourself. Skrud sends the right outfit straight to your phone based on the day’s forecast and calendar — complete with rain and UV warnings.', 'f2.mockw': 'Cool · 10–15° · rain tonight', 'f2.mockchip': 'Bring a jacket — 60% rain', 'f2.notifTitle': 'Looks like rain today 🌧️', 'f2.notifBody': '63% chance of rain – don’t forget a rain jacket or umbrella.', 'f2.lockDate': 'Tuesday 20 August',
+      'f2.num': '02', 'f2.title': 'Doesn’t wait for you — stays a step ahead', 'f2.desc': 'Other apps make you dig out today’s clothes yourself. Skrud sends the right outfit straight to your phone based on the day’s forecast and calendar — complete with rain and UV warnings.', 'f2.mockw': 'Cool · 10–15° · rain tonight', 'f2.mockchip': 'Bring a jacket — 60% rain',
       'f3.num': '03', 'f3.title': 'See everything you own — and the colours that suit you', 'f3.desc': 'Photograph your wardrobe once; AI fills in name, colour and season automatically and removes the background. Your personal colour analysis shows which tones lift you. The app matches against what you already own at home — saving money and cutting overconsumption.', 'f3.mock': 'Everything you own — sorted', 'f3.palette': 'YOUR COLOUR PALETTE',
       'f4.num': '04', 'f4.title': 'Clothes that adapt as you change', 'f4.desc': 'Expecting? Turn on our unique pregnancy mode. Get bump-friendly outfit suggestions, pause the pieces that don’t fit right now and follow a smart essentials checklist.', 'f4.eyebrow': 'PREGNANCY MODE', 'f4.mock': 'Bump-friendly & comfy', 'f4.chip1': 'Second trimester', 'f4.chip2': 'Essentials checklist',
       'f5.num': '05', 'f5.title': 'Pack the trip — for everyone', 'f5.desc': 'Enter destination and dates. Skrud packs complete outfits and a packing list from what you already own — for the kids too, with age-appropriate essentials. Come home and send it all to the wash in one tap.', 'f5.mock': 'Barcelona · 5 days', 'f5.p1': 'Linen trousers', 'f5.p2': 'Sun hat', 'f5.p3': 'Spare changes ×3', 'f5.p4': 'Sunscreen & nappies',
@@ -543,9 +519,6 @@ em{font-style:italic;color:var(--brand-soft);}
       'f2.num': '02',
       'f2.title': 'Wartet nicht auf dich – ist einen Schritt voraus',
       'f2.desc': 'Andere Apps lassen dich die Kleidung für heute selbst heraussuchen. Skrud schickt das passende Outfit direkt auf dein Handy – basierend auf der Tagesprognose und deinem Kalender, inklusive Regen- und UV-Warnungen.',
-      'f2.notifTitle': 'Sieht nach Regen aus 🌧️',
-      'f2.notifBody': '63 % Regenwahrscheinlichkeit – vergiss Regenjacke oder Schirm nicht.',
-      'f2.lockDate': 'Dienstag, 20. August',
       'f3.num': '03',
       'f3.title': 'Sieh alles, was du besitzt – und die Farben, die dir stehen',
       'f3.desc': 'Fotografiere deine Garderobe einmal; die KI ergänzt Name, Farbe und Saison automatisch und entfernt den Hintergrund. Deine persönliche Farbanalyse zeigt, welche Töne dich zum Strahlen bringen. Die App kombiniert mit dem, was du zu Hause schon besitzt – das spart Geld und reduziert Überkonsum.',
@@ -611,9 +584,6 @@ em{font-style:italic;color:var(--brand-soft);}
       'f2.num': '02',
       'f2.title': 'No te espera: va un paso por delante',
       'f2.desc': 'Otras apps te obligan a buscar tú mismo la ropa del día. Skrud envía el conjunto adecuado directamente a tu móvil según la previsión del día y tu calendario, con avisos de lluvia y UV.',
-      'f2.notifTitle': 'Parece que hoy lloverá 🌧️',
-      'f2.notifBody': '63 % de probabilidad de lluvia: no olvides un chubasquero o paraguas.',
-      'f2.lockDate': 'Martes 20 de agosto',
       'f3.num': '03',
       'f3.title': 'Ve todo lo que tienes y los colores que te favorecen',
       'f3.desc': 'Fotografía tu armario una vez; la IA rellena nombre, color y temporada automáticamente y quita el fondo. Tu análisis de color personal muestra qué tonos te favorecen. La app combina con lo que ya tienes en casa: ahorras dinero y reduces el consumo excesivo.',
@@ -679,9 +649,6 @@ em{font-style:italic;color:var(--brand-soft);}
       'f2.num': '02',
       'f2.title': 'N’attend pas après vous — a une longueur d’avance',
       'f2.desc': 'Les autres applis vous obligent à chercher vous-même la tenue du jour. Skrud envoie la bonne tenue directement sur votre téléphone selon la météo du jour et votre agenda, avec alertes pluie et UV.',
-      'f2.notifTitle': 'On dirait qu’il va pleuvoir 🌧️',
-      'f2.notifBody': '63 % de risque de pluie – n’oubliez pas un imperméable ou un parapluie.',
-      'f2.lockDate': 'Mardi 20 août',
       'f3.num': '03',
       'f3.title': 'Voyez tout ce que vous possédez — et les couleurs qui vous vont',
       'f3.desc': 'Photographiez votre garde-robe une fois ; l’IA renseigne le nom, la couleur et la saison automatiquement et supprime l’arrière-plan. Votre analyse colorimétrique personnelle montre les tons qui vous subliment. L’appli assortit avec ce que vous possédez déjà — vous économisez et réduisez la surconsommation.',
