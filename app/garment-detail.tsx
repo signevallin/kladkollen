@@ -97,6 +97,16 @@ export default function GarmentDetail() {
   // relevant även för den som ammar utan att vara gravid – flaggan används av
   // prompten i båda lägena – medan "Pausa under graviditeten" är just
   // graviditetsspecifik och inte hör hemma under amning.
+  // Hopfällbara sektioner, samma mönster som profilen. Storlek/passform är
+  // utfällt eftersom det är det man oftast justerar; plats och lägen är
+  // ihopfällda så skärmen börjar kort i stället för med sexton fält på rad.
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set(['garderob', 'lagen']))
+  const toggleSection = (key: string) => setCollapsed(prev => {
+    const next = new Set(prev)
+    next.has(key) ? next.delete(key) : next.add(key)
+    return next
+  })
+
   const pregnant = cacheGet<boolean>('profile.pregnant') ?? false
   const nursing = cacheGet<boolean>('profile.nursing') ?? false
   const [location, setLocation] = useState('')
@@ -433,6 +443,21 @@ export default function GarmentDetail() {
     }
   }
 
+
+  // Hopfällbar sektionsrubrik (samma som profilens).
+  const sectionHeader = (key: string, title: string) => (
+    <TouchableOpacity
+      style={styles.sectionHeaderRow}
+      activeOpacity={0.7}
+      onPress={() => toggleSection(key)}
+      accessibilityRole="button"
+      accessibilityLabel={tr(title)}
+    >
+      <Text style={styles.sectionHeaderTitle}>{tr(title)}</Text>
+      <Ionicons name={collapsed.has(key) ? 'chevron-down' : 'chevron-up'} size={16} color={t.textFaint} />
+    </TouchableOpacity>
+  )
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -576,18 +601,20 @@ export default function GarmentDetail() {
           ))}
         </View>
 
-        {/* Pris & länk – även på köplistan (för budget/överblick + köpknappen) */}
+        {/* Pris hör till plagget och gäller båda listorna – låg tidigare som två
+            identiska fält i var sin gren. Länken är köplist-specifik. */}
+        <Text style={styles.label}>{tr('Pris')} ({currency})</Text>
+        <TextInput
+          style={styles.input}
+          placeholder={tr('t.ex. 299')}
+          placeholderTextColor={t.placeholder}
+          value={price}
+          onChangeText={setPrice}
+          keyboardType="numeric"
+        />
+
         {isWishlistItem && (
           <>
-            <Text style={styles.label}>{tr('Pris')} ({currency})</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={tr('t.ex. 299')}
-              placeholderTextColor={t.placeholder}
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-            />
             <Text style={styles.label}>{tr('Länk till plagget')}</Text>
             <TextInput
               style={styles.input}
@@ -605,6 +632,9 @@ export default function GarmentDetail() {
         {/* Storlek & plats – bara för egna plagg */}
         {!isWishlistItem && (
           <>
+            {sectionHeader('storlek', 'Storlek & passform')}
+            {!collapsed.has('storlek') && (
+            <>
             <Text style={styles.label}>{tr('Storlek')}</Text>
             <View style={styles.pills}>
               {SIZES.map((s) => (
@@ -630,42 +660,12 @@ export default function GarmentDetail() {
               ))}
             </View>
 
-            {hasPartner && partnerOn && (
-              <TouchableOpacity style={styles.lendRow} onPress={() => setLendable(v => !v)}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.label}>{tr('Får lånas av partner')}</Text>
-                  <Text style={styles.lendHint}>{tr('Syns med en lån-markering i din partners vy och kan användas i Matcha-outfits.')}</Text>
-                </View>
-                <View style={[styles.toggle, lendable && styles.toggleOn]}>
-                  <View style={[styles.toggleKnob, lendable && styles.toggleKnobOn]} />
-                </View>
-              </TouchableOpacity>
+            </>
             )}
 
-            {(pregnant || nursing) && (
-              <TouchableOpacity style={styles.lendRow} onPress={() => setMaternityFriendly(v => !v)}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.label}>{tr('Gravid-/amningsvänligt')}</Text>
-                  <Text style={styles.lendHint}>{tr('Prioriteras i outfit-förslagen under graviditet och amning.')}</Text>
-                </View>
-                <View style={[styles.toggle, maternityFriendly && styles.toggleOn]}>
-                  <View style={[styles.toggleKnob, maternityFriendly && styles.toggleKnobOn]} />
-                </View>
-              </TouchableOpacity>
-            )}
-
-            {pregnant && (
-              <TouchableOpacity style={styles.lendRow} onPress={() => setPausedPregnancy(v => !v)}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.label}>{tr('Pausa under graviditeten')}</Text>
-                  <Text style={styles.lendHint}>{tr('Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.')}</Text>
-                </View>
-                <View style={[styles.toggle, pausedPregnancy && styles.toggleOn]}>
-                  <View style={[styles.toggleKnob, pausedPregnancy && styles.toggleKnobOn]} />
-                </View>
-              </TouchableOpacity>
-            )}
-
+            {sectionHeader('garderob', 'I garderoben')}
+            {!collapsed.has('garderob') && (
+            <>
             <View style={styles.labelRow}>
               <Text style={styles.label}>{tr('Var finns plagget?')}</Text>
               <TouchableOpacity onPress={() => router.push('/locations')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -742,15 +742,57 @@ export default function GarmentDetail() {
               </>
             )}
 
-            <Text style={styles.label}>{tr('Pris')} ({currency})</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={tr('t.ex. 299')}
-              placeholderTextColor={t.placeholder}
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-            />
+            </>
+            )}
+
+            {/* Reglagen samlade sist: de är en annan sorts interaktion än
+                fälten ovan, och de är dessutom villkorade – låg de kvar mitt i
+                formuläret ändrade skärmen form beroende på partner/gravidläge.
+                Rubriken visas bara när minst ett reglage är aktuellt. */}
+            {((hasPartner && partnerOn) || pregnant || nursing) && (
+              <>
+                {sectionHeader('lagen', 'Delning & lägen')}
+                {!collapsed.has('lagen') && (
+                <>
+            {hasPartner && partnerOn && (
+              <TouchableOpacity style={styles.lendRow} onPress={() => setLendable(v => !v)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>{tr('Får lånas av partner')}</Text>
+                  <Text style={styles.lendHint}>{tr('Syns med en lån-markering i din partners vy och kan användas i Matcha-outfits.')}</Text>
+                </View>
+                <View style={[styles.toggle, lendable && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, lendable && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {(pregnant || nursing) && (
+              <TouchableOpacity style={styles.lendRow} onPress={() => setMaternityFriendly(v => !v)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>{tr('Gravid-/amningsvänligt')}</Text>
+                  <Text style={styles.lendHint}>{tr('Prioriteras i outfit-förslagen under graviditet och amning.')}</Text>
+                </View>
+                <View style={[styles.toggle, maternityFriendly && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, maternityFriendly && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {pregnant && (
+              <TouchableOpacity style={styles.lendRow} onPress={() => setPausedPregnancy(v => !v)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>{tr('Pausa under graviditeten')}</Text>
+                  <Text style={styles.lendHint}>{tr('Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.')}</Text>
+                </View>
+                <View style={[styles.toggle, pausedPregnancy && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, pausedPregnancy && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
+            )}
+                </>
+                )}
+              </>
+            )}
           </>
         )}
 
@@ -819,6 +861,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   reasonTitle: { fontFamily: 'Poppins_700Bold', fontSize: 18, color: t.textPrimary, marginBottom: 16 },
   reasonRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
   reasonLabel: { fontFamily: 'Lora_500Medium', fontSize: 16, color: t.textPrimary },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12, paddingHorizontal: 2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, paddingTop: 20 },
+  sectionHeaderTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase' },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   lendRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8, marginBottom: 8 },
@@ -840,7 +884,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   colorDotActive: { borderColor: t.primary, transform: [{ scale: 1.15 }] },
   colorCheck: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 16, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   colorSelected: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 12, fontStyle: 'italic', marginBottom: 16 },
-  wornSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderWidth: 1, borderColor: t.border },
+  // Ordentlig luft ovanför: blocket följer direkt efter sista sektionsrubriken
+  // och lästes annars som om det låg INUTI den sektionen när den var ihopfälld.
+  wornSection: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12, borderWidth: 1, borderColor: t.border },
   wornInfo: { gap: 2 },
   wornCount: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textSecondary },
   wornLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary, fontStyle: 'italic' },
