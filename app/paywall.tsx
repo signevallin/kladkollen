@@ -9,7 +9,7 @@ import { useEntitlements } from '../utils/entitlements'
 import { useSettings } from '../utils/settings'
 import { showAlert } from '../utils/alert'
 import {
-  codeRedemptionAvailable, periodFromProductId, presentCodeRedemption, purchasesEnv, tierFromProductId, TIER_RANK,
+  codeRedemptionAvailable, periodFromProductId, presentCodeRedemption, tierFromProductId, TIER_RANK,
   type BillingPeriod, type PurchasePackage, type Tier,
 } from '../utils/purchases'
 
@@ -35,7 +35,7 @@ export default function Paywall() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
-  const { packages, purchasesAvailable, isPro, tier, sharedFrom, purchase, restore, refresh, purchasesDebug } = useEntitlements()
+  const { packages, purchasesAvailable, isPro, tier, sharedFrom, purchase, restore, refresh } = useEntitlements()
   const [busy, setBusy] = useState(false)
   const [period, setPeriod] = useState<BillingPeriod>('year')
 
@@ -201,9 +201,6 @@ export default function Paywall() {
         ) : (
           <View style={styles.soonBox}>
             <Text style={styles.soonText}>{tr('Premium går snart att köpa här.')}</Text>
-            {/* Syns bara när inga paket kunde hämtas, alltså i det trasiga
-                läget. En vanlig användare får aldrig se raden. */}
-            <Text style={styles.debugText}>{`${purchasesEnv}\n${purchasesDebug}`}</Text>
           </View>
         )}
 
@@ -287,7 +284,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   activeText: { fontFamily: 'Poppins_600SemiBold', fontSize: 15, color: t.textPrimary },
   soonBox: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 18, alignItems: 'center' },
   soonText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, textAlign: 'center' },
-  debugText: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint, textAlign: 'center', marginTop: 8 },
 
   sharedBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, marginTop: 16 },
   sharedText: { fontFamily: 'Lora_400Regular', fontSize: 13.5, lineHeight: 19, color: t.textSecondary, flex: 1 },

@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from '../supabase'
 import {
   configurePurchases, getCustomerInfo, getPackages, identifyPurchases, logOutPurchases,
-  purchasePackage, restorePurchases, purchasesAvailable,
+  purchasePackage, restorePurchases, purchasesAvailable, purchasesEnv,
   tierFromInfo, tierFromProductId, TIER_RANK, tierAtLeast,
   type PurchasePackage, type Tier,
 } from './purchases'
@@ -132,7 +132,12 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
         try {
           const { packages: p, debug } = await getPackages()
           if (alive) { setPackages(p); setPurchasesDebug(debug) }
-        } catch (e: any) { if (alive) setPurchasesDebug('fel: ' + (e?.message || '?')) }
+          if (__DEV__) console.log('[purchases]', purchasesEnv, debug)
+        } catch (e: any) {
+          const msg = 'fel: ' + (e?.message || '?')
+          if (alive) setPurchasesDebug(msg)
+          if (__DEV__) console.warn('[purchases]', purchasesEnv, msg)
+        }
       }
       await refresh()
       if (alive) setLoading(false)
