@@ -34,6 +34,7 @@ export default async function handler(request: Request): Promise<Response> {
     const musicGenres = clip(body.musicGenres, 200)
     const recentOutfits = clip(body.recentOutfits, 1500)
     const styleRules = clip(body.styleRules, 1200)
+    const stylePrefs = clip(body.stylePrefs, 200)
     const previousItems = clip(body.previousItems, 400)
     const baseGarment = clip(body.baseGarment, 120)
     const baseSet = clip(body.baseSet, 400)
@@ -148,6 +149,7 @@ E. LÄDER & ACCESSOARER ska samspela: matcha bälte till den dominerande neutral
 F. Sträva efter en balanserad, genomtänkt look som en riktig stylist vore stolt över.
    Om två plagg inte passar färgmässigt, välj hellre ett neutralt alternativ – eller
    hoppa över en valfri accessoar helt om den inte lyfter looken.
+${stylePrefs ? `\nANVÄNDARENS STIL: ${stylePrefs}. Låt looken landa i den stilen när garderoben tillåter – den styr HUR plaggen kombineras, inte vilka som är tillåtna.` : ''}
 ${styleRules ? `\nANVÄNDARENS EGNA STILREGLER – följ dessa NOGA, de väger tungt:\n${styleRules}` : ''}
 ${colorPalette ? `\nANVÄNDARENS PERSONLIGA FÄRGPALETT (från färganalysen) – väg in den tydligt:\n${colorPalette}\nVälj i första hand plagg vars färger ligger nära bas- och komplementfärgerna, och använd accentfärgerna som statement. Undvik "undvik"-färgerna när garderoben tillåter (tvinga dock inte fram en ofullständig outfit).` : ''}
 

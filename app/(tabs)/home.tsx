@@ -81,6 +81,9 @@ export default function Home() {
   const [dueDate, setDueDate] = useState<string | null>(null)
   const [nursing, setNursing] = useState(false)
   const [styleRuleKeys, setStyleRuleKeys] = useState<string[]>([])
+  // Stil (Profil → Stil). Sparades men lästes tidigare bara av
+  // garderobsanalysen – aldrig av någon outfit-generering.
+  const [stylePrefs, setStylePrefs] = useState('')
   const [avoidNote, setAvoidNote] = useState('')
   const [sharing, setSharing] = useState(false)
   // Seedas från cachen så hälsning + profilbild syns direkt vid flikbyte.
@@ -90,7 +93,7 @@ export default function Home() {
   // blinkar den in först efter att loadPartner hämtat klart).
   // cold_sensitivity är valfri med flit: en cachad partner från ett äldre
   // appbygge saknar fältet, och då ska vi falla tillbaka på lagom (3).
-  const [partner, setPartner] = useState<{ id: string; name: string; cold_sensitivity?: number; color_analysis?: unknown } | null>(
+  const [partner, setPartner] = useState<{ id: string; name: string; cold_sensitivity?: number; color_analysis?: unknown; style_prefs?: string } | null>(
     () => cacheGet('household.partner') ?? null)
   // Antal barn i hushållet – styr om "Familjen idag"-knappen visas (seedas ur
   // samma cache som PersonSwitcher så knappen inte blinkar in vid flikbyte).
@@ -189,7 +192,7 @@ export default function Home() {
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, avoid_note, pregnant, due_date, nursing, color_analysis, life_mode').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url, outfit_context_notes, music_genres, cold_sensitivity, style_rules, style_prefs, avoid_note, pregnant, due_date, nursing, color_analysis, life_mode').eq('id', user.id).single()
       const name = profile?.name || user.email?.split('@')[0] || ''
       setUserName(name); cacheSet('home.userName', name)
       setUserAvatar(profile?.avatar_url || null); cacheSet('home.userAvatar', profile?.avatar_url || null)
@@ -197,6 +200,8 @@ export default function Home() {
       setMusicGenres(profile?.music_genres || '')
       if (profile?.cold_sensitivity != null) setColdSensitivity(profile.cold_sensitivity)
       setStyleRuleKeys(profile?.style_rules ? profile.style_rules.split(', ').filter(Boolean) : [])
+      setStylePrefs(profile?.style_prefs || '')
+      cacheSet('profile.stylePrefs', profile?.style_prefs || '')
       setAvoidNote(profile?.avoid_note || '')
       setPregnant(!!profile?.pregnant); cacheSet('profile.pregnant', !!profile?.pregnant)
       setDueDate(profile?.due_date || null)
@@ -401,6 +406,7 @@ export default function Home() {
           musicGenres,
           wantSong: showDailySong,
           styleRules: STYLE_RULES.filter(r => styleRuleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n'),
+          stylePrefs,
           previousItems: attempts === 1 ? previousItems : '',
           retry: attempts > 1,
           baseGarment: bg
@@ -592,6 +598,7 @@ export default function Home() {
         colorPaletteA: useColorAnalysis ? colorPaletteStr : '',
         colorPaletteB: useColorAnalysis ? colorPalettePrompt(partner.color_analysis) : '',
         styleRules, avoid: avoidNote.trim(),
+        stylePrefsA: stylePrefs, stylePrefsB: partner.style_prefs || '',
         contextNote: (contextNotes[ctx.label] || '').trim(),
         season,
         baseA: baseGarment

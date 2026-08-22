@@ -39,7 +39,6 @@ export default function WardrobeAnalysis() {
   const [garments, setGarments] = useState<any[]>([])
   const [colorAnalysis, setColorAnalysis] = useState<any | null>(null)
   const [stylePrefs, setStylePrefs] = useState<string[]>([])
-  const [stilProfil, setStilProfil] = useState<string[]>([])
   const [styleRules, setStyleRules] = useState<string[]>([])
   const [colorPrefs, setColorPrefs] = useState<string[]>([])
   const [moodboard, setMoodboard] = useState<string[]>([])
@@ -64,11 +63,10 @@ export default function WardrobeAnalysis() {
     if (!user) return
     const { data: g } = await supabase.from('garments').select('name, category, subcategory, color').eq('archived', false).is('person_id', null)
     if (g) setGarments(g)
-    const { data: p } = await supabase.from('profiles').select('color_analysis, style_prefs, stil_profil, style_rules, color_prefs').eq('id', user.id).single()
+    const { data: p } = await supabase.from('profiles').select('color_analysis, style_prefs, style_rules, color_prefs').eq('id', user.id).single()
     if (p) {
       if (p.color_analysis) setColorAnalysis(p.color_analysis)
       setStylePrefs(p.style_prefs ? p.style_prefs.split(', ').filter(Boolean) : [])
-      setStilProfil(p.stil_profil ? p.stil_profil.split(', ').filter(Boolean) : [])
       setStyleRules(p.style_rules ? p.style_rules.split(', ').filter(Boolean) : [])
       setColorPrefs(p.color_prefs ? p.color_prefs.split(', ').filter(Boolean) : [])
     }
@@ -100,7 +98,6 @@ export default function WardrobeAnalysis() {
     const ruleLabels = STYLE_RULES.filter(r => styleRules.includes(r.key)).map(r => r.label)
     return [
       stylePrefs.length ? `Stil: ${stylePrefs.join(', ')}.` : '',
-      stilProfil.length ? `Stilriktning: ${stilProfil.join(', ')}.` : '',
       ruleLabels.length ? `Stilregler: ${ruleLabels.join(', ')}.` : '',
       colorPrefs.length ? `Favoritfärger: ${colorPrefs.join(', ')}.` : '',
     ].filter(Boolean).join(' ')
@@ -109,7 +106,7 @@ export default function WardrobeAnalysis() {
   function ready(mode: Mode): boolean {
     if (mode === 'color') return !!colorAnalysis
     if (mode === 'moodboard') return moodboard.length > 0
-    return stylePrefs.length + stilProfil.length + styleRules.length + colorPrefs.length > 0
+    return stylePrefs.length + styleRules.length + colorPrefs.length > 0
   }
 
   function missingHint(mode: Mode): string {

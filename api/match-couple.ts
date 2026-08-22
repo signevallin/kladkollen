@@ -38,6 +38,8 @@ export default async function handler(request: Request): Promise<Response> {
           + ` Följ VAR OCH EN för rätt person och blanda dem inte:`
           + `\n${nameA}:\n${weatherRulesA}\n${nameB}:\n${weatherRulesB}`
     const styleRules = clip(body.styleRules, 1200)
+    const stylePrefsA = clip(body.stylePrefsA, 200)
+    const stylePrefsB = clip(body.stylePrefsB, 200)
     const avoid = clip(body.avoid, 400)
     const contextNote = clip(body.contextNote, 400)
     const season = clip(body.season, 20)
@@ -78,6 +80,7 @@ PARREGLER:
 - Använd EXAKT samma plaggnamn som i garderoberna.
 ${weatherBlock}
 ${colorPaletteA || colorPaletteB ? `\nPERSONLIGA FÄRGPALETTER (från färganalysen) – väg in dem tydligt, men de gäller VAR SIN person:${colorPaletteA ? `\n${nameA}: ${colorPaletteA}` : ''}${colorPaletteB ? `\n${nameB}: ${colorPaletteB}` : ''}\nVälj i första hand plagg vars färger ligger nära respektive persons bas- och komplementfärger, och använd deras accentfärger som statement. Undvik deras "undvik"-färger när garderoben tillåter. Den GEMENSAMMA färgtråden ska väljas så att den fungerar i BÅDAS paletter – tvinga inte in en färg som en av dem ska undvika.` : ''}
+${stylePrefsA || stylePrefsB ? `\nSTIL – var sin, blanda dem inte:${stylePrefsA ? `\n${nameA}: ${stylePrefsA}` : ''}${stylePrefsB ? `\n${nameB}: ${stylePrefsB}` : ''}` : ''}
 ${styleRules ? `\nSTILREGLER (gäller BÅDA, väger tungt):\n${styleRules}` : ''}
 ${avoid ? `\nUNDVIK (respektera för båda): ${avoid}` : ''}
 

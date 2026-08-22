@@ -1014,6 +1014,7 @@ export type Database = {
           color_analysis: Json
           id: string
           name: string
+          style_prefs: string
         }[]
       }
       partner_trip: { Args: { target: string }; Returns: Json }

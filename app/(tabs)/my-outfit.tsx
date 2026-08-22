@@ -684,7 +684,30 @@ function isPast(date: Date) {
       // 28 grader behöver inga vinterkappor i listan – det gör listan kortare OCH
       // förslagen bättre, utan att kosta något extra.
       const seasons = tripSeasons(weather.minTemp, weather.maxTemp)
-      const tripPool = filterForTrip(garments, seasons)
+
+      // Profilen hämtas FÖRE plaggurvalet: gravidläget avgör vilka plagg som
+      // ens får packas. Bara färgpaletten är gated på inställningen – stil,
+      // undvik och gravidläge är egna val och ska inte slås av med den.
+      let colorPalette = ''
+      let stylePrefs = ''
+      let avoidNote = ''
+      let pregnantNow = false
+      {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: prof } = await supabase.from('profiles')
+            .select('color_analysis, style_prefs, avoid_note, pregnant').eq('id', user.id).single()
+          if (useColorAnalysis) colorPalette = colorPalettePrompt(prof?.color_analysis)
+          stylePrefs = (prof as any)?.style_prefs || ''
+          avoidNote = ((prof as any)?.avoid_note || '').trim()
+          pregnantNow = !!(prof as any)?.pregnant
+        }
+      }
+
+      // Samma gravidfilter som hemskärmen och familjeflödet: pausade plagg
+      // ska inte packas heller. Saknades här.
+      const packable = garments.filter(g => !(pregnantNow && g.paused_pregnancy))
+      const tripPool = filterForTrip(packable, seasons)
       const groupedList = buildTripGarmentList(tripPool)
       const start = new Date(tripStartDate + 'T12:00:00')
       const end = new Date(tripEndDate + 'T12:00:00')
@@ -692,16 +715,6 @@ function isPast(date: Date) {
       const dateLabel = `${start.toLocaleDateString(locale, { day: 'numeric', month: 'long' })} – ${end.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}`
       const monthLabelStr = start.getMonth() === end.getMonth() ? monthLabel(start, locale) : `${monthLabel(start, locale)}/${monthLabel(end, locale)}`
       const destinationLabel = geo.country ? `${geo.name}, ${geo.country}` : geo.name
-
-      // Väg in färganalysen om inställningen är på (samma som outfit-genereringen).
-      let colorPalette = ''
-      if (useColorAnalysis) {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data: prof } = await supabase.from('profiles').select('color_analysis').eq('id', user.id).single()
-          colorPalette = colorPalettePrompt(prof?.color_analysis)
-        }
-      }
 
       const parsed = await apiPost('/api/pack-trip', {
         destination: destinationLabel,
@@ -711,7 +724,7 @@ function isPast(date: Date) {
         weatherSummary: weather.summary,
         groupedList,
         vibe: tripVibe.trim(),
-        colorPalette,
+        colorPalette, stylePrefs, avoid: avoidNote,
       })
 
       const result = {

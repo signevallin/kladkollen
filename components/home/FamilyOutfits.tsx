@@ -21,6 +21,8 @@ import { ageMonths,
   childWalks, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit,
 } from '../../utils/outfit'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
+import { STYLE_RULES } from '../../utils/constants'
+import { pregnancyPromptContext, trimesterFromDueDate, nursingPromptContext } from '../../utils/pregnancy'
 import { useSettings } from '../../utils/settings'
 import SongCard from '../SongCard'
 import { resolveSong, songHistory } from '../../utils/song'
@@ -46,6 +48,7 @@ type Member = {
   partnerId?: string
   partnerCold?: number
   partnerPalette?: string
+  partnerStyle?: string
 }
 
 function seasonalOrFull(pool: any[], season: string): any[] {
@@ -75,7 +78,7 @@ export default function FamilyOutfits(
     const partner = cacheGet<{ id: string; name: string; cold_sensitivity?: number } | null>('household.partner') ?? null
     const kids = cacheGet<Person[]>('household.children') ?? []
     const list: Member[] = [{ key: 'me', kind: 'me', name: cacheGet<string>('home.userName') || tr('Jag') }]
-    if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity, partnerPalette: colorPalettePrompt((partner as any).color_analysis) })
+    if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity, partnerPalette: colorPalettePrompt((partner as any).color_analysis), partnerStyle: (partner as any).style_prefs || '' })
     for (const k of kids) list.push({ key: `child:${k.id}`, kind: 'child', name: k.name, person: k })
     return list
   })
@@ -87,6 +90,12 @@ export default function FamilyOutfits(
   // hemskärmen men försvann i familjeoutfiten – samma inkonsekvens som
   // köldkänsligheten hade.
   const [myPalette, setMyPalette] = useState('')
+  // Resten av personaliseringen. Familjeflödet skickade tidigare bara väder,
+  // årstid och plagglista – stilregler, undvik, stil och gravidläge nådde
+  // aldrig fram, så samma person fick en fattigare outfit här än på hemskärmen.
+  const [myProfile, setMyProfile] = useState<{
+    styleRules: string; stylePrefs: string; avoid: string; pregnancy: string; nursing: string
+  }>({ styleRules: '', stylePrefs: '', avoid: '', pregnancy: '', nursing: '' })
   const [childGarments, setChildGarments] = useState<Record<string, any[]>>({})
   const [results, setResults] = useState<Record<string, any>>({}) // key → { outfit } | { error }
   // Dagens låt gäller HELA familjen – en låt för stunden, inte en per person.
@@ -129,15 +138,24 @@ export default function FamilyOutfits(
       let isPregnant = false
       if (user) {
         const { data } = await supabase.from('profiles')
-          .select('name, cold_sensitivity, pregnant, color_analysis').eq('id', user.id).single()
+          .select('name, cold_sensitivity, pregnant, due_date, nursing, color_analysis, style_rules, style_prefs, avoid_note')
+          .eq('id', user.id).single()
         myName = data?.name || myName
         if (typeof data?.cold_sensitivity === 'number') statedCold = data.cold_sensitivity
         isPregnant = !!data?.pregnant
         setMyPalette(colorPalettePrompt((data as any)?.color_analysis))
+        const ruleKeys = (data as any)?.style_rules ? String((data as any).style_rules).split(', ').filter(Boolean) : []
+        setMyProfile({
+          styleRules: STYLE_RULES.filter(r => ruleKeys.includes(r.key)).map(r => `- ${r.rule}`).join('\n'),
+          stylePrefs: (data as any)?.style_prefs || '',
+          avoid: ((data as any)?.avoid_note || '').trim(),
+          pregnancy: pregnancyPromptContext(!!(data as any)?.pregnant, trimesterFromDueDate((data as any)?.due_date)),
+          nursing: nursingPromptContext(!!(data as any)?.nursing),
+        })
       }
       setMyCold({ stated: statedCold, pregnant: isPregnant })
       const list: Member[] = [{ key: 'me', kind: 'me', name: myName }]
-      if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity, partnerPalette: colorPalettePrompt((partner as any).color_analysis) })
+      if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity, partnerPalette: colorPalettePrompt((partner as any).color_analysis), partnerStyle: (partner as any).style_prefs || '' })
       for (const k of kids) list.push({ key: `child:${k.id}`, kind: 'child', name: k.name, person: k })
       setMembers(list)
     })()
@@ -165,7 +183,9 @@ export default function FamilyOutfits(
 
   async function genForMember(m: Member, season: string, weatherCtx: { summary: string; rules: string; requiresOuterwear: boolean }, songHist: { avoidSongs: string; previousSong: string }) {
     let pool: any[] = []
-    if (m.kind === 'me') pool = myGarments.filter(g => !g.archived && !g.in_laundry)
+    // Samma filter som hemskärmen: i gravidläget döljs plagg man pausat.
+    // Saknades här, så ett pausat plagg kunde dyka upp i familjeoutfiten.
+    if (m.kind === 'me') pool = myGarments.filter(g => !g.archived && !g.in_laundry && !(myCold.pregnant && g.paused_pregnancy))
     else if (m.kind === 'partner' && m.partnerId) {
       const { data } = await supabase.rpc('partner_garments', { target: m.partnerId })
       // Bara partnerns EGNA plagg (person_id null) – annars kunde deras barns
@@ -218,7 +238,19 @@ export default function FamilyOutfits(
         : m.kind === 'partner' ? (m.partnerPalette || '') : myPalette
       const body = m.kind === 'child'
         ? { ...base, audience: 'child', childName: m.name, babyMode: baby, walks, pottyTraining: m.person?.potty_training === true }
-        : { ...base, ...songFields, colorPalette: palette, contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)' }
+        : {
+            ...base, ...songFields, colorPalette: palette,
+            contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)',
+            // Gäller bara mig: partnerns stilregler, undvik-notering och
+            // gravidläge ligger i deras egen profil och hämtas inte hit.
+            ...(m.kind === 'me' ? {
+              styleRules: myProfile.styleRules,
+              stylePrefs: myProfile.stylePrefs,
+              avoid: myProfile.avoid,
+              pregnancy: myProfile.pregnancy,
+              nursing: myProfile.nursing,
+            } : { stylePrefs: m.partnerStyle || '' }),
+          }
       parsed = await apiPost('/api/generate-outfit', body)
       const { valid } = validateOutfit(parsed.items || [], scoped, ctx.requiresOuterwear, { requireShoes: !baby })
       if (valid) break

@@ -38,8 +38,6 @@ import { LANGS } from '../utils/i18n'
 const STYLES = ['Minimalistisk', 'Klassisk', 'Streetwear', 'Bohemisk', 'Sportig', 'Romantisk', 'Edgy', 'Preppy']
 // Hur frusen användaren är – justerar hur AI:n tolkar temperaturen vid outfit-förslag.
 const GENDERS = ['Kvinna', 'Man', 'Annat', 'Vill ej ange']
-const STIL_PROFIL = ['Minimal', 'Casual', 'Elegant', 'Sport', 'Bohemisk', 'Streetwear']
-const LIFESTYLE = ['Kontor', 'Hybridjobb', 'Fritid', 'Träning']
 
 const THEME_OPTIONS: { key: 'system' | 'light' | 'dark'; label: string }[] = [
   { key: 'system', label: 'System' },
@@ -95,8 +93,6 @@ export default function Profile() {
   })
 
   // Stilprofil
-  const [stilProfil, setStilProfil] = useState<string[]>([])
-  const [livsstil, setLivsstil] = useState<string[]>([])
   const [contextNotes, setContextNotes] = useState<Record<string, string>>({})
   const [musicGenres, setMusicGenres] = useState<string[]>([])
   const [styleRules, setStyleRules] = useState<string[]>([])
@@ -127,7 +123,7 @@ export default function Profile() {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoaded, name, avatar, gender, birthday, avoidNote, lifeMode, stylePrefs, colorPrefs,
-      currentSeason, coldSensitivity, autoLaundry, washAfterWears, pregnant, dueDate, nursing, stilProfil, livsstil, contextNotes, musicGenres, styleRules])
+      currentSeason, coldSensitivity, autoLaundry, washAfterWears, pregnant, dueDate, nursing, contextNotes, musicGenres, styleRules])
 
   // Skriver profildata till alla fält. Anropas både med cachad rad (direkt vid
   // montering, för snabb rendering) och med den färska raden från nätet.
@@ -148,8 +144,6 @@ export default function Profile() {
     setDueDate(data.due_date || '')
     setNursing(!!data.nursing); cacheSet('profile.nursing', !!data.nursing)
     setHasColorAnalysis(!!data.color_analysis)
-    if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
-    if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
     if (data.outfit_context_notes) setContextNotes(data.outfit_context_notes)
     if (data.music_genres) setMusicGenres(data.music_genres.split(', ').filter(Boolean))
     if (data.style_rules) setStyleRules(data.style_rules.split(', ').filter(Boolean))
@@ -190,8 +184,6 @@ export default function Profile() {
       pregnant,
       due_date: dueDate || null,
       nursing,
-      stil_profil: stilProfil.join(', '),
-      livsstil: livsstil.join(', '),
       outfit_context_notes: contextNotes,
       music_genres: musicGenres.join(', '),
       style_rules: styleRules.join(', '),
@@ -639,17 +631,15 @@ export default function Profile() {
               </>
             ),
           })}
-          {renderRow('stilpref', 'Stilpreferenser', {
+          {/* Hette "Stilpreferenser" och rymde Stilriktning + Livsstil + kommentarer.
+              De två första är borttagna: Stilriktning var nästan en dubblett av
+              Stil (Minimal/Casual/Bohemisk mot Minimalistisk/Klassisk/Bohemisk)
+              och Livsstil lästes aldrig av någon generering. Kvar är det raden
+              faktiskt gör, så namnet säger det nu. */}
+          {renderRow('stilpref', 'Kommentar per tillfälle', {
             icon: 'tune',
             body: (
               <>
-                <Text style={styles.subLabel}>{tr('Stilriktning')}</Text>
-                {pillGroup(STIL_PROFIL, stilProfil, toggle(setStilProfil))}
-
-                <Text style={styles.subLabel}>{tr('Livsstil')}</Text>
-                {pillGroup(LIFESTYLE, livsstil, toggle(setLivsstil))}
-
-                <Text style={styles.subLabel}>{tr('Kommentar per tillfälle')}</Text>
                 <Text style={styles.hint}>{tr('Egen instruktion per tillfälle – AI:n väger in den vid outfit-förslag.')}</Text>
                 {OUTFIT_CONTEXTS.map(ctx => (
                   <View key={ctx.label} style={styles.contextNoteGroup}>

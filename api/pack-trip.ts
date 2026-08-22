@@ -39,6 +39,9 @@ export default async function handler(request: Request): Promise<Response> {
     const childHeadwear = clip(body.childHeadwear, 400)
     // Användarens personliga färgpalett (färganalys), om hen valt att väga in den.
     const colorPalette = audience === 'child' ? '' : clip(body.colorPalette, 500)
+    // Samma avgränsning som färgpaletten: gäller vuxna, inte barn.
+    const stylePrefs = audience === 'child' ? '' : clip(body.stylePrefs, 200)
+    const avoid = audience === 'child' ? '' : clip(body.avoid, 300)
 
     if (!destination) return json({ error: 'Destination saknas' }, 400)
     if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
@@ -85,7 +88,7 @@ OBLIGATORISKA REGLER FÖR VARJE OUTFIT – följ EXAKT (samma som vid vanlig out
 4. Väljer du en KLÄNNING → lägg INTE till separat nederdel eller överdel (klänningen ersätter båda).
 ${childHeadwear ? '5b. ' + childHeadwear + '\n' : ''}5. HÖGST ETT plagg per roll: ALDRIG två överdelar (t.ex. inte "T-shirt" + "body" samtidigt – båda är överdelar), aldrig två nederdelar, aldrig två par skor. Ett extra ytterlager (kavaj/jacka/kofta) OVANPÅ överdelen är ok, men basen är EN överdel.
 6. Bygg looken kring en sammanhållen färgpalett; kombinera inte flera skarpt konkurrerande starka färger.
-${colorPalette ? `7. PERSONLIG FÄRGPALETT (från användarens färganalys) – väg in den tydligt: ${colorPalette}. Prioritera plagg nära bas- och komplementfärgerna, använd accentfärgerna som statement och undvik "undvik"-färgerna när garderoben tillåter.` : ''}
+${stylePrefs ? `6b. ANVÄNDARENS STIL: ${stylePrefs} – låt plaggvalen landa i den stilen när garderoben tillåter.\n` : ''}${avoid ? `6c. UNDVIK (respektera): ${avoid}\n` : ''}${colorPalette ? `7. PERSONLIG FÄRGPALETT (från användarens färganalys) – väg in den tydligt: ${colorPalette}. Prioritera plagg nära bas- och komplementfärgerna, använd accentfärgerna som statement och undvik "undvik"-färgerna när garderoben tillåter.` : ''}
 
 VIKTIGT:
 - Använd EXAKT samma plaggnamn som i garderoben (för både packlista och outfits).

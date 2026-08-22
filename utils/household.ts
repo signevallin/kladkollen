@@ -7,6 +7,8 @@ export type Partner = {
   cold_sensitivity: number
   // Rå färganalys; kör den genom colorPalettePrompt() för promptsträngen.
   color_analysis: unknown | null
+  // Vald stil (Profil → Stil), kommaseparerad.
+  style_prefs: string
 }
 
 // Laddar inloggad användares id och ev. partner (den andra medlemmen i hushållet).
@@ -32,6 +34,7 @@ export async function loadPartner(): Promise<{ myId: string | null; partner: Par
       // alla vuxna, så en lättfrusen partner fick samma lager som alla andra.
       cold_sensitivity: typeof p?.cold_sensitivity === 'number' ? p.cold_sensitivity : 3,
       color_analysis: p?.color_analysis ?? null,
+      style_prefs: p?.style_prefs || '',
     },
   }
 }

@@ -222,7 +222,6 @@ const enBySource: Dict = {
   'Familj & barn': 'Family & children',
   'Stil': 'Style',
   'Stilregler': 'Style rules',
-  'Stilpreferenser': 'Style preferences',
   'Favoritfärger': 'Favourite colours',
   'Undvika?': 'Avoid?',
   'Färganalys': 'Colour analysis',

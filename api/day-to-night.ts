@@ -18,6 +18,7 @@ export default async function handler(request: Request): Promise<Response> {
     const toLogic = clip(body.toLogic, 200)
     const season = clip(body.season, 20)
     const styleRules = clip(body.styleRules, 1200)
+    const stylePrefs = clip(body.stylePrefs, 200)
     const groupedList = clip(body.groupedList, 8000)
     const avoidItems = clip(body.avoidItems, 400)
 
@@ -45,6 +46,7 @@ REGLER:
 2. Byt ut 1–3 plagg mellan looken – inte fler. Resten ska vara IDENTISKA plagg (exakt samma namn) i båda.
 3. Varje "out" måste finnas i dayItems och INTE i eveningItems. Varje "in" måste finnas i eveningItems och INTE i dayItems.
 4. Inga dubbletter (en överdel, en nederdel, ett par skor). Färgharmoni i båda looken.
+${stylePrefs ? `4b. Användarens stil: ${stylePrefs} – låt looken landa där när garderoben tillåter.` : ''}
 ${styleRules ? `5. Användarens egna stilregler (följ noga): ${styleRules}` : ''}
 
 ${langInstruction(body.lang)} OBS: "dayItems", "eveningItems" och swap-plaggen ("out"/"in") ska vara plaggens namn EXAKT som i garderoben (översätt dem INTE). Språkvalet gäller "dayName", "eveningName" och "tip".
