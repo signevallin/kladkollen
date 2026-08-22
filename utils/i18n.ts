@@ -862,6 +862,10 @@ const enBySource: Dict = {
   'Integritetspolicy': 'Privacy Policy',
   // Premium / paywall ('Aktiv' finns redan via outfit-kontexten)
   'Uppgradera': 'Upgrade',
+  'Byt till Singel?': 'Switch to Single?',
+  'Byt till Singel': 'Switch to Single',
+  'Par- och familjefunktionerna döljs. Ni är kvar i samma hushåll och': 'Couple and family features will be hidden. You stay in the same household and',
+  'ser fortfarande det ni delar – vill du koppla isär helt gör du det under Min partner.': 'can still see what you share – to disconnect completely, do it under My partner.',
   'Automatisk tvätt': 'Automatic laundry',
   'Lägg i tvätten automatiskt': 'Add to laundry automatically',
   'Efter hur många användningar?': 'After how many wears?',

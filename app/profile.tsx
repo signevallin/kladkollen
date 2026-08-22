@@ -278,6 +278,24 @@ export default function Profile() {
     }, tr('Logga ut'), true)
   }
 
+  // Byte av livssituation. Att välja Singel med en partner kvar i hushållet
+  // döljer par-ytorna men LÄMNAR inte hushållet – det sker bara via "lämna
+  // hushållet" under Min partner. Skillnaden är inte uppenbar, och att tro att
+  // man kopplat isär sig när man inte har det är värt en varning.
+  function chooseLifeMode(v: 'single' | 'couple' | 'family') {
+    const apply = () => { setLifeMode(v); cacheSet('profile.lifeMode', v) }
+    if (v === 'single' && partner && lifeMode !== 'single') {
+      showConfirm(
+        tr('Byt till Singel?'),
+        `${tr('Par- och familjefunktionerna döljs. Ni är kvar i samma hushåll och')} ${partner.name} ${tr('ser fortfarande det ni delar – vill du koppla isär helt gör du det under Min partner.')}`,
+        apply,
+        tr('Byt till Singel'),
+      )
+      return
+    }
+    apply()
+  }
+
   async function deleteAccount() {
     showConfirm(
       tr('Radera konto'),
@@ -514,7 +532,7 @@ export default function Profile() {
                 <Text style={styles.hint}>{tr('Anpassar appen efter var i livet du är.')}</Text>
                 <View style={styles.pills}>
                   {([['single', 'Singel'], ['couple', 'Partner'], ['family', 'Familj']] as const).map(([v, lbl]) => (
-                    <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => { setLifeMode(v); cacheSet('profile.lifeMode', v) }}>
+                    <TouchableOpacity key={v} style={[styles.pill, lifeMode === v && styles.pillActive]} onPress={() => chooseLifeMode(v)}>
                       <Text style={[styles.pillText, lifeMode === v && styles.pillTextActive]}>{tr(lbl)}</Text>
                     </TouchableOpacity>
                   ))}
