@@ -78,7 +78,7 @@ export default function MyOutfits() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang, useColorAnalysis } = useSettings()
-  const { tier, tripCreditsLeft } = useEntitlements()
+  const { tier, tripCreditsLeft, refresh: refreshEntitlements } = useEntitlements()
   const locale = localeFor(lang)
   const { tab, create, partner, partnerName, person, personName } = useLocalSearchParams<{ tab?: string; create?: string; partner?: string; partnerName?: string; person?: string; personName?: string }>()
   // Partner-läge: visa partnerns outfits (läsläge) i stället för mina egna.
@@ -817,6 +817,10 @@ function isPast(date: Date) {
       showAlert(tr('Något gick fel'), e.message)
     } finally {
       setTripLoading(false)
+      // Uppdatera kvar-räknaren efter varje försök (den ändras serverside).
+      // Utan det stod "3 av 3" kvar tills appen startades om, trots att
+      // servern räknat ner – samma rad som hemskärmen redan har.
+      refreshEntitlements()
     }
   }
 
