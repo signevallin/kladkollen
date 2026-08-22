@@ -3,6 +3,7 @@ import type { Theme } from '../../theme/theme'
 import * as ImagePicker from 'expo-image-picker'
 import { router, useFocusEffect } from 'expo-router'
 import { cacheGet, cacheSet } from '../../utils/cache'
+import { partnerFeaturesEnabled, useEntitlements } from '../../utils/entitlements'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -91,6 +92,12 @@ export default function Inspiration() {
   // Par-matchning (samboläge)
   // Seedas från cachen så matcha-knappen syns direkt vid flikbyte.
   const [partner, setPartner] = useState<{ id: string; name: string } | null>(() => cacheGet('household.partner') ?? null)
+  // Par-matchningen krävde bara att en partner FANNS. Den syntes därför även i
+  // singelläget och utan Partner-nivån – samma härledning som hemskärmen
+  // använder (partnerModeOn) saknades här.
+  const { tier } = useEntitlements()
+  const lifeMode = cacheGet<string>('profile.lifeMode') ?? 'single'
+  const partnerModeOn = (lifeMode === 'couple' || lifeMode === 'family') && partnerFeaturesEnabled(tier)
   const [myName, setMyName] = useState('Jag')
   const [myGender, setMyGender] = useState('')
   const [partnerGender, setPartnerGender] = useState('')
@@ -328,7 +335,7 @@ export default function Inspiration() {
 
   async function analyzeCouple() {
     if (!inspoBase64) { showAlert(tt('Välj en inspirationsbild först!')); return }
-    if (!partner) return
+    if (!partner || !partnerModeOn) return
     setCoupleLoading(true); setCoupleResult(null); setCoupleSaved(false)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -496,7 +503,7 @@ export default function Inspiration() {
               </Text>
             </TouchableOpacity>
 
-            {partner && (
+            {partner && partnerModeOn && (
               <TouchableOpacity
                 style={[styles.coupleMatchBtn, (!inspoBase64 || coupleLoading) && styles.analyzeButtonDisabled]}
                 onPress={analyzeCouple}

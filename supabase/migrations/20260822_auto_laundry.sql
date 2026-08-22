@@ -23,8 +23,11 @@ create trigger trg_reset_wears_on_wash
   before update of in_laundry on garments
   for each row execute function reset_wears_on_wash();
 
--- Undantagen speglar isWashable i utils/constants.ts – plagg utan tvättikon ska
--- inte tvättas automatiskt – plus Ytterkläder och Kavajer, som tvättas sällan.
+-- Undantag: plagg utan tvättikon (skor, väskor, smycken, accessoarer), plus
+-- Ytterkläder och Kavajer som tvättas sällan, plus sjal och halsduk. De två
+-- sista BEHÅLLER sin tvättikon och kan tvättas för hand – de ska bara inte åka
+-- in av sig själva. isWashable är alltså inte samma mängd som den här: manuell
+-- och automatisk tvätt är två olika frågor.
 create or replace function adjust_garment_wear(p_ids uuid[], p_delta integer, p_date date default null::date)
 returns void
 language sql set search_path to 'public' as $function$
@@ -45,8 +48,8 @@ language sql set search_path to 'public' as $function$
         when p_delta > 0
          and (select auto_on from settings)
          and greatest(0, coalesce(g.wears_since_wash, 0) + p_delta) >= (select limit_wears from settings)
-         and (g.subcategory in ('Halsduk', 'Sjal')
-              or g.category not in ('Skor', 'Smycken', 'Väskor', 'Accessoarer', 'Ytterkläder', 'Kavajer'))
+          and g.category not in ('Skor', 'Smycken', 'Väskor', 'Accessoarer', 'Ytterkläder', 'Kavajer')
+         and coalesce(g.subcategory, '') not in ('Halsduk', 'Sjal')
           then true
         else g.in_laundry
       end
