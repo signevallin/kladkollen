@@ -28,6 +28,7 @@ import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
 import { matchItemsToPool, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
 import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
+import { sizeCmAtDate } from '../../utils/childSize'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
@@ -760,7 +761,13 @@ function isPast(date: Date) {
         // promise som ohanterad innan loopen hinner fram till den.
         const childRequests = children.map(c => {
           const active = (all as any[]).filter(g => g.person_id === c.id && !g.archived && !g.in_laundry)
-          const sized = active.filter(g => childSizeFits(g, c.current_size_cm ?? null))
+          // Storleken barnet har NÄR resan börjar, inte idag. Se sizeCmAtDate:
+          // en bebis byter storlek ungefär var tredje månad, så en resa som
+          // planeras i god tid skulle annars packas i kläder som är för små på
+          // plats – och sedan storleksfiltret skärptes blockeras dessutom
+          // precis de plagg hon vuxit i till.
+          const sizeOnTrip = sizeCmAtDate(c.current_size_cm ?? null, c.birthdate, start)
+          const sized = active.filter(g => childSizeFits(g, sizeOnTrip))
           const seasonal = filterForTrip(sized.length ? sized : active, seasons)
           const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
           if (usePool.length === 0) return null

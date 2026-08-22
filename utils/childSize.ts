@@ -81,6 +81,24 @@ export function suggestedSizeCm(birthdate?: string | null): number | null {
   return nearestSize(estimatedHeightCm(years))
 }
 
+// Vilken storlek barnet har vid ett FRAMTIDA datum. En resa packas för den dag
+// kläderna faktiskt ska bäras, inte för idag: under ett år växer ett barn ~2
+// cm/mån och storlekarna ligger 6 cm isär, alltså ett storlekssteg var tredje
+// månad. Packar man en resa två månader fram med dagens storlek blir kläderna
+// för små på plats. Bakåt i tiden justeras inget – då gäller nuvarande storlek.
+export function sizeCmAtDate(
+  currentCm: number | null,
+  birthdate: string | null | undefined,
+  when: Date,
+  now: Date = new Date(),
+): number | null {
+  if (currentCm == null) return null
+  const months = (when.getTime() - now.getTime()) / (30.44 * 24 * 60 * 60 * 1000)
+  if (!Number.isFinite(months) || months <= 0) return currentCm
+  const years = ageYearsFromBirthdate(birthdate) ?? 4
+  return nearestSize(currentCm + months * growthCmPerMonth(years))
+}
+
 // Nästa/föregående storlek i skalan (för "bumpa till 92"-knappen).
 export function nextSize(cm: number): number {
   const sizes = EU_CHILD_SIZES as readonly number[]
