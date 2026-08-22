@@ -21,6 +21,20 @@ export default async function handler(request: Request): Promise<Response> {
     const contextLogic = clip(body.contextLogic, 200)
     const weatherSummary = clip(body.weatherSummary, 300)
     const weatherRules = clip(body.weatherRules, 600)
+    // Var sitt lager: samma väder känns olika beroende på köldkänslighet.
+    // Faller tillbaka på den gemensamma regeln så en äldre app som bara skickar
+    // weatherRules fortsätter fungera – servern och appen deployas var för sig.
+    const weatherRulesA = clip(body.weatherRulesA, 600) || weatherRules
+    const weatherRulesB = clip(body.weatherRulesB, 600) || weatherRules
+    // Skiljer de sig inte åt är det samma sak – skriv den då en gång, så
+    // prompten inte antyder en skillnad som inte finns.
+    const weatherBlock = !weatherRulesA && !weatherRulesB
+      ? ''
+      : weatherRulesA === weatherRulesB
+        ? `\nVÄDERREGLER (gäller BÅDA):\n${weatherRulesA}`
+        : `\nVÄDERREGLER – skiljer sig åt, de är olika känsliga för kyla.`
+          + ` Följ VAR OCH EN för rätt person och blanda dem inte:`
+          + `\n${nameA}:\n${weatherRulesA}\n${nameB}:\n${weatherRulesB}`
     const styleRules = clip(body.styleRules, 1200)
     const avoid = clip(body.avoid, 400)
     const contextNote = clip(body.contextNote, 400)
@@ -60,7 +74,7 @@ PARREGLER:
 - De två looksen ska kännas ihop: samma formalitetsnivå och en GEMENSAM färgtråd (en delad accent- eller neutralton), men spegla varsin person.
 - Undvik att båda bär exakt samma starka statementfärg om det blir "matchande".
 - Använd EXAKT samma plaggnamn som i garderoberna.
-${weatherRules ? `\nVÄDERREGLER (gäller BÅDA):\n${weatherRules}` : ''}
+${weatherBlock}
 ${styleRules ? `\nSTILREGLER (gäller BÅDA, väger tungt):\n${styleRules}` : ''}
 ${avoid ? `\nUNDVIK (respektera för båda): ${avoid}` : ''}
 

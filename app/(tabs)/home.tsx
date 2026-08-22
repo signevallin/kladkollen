@@ -88,7 +88,10 @@ export default function Home() {
   const [userAvatar, setUserAvatar] = useState<string | null>(() => cacheGet('home.userAvatar') ?? null)
   // Seedas från cachen så partner-knappen syns direkt vid flikbyte (annars
   // blinkar den in först efter att loadPartner hämtat klart).
-  const [partner, setPartner] = useState<{ id: string; name: string } | null>(() => cacheGet('household.partner') ?? null)
+  // cold_sensitivity är valfri med flit: en cachad partner från ett äldre
+  // appbygge saknar fältet, och då ska vi falla tillbaka på lagom (3).
+  const [partner, setPartner] = useState<{ id: string; name: string; cold_sensitivity?: number } | null>(
+    () => cacheGet('household.partner') ?? null)
   // Antal barn i hushållet – styr om "Familjen idag"-knappen visas (seedas ur
   // samma cache som PersonSwitcher så knappen inte blinkar in vid flikbyte).
   const [childCount, setChildCount] = useState<number>(() => (cacheGet<any[]>('household.children') ?? []).length)
@@ -531,6 +534,13 @@ export default function Home() {
       // ett steg så förslagen blir svalare/luftigare.
       const effectiveCold = pregnant ? Math.max(1, coldSensitivity - 1) : coldSensitivity
       const weatherCtx = useWeather ? buildWeatherContext(currentWeather, effectiveCold, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
+      // Vädret är samma för er båda, men hur det KÄNNS är det inte. En egen
+      // kontext per person, annars fick den som är lättfrusen samma lager som
+      // den som är värmetålig. Partnerns graviditet är inte känd här och ska
+      // inte vara det – den justeringen gäller bara den egna genereringen.
+      const partnerCtx = useWeather
+        ? buildWeatherContext(currentWeather, partner.cold_sensitivity ?? 3, partner.cold_sensitivity ?? 3)
+        : { summary: '', rules: '', requiresOuterwear: false }
       const season = getCurrentSeason()
 
       const { data: theirs } = await supabase.rpc('partner_garments', { target: partner.id })
@@ -570,7 +580,12 @@ export default function Home() {
         listA: coupleList(mySeason, parLendable),
         listB: coupleList(parSeason, myLendable),
         contextLabel: ctx.label, contextLogic: ctx.logic,
-        weatherSummary: weatherCtx.summary, weatherRules: weatherCtx.rules,
+        weatherSummary: weatherCtx.summary,
+        // weatherRules skickas kvar för bakåtkompatibilitet: servern deployas av
+        // Vercel medan appen byggs separat, så en äldre app kan träffa den nya
+        // endpointen och tvärtom.
+        weatherRules: weatherCtx.rules,
+        weatherRulesA: weatherCtx.rules, weatherRulesB: partnerCtx.rules,
         styleRules, avoid: avoidNote.trim(),
         contextNote: (contextNotes[ctx.label] || '').trim(),
         season,
