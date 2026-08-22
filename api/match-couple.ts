@@ -24,6 +24,8 @@ export default async function handler(request: Request): Promise<Response> {
     // Var sitt lager: samma väder känns olika beroende på köldkänslighet.
     // Faller tillbaka på den gemensamma regeln så en äldre app som bara skickar
     // weatherRules fortsätter fungera – servern och appen deployas var för sig.
+    const colorPaletteA = clip(body.colorPaletteA, 500)
+    const colorPaletteB = clip(body.colorPaletteB, 500)
     const weatherRulesA = clip(body.weatherRulesA, 600) || weatherRules
     const weatherRulesB = clip(body.weatherRulesB, 600) || weatherRules
     // Skiljer de sig inte åt är det samma sak – skriv den då en gång, så
@@ -75,6 +77,7 @@ PARREGLER:
 - Undvik att båda bär exakt samma starka statementfärg om det blir "matchande".
 - Använd EXAKT samma plaggnamn som i garderoberna.
 ${weatherBlock}
+${colorPaletteA || colorPaletteB ? `\nPERSONLIGA FÄRGPALETTER (från färganalysen) – väg in dem tydligt, men de gäller VAR SIN person:${colorPaletteA ? `\n${nameA}: ${colorPaletteA}` : ''}${colorPaletteB ? `\n${nameB}: ${colorPaletteB}` : ''}\nVälj i första hand plagg vars färger ligger nära respektive persons bas- och komplementfärger, och använd deras accentfärger som statement. Undvik deras "undvik"-färger när garderoben tillåter. Den GEMENSAMMA färgtråden ska väljas så att den fungerar i BÅDAS paletter – tvinga inte in en färg som en av dem ska undvika.` : ''}
 ${styleRules ? `\nSTILREGLER (gäller BÅDA, väger tungt):\n${styleRules}` : ''}
 ${avoid ? `\nUNDVIK (respektera för båda): ${avoid}` : ''}
 

@@ -1,6 +1,13 @@
 import { supabase } from '../supabase'
 
-export type Partner = { id: string; name: string; avatar_url: string | null; cold_sensitivity: number }
+export type Partner = {
+  id: string
+  name: string
+  avatar_url: string | null
+  cold_sensitivity: number
+  // Rå färganalys; kör den genom colorPalettePrompt() för promptsträngen.
+  color_analysis: unknown | null
+}
 
 // Laddar inloggad användares id och ev. partner (den andra medlemmen i hushållet).
 // Returnerar partner=null om man inte är ihopkopplad.
@@ -24,6 +31,7 @@ export async function loadPartner(): Promise<{ myId: string | null; partner: Par
       // Partnerns egen köldkänslighet – familjeoutfits antog tidigare 3 för
       // alla vuxna, så en lättfrusen partner fick samma lager som alla andra.
       cold_sensitivity: typeof p?.cold_sensitivity === 'number' ? p.cold_sensitivity : 3,
+      color_analysis: p?.color_analysis ?? null,
     },
   }
 }

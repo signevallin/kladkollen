@@ -1011,6 +1011,7 @@ export type Database = {
         Returns: {
           avatar_url: string
           cold_sensitivity: number
+          color_analysis: Json
           id: string
           name: string
         }[]

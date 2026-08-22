@@ -20,6 +20,7 @@ import { ageMonths,
   buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason,
   childWalks, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit,
 } from '../../utils/outfit'
+import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { useSettings } from '../../utils/settings'
 import SongCard from '../SongCard'
 import { resolveSong, songHistory } from '../../utils/song'
@@ -44,6 +45,7 @@ type Member = {
   person?: Person
   partnerId?: string
   partnerCold?: number
+  partnerPalette?: string
 }
 
 function seasonalOrFull(pool: any[], season: string): any[] {
@@ -62,7 +64,7 @@ export default function FamilyOutfits(
 ) {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { t: tr, lang, showDailySong } = useSettings()
+  const { t: tr, lang, showDailySong, useColorAnalysis } = useSettings()
   const { tier } = useEntitlements()
 
   // Seedas ur cachen som home.tsx redan fyller (household.partner/.children,
@@ -73,7 +75,7 @@ export default function FamilyOutfits(
     const partner = cacheGet<{ id: string; name: string; cold_sensitivity?: number } | null>('household.partner') ?? null
     const kids = cacheGet<Person[]>('household.children') ?? []
     const list: Member[] = [{ key: 'me', kind: 'me', name: cacheGet<string>('home.userName') || tr('Jag') }]
-    if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity })
+    if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity, partnerPalette: colorPalettePrompt((partner as any).color_analysis) })
     for (const k of kids) list.push({ key: `child:${k.id}`, kind: 'child', name: k.name, person: k })
     return list
   })
@@ -81,6 +83,10 @@ export default function FamilyOutfits(
   // Egen köldkänslighet + gravidflagga. Låg tidigare inte alls här, vilket
   // var hela felet: vuxna kördes som 'lagom' oavsett vad de fyllt i.
   const [myCold, setMyCold] = useState<{ stated: number; pregnant: boolean }>({ stated: 3, pregnant: false })
+  // Egen färgpalett. Vägdes tidigare in när man genererade åt sig själv från
+  // hemskärmen men försvann i familjeoutfiten – samma inkonsekvens som
+  // köldkänsligheten hade.
+  const [myPalette, setMyPalette] = useState('')
   const [childGarments, setChildGarments] = useState<Record<string, any[]>>({})
   const [results, setResults] = useState<Record<string, any>>({}) // key → { outfit } | { error }
   // Dagens låt gäller HELA familjen – en låt för stunden, inte en per person.
@@ -123,14 +129,15 @@ export default function FamilyOutfits(
       let isPregnant = false
       if (user) {
         const { data } = await supabase.from('profiles')
-          .select('name, cold_sensitivity, pregnant').eq('id', user.id).single()
+          .select('name, cold_sensitivity, pregnant, color_analysis').eq('id', user.id).single()
         myName = data?.name || myName
         if (typeof data?.cold_sensitivity === 'number') statedCold = data.cold_sensitivity
         isPregnant = !!data?.pregnant
+        setMyPalette(colorPalettePrompt((data as any)?.color_analysis))
       }
       setMyCold({ stated: statedCold, pregnant: isPregnant })
       const list: Member[] = [{ key: 'me', kind: 'me', name: myName }]
-      if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity })
+      if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity, partnerPalette: colorPalettePrompt((partner as any).color_analysis) })
       for (const k of kids) list.push({ key: `child:${k.id}`, kind: 'child', name: k.name, person: k })
       setMembers(list)
     })()
@@ -202,9 +209,16 @@ export default function FamilyOutfits(
       const songFields = m.kind === 'child' || !showDailySong
         ? { wantSong: false }
         : { wantSong: true, musicGenres, avoidSongs: songHist.avoidSongs, previousSong: songHist.previousSong }
+      // Färgpaletten gäller bara vuxna: barn har ingen färganalys, och
+      // pack-trip nollar den redan för barn – håll vägarna konsekventa.
+      // Inställningen Profil → färganalys hedras, annars kringgår familjeflödet
+      // ett val användaren gjort.
+      const palette = !useColorAnalysis || m.kind === 'child'
+        ? ''
+        : m.kind === 'partner' ? (m.partnerPalette || '') : myPalette
       const body = m.kind === 'child'
         ? { ...base, audience: 'child', childName: m.name, babyMode: baby, walks, pottyTraining: m.person?.potty_training === true }
-        : { ...base, ...songFields, contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)' }
+        : { ...base, ...songFields, colorPalette: palette, contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)' }
       parsed = await apiPost('/api/generate-outfit', body)
       const { valid } = validateOutfit(parsed.items || [], scoped, ctx.requiresOuterwear, { requireShoes: !baby })
       if (valid) break

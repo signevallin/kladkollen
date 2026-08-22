@@ -90,7 +90,7 @@ export default function Home() {
   // blinkar den in först efter att loadPartner hämtat klart).
   // cold_sensitivity är valfri med flit: en cachad partner från ett äldre
   // appbygge saknar fältet, och då ska vi falla tillbaka på lagom (3).
-  const [partner, setPartner] = useState<{ id: string; name: string; cold_sensitivity?: number } | null>(
+  const [partner, setPartner] = useState<{ id: string; name: string; cold_sensitivity?: number; color_analysis?: unknown } | null>(
     () => cacheGet('household.partner') ?? null)
   // Antal barn i hushållet – styr om "Familjen idag"-knappen visas (seedas ur
   // samma cache som PersonSwitcher så knappen inte blinkar in vid flikbyte).
@@ -586,6 +586,11 @@ export default function Home() {
         // endpointen och tvärtom.
         weatherRules: weatherCtx.rules,
         weatherRulesA: weatherCtx.rules, weatherRulesB: partnerCtx.rules,
+        // Var sin färgpalett. Inställningen Profil → färganalys gäller båda –
+        // är den av ska ingen palett skickas, annars kringgår par-flödet ett
+        // val användaren gjort. Partnerns palett läses via partner_profile.
+        colorPaletteA: useColorAnalysis ? colorPaletteStr : '',
+        colorPaletteB: useColorAnalysis ? colorPalettePrompt(partner.color_analysis) : '',
         styleRules, avoid: avoidNote.trim(),
         contextNote: (contextNotes[ctx.label] || '').trim(),
         season,
