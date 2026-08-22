@@ -862,6 +862,11 @@ const enBySource: Dict = {
   'Integritetspolicy': 'Privacy Policy',
   // Premium / paywall ('Aktiv' finns redan via outfit-kontexten)
   'Uppgradera': 'Upgrade',
+  '{namn} delar sin prenumeration med dig.': '{namn} is sharing their subscription with you.',
+  'Din nivå täcks av': 'Your plan is covered by',
+  'Din nivå täcks av någon annan i hushållet.': 'Your plan is covered by someone else in your household.',
+  'via': 'via',
+  'hushållet': 'the household',
   'Byt till Singel?': 'Switch to Single?',
   'Byt till Singel': 'Switch to Single',
   'Par- och familjefunktionerna döljs. Ni är kvar i samma hushåll och': 'Couple and family features will be hidden. You stay in the same household and',

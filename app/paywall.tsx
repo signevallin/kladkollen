@@ -35,7 +35,7 @@ export default function Paywall() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
-  const { packages, purchasesAvailable, isPro, tier, purchase, restore, refresh, purchasesDebug } = useEntitlements()
+  const { packages, purchasesAvailable, isPro, tier, sharedFrom, purchase, restore, refresh, purchasesDebug } = useEntitlements()
   const [busy, setBusy] = useState(false)
   const [period, setPeriod] = useState<BillingPeriod>('year')
 
@@ -207,6 +207,23 @@ export default function Paywall() {
           </View>
         )}
 
+        {/* Den som täcks av någon annans prenumeration ser "Din nivå" utan att ha
+            köpt något. Utan förklaring är det obegripligt – och man riskerar att
+            köpa en till i onödan. */}
+        {sharedFrom !== null && (
+          <View style={styles.sharedBox}>
+            <Ionicons name="people-outline" size={16} color={t.textSecondary} />
+            <Text style={styles.sharedText}>
+              {/* Formuleringen undviker genitiv med flit: "{namn}s prenumeration"
+                  ger "Larss" för namn som redan slutar på s, och genitivregeln
+                  skiljer sig dessutom mellan språken. */}
+              {sharedFrom
+                ? tr('{namn} delar sin prenumeration med dig.').replace('{namn}', sharedFrom)
+                : tr('Din nivå täcks av någon annan i hushållet.')}
+            </Text>
+          </View>
+        )}
+
         <TouchableOpacity style={styles.restoreBtn} onPress={onRestore} disabled={busy}>
           <Text style={styles.restoreText}>{tr('Återställ köp')}</Text>
         </TouchableOpacity>
@@ -272,6 +289,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   soonText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, textAlign: 'center' },
   debugText: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textFaint, textAlign: 'center', marginTop: 8 },
 
+  sharedBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, marginTop: 16 },
+  sharedText: { fontFamily: 'Lora_400Regular', fontSize: 13.5, lineHeight: 19, color: t.textSecondary, flex: 1 },
   restoreBtn: { alignItems: 'center', paddingVertical: 16 },
   redeemBtn: { alignItems: 'center', paddingTop: 0, paddingBottom: 14 },
   restoreText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textFaint, textDecorationLine: 'underline' },

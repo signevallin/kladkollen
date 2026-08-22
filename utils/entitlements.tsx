@@ -39,6 +39,9 @@ type EntitlementsCtx = {
   purchasesAvailable: boolean
   creditsLeft: number   // -1 = obegränsat (Premium), annars antal kvar denna vecka
   tripCreditsLeft: number // samma, men för resepackningar
+  // Namnet på den i hushållet vars prenumeration täcker mig, eller null när
+  // nivån är min egen. Tom sträng = täcks av någon utan angivet namn.
+  sharedFrom: string | null
   purchasesDebug: string // dev-diagnostik för varför paket ev. saknas
   refresh: () => Promise<void>
   purchase: (pkg: PurchasePackage) => Promise<{ ok: boolean; cancelled?: boolean; error?: string }>
@@ -58,6 +61,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   // för Premium (då förblir kvoten dold), annars antal kvar (då visas den).
   const [creditsLeft, setCreditsLeft] = useState<number>(-1)
   const [tripCreditsLeft, setTripCreditsLeft] = useState<number>(-1)
+  const [sharedFrom, setSharedFrom] = useState<string | null>(null)
   const [purchasesDebug, setPurchasesDebug] = useState<string>(purchasesAvailable ? 'laddar…' : 'SDK/nyckel av')
 
   // Läser nivå ur databasen (entitlements.pro_until + product_id, satt av
@@ -69,15 +73,16 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   //
   // Samma RPC används av use_ai_credit och ai_credits_left, så gränssnittet och
   // den bindande kvoten aldrig kan säga olika saker.
-  const readDbTier = useCallback(async (): Promise<Tier> => {
+  const readDbTier = useCallback(async (): Promise<{ tier: Tier; sharedFrom: string | null }> => {
+    const none = { tier: 'none' as Tier, sharedFrom: null }
     try {
       const { data, error } = await (supabase.rpc as any)('effective_entitlement')
-      if (error) return 'none'
+      if (error) return none
       const row = Array.isArray(data) ? data[0] : data
       const until = row?.pro_until ? new Date(row.pro_until).getTime() : 0
-      if (until <= Date.now()) return 'none'
-      return tierFromProductId(row?.product_id)
-    } catch { return 'none' }
+      if (until <= Date.now()) return none
+      return { tier: tierFromProductId(row?.product_id), sharedFrom: row?.shared_from ?? null }
+    } catch { return none }
   }, [])
 
   const readCredits = useCallback(async () => {
@@ -94,13 +99,18 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refresh = useCallback(async () => {
-    let t = await readDbTier()
+    const db = await readDbTier()
+    let t = db.tier
+    let from = db.sharedFrom
     if (purchasesAvailable) {
       const info = await getCustomerInfo()
-      if (info) { const rc = tierFromInfo(info); if (TIER_RANK[rc] > TIER_RANK[t]) t = rc }
+      // Ett eget köp som är HÖGRE än den delade nivån gör mig oberoende – då
+      // ska ingen "täcks av"-text visas.
+      if (info) { const rc = tierFromInfo(info); if (TIER_RANK[rc] > TIER_RANK[t]) { t = rc; from = null } }
     }
     setTier(t)
     setIsPro(t !== 'none')
+    setSharedFrom(t === 'none' ? null : from)
     // Premium har obegränsat med AI-outfits. Sätt -1 direkt i stället för att
     // fråga servern: RevenueCat vet om köpet omedelbart, medan ai_credits_left
     // läser entitlements-tabellen som webhooken skriver några sekunder senare.
@@ -159,7 +169,7 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
   }, [refresh])
 
   return (
-    <Ctx.Provider value={{ isPro, tier, loading, packages, purchasesAvailable, creditsLeft, tripCreditsLeft, purchasesDebug, refresh, purchase, restore }}>
+    <Ctx.Provider value={{ isPro, tier, loading, packages, purchasesAvailable, creditsLeft, tripCreditsLeft, sharedFrom, purchasesDebug, refresh, purchase, restore }}>
       {children}
     </Ctx.Provider>
   )

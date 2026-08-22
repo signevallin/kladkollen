@@ -52,7 +52,7 @@ export default function Profile() {
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
   const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
-  const { isPro, tier } = useEntitlements()
+  const { isPro, tier, sharedFrom } = useEntitlements()
   const partnerOn = partnerFeaturesEnabled(tier)
   const familyOn = familyFeaturesEnabled(tier)
 
@@ -718,7 +718,12 @@ export default function Profile() {
               ska se "Partner" här, annars går det inte att se vad man betalar för. */}
           {renderRow('premium', 'Skrud Premium', {
             icon: 'workspace-premium',
-            value: isPro ? (TIER_LABEL[tier] || 'Aktiv') : 'Uppgradera',
+            // Delad nivå markeras kompakt här; paywallen förklarar i klartext.
+            value: isPro
+              ? (sharedFrom !== null
+                  ? `${TIER_LABEL[tier] || tr('Aktiv')} · ${tr('via')} ${sharedFrom || tr('hushållet')}`
+                  : (TIER_LABEL[tier] || 'Aktiv'))
+              : 'Uppgradera',
             onPress: () => router.push('/paywall'),
           })}
         </View>
