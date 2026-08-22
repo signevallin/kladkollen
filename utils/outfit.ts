@@ -1,3 +1,4 @@
+import { sizeIndex } from './childSize'
 // Rena hjälpfunktioner för outfit-generering, delade mellan hemskärmen
 // (vuxen/par) och barn-outfit-skärmen (app/child-outfit). Inga React-beroenden
 // och ingen översättning – prompten byggs alltid på svenska och funktionerna
@@ -122,7 +123,13 @@ export function childWalks(
 export function childSizeFits(g: any, currentCm: number | null): boolean {
   if (g.size_cm == null) return true
   if (currentCm == null) return true
-  return g.size_cm >= currentCm - 6 && g.size_cm <= currentCm + 10
+  // Räknas i STORLEKSSTEG, inte centimeter. Det gamla fönstret (-6/+10 cm)
+  // släppte igenom ett helt steg uppåt: ett barn i 62 fick plagg i 68 – precis
+  // de plagg familjeskärmen samtidigt märker "Om ~3 mån". Appen sa alltså emot
+  // sig själv. Ett steg NER går oftast fortfarande att ha på sig och behålls,
+  // annars blir urvalet för tunt i en liten garderob.
+  const steps = sizeIndex(g.size_cm) - sizeIndex(currentCm)
+  return steps <= 0 && steps >= -1
 }
 
 // Bygger den grupperade garderobslistan som AI:n väljer ur. requiresOuterwear

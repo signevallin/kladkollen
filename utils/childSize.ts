@@ -6,6 +6,13 @@ export const EU_CHILD_SIZES = [
   116, 122, 128, 134, 140, 146, 152, 158, 164, 170,
 ] as const
 
+// Vilket steg på storleksstegen ett mått hamnar på. Delas av
+// storlekspåminnelserna och outfit-filtret så "passar nu" betyder samma sak i
+// hela appen – de hade tidigare var sin definition och sa emot varandra.
+export function sizeIndex(cm: number): number {
+  return (EU_CHILD_SIZES as readonly number[]).indexOf(nearestSize(cm))
+}
+
 // Ungefärlig tillväxt per månad efter ålder (spec §5, tillväxtmodell v1).
 const GROWTH_CM_PER_MONTH: { maxAgeYears: number; cmPerMonth: number }[] = [
   { maxAgeYears: 1, cmPerMonth: 2.0 },

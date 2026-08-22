@@ -1,4 +1,4 @@
-import { EU_CHILD_SIZES, ageYearsFromBirthdate, growthCmPerMonth, nearestSize, suggestedSizeCm } from './childSize'
+import { ageYearsFromBirthdate, growthCmPerMonth, sizeIndex, suggestedSizeCm } from './childSize'
 
 // Säsongssmart storlekspåminnelse (spec §2): korsa barnets storlek över tid ×
 // plaggets säsong × plaggtyp. Ren logik → enkel att testa.
@@ -20,10 +20,6 @@ function nextSeasonStart(season: string, from: Date): Date {
   let d = new Date(from.getFullYear(), m - 1, 1)
   if (d < from) d = new Date(from.getFullYear() + 1, m - 1, 1)
   return d
-}
-
-function sizeIndex(cm: number): number {
-  return (EU_CHILD_SIZES as readonly number[]).indexOf(nearestSize(cm))
 }
 
 export type ReminderGarment = {
