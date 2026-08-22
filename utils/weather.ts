@@ -107,7 +107,15 @@ export function buildWeatherContext(
   } else if (perceivedMin <= 12) {
     rules.push('SVALT VÄDER: Lägg till ytterkläder eller kavaj om det finns – annars välj en tjockare tröja.')
   } else if (perceivedMin <= 18) {
-    rules.push('MILT VÄDER: En lätt kavaj eller tröja kan passa, men ytterkläder är inte nödvändigt.')
+    // Den lättfrusne får INTE höra "inte nödvändigt". Tidigare stod den raden
+    // bredvid "lägg hellre till ett extra lager", och modellen tog rimligen
+    // tillståndet framför önskan – vid 14° blev det linneskjorta utan lager.
+    // Regeln måste bära köldkänsligheten själv, inte motsägas av en granne.
+    rules.push(statedSensitivity >= 4
+      ? 'MILT VÄDER + LÄTTFRUSEN ANVÄNDARE: outfiten SKA innehålla ett extra lager '
+        + '(kofta, kavaj, tröja eller skjortjacka) om garderoben har något sådant. '
+        + 'En ensam tunn topp eller linneplagg räcker INTE. Tjock vinterjacka behövs dock inte.'
+      : 'MILT VÄDER: En lätt kavaj eller tröja kan passa, men ytterkläder är inte nödvändigt.')
   }
 
   // Överklädnadsvarning om det blir riktigt varmt någon gång under dagen – men
