@@ -862,6 +862,11 @@ const enBySource: Dict = {
   'Integritetspolicy': 'Privacy Policy',
   // Premium / paywall ('Aktiv' finns redan via outfit-kontexten)
   'Uppgradera': 'Upgrade',
+  'Automatisk tvätt': 'Automatic laundry',
+  'Lägg i tvätten automatiskt': 'Add to laundry automatically',
+  'Efter hur många användningar?': 'After how many wears?',
+  'Efter': 'After',
+  'Plagg läggs i tvätten av sig själva när de använts ett visst antal gånger. Gäller inte ytterkläder, kavajer eller plagg som inte tvättas – skor, väskor, smycken och accessoarer.': 'Garments move to the laundry on their own after a set number of wears. Doesn’t apply to outerwear, blazers or items that aren’t washed – shoes, bags, jewellery and accessories.',
   'Familj Premium': 'Family Premium',
   '{n} av {max} gratis packningar kvar denna vecka': '{n} of {max} free packing lists left this week',
   'Gratiskvoten för packningar är slut · Uppgradera': 'Free packing lists used up · Upgrade',

@@ -12,7 +12,7 @@ import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { OUTFIT_CONTEXTS } from '../../utils/constants'
 import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
-import { loadGarments } from '../../utils/garmentsStore'
+import { invalidateGarments, loadGarments } from '../../utils/garmentsStore'
 import { loadPartner } from '../../utils/household'
 import { loadPeople, type Person } from '../../utils/people'
 import { ageMonths,
@@ -302,7 +302,11 @@ export default function FamilyOutfits(
         const { error: calErr } = await supabase.from('outfit_calendar').upsert({ user_id: user?.id, outfit_id: id, date: day }, { onConflict: 'user_id,date' })
         if (calErr) throw calErr
         markOutfitLoggedToday()
-        if (ids.length) await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
+        if (ids.length) {
+          await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
+          // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
+          invalidateGarments()
+        }
       } else if (m.kind === 'child') {
         // Barnets outfit sparas (person_id) och läggs på dagens datum i barnets
         // egna kalender (person_outfit_calendar). Plaggen räknas som använda.
@@ -322,7 +326,11 @@ export default function FamilyOutfits(
           .upsert({ user_id: user!.id, person_id: m.person!.id, outfit_id: id!, date: day }, { onConflict: 'person_id,date' })
         if (calErr) throw calErr
         setSaved(s => ({ ...s, [m.key]: true }))
-        if (ids.length) await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
+        if (ids.length) {
+          await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
+          // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
+          invalidateGarments()
+        }
       }
       setWorn(w => ({ ...w, [m.key]: true }))
     } catch (e: any) {

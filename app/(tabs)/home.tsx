@@ -21,7 +21,7 @@ import { captureRef } from 'react-native-view-shot'
 import BottomNav from '../../components/BottomNav'
 import { OUTFIT_CONTEXTS, STYLE_RULES } from '../../utils/constants'
 import { cacheGet, cacheSet } from '../../utils/cache'
-import { loadGarments } from '../../utils/garmentsStore'
+import { invalidateGarments, loadGarments } from '../../utils/garmentsStore'
 import { savePushLocation } from '../../utils/push'
 import { markOutfitLoggedToday } from '../../utils/smartPush'
 import { useSettings } from '../../utils/settings'
@@ -667,7 +667,11 @@ export default function Home() {
       await supabase.from('outfit_calendar').upsert({ user_id: user?.id, outfit_id: outfitData.id, date: today }, { onConflict: 'user_id,date' })
       markOutfitLoggedToday() // avboka kvällens logga-påminnelse
       // Räkna plaggen som använda idag – atomiskt via RPC (ingen läs+skriv-loop).
-      if (garmentIds.length) await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
+      if (garmentIds.length) {
+        await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
+        // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
+        invalidateGarments()
+      }
       // Lägg även sambons look på HENS kalender – ni går ju bort tillsammans.
       const par = coupleOutfit.outfits[1]
       if (partner && par) {
@@ -757,7 +761,11 @@ export default function Home() {
 
       const garmentIds = outfit.itemsWithImages.map((i: any) => i.id).filter(Boolean)
       // Räkna plaggen som använda idag – atomiskt via RPC (ingen läs+skriv-loop).
-      if (garmentIds.length) await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
+      if (garmentIds.length) {
+        await supabase.rpc('adjust_garment_wear', { p_ids: garmentIds, p_delta: 1, p_date: today })
+        // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
+        invalidateGarments()
+      }
 
       setWornToday(true)
       showAlert(tr('Outfit vald för idag!'), tr('Den syns nu i din kalender och plaggen räknas som använda.'))

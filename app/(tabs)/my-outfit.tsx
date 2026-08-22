@@ -356,6 +356,8 @@ export default function MyOutfits() {
       p_date: wearDate ?? undefined,
     })
     if (error) throw error
+    // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
+    invalidateGarments()
   }
 
   // Lägger en outfit på ett datum i kalendern och räknar plaggen som använda

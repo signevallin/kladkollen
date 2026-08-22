@@ -64,6 +64,9 @@ export default function Profile() {
   const [colorPrefs, setColorPrefs] = useState<string[]>([])
   const [currentSeason, setCurrentSeason] = useState('')
   const [coldSensitivity, setColdSensitivity] = useState(3)
+  // Automatisk tvätt: plagget hamnar i tvätten efter N användningar.
+  const [autoLaundry, setAutoLaundry] = useState(false)
+  const [washAfterWears, setWashAfterWears] = useState(2)
   const [avoidNote, setAvoidNote] = useState('')
   const [lifeMode, setLifeMode] = useState('single')
   // Rita senast kända hushåll direkt (delas med hemskärmen) och uppdatera i
@@ -124,7 +127,7 @@ export default function Profile() {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLoaded, name, avatar, gender, birthday, avoidNote, lifeMode, stylePrefs, colorPrefs,
-      currentSeason, coldSensitivity, pregnant, dueDate, nursing, stilProfil, livsstil, contextNotes, musicGenres, styleRules])
+      currentSeason, coldSensitivity, autoLaundry, washAfterWears, pregnant, dueDate, nursing, stilProfil, livsstil, contextNotes, musicGenres, styleRules])
 
   // Skriver profildata till alla fält. Anropas både med cachad rad (direkt vid
   // montering, för snabb rendering) och med den färska raden från nätet.
@@ -139,6 +142,8 @@ export default function Profile() {
     setColorPrefs(data.color_prefs ? data.color_prefs.split(', ') : [])
     setCurrentSeason(data.current_season || '')
     if (data.cold_sensitivity != null) setColdSensitivity(data.cold_sensitivity)
+    setAutoLaundry(!!data.auto_laundry)
+    if (data.wash_after_wears != null) setWashAfterWears(data.wash_after_wears)
     setPregnant(!!data.pregnant); cacheSet('profile.pregnant', !!data.pregnant)
     setDueDate(data.due_date || '')
     setNursing(!!data.nursing); cacheSet('profile.nursing', !!data.nursing)
@@ -180,6 +185,8 @@ export default function Profile() {
       color_prefs: colorPrefs.join(', '),
       current_season: currentSeason,
       cold_sensitivity: coldSensitivity,
+      auto_laundry: autoLaundry,
+      wash_after_wears: washAfterWears,
       pregnant,
       due_date: dueDate || null,
       nursing,
@@ -703,6 +710,35 @@ export default function Profile() {
         {sectionHeader('installningar', 'Inställningar')}
         {!collapsedSections.has('installningar') && (
         <View style={styles.listCard}>
+          {renderRow('tvatt', 'Automatisk tvätt', {
+            icon: 'local-laundry-service',
+            value: autoLaundry ? `${tr('Efter')} ${washAfterWears}` : tr('Av'),
+            body: (
+              <>
+                <Text style={styles.hint}>{tr('Plagg läggs i tvätten av sig själva när de använts ett visst antal gånger. Gäller inte ytterkläder, kavajer eller plagg som inte tvättas – skor, väskor, smycken och accessoarer.')}</Text>
+                <View style={styles.gravidToggleRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.gravidFieldLabel, { marginTop: 0 }]}>{tr('Lägg i tvätten automatiskt')}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setAutoLaundry(v => !v)} style={[styles.toggle, autoLaundry && styles.toggleOn]}>
+                    <View style={[styles.toggleKnob, autoLaundry && styles.toggleKnobOn]} />
+                  </TouchableOpacity>
+                </View>
+                {autoLaundry && (
+                  <>
+                    <Text style={styles.hint}>{tr('Efter hur många användningar?')}</Text>
+                    <View style={styles.pills}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <TouchableOpacity key={n} style={[styles.pill, washAfterWears === n && styles.pillActive]} onPress={() => setWashAfterWears(n)}>
+                          <Text style={[styles.pillText, washAfterWears === n && styles.pillTextActive]}>{n}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
+              </>
+            ),
+          })}
           {renderRow('valuta', 'Valuta', {
             icon: 'attach-money', value: currency,
             body: (

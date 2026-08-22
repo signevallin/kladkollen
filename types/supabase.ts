@@ -161,6 +161,7 @@ export type Database = {
           subcategory: string | null
           times_worn: number | null
           user_id: string | null
+          wears_since_wash: number
         }
         Insert: {
           archive_reason?: string | null
@@ -192,6 +193,7 @@ export type Database = {
           subcategory?: string | null
           times_worn?: number | null
           user_id?: string | null
+          wears_since_wash?: number
         }
         Update: {
           archive_reason?: string | null
@@ -223,6 +225,7 @@ export type Database = {
           subcategory?: string | null
           times_worn?: number | null
           user_id?: string | null
+          wears_since_wash?: number
         }
         Relationships: [
           {
@@ -620,6 +623,7 @@ export type Database = {
           avatar_url: string | null
           avoid_note: string | null
           birthday: string | null
+          auto_laundry: boolean
           capsule_garment_ids: string | null
           city: string | null
           cold_sensitivity: number
@@ -654,12 +658,14 @@ export type Database = {
           stil_profil: string | null
           style_prefs: string | null
           style_rules: string | null
+          wash_after_wears: number
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
           avoid_note?: string | null
           birthday?: string | null
+          auto_laundry?: boolean
           capsule_garment_ids?: string | null
           city?: string | null
           cold_sensitivity?: number
@@ -694,12 +700,14 @@ export type Database = {
           stil_profil?: string | null
           style_prefs?: string | null
           style_rules?: string | null
+          wash_after_wears?: number
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
           avoid_note?: string | null
           birthday?: string | null
+          auto_laundry?: boolean
           capsule_garment_ids?: string | null
           city?: string | null
           cold_sensitivity?: number
@@ -734,6 +742,7 @@ export type Database = {
           stil_profil?: string | null
           style_prefs?: string | null
           style_rules?: string | null
+          wash_after_wears?: number
           username?: string | null
         }
         Relationships: []
