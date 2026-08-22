@@ -25,6 +25,7 @@ import { apiPost } from '../utils/api'
 import { pickImageSmart } from '../utils/imagePicker'
 import { COLOR_OPTIONS, MUSIC_GENRES, OUTFIT_CONTEXTS, STYLE_RULES } from '../utils/constants'
 import { cacheClear } from '../utils/cache'
+import { clearSignedUrls } from '../utils/signedUrls'
 import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
@@ -261,6 +262,7 @@ export default function Profile() {
   async function signOut() {
     showConfirm(tr('Logga ut'), tr('Är du säker?'), async () => {
       cacheClear()
+      clearSignedUrls()
       await supabase.auth.signOut()
       if (Platform.OS === 'web') {
         window.location.href = '/login'
@@ -296,6 +298,7 @@ export default function Profile() {
         try {
           await apiPost('/api/delete-account', {})
           cacheClear()
+          clearSignedUrls()
           await supabase.auth.signOut()
           if (Platform.OS === 'web') {
             window.location.href = '/'

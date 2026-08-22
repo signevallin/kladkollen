@@ -89,46 +89,85 @@ a{color:#6C4D38;}
 
   <div class="section">
     <h2>1. Who is responsible for your data?</h2>
-    <p>Skrud (“we”) is the data controller for the data processed in the app. Contact us at <a href="mailto:support@skrud.app">support@skrud.app</a> with any questions about your data.</p>
+    <p>Elairis AB, company registration number 559590-4946, Sweden, trading as Skrud (“we”, “us”), is the data controller for the personal data processed in the app.</p>
+    <p>You can reach us at <a href="mailto:support@skrud.app">support@skrud.app</a> with any question about your data, or to exercise any of the rights described in section 8.</p>
   </div>
 
   <div class="section">
     <h2>2. What data do we collect?</h2>
-    <p><b>Account details:</b> email address and password (the password is stored encrypted with our hosting provider Supabase).</p>
+    <p><b>Account details:</b> email address and password (the password is stored hashed by our hosting provider Supabase). If you sign in with Apple or Google we receive an account identifier and, unless you hide it, your email address.</p>
     <p><b>Profile and preference details</b> you provide to improve suggestions: name, gender, date of birth, how easily you get cold, life situation, style and colour preferences, style rules, music genres, season and free-text notes (e.g. things you want to avoid or your own wishes for a given occasion).</p>
     <p><b>Content you add:</b> photos of garments and a profile picture, wardrobe data (category, colour, size, brand, price and where the garment is stored), outfits, wishlist and sale list, a calendar of planned outfits, trip plans (destination and dates), moodboard/inspiration images, and how often and when you wear your garments and your ratings of outfits.</p>
-    <p><b>Optional colour analysis:</b> a photo or details you provide about skin tone, undertone, hair and eye colour.</p>
+    <p><b>Optional colour analysis:</b> a photo or details you provide about skin tone, undertone, hair and eye colour. If you use a photo, it is sent for analysis but never stored by us — only the resulting colour palette is saved to your profile. See section 4.</p>
+    <p><b>Optional calendar access:</b> if you grant calendar permission, the app reads the titles and times of your events for the current day in order to suggest an outfit that fits your plans. This happens entirely on your device — your calendar content is never sent to us or to anyone else, and is never stored. Only a short derived label (for example “work” or “evening out”) is used, and only on the device. You can revoke the permission at any time in your phone’s settings.</p>
     <p><b>Optional pregnancy mode:</b> if you turn it on, we store that you are pregnant plus a due date, solely to adapt suggestions. No other health data is collected.</p>
-    <p><b>Household and family</b> (optional, Premium): if you link up with a partner or add family members, we store their name, any avatar and, for children, date of birth, gender and current size. Only add details about other people if you have the right to do so.</p>
-    <p><b>Notifications</b> (optional): if you turn on notifications, we store a device identifier (push token) and your last known location in order to send weather-based reminders. If you turn notifications off, this is removed.</p>
-    <p><b>Location:</b> while you are in the app, your location is used in real time to fetch the current weather and is not stored then (exception: weather notifications above).</p>
+    <p><b>Household and family</b> (optional, Premium): if you link up with a partner or add family members, we store their name, any avatar and, for children, date of birth, gender and current size. See section 9 about adding data on other people.</p>
+    <p><b>Notifications</b> (optional): if you turn on notifications, we store a device identifier (push token) and your last known approximate location in order to send weather-based reminders. If you turn notifications off, this is removed.</p>
+    <p><b>Location:</b> while you are in the app, your location is requested at low (approximate) accuracy, used in real time to fetch the current weather, and is not stored then. The exception is weather notifications above.</p>
     <p><b>Purchases:</b> Premium purchases are handled by the App Store or Google Play and our subscription provider RevenueCat, which stores an app user identifier and your subscription status. We never see your card or payment details.</p>
     <p><b>Receipt import</b> (optional): if you use import via email or store, we process the contents of the receipts you forward in order to create garments in your wardrobe.</p>
+    <p><b>Crash and performance data:</b> if the app crashes or misbehaves we receive a technical error report through Sentry. It is configured not to send personal identifiers with the report.</p>
   </div>
 
   <div class="section">
-    <h2>3. How is the data used?</h2>
-    <p>The data is used solely to deliver the app's features: keeping your digital wardrobe, generating outfit suggestions and colour analyses with the help of AI, and showing weather-adapted recommendations. We never sell your data and do not use it for advertising.</p>
+    <h2>3. How the data is used, and on what legal basis</h2>
+    <p>The data is used solely to deliver the app’s features: keeping your digital wardrobe, generating outfit suggestions and colour analyses with the help of AI, and showing weather-adapted recommendations. We never sell your data and never use it for advertising or profiling for advertising purposes.</p>
+    <p><b>Performance of a contract (Art. 6(1)(b) GDPR):</b> your account, wardrobe, outfits, purchases and the features you actively use.</p>
+    <p><b>Consent (Art. 6(1)(a) GDPR):</b> camera and photo access, location, notifications, calendar access, colour analysis and pregnancy mode. Each is optional, is asked for separately, and can be withdrawn at any time — in the app or in your phone’s settings — without losing access to the rest of the app.</p>
+    <p><b>Legitimate interests (Art. 6(1)(f) GDPR):</b> keeping the service secure and stable, including crash reporting and rate limiting against abuse.</p>
   </div>
 
   <div class="section">
-    <h2>4. AI processing</h2>
-    <p>When you use the AI features, relevant data (e.g. a photo of a garment or your wardrobe list) is sent to our AI providers (OpenAI and Anthropic) via our servers to generate the response. The data is not used by the providers to train their models, per their API terms.</p>
+    <h2>4. AI and other third parties</h2>
+    <p>We use a small number of processors to run the app. They act on our instructions only, and none of them uses your data for their own purposes or for advertising.</p>
+    <p><b>OpenAI and Anthropic</b> receive the relevant data when you use an AI feature — for example a photo of a garment, your wardrobe list, or a colour-analysis photo — in order to generate the response. Under their API terms this data is not used to train their models.</p>
+    <p><b>Replicate</b> receives a photo of a garment when the app removes its background, so the garment can be shown cut out in your wardrobe. The photo is processed to produce the cut-out and is not used for training.</p>
+    <p><b>Supabase</b> hosts the database, authentication and image storage.</p>
+    <p><b>Vercel</b> runs the servers that sit between the app and the services above.</p>
+    <p><b>RevenueCat</b> handles subscription status. Sentry handles crash reports. Open-Meteo provides weather data and receives only an approximate location, never an account identifier.</p>
+    <p><b>What is not sent:</b> your calendar content never leaves your device (section 2). A photo used for colour analysis is sent for analysis but is never stored by us — we keep only the resulting palette.</p>
   </div>
 
   <div class="section">
-    <h2>5. Storage and security</h2>
-    <p>Your data is stored with Supabase within the EU (region eu-west-1, Ireland). Images are stored in private storage and accessed only via time-limited signed links. All traffic is encrypted.</p>
+    <h2>5. Transfers outside the EU/EEA</h2>
+    <p>Your account data, wardrobe data and images are stored with Supabase in the EU (region eu-west-1, Ireland).</p>
+    <p>However, some processing takes place outside the EU/EEA. OpenAI, Anthropic, Replicate, RevenueCat, Sentry and Vercel are established in the United States, and our server functions run on Vercel’s global network. This means that data you send to an AI feature — including garment photos and a colour-analysis photo — is transferred to the United States.</p>
+    <p>These transfers are made under the European Commission’s Standard Contractual Clauses and, where the provider is certified, the EU–US Data Privacy Framework. You can request a copy of the safeguards in place by contacting <a href="mailto:support@skrud.app">support@skrud.app</a>.</p>
   </div>
 
   <div class="section">
-    <h2>6. Your rights</h2>
-    <p>Under GDPR you have the right to access, rectify and erase your data, and to object to processing. You can delete your account and all your data at any time directly in the app under My profile → Delete account. You can also contact us at <a href="mailto:support@skrud.app">support@skrud.app</a>.</p>
+    <h2>6. Storage and security</h2>
+    <p>All traffic between the app and our servers is encrypted with TLS, and data is encrypted at rest by our hosting provider.</p>
+    <p>Your images are stored in a private storage bucket. They are not publicly accessible and cannot be reached without a valid link that we generate for your signed-in session; those links are time-limited and expire. Access rules on the storage layer restrict every image to the account that uploaded it, and to the members of your household if you have enabled partner or family mode.</p>
+    <p>Passwords are hashed and never stored in readable form, and we never see your payment details.</p>
   </div>
 
   <div class="section">
-    <h2>7. Changes</h2>
-    <p>We may update this policy. Significant changes are announced in the app.</p>
+    <h2>7. How long we keep your data</h2>
+    <p>We keep your data for as long as you have an account.</p>
+    <p>When you delete your account, your profile, wardrobe, outfits, images, trips, household membership and all related records are permanently deleted straight away, and cannot be recovered. If you were the last member of a household, the household and any family members you had added are deleted with it. Encrypted backups held by our hosting provider are rotated out within 30 days.</p>
+    <p>Imported receipts are kept as pending imports until you either add them to your wardrobe or discard them. Crash reports are retained by Sentry for up to 90 days. Links generated to display your images expire after at most 30 days.</p>
+  </div>
+
+  <div class="section">
+    <h2>8. Your rights</h2>
+    <p>Under the GDPR you have the right to access your data, to have it rectified, to have it erased, to restrict or object to processing, to withdraw a consent you have given, and to data portability.</p>
+    <p><b>Erasure:</b> you can delete your account and all your data at any time directly in the app, under My profile → Delete account. This is immediate and permanent.</p>
+    <p><b>Access and portability:</b> contact us at <a href="mailto:support@skrud.app">support@skrud.app</a> and we will send you a machine-readable copy of your data. We answer within one month.</p>
+    <p><b>Withdrawing consent:</b> turn off the relevant feature in the app, or revoke the permission in your phone’s settings. Camera, photos, location, notifications and calendar access can all be revoked without affecting the rest of the app.</p>
+    <p><b>Complaints:</b> if you believe we handle your data incorrectly, you have the right to lodge a complaint with the Swedish Authority for Privacy Protection (Integritetsskyddsmyndigheten, imy.se) or with the supervisory authority in your country of residence.</p>
+  </div>
+
+  <div class="section">
+    <h2>9. Children and data about other people</h2>
+    <p>Skrud is intended for adults. The app is not directed at children and we do not knowingly create accounts for children.</p>
+    <p>In family mode, an adult can add family members, including their own children, in order to keep track of their clothes and sizes. When you do this you are adding personal data about another person, and we process it on your instructions to provide that feature. Add data about another person only where you are entitled to do so — as their parent or guardian, or with their agreement.</p>
+    <p>You can remove a family member at any time in the app, which deletes their data. If you believe a child’s data has been added to Skrud without the right to do so, contact us at <a href="mailto:support@skrud.app">support@skrud.app</a> and we will delete it.</p>
+  </div>
+
+  <div class="section">
+    <h2>10. Changes</h2>
+    <p>We may update this policy. Significant changes are announced in the app. Last updated: August 2026.</p>
   </div>
 </div>
 
@@ -140,7 +179,7 @@ a{color:#6C4D38;}
       <a href="/support" class="footer-link">Support</a>
       <a href="mailto:support@skrud.app" class="footer-link">Contact</a>
     </div>
-    <div class="footer-copy">© 2026 Elairis</div>
+    <div class="footer-copy">&copy; 2026 Elairis</div>
   </div>
 </div>
 

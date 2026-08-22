@@ -31,6 +31,12 @@ tracking**. Syfte anges per typ.
 | **Diagnostics** | Performance Data | Ja | App Functionality | Sentry (låg samplingsgrad). Ej kopplat till identitet. |
 | **Other Data** | Other Data | Ja | App Functionality, Product Personalization | Preferenser (musikgenrer, köldkänslighet, livsläge) samt familjemedlemmars födelsedatum/storlek/kön (för storlekspåminnelser). |
 
+**Not om kalendern:** appen begär kalenderbehörighet och läser dagens händelser,
+men behandlingen sker **helt på enheten** (`utils/calendar.ts`) – inget
+kalenderinnehåll skickas till oss eller till tredje part, och inget sparas.
+Kalenderdata ska därför **inte** anges som insamlad data i etiketten. Det är
+ändå redovisat i integritetspolicyns avsnitt 2, och nämns i Review Notes nedan.
+
 **Not om Diagnostics:** Sentry kör med `sendDefaultPii: false`, så markera Crash/
 Performance Data som **inte** kopplat till användaren (Not Linked). Övriga rader
 är kopplade (Linked).
@@ -43,11 +49,36 @@ riktar sig till vuxna som sköter hushållets garderob.
 Plagg­bilder och text skickas till **OpenAI**, **Anthropic** och **Replicate**
 för att generera outfits/analys och ta bort bakgrund. De agerar
 databehandlare (inte för egen annonsering). Väderdata hämtas från **Open-Meteo**.
-Detta bör stå i integritetspolicyn (finns i appen under Profil → Om Skrud).
+Detta står numera i integritetspolicyn (avsnitt 4), tillsammans med Supabase,
+Vercel, RevenueCat och Sentry. Avsnitt 5 redovisar överföringen till USA och
+grunden för den (SCC / EU–US DPF) – det saknades tidigare helt.
 
 ### Privacy Policy URL
 Ange URL:en i App Store Connect (t.ex. `https://<er-domän>/privacy` – samma
 sida som finns i appen). Krävs.
+
+> ⚠️ Innan inlämning: fyll i `[LEGAL FORM]`, `[REG. NO.]` och `[POSTAL ADDRESS]`
+> i avsnitt 1 av policyn (`app/privacy.tsx` + `public/privacy.html`). Så länge
+> platshållarna står kvar saknar policyn en identifierbar personuppgifts-
+> ansvarig, vilket bryter mot GDPR art. 13.1(a).
+
+### Privacy Manifest (PrivacyInfo.xcprivacy)
+Konfigurerad via `ios.privacyManifests` i `app.json`: `NSPrivacyTracking: false`,
+tom `NSPrivacyTrackingDomains` och de fyra required-reason-API:er appen använder
+(FileTimestamp `C617.1`, UserDefaults `CA92.1`, DiskSpace `E174.1`,
+SystemBootTime `35F9.1`).
+
+**Verifiera i det faktiska bygget** – saknas manifestet avvisas uppladdningen
+med `ITMS-91053` redan innan review:
+
+```
+npx expo prebuild -p ios --no-install
+plutil -p ios/Skrud/PrivacyInfo.xcprivacy
+```
+
+Tredjepartsberoenden (`@sentry/react-native`, `expo-file-system`,
+AsyncStorage m.fl.) levererar sina egna manifest i respektive pod – de behöver
+inte upprepas här, men kontrollera att inget nytt beroende saknar sitt.
 
 ---
 
@@ -120,6 +151,8 @@ The app is available in Swedish, English, German, Spanish and French.
 ---
 
 ## 3. Checklista före inlämning
+- [ ] Företagsuppgifter ifyllda i integritetspolicyns avsnitt 1 (inga `[...]` kvar).
+- [ ] `PrivacyInfo.xcprivacy` verifierad i prebuild-utdata.
 - [ ] Demokonto skapat och fyllt med plagg; uppgifter inlagda i ASC.
 - [ ] App Privacy ifylld enligt tabellen ovan; Tracking = No.
 - [ ] Privacy Policy URL angiven.

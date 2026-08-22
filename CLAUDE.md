@@ -161,6 +161,42 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   köldkänslighet sänks ett steg, och plaggvyn visar gravid-taggarna. Egen
   skärm `app/pregnancy-wardrobe.tsx` (essentials-checklista → köplista +
   återanvänd/låna ut). Par-flödet "Matcha" är inte gravidanpassat än.
+
+## Bildlagring & integritet (rör inte utan att läsa detta)
+
+- **`garments`-bucketen är PRIVAT.** Den var publik en period av egress-skäl;
+  det gav publika, osignerade URL:er till alla användares foton (inkl. barns
+  avatarer) och policies vars enda villkor var `bucket_id` – dvs. vem som helst
+  inloggad kunde radera eller skriva över andras bilder. Åtgärdat i
+  `20260823_storage_owner_policies.sql` (ägar-scopad skrivning) och
+  `20260824_storage_private_signed.sql` (privat + läspolicy för ägare och
+  hushållsmedlemmar via `can_read_garment_object()`).
+- **Egress-vinsten behålls via `utils/signedUrls.ts`:** signaturer med 30 dygns
+  livslängd cachas write-through till disk och hydreras vid appstart, så URL:en
+  är stabil mellan appstarter (samma cache-nyckel för CDN och `expo-image`).
+  Nya bilder signeras batchat (`createSignedUrls`) i en tick. **Gå aldrig
+  tillbaka till `getPublicUrl()`** – det öppnar hålet igen.
+- **Bucketen har FYRA sökvägsmönster, inte ett** (mätt 2026-08-22):
+  `{user_id}/…` (248, nuvarande), `public/…` (717), `moodboard/…` (12),
+  `avatars/…` (2). Legacy-prefixen går inte att matcha på mappnamn – de
+  attribueras via `storage.objects.owner`, som är verifierat pålitlig (owner
+  stämmer med radens `user_id` i 100 % av de refererade fallen). Läspolicyn är
+  därför skriven generellt ("äger du objektet får du läsa det") i stället för
+  att räkna upp prefix. 266 legacy-objekt är oreferererade föräldralösa filer
+  och bör städas i ett eget granskat steg.
+- `uploadUserImage()` returnerar numera **sökvägen**, inte en URL. Äldre rader
+  med full publik URL hanteras fortfarande av `storagePathFrom()`.
+- `clearSignedUrls()` måste anropas tillsammans med `cacheClear()` vid
+  utloggning/kontoradering (se `app/profile.tsx`).
+- **Integritetspolicyn beskriver det här.** `app/privacy.tsx` och
+  `public/privacy.html` innehåller samma text och måste ändras i SAMMA PR som
+  bildlagring, tredjepartsleverantörer eller lagringstider ändras. Policyn
+  påstod tidigare "private storage … time-limited signed links" medan bucketen
+  var publik – ett osant påstående i policyn är i sig ett GDPR-brott.
+- `api/delete-account.ts` sidindelar `storage.list()` (default är 100 poster)
+  och raderar hushåll som blir tomma, annars överlever `people`-raderna
+  (barnens namn/födelsedatum) raderingen.
+
 - Bild-miniatyrer: `SignedImage` tar en `transform`-prop. **Gotcha (kostnad):**
   Supabase fakturerar per origin-bild som transformeras. Därför **hoppar
   SignedImage medvetet över server-transformen när `format:'origin'`** (alla
@@ -168,4 +204,5 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   (samma minnesvinst, ingen transform-kostnad). Bara avatarer (`resize:'cover'`
   utan `format`) transformeras på servern – de är få. Håll därför uppladdade
   plaggbilder rimligt små (`MAX_IMAGE_WIDTH` i add-garment = 1000) eftersom
-  origin laddas direkt.
+  origin laddas direkt. Transformerade bilder signeras var för sig (batch-API:t
+  stödjer inte `transform`) – ännu ett skäl att hålla dem få.

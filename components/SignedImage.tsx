@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { StyleProp, StyleSheet, View } from 'react-native'
 import { Image, ImageContentFit, ImageProps, ImageStyle } from 'expo-image'
 import { useTheme } from '../theme/ThemeProvider'
-import { imageUrl, type ImageTransform } from '../utils/storage'
+import { type ImageTransform } from '../utils/storage'
+import { cachedSignedUrl, signedUrl } from '../utils/signedUrls'
 
 // Bygger på expo-image istället för RN Image: bilderna nedskalas till
 // vyns storlek (allowDownscaling) och cachas på disk, så små miniatyrer
@@ -30,8 +31,8 @@ const RESIZE_TO_FIT: Record<ResizeMode, ImageContentFit> = {
 
 /**
  * Drop-in-ersättare för <Image> för bilder i vår privata storage-bucket.
- * Tar det lagrade värdet (publik URL eller sökväg) och visar en signerad URL.
- * Lokala URI:er (file:, blob:, data:) passerar orörda.
+ * Tar det lagrade värdet (sökväg eller äldre publik URL) och visar en signerad
+ * URL. Lokala URI:er (file:, blob:, data:) passerar orörda.
  *
  * Lägger en ljus platta bakom bilden (imageBg) så urklippta plagg med
  * genomskinlig bakgrund syns även i mörkt läge. Passerad style kan överstyra.
@@ -44,12 +45,35 @@ export default function SignedImage({ path, style, flat, resizeMode, contentFit,
   // transform-kostnad). Avatarer (resize:'cover' utan format) behåller sin
   // transform: de är få och beskärningen behövs.
   const effTransform = transform?.format === 'origin' ? undefined : transform
-  // Publik bucket → URL:en kan räknas ut synkront, så bilden får sin källa
-  // direkt (ingen tom ruta + extra render per bild).
-  const uri = useMemo(
-    () => (path ? imageUrl(path, effTransform) : null),
-    [path, effTransform?.width, effTransform?.height, effTransform?.resize, effTransform?.quality, effTransform?.format],
-  )
+  // Signaturen cachas på disk och hydreras vid appstart, så en redan sedd bild
+  // får sin URL SYNKRONT här – ingen tom ruta och ingen extra render, precis som
+  // när bucketen var publik. Bara första gången en bild ses krävs ett anrop,
+  // och då signeras hela rutnätet i en batch (utils/signedUrls).
+  const transformKey = [
+    effTransform?.width, effTransform?.height, effTransform?.resize,
+    effTransform?.quality, effTransform?.format,
+  ].join(',')
+
+  const key = path ? `${path}|${transformKey}` : ''
+  const cached = path ? cachedSignedUrl(path, effTransform) : null
+
+  // Hämtade signaturer nycklas på bilden de tillhör. Utan nyckeln skulle ett
+  // byte av `path` (t.ex. återanvänd rad i en lista) visa FÖREGÅENDE plaggs
+  // bild tills den nya signaturen landat.
+  const [fetched, setFetched] = useState<{ key: string; url: string } | null>(null)
+  const uri = cached ?? (fetched?.key === key ? fetched.url : null)
+
+  useEffect(() => {
+    if (!path || cached) return
+    let alive = true
+    signedUrl(path, effTransform).then(url => {
+      if (alive && url) setFetched({ key, url })
+    })
+    return () => { alive = false }
+    // effTransform är ett nytt objekt vid varje render – jämför på innehållet
+    // via transformKey (ingår i key).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, cached])
 
   if (!uri) return <View style={style} />
 
