@@ -320,7 +320,7 @@ export default function Home() {
       // Gravida upplever ofta värme starkare – sänk den upplevda köldkänsligheten
       // ett steg så förslagen blir svalare/luftigare.
       const effectiveCold = pregnant ? Math.max(1, coldSensitivity - 1) : coldSensitivity
-      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, effectiveCold) : { summary: '', rules: '', requiresOuterwear: false }
+      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, effectiveCold, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
 
       // Filtrera bort renodlade off-season-plagg (t.ex. vinterjacka på sommaren).
       // Faller tillbaka till hela garderoben om säsongsurvalet inte räcker för
@@ -530,7 +530,7 @@ export default function Home() {
       // Gravida upplever ofta värme starkare – sänk den upplevda köldkänsligheten
       // ett steg så förslagen blir svalare/luftigare.
       const effectiveCold = pregnant ? Math.max(1, coldSensitivity - 1) : coldSensitivity
-      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, effectiveCold) : { summary: '', rules: '', requiresOuterwear: false }
+      const weatherCtx = useWeather ? buildWeatherContext(currentWeather, effectiveCold, coldSensitivity) : { summary: '', rules: '', requiresOuterwear: false }
       const season = getCurrentSeason()
 
       const { data: theirs } = await supabase.rpc('partner_garments', { target: partner.id })

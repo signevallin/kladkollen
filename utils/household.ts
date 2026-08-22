@@ -1,6 +1,6 @@
 import { supabase } from '../supabase'
 
-export type Partner = { id: string; name: string; avatar_url: string | null }
+export type Partner = { id: string; name: string; avatar_url: string | null; cold_sensitivity: number }
 
 // Laddar inloggad användares id och ev. partner (den andra medlemmen i hushållet).
 // Returnerar partner=null om man inte är ihopkopplad.
@@ -17,6 +17,13 @@ export async function loadPartner(): Promise<{ myId: string | null; partner: Par
   const p = Array.isArray(prof) ? prof[0] : prof
   return {
     myId: user.id,
-    partner: { id: partnerId, name: p?.name || 'Partner', avatar_url: p?.avatar_url || null },
+    partner: {
+      id: partnerId,
+      name: p?.name || 'Partner',
+      avatar_url: p?.avatar_url || null,
+      // Partnerns egen köldkänslighet – familjeoutfits antog tidigare 3 för
+      // alla vuxna, så en lättfrusen partner fick samma lager som alla andra.
+      cold_sensitivity: typeof p?.cold_sensitivity === 'number' ? p.cold_sensitivity : 3,
+    },
   }
 }

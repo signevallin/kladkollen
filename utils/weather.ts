@@ -61,6 +61,12 @@ export function summarizeDayForecast(
 export function buildWeatherContext(
   w: WeatherInput | null | undefined,
   coldSensitivity = 3,
+  // Vad användaren SJÄLV angett, innan gravidjusteringen. Skilt från
+  // coldSensitivity med flit: graviditet ska nudga den upplevda temperaturen,
+  // inte radera personens egen uppgift om att hon är lättfrusen. Sattes de av
+  // samma värde försvann LÄTTFRUSEN-regeln helt vid steget 4 → 3, och då kunde
+  // "ofta frusen" få bara en t-shirt vid 14°.
+  statedSensitivity = coldSensitivity,
 ): { summary: string; rules: string; requiresOuterwear: boolean } {
   if (!w) return { summary: '', rules: '', requiresOuterwear: false }
 
@@ -84,8 +90,8 @@ export function buildWeatherContext(
   const rules: string[] = []
   let requiresOuterwear = false
 
-  if (coldSensitivity >= 4) rules.push('ANVÄNDAREN ÄR LÄTTFRUSEN: lägg hellre till ett extra lager – hen fryser lätt.')
-  else if (coldSensitivity <= 2) rules.push('ANVÄNDAREN ÄR VÄRMETÅLIG: undvik att övertäcka – hen fryser sällan, lättare lager räcker.')
+  if (statedSensitivity >= 4) rules.push('ANVÄNDAREN ÄR LÄTTFRUSEN: lägg hellre till ett extra lager – hen fryser lätt.')
+  else if (statedSensitivity <= 2) rules.push('ANVÄNDAREN ÄR VÄRMETÅLIG: undvik att övertäcka – hen fryser sällan, lättare lager räcker.')
 
   // Beskriv känslan just nu (samma trösklar som tidigare, baserat på nuvarande temp).
   if (perceived <= 5) summary += ' Det är kallt.'

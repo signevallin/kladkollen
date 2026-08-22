@@ -1010,6 +1010,7 @@ export type Database = {
         Args: { target: string }
         Returns: {
           avatar_url: string
+          cold_sensitivity: number
           id: string
           name: string
         }[]

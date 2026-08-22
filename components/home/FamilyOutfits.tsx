@@ -43,6 +43,7 @@ type Member = {
   name: string
   person?: Person
   partnerId?: string
+  partnerCold?: number
 }
 
 function seasonalOrFull(pool: any[], season: string): any[] {
@@ -69,14 +70,17 @@ export default function FamilyOutfits(
   // klara, trots att svaren redan låg på disk. Listan skrivs över av effekten
   // nedan så fort färsk data finns.
   const [members, setMembers] = useState<Member[]>(() => {
-    const partner = cacheGet<{ id: string; name: string } | null>('household.partner') ?? null
+    const partner = cacheGet<{ id: string; name: string; cold_sensitivity?: number } | null>('household.partner') ?? null
     const kids = cacheGet<Person[]>('household.children') ?? []
     const list: Member[] = [{ key: 'me', kind: 'me', name: cacheGet<string>('home.userName') || tr('Jag') }]
-    if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id })
+    if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity })
     for (const k of kids) list.push({ key: `child:${k.id}`, kind: 'child', name: k.name, person: k })
     return list
   })
   const [myGarments, setMyGarments] = useState<any[]>([])
+  // Egen köldkänslighet + gravidflagga. Låg tidigare inte alls här, vilket
+  // var hela felet: vuxna kördes som 'lagom' oavsett vad de fyllt i.
+  const [myCold, setMyCold] = useState<{ stated: number; pregnant: boolean }>({ stated: 3, pregnant: false })
   const [childGarments, setChildGarments] = useState<Record<string, any[]>>({})
   const [results, setResults] = useState<Record<string, any>>({}) // key → { outfit } | { error }
   // Dagens låt gäller HELA familjen – en låt för stunden, inte en per person.
@@ -115,12 +119,18 @@ export default function FamilyOutfits(
       setMyGarments((all as any[]).filter(g => g.person_id == null))
 
       let myName = tr('Jag')
+      let statedCold = 3
+      let isPregnant = false
       if (user) {
-        const { data } = await supabase.from('profiles').select('name').eq('id', user.id).single()
+        const { data } = await supabase.from('profiles')
+          .select('name, cold_sensitivity, pregnant').eq('id', user.id).single()
         myName = data?.name || myName
+        if (typeof data?.cold_sensitivity === 'number') statedCold = data.cold_sensitivity
+        isPregnant = !!data?.pregnant
       }
+      setMyCold({ stated: statedCold, pregnant: isPregnant })
       const list: Member[] = [{ key: 'me', kind: 'me', name: myName }]
-      if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id })
+      if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id, partnerCold: partner.cold_sensitivity })
       for (const k of kids) list.push({ key: `child:${k.id}`, kind: 'child', name: k.name, person: k })
       setMembers(list)
     })()
@@ -165,9 +175,18 @@ export default function FamilyOutfits(
     // Egen upplevd temperatur per medlem: barn har köldkänslighet på sin
     // people-rad, vuxna kör lagom. Därför byggs kontexten här och inte en gång
     // för hela familjen – annars hade alla delat samma känsla för vädret.
-    const cold = m.kind === 'child' ? (m.person?.cold_sensitivity ?? 3) : 3
-    const ctx = weather ? buildWeatherContext(weather, cold) : weatherCtx
-    const headwear = m.kind === 'child' ? childHeadwearRule(ageMonths(m.person?.birthdate), weather?.temp, cold) : ''
+    // Varje medlem får sin EGEN köldkänslighet. Vuxna var hårdkodade till 3,
+    // så den som fyllt i "ofta frusen" fick ändå lagom-lager i familjeoutfiten
+    // (men rätt lager på hemskärmen – två olika svar för samma person).
+    // Graviditet sänker den upplevda temperaturen ett steg men raderar inte
+    // uppgiften om att man är lättfrusen; därför skickas båda värdena.
+    const stated = m.kind === 'child'
+      ? (m.person?.cold_sensitivity ?? 3)
+      : m.kind === 'partner' ? (m.partnerCold ?? 3) : myCold.stated
+    // Bara min egen graviditet är känd – partnerns exponeras inte med flit.
+    const cold = m.kind === 'me' && myCold.pregnant ? Math.max(1, stated - 1) : stated
+    const ctx = weather ? buildWeatherContext(weather, cold, stated) : weatherCtx
+    const headwear = m.kind === 'child' ? childHeadwearRule(ageMonths(m.person?.birthdate), weather?.temp, stated) : ''
     const scoped = seasonalOrFull(pool, season)
     setPools(prev => ({ ...prev, [m.key]: scoped }))
     if (scoped.length === 0) return { error: tr('För få plagg i garderoben.') }
