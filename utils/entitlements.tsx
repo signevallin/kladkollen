@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from '../supabase'
 import {
   configurePurchases, getCustomerInfo, getPackages, identifyPurchases, logOutPurchases,
-  purchasePackage, restorePurchases, purchasesAvailable, purchasesEnv,
+  purchasePackage, restorePurchases, purchasesAvailable, purchasesEnv, storefrontCountry,
   tierFromInfo, tierFromProductId, TIER_RANK, tierAtLeast,
   type PurchasePackage, type Tier,
 } from './purchases'
@@ -128,9 +128,11 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) await identifyPurchases(user.id)
       } catch { /* ignorera */ }
+      let loggedPackages: PurchasePackage[] = []
       if (purchasesAvailable) {
         try {
           const { packages: p, debug } = await getPackages()
+          loggedPackages = p
           if (alive) { setPackages(p); setPurchasesDebug(debug) }
           if (__DEV__) console.log('[purchases]', purchasesEnv, debug)
         } catch (e: any) {
@@ -139,6 +141,21 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
           if (__DEV__) console.warn('[purchases]', purchasesEnv, msg)
         }
       }
+      // TILLFÄLLIG DIAGNOSTIK – ta bort när valutafrågan är löst.
+      // Parar ihop storefront med RevenueCats priceString, vilket är just den
+      // kombination StoreKits egen logg INTE visar. Står storefront på ett land
+      // medan köpdialogen drar en annan valuta ligger felet i kontoinställningarna.
+      //
+      // console.error, inte log/warn: uppmätt i Release-bygge att bara nivån
+      // error når os_log. Sandbox-köp testas i Release, så warn vore osynligt
+      // exakt där felet uppstår. Ligger utanför purchasesAvailable-vaktet så
+      // att en saknad nyckel också syns. Inte synlig för användare.
+      // Läses i Xcode (Window → Devices and Simulators) eller Console.app.
+      storefrontCountry()
+        .then(c => console.error(
+          '[purchases] storefront:', c, '·', purchasesEnv,
+          '· priser:', loggedPackages.map(x => `${x.productId} ${x.priceString}`).join(', ') || '(inga)'))
+        .catch(e => console.error('[purchases] storefront gick inte att läsa:', e?.message || e))
       await refresh()
       if (alive) setLoading(false)
     })()

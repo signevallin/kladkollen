@@ -78,6 +78,20 @@ export const purchasesAvailable = !!Purchases && !!API_KEY
 export const purchasesEnv =
   `SDK: ${Purchases ? 'på' : 'AV'} · nyckel: ${API_KEY ? API_KEY.slice(0, 5) + '…' : 'saknas'}`
 
+// Vilken App Store-storefront StoreKit faktiskt hämtar produktpriser för.
+// Paywallens priceString gäller DENNA storefront, medan köpdialogen följer
+// sandbox-kontot. Står de på olika länder visas ett pris och debiteras ett
+// annat – vilket bara händer i test, eftersom skarpa köp använder samma konto.
+export async function storefrontCountry(): Promise<string> {
+  if (!Purchases?.getStorefront) return 'okänd (SDK saknar getStorefront)'
+  try {
+    const sf = await Purchases.getStorefront()
+    return sf?.countryCode || 'okänd'
+  } catch (e: any) {
+    return 'fel: ' + (e?.message || '?')
+  }
+}
+
 export type BillingPeriod = 'month' | 'year'
 
 // Perioden härleds ur produkt-id:t och INTE ur RevenueCats packageType: bara
