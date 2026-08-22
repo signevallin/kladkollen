@@ -91,8 +91,14 @@ export default function GarmentDetail() {
   const [hasPartner, setHasPartner] = useState(false)
   const [maternityFriendly, setMaternityFriendly] = useState(false)
   const [pausedPregnancy, setPausedPregnancy] = useState(false)
-  // Visa gravid-inställningarna bara när gravidläget är på (läses ur cachen).
+  // Gravid-inställningarna visas bara när respektive läge är på (läses ur cachen).
+  //
+  // De två raderna har OLIKA villkor med flit: "Gravid-/amningsvänligt" är
+  // relevant även för den som ammar utan att vara gravid – flaggan används av
+  // prompten i båda lägena – medan "Pausa under graviditeten" är just
+  // graviditetsspecifik och inte hör hemma under amning.
   const pregnant = cacheGet<boolean>('profile.pregnant') ?? false
+  const nursing = cacheGet<boolean>('profile.nursing') ?? false
   const [location, setLocation] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
@@ -636,27 +642,28 @@ export default function GarmentDetail() {
               </TouchableOpacity>
             )}
 
+            {(pregnant || nursing) && (
+              <TouchableOpacity style={styles.lendRow} onPress={() => setMaternityFriendly(v => !v)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>{tr('Gravid-/amningsvänligt')}</Text>
+                  <Text style={styles.lendHint}>{tr('Prioriteras i outfit-förslagen under graviditet och amning.')}</Text>
+                </View>
+                <View style={[styles.toggle, maternityFriendly && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, maternityFriendly && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
+            )}
+
             {pregnant && (
-              <>
-                <TouchableOpacity style={styles.lendRow} onPress={() => setMaternityFriendly(v => !v)}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.label}>{tr('Gravid-/amningsvänligt')}</Text>
-                    <Text style={styles.lendHint}>{tr('Prioriteras i outfit-förslagen under graviditeten.')}</Text>
-                  </View>
-                  <View style={[styles.toggle, maternityFriendly && styles.toggleOn]}>
-                    <View style={[styles.toggleKnob, maternityFriendly && styles.toggleKnobOn]} />
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.lendRow} onPress={() => setPausedPregnancy(v => !v)}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.label}>{tr('Pausa under graviditeten')}</Text>
-                    <Text style={styles.lendHint}>{tr('Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.')}</Text>
-                  </View>
-                  <View style={[styles.toggle, pausedPregnancy && styles.toggleOn]}>
-                    <View style={[styles.toggleKnob, pausedPregnancy && styles.toggleKnobOn]} />
-                  </View>
-                </TouchableOpacity>
-              </>
+              <TouchableOpacity style={styles.lendRow} onPress={() => setPausedPregnancy(v => !v)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>{tr('Pausa under graviditeten')}</Text>
+                  <Text style={styles.lendHint}>{tr('Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.')}</Text>
+                </View>
+                <View style={[styles.toggle, pausedPregnancy && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, pausedPregnancy && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
             )}
 
             <View style={styles.labelRow}>

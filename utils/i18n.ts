@@ -1095,6 +1095,7 @@ const enBySource: Dict = {
   'Kunde inte ta tillbaka plaggen': 'Could not bring the clothes back',
   'plagg togs tillbaka i garderoben.': 'clothes brought back to your wardrobe.',
   'Gravid-/amningsvänligt': 'Maternity/nursing-friendly',
+  'Prioriteras i outfit-förslagen under graviditet och amning.': 'Prioritised in outfit suggestions during pregnancy and nursing.',
   'Prioriteras i outfit-förslagen under graviditeten.': 'Prioritised in outfit suggestions during pregnancy.',
   'Pausa under graviditeten': 'Pause during pregnancy',
   'Döljs från outfit-förslagen tills du tar tillbaka det. Plagget finns kvar.':

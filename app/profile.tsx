@@ -141,7 +141,7 @@ export default function Profile() {
     if (data.cold_sensitivity != null) setColdSensitivity(data.cold_sensitivity)
     setPregnant(!!data.pregnant); cacheSet('profile.pregnant', !!data.pregnant)
     setDueDate(data.due_date || '')
-    setNursing(!!data.nursing)
+    setNursing(!!data.nursing); cacheSet('profile.nursing', !!data.nursing)
     setHasColorAnalysis(!!data.color_analysis)
     if (data.stil_profil) setStilProfil(data.stil_profil.split(', ').filter(Boolean))
     if (data.livsstil) setLivsstil(data.livsstil.split(', ').filter(Boolean))
@@ -539,7 +539,7 @@ export default function Profile() {
                     <Text style={styles.hint}>{tr('Anpassar outfits för amning – plagg som är lätta att öppna framtill.')}</Text>
                   </View>
                   {partnerOn ? (
-                    <TouchableOpacity onPress={() => setNursing(v => !v)} style={[styles.toggle, nursing && styles.toggleOn]}>
+                    <TouchableOpacity onPress={() => setNursing(v => { const nv = !v; cacheSet('profile.nursing', nv); return nv })} style={[styles.toggle, nursing && styles.toggleOn]}>
                       <View style={[styles.toggleKnob, nursing && styles.toggleKnobOn]} />
                     </TouchableOpacity>
                   ) : (

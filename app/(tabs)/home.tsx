@@ -197,7 +197,7 @@ export default function Home() {
       setAvoidNote(profile?.avoid_note || '')
       setPregnant(!!profile?.pregnant); cacheSet('profile.pregnant', !!profile?.pregnant)
       setDueDate(profile?.due_date || null)
-      setNursing(!!profile?.nursing)
+      setNursing(!!profile?.nursing); cacheSet('profile.nursing', !!profile?.nursing)
       setLifeMode(profile?.life_mode || 'single'); cacheSet('profile.lifeMode', profile?.life_mode || 'single')
       setColorPaletteStr(colorPalettePrompt(profile?.color_analysis))
     }
