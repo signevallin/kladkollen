@@ -62,14 +62,21 @@ export function EntitlementsProvider({ children }: { children: ReactNode }) {
 
   // Läser nivå ur databasen (entitlements.pro_until + product_id, satt av
   // webhooken) – fungerar även utan native-modulen. Kombineras med RevenueCat.
+  // Nivån kan komma från EGET köp eller delas av hushållet: Partner täcker
+  // köparen plus en annan vuxen, Familj täcker alla. RPC:n effective_entitlement
+  // returnerar den högsta som gäller mig – den måste vara SECURITY DEFINER
+  // eftersom RLS annars döljer partnerns rad.
+  //
+  // Samma RPC används av use_ai_credit och ai_credits_left, så gränssnittet och
+  // den bindande kvoten aldrig kan säga olika saker.
   const readDbTier = useCallback(async (): Promise<Tier> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return 'none'
-      const { data } = await supabase.from('entitlements').select('pro_until, product_id').eq('user_id', user.id).maybeSingle()
-      const until = data?.pro_until ? new Date(data.pro_until).getTime() : 0
+      const { data, error } = await (supabase.rpc as any)('effective_entitlement')
+      if (error) return 'none'
+      const row = Array.isArray(data) ? data[0] : data
+      const until = row?.pro_until ? new Date(row.pro_until).getTime() : 0
       if (until <= Date.now()) return 'none'
-      return tierFromProductId((data as { product_id?: string | null } | null)?.product_id)
+      return tierFromProductId(row?.product_id)
     } catch { return 'none' }
   }, [])
 
