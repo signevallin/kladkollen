@@ -31,6 +31,9 @@ export default async function handler(request: Request): Promise<Response> {
     }
     const childName = clip(body.childName, 40)
     const babyMode = body.babyMode === true
+    // Skor följer om barnet GÅR, inte om det räknas som bebis – se generate-outfit.
+    const walks = body.walks !== false
+    const pottyTraining = body.pottyTraining === true
     // Åldersanpassade förnödenheter (klienten bygger texten utifrån barnets ålder).
     const childExtrasHint = clip(body.childExtrasHint, 300)
     const childHeadwear = clip(body.childHeadwear, 400)
@@ -57,7 +60,7 @@ export default async function handler(request: Request): Promise<Response> {
       : ''
 
     const personaLine = audience === 'child'
-      ? `Du hjälper en förälder att packa till sitt barn${childName ? ` (${childName})` : ''} inför en resa till ${destination} under ${dateLabel} (${days} dagar). Prioritera bekvämt, praktiskt och väderanpassat framför mode – barnet ska kunna leka och röra sig fritt, och varken frysa eller bli för varmt.${babyMode ? ' Detta är en bebis som inte går själv än – packa INGA skor (strumpor/sockor räcker).' : ''}`
+      ? `Du hjälper en förälder att packa till sitt barn${childName ? ` (${childName})` : ''} inför en resa till ${destination} under ${dateLabel} (${days} dagar). Prioritera bekvämt, praktiskt och väderanpassat framför mode – barnet ska kunna leka och röra sig fritt, och varken frysa eller bli för varmt.${!walks ? ' Barnet går inte själv än – packa INGA skor (strumpor/sockor räcker).' : ''}${pottyTraining ? ' Barnet potttränar och måste kunna dra ner plagget själv: undvik hängselbyxor, knappgylf, body och onesie – välj resår i midjan.' : ''}`
       : `Du är en personlig stylist och reseexpert. Användaren ska resa till ${destination} under ${dateLabel} (${days} dagar) och behöver hjälp att packa RÄTT plagg ur sin egen garderob.`
 
     const prompt = `${personaLine}
@@ -76,7 +79,7 @@ ${audience === 'child'
   : `3. EXTRAS: Lista praktiska saker att inte glömma som INTE är plagg i garderoben (t.ex. underkläder, strumpor, pyjamas, necessär, laddare, adapter, badkläder om relevant) – anpassa efter destination och väder.`}
 
 OBLIGATORISKA REGLER FÖR VARJE OUTFIT – följ EXAKT (samma som vid vanlig outfit-generering):
-1. ${babyMode ? 'SKOR: en bebis behöver inga skor – hoppa över skor helt (strumpor/sockor räcker).' : 'SKOR: Varje outfit MÅSTE ha exakt ETT par skor. En outfit utan skor är ogiltig.'}
+1. ${!walks ? 'SKOR: barnet går inte själv – hoppa över skor helt (strumpor/sockor räcker).' : 'SKOR: Varje outfit MÅSTE ha exakt ETT par skor. En outfit utan skor är ogiltig.'}
 2. NEDERDEL: Varje outfit MÅSTE ha byxor, kjol eller shorts – SÅVIDA du inte väljer en klänning.
 3. ÖVERDEL: Varje outfit MÅSTE ha exakt EN överdel (topp/tröja/skjorta/body) – SÅVIDA du inte väljer en klänning.
 4. Väljer du en KLÄNNING → lägg INTE till separat nederdel eller överdel (klänningen ersätter båda).

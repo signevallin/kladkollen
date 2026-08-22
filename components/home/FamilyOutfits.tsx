@@ -17,7 +17,7 @@ import { loadPartner } from '../../utils/household'
 import { loadPeople, type Person } from '../../utils/people'
 import { ageMonths,
   buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason,
-  isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit,
+  childWalks, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit,
 } from '../../utils/outfit'
 import { useSettings } from '../../utils/settings'
 import SongCard from '../SongCard'
@@ -145,6 +145,7 @@ export default function FamilyOutfits(
     }
 
     const baby = m.kind === 'child' && isBabyChild(m.person?.birthdate, m.person?.current_size_cm ?? null)
+    const walks = m.kind !== 'child' || childWalks(m.person?.birthdate, m.person?.current_size_cm ?? null, m.person?.walks)
     // Egen upplevd temperatur per medlem: barn har köldkänslighet på sin
     // people-rad, vuxna kör lagom. Därför byggs kontexten här och inte en gång
     // för hela familjen – annars hade alla delat samma känsla för vädret.
@@ -167,7 +168,7 @@ export default function FamilyOutfits(
         ? { wantSong: false }
         : { wantSong: true, musicGenres, avoidSongs: songHist.avoidSongs, previousSong: songHist.previousSong }
       const body = m.kind === 'child'
-        ? { ...base, audience: 'child', childName: m.name, babyMode: baby }
+        ? { ...base, audience: 'child', childName: m.name, babyMode: baby, walks, pottyTraining: m.person?.potty_training === true }
         : { ...base, ...songFields, contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)' }
       parsed = await apiPost('/api/generate-outfit', body)
       const { valid } = validateOutfit(parsed.items || [], scoped, ctx.requiresOuterwear, { requireShoes: !baby })

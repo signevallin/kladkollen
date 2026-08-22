@@ -1,8 +1,3 @@
-// AUTOGENERERAD – redigera inte för hand.
-// Regenereras med Supabase CLI mot produktionsschemat:
-//   npx supabase gen types typescript --project-id <ref> --schema public > types/supabase.ts
-// Delade domäntyper (Garment, Outfit, WishItem, Profile) byggs ovanpå denna i
-// types/models.ts – importera dem därifrån, inte härifrån.
 export type Json =
   | string
   | number
@@ -22,16 +17,19 @@ export type Database = {
       ai_quota: {
         Row: {
           count: number
+          kind: string
           user_id: string
           window_start: string
         }
         Insert: {
           count?: number
+          kind?: string
           user_id: string
           window_start?: string
         }
         Update: {
           count?: number
+          kind?: string
           user_id?: string
           window_start?: string
         }
@@ -439,33 +437,6 @@ export type Database = {
           },
         ]
       }
-      person_outfit_calendar: {
-        Row: {
-          created_at: string | null
-          date: string
-          id: string
-          outfit_id: string
-          person_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          date: string
-          id?: string
-          outfit_id: string
-          person_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          date?: string
-          id?: string
-          outfit_id?: string
-          person_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       outfits: {
         Row: {
           context: string | null
@@ -521,7 +492,15 @@ export type Database = {
           weather_condition?: string | null
           worn_on?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "outfits_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pending_imports: {
         Row: {
@@ -579,8 +558,10 @@ export type Database = {
           household_id: string
           id: string
           name: string
+          potty_training: boolean
           size_updated_at: string | null
           type: string
+          walks: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -592,8 +573,10 @@ export type Database = {
           household_id: string
           id?: string
           name: string
+          potty_training?: boolean
           size_updated_at?: string | null
           type?: string
+          walks?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -605,8 +588,10 @@ export type Database = {
           household_id?: string
           id?: string
           name?: string
+          potty_training?: boolean
           size_updated_at?: string | null
           type?: string
+          walks?: boolean | null
         }
         Relationships: [
           {
@@ -618,12 +603,54 @@ export type Database = {
           },
         ]
       }
+      person_outfit_calendar: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          outfit_id: string
+          person_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          outfit_id: string
+          person_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          outfit_id?: string
+          person_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_outfit_calendar_outfit_id_fkey"
+            columns: ["outfit_id"]
+            isOneToOne: false
+            referencedRelation: "outfits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_outfit_calendar_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          auto_laundry: boolean
           avatar_url: string | null
           avoid_note: string | null
           birthday: string | null
-          auto_laundry: boolean
           capsule_garment_ids: string | null
           city: string | null
           cold_sensitivity: number
@@ -637,6 +664,7 @@ export type Database = {
           gender: string | null
           id: string
           import_token: string | null
+          lang: string | null
           last_import_status: string | null
           last_notif_date: string | null
           last_notif_kind: string | null
@@ -647,9 +675,8 @@ export type Database = {
           name: string | null
           notif_enabled: boolean
           notif_prefs: Json
-          lang: string | null
+          nursing: boolean | null
           outfit_context_notes: Json
-          nursing: boolean
           pregnant: boolean
           push_lat: number | null
           push_lon: number | null
@@ -658,14 +685,14 @@ export type Database = {
           stil_profil: string | null
           style_prefs: string | null
           style_rules: string | null
-          wash_after_wears: number
           username: string | null
+          wash_after_wears: number
         }
         Insert: {
+          auto_laundry?: boolean
           avatar_url?: string | null
           avoid_note?: string | null
           birthday?: string | null
-          auto_laundry?: boolean
           capsule_garment_ids?: string | null
           city?: string | null
           cold_sensitivity?: number
@@ -679,6 +706,7 @@ export type Database = {
           gender?: string | null
           id: string
           import_token?: string | null
+          lang?: string | null
           last_import_status?: string | null
           last_notif_date?: string | null
           last_notif_kind?: string | null
@@ -689,9 +717,8 @@ export type Database = {
           name?: string | null
           notif_enabled?: boolean
           notif_prefs?: Json
-          lang?: string | null
+          nursing?: boolean | null
           outfit_context_notes?: Json
-          nursing?: boolean
           pregnant?: boolean
           push_lat?: number | null
           push_lon?: number | null
@@ -700,14 +727,14 @@ export type Database = {
           stil_profil?: string | null
           style_prefs?: string | null
           style_rules?: string | null
-          wash_after_wears?: number
           username?: string | null
+          wash_after_wears?: number
         }
         Update: {
+          auto_laundry?: boolean
           avatar_url?: string | null
           avoid_note?: string | null
           birthday?: string | null
-          auto_laundry?: boolean
           capsule_garment_ids?: string | null
           city?: string | null
           cold_sensitivity?: number
@@ -721,6 +748,7 @@ export type Database = {
           gender?: string | null
           id?: string
           import_token?: string | null
+          lang?: string | null
           last_import_status?: string | null
           last_notif_date?: string | null
           last_notif_kind?: string | null
@@ -731,9 +759,8 @@ export type Database = {
           name?: string | null
           notif_enabled?: boolean
           notif_prefs?: Json
-          lang?: string | null
+          nursing?: boolean | null
           outfit_context_notes?: Json
-          nursing?: boolean
           pregnant?: boolean
           push_lat?: number | null
           push_lon?: number | null
@@ -742,8 +769,8 @@ export type Database = {
           stil_profil?: string | null
           style_prefs?: string | null
           style_rules?: string | null
-          wash_after_wears?: number
           username?: string | null
+          wash_after_wears?: number
         }
         Relationships: []
       }
@@ -762,6 +789,33 @@ export type Database = {
           data?: Json | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          lang: string | null
+          source: string | null
+          stage: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          lang?: string | null
+          source?: string | null
+          stage?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          lang?: string | null
+          source?: string | null
+          stage?: string | null
         }
         Relationships: []
       }
@@ -817,7 +871,15 @@ export type Database = {
           url?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -828,20 +890,38 @@ export type Database = {
         Args: { p_date?: string; p_delta: number; p_ids: string[] }
         Returns: undefined
       }
-      ai_credits_left: {
-        Args: { max_free: number; window_seconds: number }
-        Returns: number
-      }
+      ai_credits_left:
+        | {
+            Args: { max_free: number; window_seconds: number }
+            Returns: number
+          }
+        | {
+            Args: {
+              max_free: number
+              quota_kind: string
+              window_seconds: number
+            }
+            Returns: number
+          }
       bump_rate_limit: {
         Args: { max_calls: number; window_seconds: number }
         Returns: boolean
       }
       create_partner_invite: { Args: never; Returns: string }
+      effective_entitlement: {
+        Args: never
+        Returns: {
+          pro_until: string
+          product_id: string
+          shared_from: string
+        }[]
+      }
       ensure_household: { Args: never; Returns: string }
       is_household_member: { Args: { target: string }; Returns: boolean }
       join_by_invite: { Args: { invite_code: string }; Returns: string }
       leave_household: { Args: never; Returns: undefined }
       my_household_ids: { Args: never; Returns: string[] }
+      my_household_person_ids: { Args: never; Returns: string[] }
       partner_calendar: {
         Args: { target: string }
         Returns: {
@@ -890,6 +970,7 @@ export type Database = {
           subcategory: string | null
           times_worn: number | null
           user_id: string | null
+          wears_since_wash: number
         }[]
         SetofOptions: {
           from: "*"
@@ -909,6 +990,7 @@ export type Database = {
           image_urls: string[] | null
           mood: string | null
           name: string | null
+          person_id: string | null
           rating: number | null
           saved: boolean
           style: string | null
@@ -944,6 +1026,7 @@ export type Database = {
           image_url: string | null
           name: string
           notes: string | null
+          person_id: string | null
           price: number | null
           season: string | null
           sort_order: number | null
@@ -968,10 +1051,19 @@ export type Database = {
         Returns: string
       }
       toggle_outfit_like: { Args: { target_outfit: string }; Returns: boolean }
-      use_ai_credit: {
-        Args: { max_free: number; window_seconds: number }
-        Returns: boolean
-      }
+      use_ai_credit:
+        | {
+            Args: { max_free: number; window_seconds: number }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              max_free: number
+              quota_kind: string
+              window_seconds: number
+            }
+            Returns: boolean
+          }
       wear_partner_outfit: {
         Args: {
           p_date: string

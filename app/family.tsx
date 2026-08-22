@@ -14,10 +14,12 @@ import {
 } from 'react-native'
 import SignedImage from '../components/SignedImage'
 import QueryState from '../components/QueryState'
+import Toggle from '../components/Toggle'
 import { showConfirm, showAlert } from '../utils/alert'
 import { goBack } from '../utils/nav'
 import { useQuery } from '../utils/useQuery'
 import { addChild, deletePerson, loadPeople, setChildSize, updatePerson, type Person } from '../utils/people'
+import { ageMonths, childWalks } from '../utils/outfit'
 import { COLD_LEVELS } from '../utils/weather'
 import { pickImageSmart } from '../utils/imagePicker'
 import { uploadUserImage } from '../utils/storage'
@@ -29,6 +31,20 @@ import { computeSizeReminders, type SizeReminder } from '../utils/sizeReminders'
 import { loadSizedGarments } from '../utils/people'
 import { useSettings } from '../utils/settings'
 import { useEntitlements, familyFeaturesEnabled } from '../utils/entitlements'
+
+// När är frågorna relevanta? Att gå lär man sig senast runt 2 år, och
+// potträning pågår typiskt mellan 1,5 och 5 år. Utanför fönstret döljs raden
+// helt i stället för att stå avstängd och skräpa på ett skolbarns kort.
+// Okänd ålder → visa, eftersom vi då inte kan utesluta att de gäller.
+function showWalksRow(child: Person): boolean {
+  const m = ageMonths(child.birthdate)
+  return m == null || m <= 30
+}
+
+function showPottyRow(child: Person): boolean {
+  const m = ageMonths(child.birthdate)
+  return m == null || (m >= 12 && m <= 60)
+}
 
 export default function Family() {
   const t = useTheme()
@@ -121,7 +137,17 @@ export default function Family() {
   }
 
   async function setCold(child: Person, v: number) {
-    try { await updatePerson(child.id, { cold_sensitivity: v } as any); refetch() }
+    try { await updatePerson(child.id, { cold_sensitivity: v }); refetch() }
+    catch { showAlert(tr('Kunde inte spara')) }
+  }
+
+  async function setWalks(child: Person, v: boolean) {
+    try { await updatePerson(child.id, { walks: v }); refetch() }
+    catch { showAlert(tr('Kunde inte spara')) }
+  }
+
+  async function setPotty(child: Person, v: boolean) {
+    try { await updatePerson(child.id, { potty_training: v }); refetch() }
     catch { showAlert(tr('Kunde inte spara')) }
   }
 
@@ -250,6 +276,34 @@ export default function Family() {
                 </View>
                 <Text style={styles.coldValue}>{tr(COLD_LEVELS.find(l => l.v === (child.cold_sensitivity ?? 3))!.label)}</Text>
               </View>
+
+              {/* Båda raderna visas bara i den ålder de betyder något – annars
+                  blir kortet en vägg av reglage för ett skolbarn. Okänd ålder
+                  visar dem, eftersom vi då inte kan utesluta att de gäller. */}
+              {showWalksRow(child) && (
+                <View style={styles.optRow}>
+                  <View style={styles.optText}>
+                    <Text style={styles.optLabel}>{tr('Går själv')}</Text>
+                    <Text style={styles.optHint}>{tr('Av = inga skor i outfits och packlistor')}</Text>
+                  </View>
+                  {/* Visar vad appen tror just nu (gissat på ålder tills man rör
+                      reglaget) – ett tryck gör svaret uttryckligt och slutar gissa. */}
+                  <Toggle
+                    value={childWalks(child.birthdate, child.current_size_cm ?? null, child.walks)}
+                    onValueChange={v => setWalks(child, v)}
+                  />
+                </View>
+              )}
+
+              {showPottyRow(child) && (
+                <View style={styles.optRow}>
+                  <View style={styles.optText}>
+                    <Text style={styles.optLabel}>{tr('Potträning')}</Text>
+                    <Text style={styles.optHint}>{tr('Väljer plagg barnet kan dra ner själv')}</Text>
+                  </View>
+                  <Toggle value={child.potty_training === true} onValueChange={v => setPotty(child, v)} />
+                </View>
+              )}
             </View>
           ))}
         </QueryState>
@@ -383,6 +437,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   coldPillActive: { backgroundColor: t.primary, borderColor: t.primary },
   coldPillText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
   coldPillTextActive: { color: t.onPrimary },
+  optRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 12 },
+  optText: { flex: 1 },
+  optLabel: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
+  optHint: { fontFamily: 'Lora_400Regular', fontSize: 11.5, color: t.textFaint, marginTop: 2 },
   coldValue: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textFaint, flexShrink: 1 },
 
   remove: { fontFamily: 'Lora_400Regular', fontSize: 16, color: t.textSecondary, marginLeft: 2 },

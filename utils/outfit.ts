@@ -90,13 +90,30 @@ export function ageMonths(birthdate: string | null | undefined): number | null {
   return Math.max(0, m)
 }
 
-// Bebis = går oftast inte själv än → inga skor. Åldern används i första hand,
-// annars storleken som reserv (≈ under 18–24 mån). Vet vi ingetdera: inte bebis.
+// Bebis styr TILLTALET i prompten (bebis vs barn, golvlek, onesies tillåtna) –
+// inte skorna. De två föll isär när "går själv" blev en egen inställning: ett
+// treårigt barn som inte går ännu ska slippa skor, men ska inte kallas bebis.
 export function isBabyChild(birthdate: string | null | undefined, sizeCm: number | null): boolean {
   const m = ageMonths(birthdate)
   if (m != null) return m < 18
   if (sizeCm != null) return sizeCm < 86
   return false
+}
+
+// Går barnet själv? Avgör om outfiten ska innehålla skor.
+//
+// Ett uttryckligt val vinner alltid. Saknas det faller vi tillbaka på samma
+// åldersgissning som förut – men den är trubbig: barn börjar gå mellan ca 9 och
+// 18 månader, så en tidig gångare fick tidigare inga skor i upp till ett halvår.
+// Vet vi ingenting alls antas barnet gå, vilket är det säkra felet (en skopar
+// för mycket är lättare att bortse från än en outfit utan skor).
+export function childWalks(
+  birthdate: string | null | undefined,
+  sizeCm: number | null,
+  walks?: boolean | null,
+): boolean {
+  if (walks != null) return walks
+  return !isBabyChild(birthdate, sizeCm)
 }
 
 // Plagg som passar barnets aktuella storlek: osizeade plagg tas alltid med,

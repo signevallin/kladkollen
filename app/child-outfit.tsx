@@ -13,7 +13,7 @@ import { goBack } from '../utils/nav'
 import { loadPeople, type Person } from '../utils/people'
 import { ageMonths } from '../utils/outfit'
 import { useSettings } from '../utils/settings'
-import { buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit } from '../utils/outfit'
+import { buildGroupedGarmentList, childSizeFits, childWalks, dedupOutfitItems, getCurrentSeason, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit } from '../utils/outfit'
 import { buildWeatherContext, childHeadwearRule, summarizeDayForecast, type WeatherInput } from '../utils/weather'
 
 // Dagens outfit för ett barn: en fristående, förenklad version av hemskärmens
@@ -98,8 +98,10 @@ export default function ChildOutfit() {
 
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
       const previousItems: string = (outfit?.items || []).join(', ')
-      // Bebisar (går inte själva än) ska inte tvingas ha skor.
+      // Tilltal (bebis vs barn) och skor avgörs var för sig: ett barn kan gå
+      // men fortfarande vara bebis, och tvärtom.
       const baby = isBabyChild(child?.birthdate, child?.current_size_cm ?? null)
+      const walks = childWalks(child?.birthdate, child?.current_size_cm ?? null, child?.walks)
 
       let parsed: any = null
       let attempts = 0
@@ -109,6 +111,8 @@ export default function ChildOutfit() {
           audience: 'child',
           childName: name,
           babyMode: baby,
+          walks,
+          pottyTraining: child?.potty_training === true,
           weatherSummary: weatherCtx.summary,
           weatherRules: [weatherCtx.rules, headwear].filter(Boolean).join(' '),
           season,

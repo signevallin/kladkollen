@@ -862,6 +862,10 @@ const enBySource: Dict = {
   'Integritetspolicy': 'Privacy Policy',
   // Premium / paywall ('Aktiv' finns redan via outfit-kontexten)
   'Uppgradera': 'Upgrade',
+  'Går själv': 'Walks unaided',
+  'Av = inga skor i outfits och packlistor': 'Off = no shoes in outfits or packing lists',
+  'Potträning': 'Potty training',
+  'Väljer plagg barnet kan dra ner själv': 'Picks clothes they can pull down themselves',
   '{namn} delar sin prenumeration med dig.': '{namn} is sharing their subscription with you.',
   'Din nivå täcks av': 'Your plan is covered by',
   'Din nivå täcks av någon annan i hushållet.': 'Your plan is covered by someone else in your household.',

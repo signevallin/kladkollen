@@ -14,6 +14,10 @@ export type Person = {
   // 1–5, 3 = lagom. Samma skala som profiles.cold_sensitivity. Justerar den
   // upplevda temperaturen i outfit-genereringen – och därmed mössgränsen.
   cold_sensitivity: number | null
+  // NULL = inte angivet → åldersgissning används. Styr om outfiten kräver skor.
+  walks: boolean | null
+  // Barnet ska kunna dra ner plagget själv → inga hängselbyxor, bodys, knappgylf.
+  potty_training: boolean
   created_at: string
 }
 
@@ -60,7 +64,22 @@ export async function addChild(child: NewChild): Promise<Person> {
   return data as Person
 }
 
-export async function updatePerson(id: string, patch: Partial<NewChild>): Promise<void> {
+// Fält som går att ändra på en befintlig person. Egen typ i stället för
+// Partial<NewChild>: den saknar cold_sensitivity/walks/potty_training, vilket
+// tvingade fram `as any` på varje anropsställe – och därmed lät felstavade
+// kolumnnamn passera tyst förbi typkollen.
+export type PersonPatch = Partial<{
+  name: string
+  birthdate: string | null
+  gender: string | null
+  current_size_cm: number | null
+  avatar_url: string | null
+  cold_sensitivity: number
+  walks: boolean | null
+  potty_training: boolean
+}>
+
+export async function updatePerson(id: string, patch: PersonPatch): Promise<void> {
   const row: any = { ...patch }
   if ('current_size_cm' in patch) row.size_updated_at = new Date().toISOString()
   const { error } = await supabase.from('people').update(row).eq('id', id)

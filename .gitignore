@@ -47,3 +47,6 @@ app-example
 graphify-out/cache/
 graphify-out/20[0-9][0-9]-*/
 graphify-out/.graphify_*
+
+# Supabase CLI-scratch (skapas av gen types / link)
+supabase/.temp/

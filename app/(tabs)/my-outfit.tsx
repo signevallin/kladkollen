@@ -26,7 +26,7 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, childSizeFits, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
+import { matchItemsToPool, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
 import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
@@ -747,10 +747,11 @@ function isPast(date: Date) {
             const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
             if (usePool.length === 0) continue
             const baby = isBabyChild(c.birthdate, c.current_size_cm ?? null)
+            const walks = childWalks(c.birthdate, c.current_size_cm ?? null, c.walks)
             const cp = await apiPost('/api/pack-trip', {
               destination: destinationLabel, dateLabel, monthLabel: monthLabelStr, days,
               weatherSummary: weather.summary, groupedList: buildTripGarmentList(usePool),
-              vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, lang,
+              vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, walks, pottyTraining: c.potty_training === true, lang,
               childExtrasHint: childEssentialsHint(ageMonths(c.birthdate)),
               // Samma mössregel som vardagsoutfitsen, annars packas mössan men
               // används aldrig i reseoutfitsen – precis det glappet vi rättade.
