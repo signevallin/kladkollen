@@ -739,26 +739,41 @@ function isPast(date: Date) {
         // Delade hushållssaker (adapter, powerbank …) ska bara ligga i den vuxnes
         // lista – filtrera bort dem ur barnens extras.
         const parentExtraSet = new Set((result.extras || []).map((e: string) => e.trim().toLowerCase()))
-        for (const c of children) {
+        // Skicka alla barnens anrop direkt i stället för ett i taget. De är
+        // oberoende, så väntan blir det längsta anropet i stället för summan –
+        // med tre barn var det tidigare tre AI-svar på rad. Resultaten behandlas
+        // fortfarande i tur och ordning nedan, så ordningen i listan är oförändrad.
+        // Felet fångas här och kastas om vid await, annars räknas en avvisad
+        // promise som ohanterad innan loopen hinner fram till den.
+        const childRequests = children.map(c => {
+          const active = (all as any[]).filter(g => g.person_id === c.id && !g.archived && !g.in_laundry)
+          const sized = active.filter(g => childSizeFits(g, c.current_size_cm ?? null))
+          const seasonal = filterForTrip(sized.length ? sized : active, seasons)
+          const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
+          if (usePool.length === 0) return null
+          const baby = isBabyChild(c.birthdate, c.current_size_cm ?? null)
+          const walks = childWalks(c.birthdate, c.current_size_cm ?? null, c.walks)
+          const request = apiPost('/api/pack-trip', {
+            destination: destinationLabel, dateLabel, monthLabel: monthLabelStr, days,
+            weatherSummary: weather.summary, groupedList: buildTripGarmentList(usePool),
+            vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, walks, pottyTraining: c.potty_training === true, lang,
+            childExtrasHint: childEssentialsHint(ageMonths(c.birthdate)),
+            // Samma mössregel som vardagsoutfitsen, annars packas mössan men
+            // används aldrig i reseoutfitsen – precis det glappet vi rättade.
+            // Resan spänner över flera dagar, så gränsen prövas mot resans
+            // KALLASTE temperatur och inte ett medelvärde.
+            childHeadwear: childHeadwearRule(ageMonths(c.birthdate), weather.minTemp ?? null, c.cold_sensitivity ?? 3),
+          }).then(res => ({ res }), (err: any) => ({ err }))
+          return { c, usePool, request }
+        })
+
+        for (const req of childRequests) {
+          if (!req) continue
+          const { c, usePool } = req
           try {
-            const active = (all as any[]).filter(g => g.person_id === c.id && !g.archived && !g.in_laundry)
-            const sized = active.filter(g => childSizeFits(g, c.current_size_cm ?? null))
-            const seasonal = filterForTrip(sized.length ? sized : active, seasons)
-            const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
-            if (usePool.length === 0) continue
-            const baby = isBabyChild(c.birthdate, c.current_size_cm ?? null)
-            const walks = childWalks(c.birthdate, c.current_size_cm ?? null, c.walks)
-            const cp = await apiPost('/api/pack-trip', {
-              destination: destinationLabel, dateLabel, monthLabel: monthLabelStr, days,
-              weatherSummary: weather.summary, groupedList: buildTripGarmentList(usePool),
-              vibe: tripVibe.trim(), audience: 'child', childName: c.name, babyMode: baby, walks, pottyTraining: c.potty_training === true, lang,
-              childExtrasHint: childEssentialsHint(ageMonths(c.birthdate)),
-              // Samma mössregel som vardagsoutfitsen, annars packas mössan men
-              // används aldrig i reseoutfitsen – precis det glappet vi rättade.
-              // Resan spänner över flera dagar, så gränsen prövas mot resans
-              // KALLASTE temperatur och inte ett medelvärde.
-              childHeadwear: childHeadwearRule(ageMonths(c.birthdate), weather.minTemp ?? null, c.cold_sensitivity ?? 3),
-            })
+            const settled = await req.request
+            if ('err' in settled) throw settled.err
+            const cp = settled.res
             const resolveInPool = (nm: string) => {
               const target = (nm || '').trim().toLowerCase()
               return usePool.find(g => (g.name || '').trim().toLowerCase() === target)

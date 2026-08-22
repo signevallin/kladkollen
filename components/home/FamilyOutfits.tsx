@@ -14,6 +14,7 @@ import { OUTFIT_CONTEXTS } from '../../utils/constants'
 import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { invalidateGarments, loadGarments } from '../../utils/garmentsStore'
 import { loadPartner } from '../../utils/household'
+import { cacheGet } from '../../utils/cache'
 import { loadPeople, type Person } from '../../utils/people'
 import { ageMonths,
   buildGroupedGarmentList, childSizeFits, dedupOutfitItems, getCurrentSeason,
@@ -63,7 +64,18 @@ export default function FamilyOutfits(
   const { t: tr, lang, showDailySong } = useSettings()
   const { tier } = useEntitlements()
 
-  const [members, setMembers] = useState<Member[]>([])
+  // Seedas ur cachen som home.tsx redan fyller (household.partner/.children,
+  // home.userName). Utan detta stod sektionen tom tills fyra nätverksanrop var
+  // klara, trots att svaren redan låg på disk. Listan skrivs över av effekten
+  // nedan så fort färsk data finns.
+  const [members, setMembers] = useState<Member[]>(() => {
+    const partner = cacheGet<{ id: string; name: string } | null>('household.partner') ?? null
+    const kids = cacheGet<Person[]>('household.children') ?? []
+    const list: Member[] = [{ key: 'me', kind: 'me', name: cacheGet<string>('home.userName') || tr('Jag') }]
+    if (partner) list.push({ key: `partner:${partner.id}`, kind: 'partner', name: partner.name, partnerId: partner.id })
+    for (const k of kids) list.push({ key: `child:${k.id}`, kind: 'child', name: k.name, person: k })
+    return list
+  })
   const [myGarments, setMyGarments] = useState<any[]>([])
   const [childGarments, setChildGarments] = useState<Record<string, any[]>>({})
   const [results, setResults] = useState<Record<string, any>>({}) // key → { outfit } | { error }
@@ -85,12 +97,16 @@ export default function FamilyOutfits(
 
   useEffect(() => {
     ;(async () => {
-      const [ppl, all] = await Promise.all([
+      // Fyra oberoende anrop låg tidigare i rad; bara profilnamnet behöver
+      // vänta (det kräver user-id). Väntan blir det långsammaste, inte summan.
+      const [ppl, all, partnerRes, userRes] = await Promise.all([
         loadPeople().catch(() => [] as Person[]),
         loadGarments().catch(() => [] as any[]),
+        loadPartner().catch(() => ({ partner: null as any })),
+        supabase.auth.getUser().catch(() => ({ data: { user: null } as any })),
       ])
-      const { partner } = await loadPartner().catch(() => ({ partner: null as any }))
-      const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } as any }))
+      const { partner } = partnerRes
+      const { data: { user } } = userRes
 
       const kids = ppl.filter(p => p.type === 'child')
       const childG: Record<string, any[]> = {}
@@ -188,19 +204,31 @@ export default function FamilyOutfits(
     const songHist = showDailySong ? await songHistory() : { avoidSongs: '', previousSong: '' }
     let rawSong: any = null
     try {
-      for (const m of members) {
-        setPending(p => ({ ...p, [m.key]: true }))
+      // Alla medlemmar samtidigt. Varje generering är ett eget OpenAI-anrop och
+      // de är oberoende av varandra – sekventiellt växte väntan linjärt med
+      // familjens storlek. Rate-limiten är 20 anrop/min, så även en stor familj
+      // med omförsök ryms. Varje medlem skriver fortfarande sitt eget resultat
+      // när det blir klart, så korten fylls i ett i taget precis som förut.
+      setPending(p => ({ ...p, ...Object.fromEntries(members.map(m => [m.key, true])) }))
+      let quotaHit = false
+      const settled = await Promise.all(members.map(async m => {
         try {
           const r = await genForMember(m, season, weatherCtx, songHist)
           setResults(prev => ({ ...prev, [m.key]: r }))
-          if (!rawSong && r.rawSong) rawSong = r.rawSong
+          return r
         } catch (e: any) {
-          if (e?.code === 'quota_exceeded') { router.push('/paywall'); return }
-          setResults(prev => ({ ...prev, [m.key]: { error: e?.message || tr('Något gick fel') } }))
+          if (e?.code === 'quota_exceeded') quotaHit = true
+          else setResults(prev => ({ ...prev, [m.key]: { error: e?.message || tr('Något gick fel') } }))
+          return null
         } finally {
           setPending(p => ({ ...p, [m.key]: false }))
         }
-      }
+      }))
+      // Kvoten slog i taket för minst en medlem – visa paywallen en gång, inte
+      // en gång per medlem.
+      if (quotaHit) { router.push('/paywall'); return }
+      // Låten bärs av den vuxnes generering; medlemsordningen är bevarad.
+      rawSong = settled.find(r => r?.rawSong)?.rawSong ?? null
     } finally {
       setRunning(false)
     }
