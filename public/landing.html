@@ -182,6 +182,8 @@ em{font-style:italic;color:var(--brand-soft);}
 .wl-msg.ok{color:#5E7E6B;}
 .wl-msg.err{color:#A6524B;}
 .wl-note{font-size:13px;color:var(--dim);margin-top:12px;}
+.wl-note a{color:var(--muted);text-decoration:underline;text-underline-offset:2px;}
+.wl-note a:hover{color:var(--brand);}
 
 /* CTA */
 #cta{position:relative;overflow:hidden;text-align:center;padding:120px 40px;background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
@@ -410,7 +412,7 @@ em{font-style:italic;color:var(--brand-soft);}
         <button type="submit" class="wl-btn" data-i18n="wl.button">Join</button>
       </form>
       <p id="wlMsg" class="wl-msg" role="status" aria-live="polite"></p>
-      <p class="wl-note" data-i18n="wl.note">We’ll only email you when the app is ready. No spam, unsubscribe anytime.</p>
+      <p class="wl-note" data-i18n-html="wl.note">We’ll only email you when the app is ready. No spam, unsubscribe anytime. We store your email address and life stage so we can get in touch — read more in our <a href="/privacy">privacy policy</a>.</p>
     </div>
   </div>
 </section>
@@ -456,7 +458,7 @@ em{font-style:italic;color:var(--brand-soft);}
       's1.t': 'Fota garderoben', 's1.d': 'Fota ett plagg, importera orderhistorik eller kvitton — AI känner igen det och sparar det med namn, färg och säsong. Lägg till barnens och partnerns kläder på samma sätt.',
       's2.t': 'Berätta om er', 's2.d': 'Sätt stil, livssituation och barnens storlekar. Gör en färganalys. Ju mer Skrud vet, desto träffsäkrare blir förslagen.',
       's3.t': 'Tryck en gång', 's3.d': 'Generera dagens outfit — för dig eller hela familjen. Väderanpassad och redo, ur det ni redan äger.',
-      'wl.label': 'Väntelista', 'wl.h2': 'Var först in<br><em>när vi lanserar.</em>', 'wl.sub': 'Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.', 'wl.placeholder': 'Din e-postadress', 'wl.button': 'Gå med', 'wl.note': 'Vi mejlar bara när appen är redo. Ingen spam, avsluta när du vill.',
+      'wl.label': 'Väntelista', 'wl.h2': 'Var först in<br><em>när vi lanserar.</em>', 'wl.sub': 'Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.', 'wl.placeholder': 'Din e-postadress', 'wl.button': 'Gå med', 'wl.note': 'Vi mejlar bara när appen är redo. Ingen spam, avsluta när du vill. Vi sparar din e-postadress och ditt livsskede för att kunna höra av oss – läs mer i <a href="/privacy">integritetspolicyn</a>.',
       'wl.stageLabel': 'Var i livet är du?', 'wl.stageSingle': 'Singel', 'wl.stageCouple': 'Par', 'wl.stageFamily': 'Familj', 'wl.stagePregnant': 'Gravid',
       'wl.success': 'Tack! Du är med på väntelistan. 🎉', 'wl.invalid': 'Ange en giltig e-postadress.', 'wl.error': 'Något gick fel. Försök igen om en stund.',
       'cta.h2': 'Redo att upptäcka <em>en enklare vardag?</em>', 'cta.sub': 'Gå med i Skrud och upplev hur mycket tid du kan spara med ordning i familjens garderober. Gå med i väntelistan så hör vi av oss så fort Skrud är redo för dig.', 'cta.btn': 'Gå med i väntelistan',
@@ -487,7 +489,7 @@ em{font-style:italic;color:var(--brand-soft);}
       's1.t': 'Photograph your wardrobe', 's1.d': 'Photograph a garment, import order history or receipts — AI recognises it and saves it with name, colour and season. Add the kids’ and your partner’s clothes the same way.',
       's2.t': 'Tell us about you', 's2.d': 'Set style, life stage and the children’s sizes. Do a colour analysis. The more Skrud knows, the sharper the suggestions.',
       's3.t': 'Tap once', 's3.d': 'Generate today’s outfit — for yourself or the whole family. Weather-aware and ready, from what you already own.',
-      'wl.label': 'Waitlist', 'wl.h2': 'Be first in<br><em>when we launch.</em>', 'wl.sub': 'Skrud is rolling out step by step. Leave your email and we’ll let you know the moment you can get started.', 'wl.placeholder': 'Your email address', 'wl.button': 'Join', 'wl.note': 'We’ll only email you when the app is ready. No spam, unsubscribe anytime.',
+      'wl.label': 'Waitlist', 'wl.h2': 'Be first in<br><em>when we launch.</em>', 'wl.sub': 'Skrud is rolling out step by step. Leave your email and we’ll let you know the moment you can get started.', 'wl.placeholder': 'Your email address', 'wl.button': 'Join', 'wl.note': 'We’ll only email you when the app is ready. No spam, unsubscribe anytime. We store your email address and life stage so we can get in touch — read more in our <a href="/privacy">privacy policy</a>.',
       'wl.stageLabel': 'Where are you in life?', 'wl.stageSingle': 'Single', 'wl.stageCouple': 'Couple', 'wl.stageFamily': 'Family', 'wl.stagePregnant': 'Expecting',
       'wl.success': 'Thanks! You’re on the waitlist. 🎉', 'wl.invalid': 'Please enter a valid email address.', 'wl.error': 'Something went wrong. Please try again shortly.',
       'cta.h2': 'Ready to discover <em>an easier everyday?</em>', 'cta.sub': 'Join Skrud and see how much time you save with your family’s wardrobes in order. Join the waitlist and we’ll reach out the moment Skrud is ready for you.', 'cta.btn': 'Join the waitlist',
@@ -541,7 +543,7 @@ em{font-style:italic;color:var(--brand-soft);}
       'wl.sub': 'Skrud wird Schritt für Schritt ausgerollt. Hinterlasse deine E-Mail und wir melden uns, sobald du loslegen kannst.',
       'wl.placeholder': 'Deine E-Mail-Adresse',
       'wl.button': 'Beitreten',
-      'wl.note': 'Wir schreiben dir nur, wenn die App bereit ist. Kein Spam, jederzeit abbestellbar.',
+      'wl.note': 'Wir schreiben dir nur, wenn die App bereit ist. Kein Spam, jederzeit abbestellbar. Wir speichern deine E-Mail-Adresse und deine Lebensphase, um dich erreichen zu können – mehr dazu in unserer <a href="/privacy">Datenschutzerklärung</a>.',
       'wl.stageLabel': 'Wo stehst du im Leben?',
       'wl.stageSingle': 'Single',
       'wl.stageCouple': 'Paar',
@@ -606,7 +608,7 @@ em{font-style:italic;color:var(--brand-soft);}
       'wl.sub': 'Skrud se lanza paso a paso. Déjanos tu correo y te avisaremos en cuanto puedas empezar.',
       'wl.placeholder': 'Tu dirección de correo',
       'wl.button': 'Unirme',
-      'wl.note': 'Solo te escribiremos cuando la app esté lista. Sin spam, cancela cuando quieras.',
+      'wl.note': 'Solo te escribiremos cuando la app esté lista. Sin spam, cancela cuando quieras. Guardamos tu correo electrónico y tu etapa vital para poder avisarte; más información en nuestra <a href="/privacy">política de privacidad</a>.',
       'wl.stageLabel': '¿En qué momento de la vida estás?',
       'wl.stageSingle': 'Soltero/a',
       'wl.stageCouple': 'Pareja',
@@ -671,7 +673,7 @@ em{font-style:italic;color:var(--brand-soft);}
       'wl.sub': 'Skrud se déploie étape par étape. Laissez votre e-mail et nous vous préviendrons dès que vous pourrez commencer.',
       'wl.placeholder': 'Votre adresse e-mail',
       'wl.button': 'Rejoindre',
-      'wl.note': 'Nous vous écrirons uniquement quand l’appli sera prête. Pas de spam, désinscription à tout moment.',
+      'wl.note': 'Nous vous écrirons uniquement quand l’appli sera prête. Pas de spam, désinscription à tout moment. Nous conservons votre adresse e-mail et votre étape de vie pour vous contacter — en savoir plus dans notre <a href="/privacy">politique de confidentialité</a>.',
       'wl.stageLabel': 'Où en êtes-vous dans la vie ?',
       'wl.stageSingle': 'Célibataire',
       'wl.stageCouple': 'En couple',
