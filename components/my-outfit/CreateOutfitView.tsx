@@ -27,9 +27,12 @@ type Props = {
   // Får den nyskapade outfiten (med id) vid ny outfit, inget vid redigering –
   // så parent t.ex. kan lägga den direkt på ett datum i kalendern.
   onSaved: (outfit?: any) => void
+  // Barnets id när outfiten skapas i ett barns kontext. Utan den sparades
+  // outfiten på föräldern trots att barnets garderob visades.
+  personId?: string | null
 }
 
-export default function CreateOutfitView({ garments, wishlist, editOutfit, locale, onClose, onSaved }: Props) {
+export default function CreateOutfitView({ garments, wishlist, editOutfit, locale, onClose, onSaved, personId }: Props) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
@@ -85,6 +88,7 @@ export default function CreateOutfitView({ garments, wishlist, editOutfit, local
       const res = await supabase.from('outfits').insert([{
         user_id: user?.id, name, garment_ids: garmentIds, garment_names: garmentNames,
         image_urls: imageUrls, style: activeStyle !== 'Alla' ? activeStyle : null,
+        person_id: personId ?? null,
       }]).select().single()
       error = res.error; savedOutfit = res.data
     }

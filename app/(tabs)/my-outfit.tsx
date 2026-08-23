@@ -26,7 +26,7 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
+import { matchItemsToPool, dedupOutfitItems, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
 import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { shoeSizeAtDate, sizeCmAtDate } from '../../utils/childSize'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
@@ -836,7 +836,13 @@ function isPast(date: Date) {
               extras,
               garmentIds,
               outfits: (Array.isArray(cp.outfits) ? cp.outfits : []).map((o: any) => ({
-                name: o.name, itemsWithImages: matchItemsToPool(o.items || [], usePool),
+                // dedupOutfitItems: AI:n kan trots prompten lämna två plagg ur
+                // samma kategori – ett barn fick både sweatshirt och kofta, båda
+                // Tröjor. Barn-outfitskärmen dedupade redan; resepackningen
+                // gjorde det inte, så samma modell gav olika resultat beroende
+                // på var man frågade. Accessoarer får fortfarande vara flera.
+                name: o.name,
+                itemsWithImages: dedupOutfitItems(matchItemsToPool(o.items || [], usePool), usePool),
               })),
             })
           } catch { /* hoppa över barnet vid fel, resten av resan står kvar */ }
@@ -1198,6 +1204,7 @@ function isPast(date: Date) {
         // Redigerar man ett barns outfit ska plaggväljaren visa barnets garderob.
         garments={isPerson ? personGarments : garments}
         wishlist={isPerson ? [] : wishlist}
+        personId={isPerson ? String(person) : null}
         editOutfit={editOutfit}
         locale={locale}
         onClose={() => { setCreating(false); setEditOutfit(null); setAssignAfterCreate(null) }}

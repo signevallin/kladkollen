@@ -101,7 +101,12 @@ export default function FamilyOutfits(
   // Dagens låt gäller HELA familjen – en låt för stunden, inte en per person.
   // Fyra låtkort under varandra hade varit brus, och "Dagens låt" är singular.
   const [song, setSong] = useState<any>(null)
-  const [pools, setPools] = useState<Record<string, any[]>>({})   // key → plaggpool (för byt/lägg till)
+  // key → HELA medlemmens aktiva garderob. Byt-ut och lägg-till ska visa allt
+  // personen äger; genereringens snävare urval (storlek + säsong) används bara
+  // när AI:n väljer åt en. Låg den filtrerade poolen här saknades plagg
+  // användaren vet finns – ett barn ett steg från nästa storlek fick nästan
+  // inget att välja på, trots full garderob.
+  const [pools, setPools] = useState<Record<string, any[]>>({})
   const [pending, setPending] = useState<Record<string, boolean>>({})
   const [running, setRunning] = useState(false)
 
@@ -183,16 +188,20 @@ export default function FamilyOutfits(
 
   async function genForMember(m: Member, season: string, weatherCtx: { summary: string; rules: string; requiresOuterwear: boolean }, songHist: { avoidSongs: string; previousSong: string }) {
     let pool: any[] = []
+    // full = allt medlemmen äger, pool = det AI:n får välja ur. De skiljer sig
+    // bara för barn, där storleksfiltret gäller.
+    let full: any[] = []
     // Samma filter som hemskärmen: i gravidläget döljs plagg man pausat.
     // Saknades här, så ett pausat plagg kunde dyka upp i familjeoutfiten.
-    if (m.kind === 'me') pool = myGarments.filter(g => !g.archived && !g.in_laundry && !(myCold.pregnant && g.paused_pregnancy))
+    if (m.kind === 'me') pool = full = myGarments.filter(g => !g.archived && !g.in_laundry && !(myCold.pregnant && g.paused_pregnancy))
     else if (m.kind === 'partner' && m.partnerId) {
       const { data } = await supabase.rpc('partner_garments', { target: m.partnerId })
       // Bara partnerns EGNA plagg (person_id null) – annars kunde deras barns
       // plagg hamna i partnerns outfit.
-      pool = (data || []).filter((g: any) => !g.archived && !g.for_sale && g.person_id == null)
+      pool = full = (data || []).filter((g: any) => !g.archived && !g.for_sale && g.person_id == null)
     } else if (m.kind === 'child') {
       const active = (childGarments[m.person!.id] || []).filter(g => !g.archived && !g.in_laundry)
+      full = active
       pool = active.filter(g => childSizeFits(g, m.person?.current_size_cm ?? null, m.person?.current_shoe_size ?? null))
       if (pool.length === 0) pool = active
     }
@@ -215,7 +224,8 @@ export default function FamilyOutfits(
     const ctx = weather ? buildWeatherContext(weather, cold, stated) : weatherCtx
     const headwear = m.kind === 'child' ? childHeadwearRule(ageMonths(m.person?.birthdate), weather?.temp, stated) : ''
     const scoped = seasonalOrFull(pool, season)
-    setPools(prev => ({ ...prev, [m.key]: scoped }))
+    // Väljaren får hela garderoben, inte genereringens urval.
+    setPools(prev => ({ ...prev, [m.key]: full }))
     if (scoped.length === 0) return { error: tr('För få plagg i garderoben.') }
 
     const groupedList = buildGroupedGarmentList(scoped, ctx.requiresOuterwear)

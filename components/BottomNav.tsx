@@ -1,7 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { Ionicons } from '@expo/vector-icons'
-import { router, usePathname } from 'expo-router'
+import { router, useLocalSearchParams, usePathname } from 'expo-router'
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import AddGarmentChooser from './AddGarmentChooser'
@@ -29,6 +29,10 @@ const addOptions = [
 // gör – t.ex. öppna köp-/sälj-flödet beroende på vilken flik man är på.
 export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void } = {}) {
   const t = useTheme()
+  // Vald person i personväxlaren lever i skärmens route-params. Utan att bära
+  // med den hit landade "Lägg till outfit" alltid i den egna garderoben, även
+  // när man stod och tittade på ett barn.
+  const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
   const styles = makeStyles(t)
   const { t: tr } = useSettings()
   const pathname = usePathname()
@@ -83,6 +87,10 @@ export default function BottomNav({ onAddGarment }: { onAddGarment?: () => void 
                     // ta över för sina köp-/sälj-flikar; annars öppnas standardvalrutan.
                     if (onAddGarment) onAddGarment()
                     else setShowAddChooser(true)
+                  }
+                  else if (o.path.startsWith('/my-outfit') && person) {
+                    go(`${o.path}&person=${encodeURIComponent(String(person))}`
+                       + `&personName=${encodeURIComponent(String(personName || ''))}`)
                   }
                   else go(o.path)
                 }}
