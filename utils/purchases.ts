@@ -67,6 +67,13 @@ export function tierFromProductId(pid: string | null | undefined): Tier {
   if (!s) return 'none'
   if (s.includes('family') || s.includes('familj')) return 'family'
   if (s.includes('partner')) return 'partner'
+  // Manuellt beviljad access (testare, supportärenden, interna konton) ger FULL
+  // nivå. Utan den här raden landade 'manual_grant' på 'single' och tappade både
+  // par- och familjeläget – tvärtemot avsikten med en manuell grant.
+  // Kontrollerna ovan går först, så 'manual_grant_partner' fortfarande ger just
+  // partner. Måste hållas i synk med rankningen i effective_entitlement()
+  // (20260825_manual_grant_family.sql).
+  if (s.includes('manual')) return 'family'
   return 'single' // känd betald produkt utan nivå-nyckel → minsta betalda nivå
 }
 
