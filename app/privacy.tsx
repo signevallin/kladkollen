@@ -6,9 +6,10 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity } from 're
 //
 // ⚠️  Innehållet MÅSTE hållas identiskt med public/privacy.html – samma text
 //     ligger på båda ställena, och det är den publika sidan Apple läser.
-// ⚠️  Personuppgiftsansvarig i avsnitt 1: Elairis AB, org.nr 559590-4946.
-//     Postadress saknas ännu – e-handelslagen (2002:562) 8 § kräver geografisk
-//     adress när man säljer prenumerationer. Lägg till före betald lansering.
+// ⚠️  Personuppgiftsansvarig i avsnitt 1 måste vara fullständig: namn, org.nr
+//     OCH geografisk adress. GDPR art. 13.1(a) kräver identitet och kontakt-
+//     uppgifter; e-handelslagen (2002:562) 8 § kräver dessutom adressen så
+//     länge ni säljer prenumerationer. Ta aldrig bort någon av delarna.
 // ⚠️  Texten beskriver hur appen FAKTISKT fungerar. Ändras bildlagring,
 //     tredjepartsleverantörer eller lagringstider måste den här texten ändras
 //     i samma PR – ett felaktigt påstående här är i sig ett GDPR-brott.
@@ -17,7 +18,7 @@ const C = { bg: '#FEFAF8', primary: '#402D21', secondary: '#6C4D38' }
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: "1. Who is responsible for your data?",
-    body: "Elairis AB, company registration number 559590-4946, Sweden, trading as Skrud (\u201cwe\u201d, \u201cus\u201d), is the data controller for the personal data processed in the app.\n\nYou can reach us at support@skrud.app with any question about your data, or to exercise any of the rights described in section 8.",
+    body: "Elairis AB, company registration number 559590-4946, Sjuhäradsgatan 93, 441 95 Alingsås, Sweden, trading as Skrud (\u201cwe\u201d, \u201cus\u201d), is the data controller for the personal data processed in the app.\n\nYou can reach us at support@skrud.app with any question about your data, or to exercise any of the rights described in section 8.",
   },
   {
     title: "2. What data do we collect?",
