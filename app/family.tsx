@@ -255,33 +255,38 @@ export default function Family() {
                   {[formatAge(child.birthdate, lang), tr(child.gender || '')].filter(Boolean).join(' · ') || tr('Ingen ålder angiven')}
                 </Text>
               </TouchableOpacity>
-              <View style={styles.sizeStepper}>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, -1)} accessibilityLabel={tr('Mindre storlek')}>
-                  <MaterialIcons name="remove" size={16} color={t.textPrimary} />
-                </TouchableOpacity>
-                <View style={styles.sizeValue}>
-                  <Text style={styles.sizeNum}>{child.current_size_cm ?? '–'}</Text>
-                  <Text style={styles.sizeUnit}>{tr('stl')}</Text>
-                </View>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, 1)} accessibilityLabel={tr('Större storlek')}>
-                  <MaterialIcons name="add" size={16} color={t.textPrimary} />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.sizeStepper}>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => bumpShoe(child, -1)} accessibilityLabel={tr('Mindre skostorlek')}>
-                  <MaterialIcons name="remove" size={16} color={t.textPrimary} />
-                </TouchableOpacity>
-                <View style={styles.sizeValue}>
-                  <Text style={styles.sizeNum}>{child.current_shoe_size ?? '–'}</Text>
-                  <Text style={styles.sizeUnit}>{tr('sko')}</Text>
-                </View>
-                <TouchableOpacity style={styles.stepBtn} onPress={() => bumpShoe(child, 1)} accessibilityLabel={tr('Större skostorlek')}>
-                  <MaterialIcons name="add" size={16} color={t.textPrimary} />
-                </TouchableOpacity>
-              </View>
               <TouchableOpacity onPress={() => removeChild(child)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Text style={styles.remove}>✕</Text>
               </TouchableOpacity>
+              </View>
+
+              {/* Stegarna ligger på EGEN rad. Två av dem bredvid namnet lämnade
+                  namnkolumnen så smal att den bröt ett tecken per rad. */}
+              <View style={styles.stepperRow}>
+                <View style={styles.sizeStepper}>
+                  <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, -1)} accessibilityLabel={tr('Mindre storlek')}>
+                  <MaterialIcons name="remove" size={16} color={t.textPrimary} />
+                  </TouchableOpacity>
+                  <View style={styles.sizeValue}>
+                    <Text style={styles.sizeNum}>{child.current_size_cm ?? '–'}</Text>
+                    <Text style={styles.sizeUnit}>{tr('stl')}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, 1)} accessibilityLabel={tr('Större storlek')}>
+                  <MaterialIcons name="add" size={16} color={t.textPrimary} />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.sizeStepper}>
+                  <TouchableOpacity style={styles.stepBtn} onPress={() => bumpShoe(child, -1)} accessibilityLabel={tr('Mindre skostorlek')}>
+                  <MaterialIcons name="remove" size={16} color={t.textPrimary} />
+                  </TouchableOpacity>
+                  <View style={styles.sizeValue}>
+                    <Text style={styles.sizeNum}>{child.current_shoe_size ?? '–'}</Text>
+                    <Text style={styles.sizeUnit}>{tr('sko')}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.stepBtn} onPress={() => bumpShoe(child, 1)} accessibilityLabel={tr('Större skostorlek')}>
+                  <MaterialIcons name="add" size={16} color={t.textPrimary} />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Köldkänslighet per barn. Syskon skiljer sig ofta rejält, och för
@@ -463,6 +468,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   childMeta: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, marginTop: 2 },
 
   sizeStepper: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  stepperRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 10 },
   stepBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: t.border },
   sizeValue: { alignItems: 'center', minWidth: 34 },
   sizeNum: { fontFamily: 'Poppins_700Bold', fontSize: 16, color: t.textPrimary },
