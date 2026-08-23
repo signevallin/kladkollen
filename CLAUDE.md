@@ -67,6 +67,21 @@ en SQL-fråga och skriptets egen regex-extrahering landade på exakt samma tal.
   `xcrun simctl terminate <udid> se.kladkollen.app && xcrun simctl launch …`.
   Vill du vara säker: hämta bundlen från Metro och grep:a efter en ny sträng
   (`curl -s "http://localhost:8081/node_modules/expo-router/entry.bundle?platform=ios&dev=true"`).
+- **Att en promptregel biter.** Att strängen finns i prompten bevisar ingenting.
+  Reglerna konkateneras och kan säga emot varandra: "ANVÄNDAREN ÄR LÄTTFRUSEN:
+  lägg *hellre* till ett lager" stod bredvid "MILT VÄDER: ytterkläder är *inte
+  nödvändigt*", och modellen tog rimligen tillståndet framför önskan. Dumpa hela
+  regeluppsättningen (`buildWeatherContext(...).rules`) och läs den som modellen
+  läser den – och generera sedan en riktig outfit. **Ändringen är inte klar
+  förrän utfallet ändrats**, inte när texten finns med.
+- **`console.log` och `console.warn` når INTE systemloggen i Release.** Bara
+  `console.error` gör det (uppmätt i tre Release-bygden). Sandbox-köp och annat
+  som bara går att testa i Release behöver alltså error-nivå för att synas i
+  Xcode eller Console.app – en `__DEV__`-gatad logg är osynlig exakt där felet är.
+- **Testdata skriver tillbaka sig själv.** Ändrar du en profilrad i databasen
+  medan appen kör skriver den tillbaka sitt cachade värde vid nästa autosave.
+  Stoppa appen först (`xcrun simctl terminate`), och **kontrollera** att
+  återställningen höll i stället för att anta det.
 - **Att en säkerhetsfix biter.** Att appen visar en bild bevisar ingenting –
   signerade URL:er honoreras oavsett RLS. Testa i stället policyn direkt:
   `set local role authenticated; set local request.jwt.claims = '{"sub":"<uid>"}';`
@@ -85,6 +100,36 @@ Inget av följande kraschade något. De gav bara fel svar, i tysthet:
 - En effekt som beror på route-parametrar men läser ett värde som kommer från en
   RPC hinner köra före värdet finns. Beror alltid på det som faktiskt styr.
 
+## Personaliseringen har flera vägar som glider isär
+
+`generate-outfit` anropas från **fem håll**: hemskärmens singel- och par-flöde,
+`FamilyOutfits`, `child-outfit` och `pack-trip`. De byggdes vid olika tillfällen
+och har upprepade gånger halkat efter varandra. Under en enda session hittades
+fem fel som alla var samma fel:
+
+- vuxnas köldkänslighet var hårdkodad till `3` i familjeflödet
+- färganalysen saknades i par och familj
+- stilreglerna och undvik-noteringen saknades i familj och packning
+- gravidläget saknades helt i familj och packning – både den magvänliga prompten
+  och filtret på `paused_pregnancy`
+- `Stil` (`style_prefs`) sparades men lästes inte av någon generering alls
+
+Det var inte fem buggar utan en: **samma person fick olika svar beroende på
+vilken knapp hon tryckte.** Symptomen dök upp ett i taget under flera dagar, och
+varje enskild fix dolde att mönstret fanns.
+
+**Regel:** lägger du till något i en prompt, gör det i ALLA vägar samtidigt. En
+snabb revision är att jämföra vad servern tar emot mot vad varje anropare skickar:
+
+```bash
+grep -n "clip(body\." api/generate-outfit.ts
+```
+
+och stämma av varje fält mot `components/home/FamilyOutfits.tsx`,
+`app/child-outfit.tsx` och `app/(tabs)/my-outfit.tsx`. Partnerns värden går
+alltid via `partner_profile` – den är enda vägen till en hushållsmedlems profil,
+och `pregnant` exponeras medvetet inte där.
+
 ## Var koden bor och vad du bygger
 
 Det finns (eller fanns) **två utcheckningar** av repot på maskinen. Bygget görs
@@ -92,6 +137,11 @@ från `~/kladkollen` via terminal + Xcode – inte via EAS. Innan du felsöker "
 fungerar inte": kontrollera att katalogen du ändrar i är den som byggs, och att
 appen kör din kod. Ett snabbt facit är om postadressen syns i integritetspolicyns
 avsnitt 1 – den kom sent och fungerar som markör för hela paketet.
+
+**Kopiera inte filer mellan utcheckningarna.** Det frestar när man vill bygga en
+snabb ändring, men lämnar ströfiler i fel kataloger – en gång skrevs `supabase.ts`
+över med den genererade typfilen – och blockerar nästa `git pull` med "local
+changes would be overwritten". Committa och pulla i stället.
 
 Ändras `app.json` (plugins, behörighetstexter, `privacyManifests`) krävs
 `npx expo prebuild` innan Xcode ser det. Ren JS kräver ingen prebuild.
