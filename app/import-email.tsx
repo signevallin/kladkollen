@@ -45,7 +45,7 @@ type Pending = {
 export default function ImportEmail() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { t: tr } = useSettings()
+  const { t: tr, toBaseSEK } = useSettings()
   // person satt → importen sker för ett barn (plaggen taggas med person_id).
   const { person, personName } = useLocalSearchParams<{ person?: string; personName?: string }>()
   const personId = (person as string) || null
@@ -159,7 +159,9 @@ export default function ImportEmail() {
           color: p.color || '',
           season: p.season || 'Alla årstider',
           brand: p.brand || null,
-          price: parsePrice(p.price),
+          // Se import-purchases: beloppet antas vara i användarens valda valuta
+          // och konverteras till bas-SEK innan lagring.
+          price: toBaseSEK(parsePrice(p.price)),
           location: importLocation || null,
           image_url: imageUrl,
         }])

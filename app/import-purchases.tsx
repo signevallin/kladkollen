@@ -142,7 +142,7 @@ type ImportedItem = {
 export default function ImportPurchases() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { t: tr } = useSettings()
+  const { t: tr, toBaseSEK } = useSettings()
   const webRef = useRef<any>(null)
   // target=wishlist → plaggen hamnar på köplistan i stället för i garderoben.
   // person satt → importen sker för ett barn (plaggen taggas med person_id).
@@ -276,7 +276,10 @@ export default function ImportPurchases() {
             season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : null,
             image_url: imageUrl,
             brand: item.brand || null,
-            price: parsePrice(item.price),
+            // Kvittot bär ingen valutakod, så beloppet antas vara i användarens
+            // valda valuta. toBaseSEK gör om det till bas-SEK som kolumnen lagrar –
+            // utan den sparades 29,99 EUR som 30 kr.
+            price: toBaseSEK(parsePrice(item.price)),
           }])
         } else {
           await supabase.from('garments').insert([{
@@ -289,7 +292,7 @@ export default function ImportPurchases() {
             season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : 'Alla årstider',
             image_url: imageUrl,
             brand: item.brand || null,
-            price: parsePrice(item.price),
+            price: toBaseSEK(parsePrice(item.price)),
             location: importLocation || null,
           }])
         }

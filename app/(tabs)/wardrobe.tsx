@@ -418,6 +418,13 @@ export default function Wardrobe() {
   }
 
   // Markera som köpt: skapa ett plagg i garderoben och ta bort från köplistan.
+  //
+  // ALLA fält som finns på båda tabellerna ska följa med. Märke, underkategori
+  // och pris tappades tidigare, så ett plagg som importerats med märke från en
+  // butik kom in i garderoben utan det – uppgifter användaren aldrig får
+  // tillbaka, eftersom köplisteraden raderas direkt efteråt.
+  // wishlist.price lagras i samma enhet som garments.price (bas-SEK) och
+  // kopieras därför rakt av. notes och url saknar motsvarighet på garments.
   async function markWishBought(item: any) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -427,9 +434,12 @@ export default function Wardrobe() {
       person_id: item.person_id ?? (isPerson ? person : null),
       name: item.name,
       category: item.category || '',
+      subcategory: item.subcategory || null,
       color: item.color || '',
       season: item.season || 'Alla årstider',
       image_url: item.image_url || null,
+      brand: item.brand || null,
+      price: item.price ?? null,
     }])
     await supabase.from('wishlist').delete().eq('id', item.id)
     invalidateGarments()
