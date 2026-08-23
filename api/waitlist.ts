@@ -17,7 +17,10 @@ export default async function handler(request: Request): Promise<Response> {
     honeypot = String(body?.company || '')
     // Livsskede: bara kända värden sparas, annars null.
     const s = String(body?.stage || '').toLowerCase()
-    stage = (s === 'single' || s === 'couple' || s === 'family' || s === 'pregnant') ? s : null
+    // 'pregnant' togs medvetet bort: graviditetsuppgifter räknas som hälsodata
+    // (GDPR art. 9) och kräver uttryckligt samtycke – inte en informationstext
+    // under ett formulär. Värdet avvisas nu och sparas som null.
+    stage = (s === 'single' || s === 'couple' || s === 'family') ? s : null
   } catch {
     return json({ error: 'bad_request' }, 400)
   }
