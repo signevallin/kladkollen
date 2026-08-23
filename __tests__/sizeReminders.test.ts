@@ -1,11 +1,11 @@
 import { computeSizeReminders, seasonForMonth, type ReminderGarment, type ReminderChild } from '../utils/sizeReminders'
 
 const child = (over: Partial<ReminderChild> = {}): ReminderChild => ({
-  id: 'c1', name: 'Alva', birthdate: null, current_size_cm: 92, ...over,
+  id: 'c1', name: 'Alva', birthdate: null, current_size_cm: 92, current_shoe_size: null, ...over,
 })
 const garment = (over: Partial<ReminderGarment> = {}): ReminderGarment => ({
   id: 'g1', name: 'Klänning', image_url: null, location: 'Kartong 3',
-  season: 'Alla årstider', size_cm: 98, status: 'stored', person_id: null, ...over,
+  season: 'Alla årstider', size_cm: 98, shoe_size: null, status: 'stored', person_id: null, ...over,
 })
 
 describe('seasonForMonth', () => {

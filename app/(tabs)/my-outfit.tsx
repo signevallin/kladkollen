@@ -26,9 +26,9 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
+import { matchItemsToPool, dedupOutfitItems, extraAlreadyPacked, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
 import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
-import { sizeCmAtDate } from '../../utils/childSize'
+import { shoeSizeAtDate, sizeCmAtDate } from '../../utils/childSize'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
@@ -767,7 +767,10 @@ function isPast(date: Date) {
           // plats – och sedan storleksfiltret skärptes blockeras dessutom
           // precis de plagg hon vuxit i till.
           const sizeOnTrip = sizeCmAtDate(c.current_size_cm ?? null, c.birthdate, start)
-          const sized = active.filter(g => childSizeFits(g, sizeOnTrip))
+          // Samma resonemang för fötterna: skostorleken projiceras fram till
+          // avresan, annars packas skor som är för små när de ska användas.
+          const shoeOnTrip = shoeSizeAtDate(c.current_shoe_size ?? null, c.birthdate, start)
+          const sized = active.filter(g => childSizeFits(g, sizeOnTrip, shoeOnTrip))
           const seasonal = filterForTrip(sized.length ? sized : active, seasons)
           const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
           if (usePool.length === 0) return null
@@ -825,6 +828,10 @@ function isPast(date: Date) {
             // sådant som redan finns i den vuxnes lista (delade hushållssaker).
             const extras = mergeExtras(childSavedExtras[c.id] || [], Array.isArray(cp.extras) ? cp.extras : [])
               .filter((e: string) => !parentExtraSet.has(e.trim().toLowerCase()))
+              // Pyjamasen läggs till i plagglistan ovan medan AI:n samtidigt
+              // skriver "Pyjamas" bland glöm-inte-sakerna. Den ska bara stå på
+              // ett ställe – i plagglistan, där den har bild och kan bockas av.
+              .filter((e: string) => !extraAlreadyPacked(e, packingItems as { name?: string | null }[], sleepwear.length > 0))
             pools[c.id] = usePool
             childPacks.push({
               personId: c.id,
@@ -833,7 +840,13 @@ function isPast(date: Date) {
               extras,
               garmentIds,
               outfits: (Array.isArray(cp.outfits) ? cp.outfits : []).map((o: any) => ({
-                name: o.name, itemsWithImages: matchItemsToPool(o.items || [], usePool),
+                // dedupOutfitItems: AI:n kan trots prompten lämna två plagg ur
+                // samma kategori – ett barn fick både sweatshirt och kofta, båda
+                // Tröjor. Barn-outfitskärmen dedupade redan; resepackningen
+                // gjorde det inte, så samma modell gav olika resultat beroende
+                // på var man frågade. Accessoarer får fortfarande vara flera.
+                name: o.name,
+                itemsWithImages: dedupOutfitItems(matchItemsToPool(o.items || [], usePool), usePool),
               })),
             })
           } catch { /* hoppa över barnet vid fel, resten av resan står kvar */ }
@@ -1195,6 +1208,7 @@ function isPast(date: Date) {
         // Redigerar man ett barns outfit ska plaggväljaren visa barnets garderob.
         garments={isPerson ? personGarments : garments}
         wishlist={isPerson ? [] : wishlist}
+        personId={isPerson ? String(person) : null}
         editOutfit={editOutfit}
         locale={locale}
         onClose={() => { setCreating(false); setEditOutfit(null); setAssignAfterCreate(null) }}

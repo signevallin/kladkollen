@@ -25,7 +25,8 @@ import { pickImageSmart } from '../utils/imagePicker'
 import { uploadUserImage } from '../utils/storage'
 import { downscaleForUpload } from '../utils/image'
 import {
-  EU_CHILD_SIZES, formatAge, nextSize, prevSize, suggestedSizeCm,
+  EU_CHILD_SIZES, EU_SHOE_SIZES, formatAge, nextSize, prevSize, suggestedSizeCm,
+  nextShoeSize, prevShoeSize, suggestedShoeSize,
 } from '../utils/childSize'
 import { computeSizeReminders, type SizeReminder } from '../utils/sizeReminders'
 import { loadSizedGarments } from '../utils/people'
@@ -134,6 +135,17 @@ export default function Family() {
     const base = child.current_size_cm ?? suggestedSizeCm(child.birthdate) ?? EU_CHILD_SIZES[0]
     const next = dir > 0 ? nextSize(base) : prevSize(base)
     try { await setChildSize(child.id, next); refetch() } catch { showAlert(tr('Kunde inte uppdatera storleken')) }
+  }
+
+  // Skostorleken har en egen stegare: fötter växer i sin egen takt och i en
+  // annan skala, så den kan inte härledas ur klädstorleken.
+  async function bumpShoe(child: Person, dir: 1 | -1) {
+    const base = child.current_shoe_size ?? suggestedShoeSize(child.birthdate) ?? EU_SHOE_SIZES[0]
+    const next = dir > 0 ? nextShoeSize(base) : prevShoeSize(base)
+    try {
+      await updatePerson(child.id, { current_shoe_size: next })
+      refetch()
+    } catch { showAlert(tr('Kunde inte uppdatera storleken')) }
   }
 
   async function setCold(child: Person, v: number) {
@@ -247,6 +259,18 @@ export default function Family() {
                   <Text style={styles.sizeUnit}>{tr('stl')}</Text>
                 </View>
                 <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, 1)} accessibilityLabel={tr('Större storlek')}>
+                  <MaterialIcons name="add" size={16} color={t.textPrimary} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.sizeStepper}>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => bumpShoe(child, -1)} accessibilityLabel={tr('Mindre skostorlek')}>
+                  <MaterialIcons name="remove" size={16} color={t.textPrimary} />
+                </TouchableOpacity>
+                <View style={styles.sizeValue}>
+                  <Text style={styles.sizeNum}>{child.current_shoe_size ?? '–'}</Text>
+                  <Text style={styles.sizeUnit}>{tr('sko')}</Text>
+                </View>
+                <TouchableOpacity style={styles.stepBtn} onPress={() => bumpShoe(child, 1)} accessibilityLabel={tr('Större skostorlek')}>
                   <MaterialIcons name="add" size={16} color={t.textPrimary} />
                 </TouchableOpacity>
               </View>

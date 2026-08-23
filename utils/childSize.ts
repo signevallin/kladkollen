@@ -111,3 +111,101 @@ export function prevSize(cm: number): number {
   const i = sizes.indexOf(nearestSize(cm))
   return sizes[Math.max(i - 1, 0)]
 }
+
+// ── SKOSTORLEKAR ──────────────────────────────────────────────────────────
+// Skor mäts i EU-nummer, inte i kroppslängd. Modellen speglar klädernas
+// medvetet (samma funktionsnamn med Shoe-suffix) så storlekspåminnelser och
+// "passar nu"-filtret kan behandla båda dimensionerna med samma logik.
+
+export const EU_SHOE_SIZES = [
+  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+  33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+] as const
+
+// Fötter växer i EU-nummer per månad. Snabbast första året, sedan avtagande,
+// och i praktiken stilla efter ~14. Grov modell i samma anda som
+// GROWTH_CM_PER_MONTH – tillräcklig för "ungefär när blir de för små", inte
+// för att förutsäga en exakt månad.
+// Kalibrerad mot kända EU-skostorlekar per ålder (16 vid födsel, ~20,5 vid 1 år,
+// 25,5 vid 3, 29,5 vid 6, 34 vid 10, 39 vid 14). Största avvikelse 0,3 storlekar
+// över hela spannet. En tidigare gissad uppsättning låg upp till 8 storlekar fel
+// – kontrollera alltid mot referensvärden om siffrorna ändras.
+const SHOE_GROWTH_PER_MONTH: { maxAgeYears: number; sizesPerMonth: number }[] = [
+  { maxAgeYears: 1,        sizesPerMonth: 0.375 },
+  { maxAgeYears: 3,        sizesPerMonth: 0.21  },
+  { maxAgeYears: 6,        sizesPerMonth: 0.11  },
+  { maxAgeYears: 10,       sizesPerMonth: 0.095 },
+  { maxAgeYears: 14,       sizesPerMonth: 0.105 },
+  { maxAgeYears: Infinity, sizesPerMonth: 0.02  },
+]
+
+export function shoeGrowthPerMonth(ageYears: number): number {
+  return (SHOE_GROWTH_PER_MONTH.find(g => ageYears < g.maxAgeYears)
+    ?? SHOE_GROWTH_PER_MONTH[SHOE_GROWTH_PER_MONTH.length - 1]).sizesPerMonth
+}
+
+/** Närmaste EU-skostorlek till ett godtyckligt tal. */
+export function nearestShoeSize(size: number): number {
+  return EU_SHOE_SIZES.reduce(
+    (best, s) => (Math.abs(s - size) < Math.abs(best - size) ? s : best),
+    EU_SHOE_SIZES[0],
+  )
+}
+
+/** Vilket steg på skoskalan en storlek hamnar på. */
+export function shoeSizeIndex(size: number): number {
+  return (EU_SHOE_SIZES as readonly number[]).indexOf(nearestShoeSize(size))
+}
+
+// Ungefärlig skostorlek vid en viss ålder – för att gissa startvärde.
+// Nyfödd ligger runt 16–17 och växer sedan enligt modellen ovan.
+function estimatedShoeSize(ageYears: number): number {
+  let size = 16
+  let remaining = ageYears
+  let prevMax = 0
+  for (const band of SHOE_GROWTH_PER_MONTH) {
+    const bandYears = Math.min(remaining, band.maxAgeYears - prevMax)
+    if (bandYears <= 0) break
+    size += bandYears * 12 * band.sizesPerMonth
+    remaining -= bandYears
+    prevMax = band.maxAgeYears
+    if (remaining <= 0) break
+  }
+  return size
+}
+
+/** Förslag på aktuell skostorlek utifrån ålder – användaren bekräftar bara. */
+export function suggestedShoeSize(birthdate?: string | null): number | null {
+  const years = ageYearsFromBirthdate(birthdate)
+  if (years == null) return null
+  return nearestShoeSize(estimatedShoeSize(years))
+}
+
+/**
+ * Vilken skostorlek barnet har vid ett FRAMTIDA datum. Samma resonemang som
+ * sizeCmAtDate: en resa packas för den dag skorna ska bäras. Bakåt i tiden
+ * justeras inget.
+ */
+export function shoeSizeAtDate(
+  currentSize: number | null,
+  birthdate: string | null | undefined,
+  when: Date,
+  now: Date = new Date(),
+): number | null {
+  if (currentSize == null) return null
+  const months = (when.getTime() - now.getTime()) / (30.44 * 24 * 60 * 60 * 1000)
+  if (!Number.isFinite(months) || months <= 0) return currentSize
+  const years = ageYearsFromBirthdate(birthdate) ?? 4
+  return nearestShoeSize(currentSize + months * shoeGrowthPerMonth(years))
+}
+
+/** Nästa/föregående storlek i skoskalan. */
+export function nextShoeSize(size: number): number {
+  const sizes = EU_SHOE_SIZES as readonly number[]
+  return sizes[Math.min(shoeSizeIndex(size) + 1, sizes.length - 1)]
+}
+
+export function prevShoeSize(size: number): number {
+  const sizes = EU_SHOE_SIZES as readonly number[]
+  return sizes[Math.max(shoeSizeIndex(size) - 1, 0)]
+}

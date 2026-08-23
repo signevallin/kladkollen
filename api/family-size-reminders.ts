@@ -67,12 +67,12 @@ export default async function handler(request: Request): Promise<Response> {
   // Barn per hushåll.
   const { data: kids } = await admin
     .from('people')
-    .select('id, household_id, name, birthdate, current_size_cm, type')
+    .select('id, household_id, name, birthdate, current_size_cm, current_shoe_size, type')
     .eq('type', 'child')
   const childrenByHousehold = new Map<string, ReminderChild[]>()
   for (const k of (kids || []) as any[]) {
     const list = childrenByHousehold.get(k.household_id) || []
-    list.push({ id: k.id, name: k.name, birthdate: k.birthdate, current_size_cm: k.current_size_cm })
+    list.push({ id: k.id, name: k.name, birthdate: k.birthdate, current_size_cm: k.current_size_cm, current_shoe_size: k.current_shoe_size })
     childrenByHousehold.set(k.household_id, list)
   }
   const householdIds = [...childrenByHousehold.keys()]
@@ -83,9 +83,9 @@ export default async function handler(request: Request): Promise<Response> {
   // Plagg med barnstorlek per hushåll.
   const { data: garments } = await admin
     .from('garments')
-    .select('id, name, image_url, location, season, size_cm, status, person_id, household_id')
+    .select('id, name, image_url, location, season, size_cm, shoe_size, status, person_id, household_id')
     .in('household_id', householdIds)
-    .not('size_cm', 'is', null)
+    .or('size_cm.not.is.null,shoe_size.not.is.null')
   const garmentsByHousehold = new Map<string, ReminderGarment[]>()
   for (const g of (garments || []) as any[]) {
     const list = garmentsByHousehold.get(g.household_id) || []

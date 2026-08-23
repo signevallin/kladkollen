@@ -1,4 +1,4 @@
-import { sizeIndex } from './childSize'
+import { shoeSizeIndex, sizeIndex } from './childSize'
 // Rena hjälpfunktioner för outfit-generering, delade mellan hemskärmen
 // (vuxen/par) och barn-outfit-skärmen (app/child-outfit). Inga React-beroenden
 // och ingen översättning – prompten byggs alltid på svenska och funktionerna
@@ -31,6 +31,35 @@ export function seasonAppropriate(g: any, season: string): boolean {
 // Matchar brett: kategorin heter "Sovkläder" i dagens data, men plagg importeras
 // också från butiker med egna benämningar.
 const SLEEPWEAR_RE = /sovkl(ä|a)der|nattkl(ä|a)der|pyjamas?|nattlinne|nattdr(ä|a)kt|sovdr(ä|a)kt|sparkdr(ä|a)kt|footie/i
+
+/** Nämner en fritext-sak sovkläder? ("Pyjamas", "nattlinne" …) */
+export function isSleepwearText(text: string): boolean {
+  return SLEEPWEAR_RE.test(text || '')
+}
+
+/**
+ * Ska en "glöm inte"-sak döljas för att den redan ligger i plagglistan?
+ *
+ * Sovkläder läggs till deterministiskt i packlistan, medan AI:n samtidigt gärna
+ * skriver "Pyjamas" bland extras – samma sak hamnade då på två ställen. Utöver
+ * det jämförs texten mot de packade plaggens namn, så "Regnjacka" försvinner ur
+ * extras när regnjackan faktiskt är packad.
+ */
+export function extraAlreadyPacked(
+  extra: string,
+  packed: { name?: string | null }[],
+  sleepwearPacked = false,
+): boolean {
+  const k = (extra || '').trim().toLowerCase()
+  if (!k) return false
+  if (sleepwearPacked && isSleepwearText(k)) return true
+  return packed.some(p => {
+    const n = (p?.name || '').trim().toLowerCase()
+    // Korta namn matchar för lätt mot godtycklig text – kräv lite substans.
+    if (!n || n.length < 4) return false
+    return n === k || n.includes(k) || k.includes(n)
+  })
+}
 
 export function isSleepwear(g: any): boolean {
   return SLEEPWEAR_RE.test([g?.category, g?.subcategory, g?.name].filter(Boolean).join(' '))
@@ -120,7 +149,15 @@ export function childWalks(
 // Plagg som passar barnets aktuella storlek: osizeade plagg tas alltid med,
 // annars ett generöst fönster runt current_size_cm (lite för stort går bra att
 // växa i, för litet döljs). Saknas storlek på barnet → visa allt.
-export function childSizeFits(g: any, currentCm: number | null): boolean {
+export function childSizeFits(g: any, currentCm: number | null, currentShoe: number | null = null): boolean {
+  // Skor mäts i EU-nummer och har egen skala. Utan den här grenen slank alla
+  // skor igenom ofiltrerat, eftersom de saknar size_cm – ett barn kunde få
+  // förslag på skor det växt ur för länge sedan.
+  if (g.shoe_size != null) {
+    if (currentShoe == null) return true
+    const shoeSteps = shoeSizeIndex(g.shoe_size) - shoeSizeIndex(currentShoe)
+    return shoeSteps <= 0 && shoeSteps >= -1
+  }
   if (g.size_cm == null) return true
   if (currentCm == null) return true
   // Räknas i STORLEKSSTEG, inte centimeter. Det gamla fönstret (-6/+10 cm)
