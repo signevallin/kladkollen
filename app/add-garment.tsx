@@ -28,6 +28,7 @@ import { invalidateGarments } from '../utils/garmentsStore'
 import { apiPost } from '../utils/api'
 import { removeBackground } from '../utils/removeBg'
 import { parsePrice } from '../utils/brands'
+import { categoryForChildGarment } from '../utils/outfit'
 import { useSettings } from '../utils/settings'
 import { pickImageSmart } from '../utils/imagePicker'
 import { fetchLocations, type Location } from '../utils/locations'
@@ -309,7 +310,9 @@ export default function AddGarment() {
         await supabase.from('garments').insert([{
           user_id: user.id,
           name: draft.name,
-          category: draft.category,
+          // Body på ett barn hör hemma under Toppar, inte Underkläder – annars
+          // ser outfitgenereringen den aldrig.
+          category: categoryForChildGarment(draft.category, draft.subcategory, draft.name, !!pid),
           subcategory: draft.subcategory || null,
           color: draft.color,
           season: draft.seasons.join(', '),

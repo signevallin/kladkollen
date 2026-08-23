@@ -19,6 +19,7 @@ import { invalidateGarments } from '../utils/garmentsStore'
 import { apiPost } from '../utils/api'
 import { removeBackground } from '../utils/removeBg'
 import { showAlert } from '../utils/alert'
+import { categoryForChildGarment } from '../utils/outfit'
 import { parsePrice } from '../utils/brands'
 import { goBack } from '../utils/nav'
 import { useSettings } from '../utils/settings'
@@ -286,7 +287,8 @@ export default function ImportPurchases() {
             user_id: user.id,
             person_id: personId,
             name: item.name,
-            category: analysis.category || '',
+            // Body på ett barn hör hemma under Toppar, inte Underkläder.
+            category: categoryForChildGarment(analysis.category || '', analysis.subcategory, item.name, !!personId),
             subcategory: analysis.subcategory || null,
             color: analysis.color || '',
             season: (analysis.seasons && analysis.seasons.length > 0) ? analysis.seasons.join(', ') : 'Alla årstider',

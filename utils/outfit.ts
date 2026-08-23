@@ -61,6 +61,27 @@ export function extraAlreadyPacked(
   })
 }
 
+/**
+ * En body är barnets ÖVERDEL, inte underkläder.
+ *
+ * "Body" finns som underkategori under BÅDE Toppar och Underkläder, så AI:n
+ * väljer olika från gång till gång. Hamnar den under Underkläder blir plagget
+ * osynligt för outfitgenereringen – kategorin saknas med flit i categoryMap –
+ * och en bebis vars garderob mest består av bodys får då nästan inga förslag.
+ *
+ * Gäller bara barn. På en vuxen kan en body mycket väl vara underkläder.
+ */
+export function categoryForChildGarment(
+  category: string | null | undefined,
+  subcategory: string | null | undefined,
+  name: string | null | undefined,
+  isChild: boolean,
+): string | null | undefined {
+  if (!isChild || category !== 'Underkläder') return category
+  const text = [subcategory, name].filter(Boolean).join(' ')
+  return /\bbody\b|bodysuit/i.test(text) ? 'Toppar' : category
+}
+
 export function isSleepwear(g: any): boolean {
   return SLEEPWEAR_RE.test([g?.category, g?.subcategory, g?.name].filter(Boolean).join(' '))
 }

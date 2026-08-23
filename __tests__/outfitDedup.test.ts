@@ -1,4 +1,4 @@
-import { dedupOutfitItems, childSizeFits, extraAlreadyPacked } from '../utils/outfit'
+import { dedupOutfitItems, childSizeFits, extraAlreadyPacked, categoryForChildGarment } from '../utils/outfit'
 
 const pool = [
   { id: 'sw', name: 'Sweatshirt',  category: 'Tröjor' },
@@ -115,5 +115,30 @@ describe('childSizeFits – "får bära ett steg större"', () => {
 
   it('är av som standard', () => {
     expect(childSizeFits(plagg(68), 62)).toBe(false)
+  })
+})
+
+describe('categoryForChildGarment', () => {
+  it('flyttar barnets body från Underkläder till Toppar', () => {
+    expect(categoryForChildGarment('Underkläder', 'Body', 'Vit kortärmad body', true)).toBe('Toppar')
+    expect(categoryForChildGarment('Underkläder', null, 'White short-sleeved bodysuit', true)).toBe('Toppar')
+  })
+
+  it('rör inte vuxnas bodys – där kan det vara underkläder', () => {
+    expect(categoryForChildGarment('Underkläder', 'Body', 'Stringbody i trikå', false)).toBe('Underkläder')
+  })
+
+  it('rör inte barnets övriga underkläder', () => {
+    expect(categoryForChildGarment('Underkläder', 'Strumpor', 'Ullstrumpor', true)).toBe('Underkläder')
+    expect(categoryForChildGarment('Underkläder', 'Trosor', 'Trosor 3-pack', true)).toBe('Underkläder')
+  })
+
+  it('luras inte av crossbody-väskor', () => {
+    // Ordgränsen är hela poängen: "Crossbody" innehåller "body" men är en väska.
+    expect(categoryForChildGarment('Väskor', 'Crossbody', 'Crossbody väska', true)).toBe('Väskor')
+  })
+
+  it('rör inte bodys som redan ligger rätt', () => {
+    expect(categoryForChildGarment('Toppar', 'Body', 'Mönstrad body', true)).toBe('Toppar')
   })
 })
