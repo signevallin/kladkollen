@@ -84,3 +84,36 @@ describe('extraAlreadyPacked', () => {
     expect(extraAlreadyPacked('Solkräm', [{ name: 'Sko' }])).toBe(false)
   })
 })
+
+describe('childSizeFits – "får bära ett steg större"', () => {
+  // EU_CHILD_SIZES: … 56, 62, 68 … Barnet är 62.
+  const plagg = (cm: number) => ({ size_cm: cm, shoe_size: null })
+
+  it('blockerar nästa storlek när reglaget är av', () => {
+    expect(childSizeFits(plagg(68), 62, null, false)).toBe(false)
+  })
+
+  it('släpper igenom nästa storlek när reglaget är på', () => {
+    expect(childSizeFits(plagg(68), 62, null, true)).toBe(true)
+  })
+
+  it('öppnar bara ETT steg, inte två', () => {
+    expect(childSizeFits(plagg(74), 62, null, true)).toBe(false)
+  })
+
+  it('påverkar inte nedåtgränsen', () => {
+    expect(childSizeFits(plagg(56), 62, null, true)).toBe(true)
+    expect(childSizeFits(plagg(50), 62, null, true)).toBe(false)
+  })
+
+  it('gäller skor på samma sätt', () => {
+    const sko = (n: number) => ({ shoe_size: n, size_cm: null })
+    expect(childSizeFits(sko(25), 62, 24, false)).toBe(false)
+    expect(childSizeFits(sko(25), 62, 24, true)).toBe(true)
+    expect(childSizeFits(sko(26), 62, 24, true)).toBe(false)
+  })
+
+  it('är av som standard', () => {
+    expect(childSizeFits(plagg(68), 62)).toBe(false)
+  })
+})

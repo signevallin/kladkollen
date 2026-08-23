@@ -1251,5 +1251,7 @@
  "t.ex. 28 eller 42": "p. ex. 28 ou 42",
  "sko": "pointure",
  "Mindre skostorlek": "Pointure plus petite",
- "Större skostorlek": "Pointure plus grande"
+ "Större skostorlek": "Pointure plus grande",
+ "Får bära ett steg större": "Peut porter une taille au-dessus",
+ "På = plagg i nästa storlek räknas som passande i outfits och packlistor": "Activé = les vêtements de la taille supérieure comptent comme adaptés dans les tenues et listes de bagages"
 }

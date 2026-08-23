@@ -1251,5 +1251,7 @@
  "t.ex. 28 eller 42": "p. ej. 28 o 42",
  "sko": "calz.",
  "Mindre skostorlek": "Talla de calzado menor",
- "Större skostorlek": "Talla de calzado mayor"
+ "Större skostorlek": "Talla de calzado mayor",
+ "Får bära ett steg större": "Puede llevar una talla más",
+ "På = plagg i nästa storlek räknas som passande i outfits och packlistor": "Activado = las prendas de la talla siguiente cuentan como adecuadas en conjuntos y listas de equipaje"
 }

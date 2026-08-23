@@ -87,7 +87,7 @@ export default function ChildOutfit() {
 
       // Filtrera på rätt storlek + säsong. Faller tillbaka bredare om urvalet blir
       // för smalt för en komplett outfit (skor + över-/nederdel eller klänning).
-      const sized = active.filter(g => childSizeFits(g, child?.current_size_cm ?? null, child?.current_shoe_size ?? null))
+      const sized = active.filter(g => childSizeFits(g, child?.current_size_cm ?? null, child?.current_shoe_size ?? null, !!child?.allow_larger_size))
       const seasonal = sized.filter(g => seasonAppropriate(g, season))
       const SHOE = ['Skor'], BOTTOM_OR_DRESS = ['Byxor', 'Shorts', 'Kjolar', 'Klänningar'], TOP_OR_DRESS = ['Toppar', 'Tröjor', 'Klänningar']
       const canForm = (list: any[]) =>

@@ -1251,5 +1251,7 @@
  "t.ex. 28 eller 42": "z.B. 28 oder 42",
  "sko": "Schuh",
  "Mindre skostorlek": "Kleinere Schuhgröße",
- "Större skostorlek": "Größere Schuhgröße"
+ "Större skostorlek": "Größere Schuhgröße",
+ "Får bära ett steg större": "Darf eine Nummer größer tragen",
+ "På = plagg i nästa storlek räknas som passande i outfits och packlistor": "An = Kleidung in der nächsten Größe gilt in Outfits und Packlisten als passend"
 }

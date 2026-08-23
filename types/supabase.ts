@@ -552,6 +552,7 @@ export type Database = {
       }
       people: {
         Row: {
+          allow_larger_size: boolean
           avatar_url: string | null
           birthdate: string | null
           cold_sensitivity: number
@@ -569,6 +570,7 @@ export type Database = {
           walks: boolean | null
         }
         Insert: {
+          allow_larger_size?: boolean
           avatar_url?: string | null
           birthdate?: string | null
           cold_sensitivity?: number
@@ -586,6 +588,7 @@ export type Database = {
           walks?: boolean | null
         }
         Update: {
+          allow_larger_size?: boolean
           avatar_url?: string | null
           birthdate?: string | null
           cold_sensitivity?: number

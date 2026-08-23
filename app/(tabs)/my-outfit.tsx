@@ -770,7 +770,7 @@ function isPast(date: Date) {
           // Samma resonemang för fötterna: skostorleken projiceras fram till
           // avresan, annars packas skor som är för små när de ska användas.
           const shoeOnTrip = shoeSizeAtDate(c.current_shoe_size ?? null, c.birthdate, start)
-          const sized = active.filter(g => childSizeFits(g, sizeOnTrip, shoeOnTrip))
+          const sized = active.filter(g => childSizeFits(g, sizeOnTrip, shoeOnTrip, !!c.allow_larger_size))
           const seasonal = filterForTrip(sized.length ? sized : active, seasons)
           const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
           if (usePool.length === 0) return null

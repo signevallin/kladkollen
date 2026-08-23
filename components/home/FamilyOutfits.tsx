@@ -202,7 +202,7 @@ export default function FamilyOutfits(
     } else if (m.kind === 'child') {
       const active = (childGarments[m.person!.id] || []).filter(g => !g.archived && !g.in_laundry)
       full = active
-      pool = active.filter(g => childSizeFits(g, m.person?.current_size_cm ?? null, m.person?.current_shoe_size ?? null))
+      pool = active.filter(g => childSizeFits(g, m.person?.current_size_cm ?? null, m.person?.current_shoe_size ?? null, !!m.person?.allow_larger_size))
       if (pool.length === 0) pool = active
     }
 

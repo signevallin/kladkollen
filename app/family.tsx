@@ -153,6 +153,11 @@ export default function Family() {
     catch { showAlert(tr('Kunde inte spara')) }
   }
 
+  async function setAllowLarger(child: Person, v: boolean) {
+    try { await updatePerson(child.id, { allow_larger_size: v }); refetch() }
+    catch { showAlert(tr('Kunde inte spara')) }
+  }
+
   async function setWalks(child: Person, v: boolean) {
     try { await updatePerson(child.id, { walks: v }); refetch() }
     catch { showAlert(tr('Kunde inte spara')) }
@@ -304,6 +309,17 @@ export default function Family() {
               {/* Båda raderna visas bara i den ålder de betyder något – annars
                   blir kortet en vägg av reglage för ett skolbarn. Okänd ålder
                   visar dem, eftersom vi då inte kan utesluta att de gäller. */}
+              <View style={styles.optRow}>
+                <View style={styles.optText}>
+                  <Text style={styles.optLabel}>{tr('Får bära ett steg större')}</Text>
+                  <Text style={styles.optHint}>{tr('På = plagg i nästa storlek räknas som passande i outfits och packlistor')}</Text>
+                </View>
+                <Toggle
+                  value={!!child.allow_larger_size}
+                  onValueChange={v => setAllowLarger(child, v)}
+                />
+              </View>
+
               {showWalksRow(child) && (
                 <View style={styles.optRow}>
                   <View style={styles.optText}>

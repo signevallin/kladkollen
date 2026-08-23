@@ -14,6 +14,9 @@ export type Person = {
   // kroppslängd eller växer i samma takt som barnet i övrigt.
   current_shoe_size: number | null
   shoe_size_updated_at: string | null
+  // Får barnet bära ett steg större? Öppnar storleksfönstret uppåt i
+  // genereringen. Påverkar inte storlekspåminnelserna.
+  allow_larger_size: boolean
   avatar_url: string | null
   // 1–5, 3 = lagom. Samma skala som profiles.cold_sensitivity. Justerar den
   // upplevda temperaturen i outfit-genereringen – och därmed mössgränsen.
@@ -78,6 +81,7 @@ export type PersonPatch = Partial<{
   gender: string | null
   current_size_cm: number | null
   current_shoe_size: number | null
+  allow_larger_size: boolean
   avatar_url: string | null
   cold_sensitivity: number
   walks: boolean | null

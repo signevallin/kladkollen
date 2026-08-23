@@ -149,14 +149,29 @@ export function childWalks(
 // Plagg som passar barnets aktuella storlek: osizeade plagg tas alltid med,
 // annars ett generöst fönster runt current_size_cm (lite för stort går bra att
 // växa i, för litet döljs). Saknas storlek på barnet → visa allt.
-export function childSizeFits(g: any, currentCm: number | null, currentShoe: number | null = null): boolean {
+/**
+ * Passar plagget barnet just nu?
+ *
+ * allowLarger öppnar fönstret ETT steg uppåt (people.allow_larger_size). Utan
+ * det är bara nuvarande storlek och ett steg ner giltiga, vilket gör plagg man
+ * köpt att växa i osynliga för genereringen. Med det på räknas nästa storlek
+ * också – barn bär ofta lite stort. Valet är per barn eftersom det skiljer sig
+ * mellan syskon.
+ */
+export function childSizeFits(
+  g: any,
+  currentCm: number | null,
+  currentShoe: number | null = null,
+  allowLarger = false,
+): boolean {
+  const up = allowLarger ? 1 : 0
   // Skor mäts i EU-nummer och har egen skala. Utan den här grenen slank alla
   // skor igenom ofiltrerat, eftersom de saknar size_cm – ett barn kunde få
   // förslag på skor det växt ur för länge sedan.
   if (g.shoe_size != null) {
     if (currentShoe == null) return true
     const shoeSteps = shoeSizeIndex(g.shoe_size) - shoeSizeIndex(currentShoe)
-    return shoeSteps <= 0 && shoeSteps >= -1
+    return shoeSteps <= up && shoeSteps >= -1
   }
   if (g.size_cm == null) return true
   if (currentCm == null) return true
@@ -166,7 +181,7 @@ export function childSizeFits(g: any, currentCm: number | null, currentShoe: num
   // sig själv. Ett steg NER går oftast fortfarande att ha på sig och behålls,
   // annars blir urvalet för tunt i en liten garderob.
   const steps = sizeIndex(g.size_cm) - sizeIndex(currentCm)
-  return steps <= 0 && steps >= -1
+  return steps <= up && steps >= -1
 }
 
 // Bygger den grupperade garderobslistan som AI:n väljer ur. requiresOuterwear
