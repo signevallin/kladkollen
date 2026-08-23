@@ -12,7 +12,9 @@
  *
  *   node scripts/cleanup-orphan-images.mjs                  # lista, radera inget
  *   node scripts/cleanup-orphan-images.mjs --json > out.json # manifest för granskning
- *   node scripts/cleanup-orphan-images.mjs --delete --yes    # radera på riktigt
+ *   node scripts/cleanup-orphan-images.mjs --backup ../skrud-backup   # bara kopia
+ *   node scripts/cleanup-orphan-images.mjs --backup ../skrud-backup --delete --yes
+ *   node scripts/cleanup-orphan-images.mjs --delete --yes    # radera utan kopia
  *
  * Kräver:
  *   SUPABASE_URL                (eller EXPO_PUBLIC_SUPABASE_URL)
@@ -22,12 +24,19 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 
 const BUCKET = 'garments'
 const PAGE = 1000
 
 const args = new Set(process.argv.slice(2))
 const DO_DELETE = args.has('--delete')
+// --backup <mapp>: ladda ner varje föräldralös fil innan något raderas. Körs den
+// tillsammans med --delete raderas BARA filer som säkerhetskopierats – en fil som
+// inte gick att ladda ner lämnas kvar i lagringen hellre än att förloras.
+const backupArg = process.argv.slice(2).indexOf('--backup')
+const BACKUP_DIR = backupArg !== -1 ? process.argv.slice(2)[backupArg + 1] : null
 const CONFIRMED = args.has('--yes')
 const AS_JSON = args.has('--json')
 
@@ -101,6 +110,32 @@ async function loadReferenced() {
   return refs
 }
 
+/**
+ * Laddar ner filerna till BACKUP_DIR med sökvägsstrukturen bevarad.
+ * Returnerar de sökvägar som säkerhetskopierades UTAN fel.
+ */
+async function backupAll(paths) {
+  const ok = []
+  let failed = 0
+  for (let i = 0; i < paths.length; i++) {
+    const path = paths[i]
+    try {
+      const { data, error } = await db.storage.from(BUCKET).download(path)
+      if (error || !data) throw new Error(error?.message || 'tom nedladdning')
+      const dest = join(BACKUP_DIR, path)
+      await mkdir(dirname(dest), { recursive: true })
+      await writeFile(dest, Buffer.from(await data.arrayBuffer()))
+      ok.push(path)
+    } catch (e) {
+      failed++
+      console.error(`  MISSLYCKADES ${path}: ${e.message}`)
+    }
+    if ((i + 1) % 25 === 0 || i === paths.length - 1) log(`  ${i + 1}/${paths.length}`)
+  }
+  if (failed) log(`  ${failed} fil(er) kunde inte laddas ner – de raderas inte.`)
+  return ok
+}
+
 const main = async () => {
   log('Läser referenser ur databasen…')
   const referenced = await loadReferenced()
@@ -137,6 +172,13 @@ const main = async () => {
     process.exit(1)
   }
 
+  if (BACKUP_DIR && !DO_DELETE) {
+    log(`Säkerhetskopierar ${orphans.length} filer till ${BACKUP_DIR}…`)
+    const saved = await backupAll(orphans)
+    log(`\n${saved.length}/${orphans.length} säkerhetskopierade. Inget raderat.`)
+    return
+  }
+
   if (!DO_DELETE) {
     log('Föräldralösa filer (torrläge – inget raderas):')
     for (const p of orphans.slice(0, 40)) log('  ' + p)
@@ -150,14 +192,23 @@ const main = async () => {
     process.exit(1)
   }
 
-  log(`Raderar ${orphans.length} filer…`)
+  // Säkerhetskopiera först. Bara det som faktiskt hamnade på disk raderas.
+  let deletable = orphans
+  if (BACKUP_DIR) {
+    log(`Säkerhetskopierar ${orphans.length} filer till ${BACKUP_DIR}…`)
+    deletable = await backupAll(orphans)
+    log(`  ${deletable.length}/${orphans.length} säkerhetskopierade\n`)
+    if (!deletable.length) { console.error('Inget kunde säkerhetskopieras – avbryter.'); process.exit(1) }
+  }
+
+  log(`Raderar ${deletable.length} filer…`)
   let removed = 0
-  for (let i = 0; i < orphans.length; i += 100) {
-    const chunk = orphans.slice(i, i + 100)
+  for (let i = 0; i < deletable.length; i += 100) {
+    const chunk = deletable.slice(i, i + 100)
     const { error } = await db.storage.from(BUCKET).remove(chunk)
     if (error) { console.error(`  Misslyckades för ${chunk.length} filer: ${error.message}`); continue }
     removed += chunk.length
-    log(`  ${removed}/${orphans.length}`)
+    log(`  ${removed}/${deletable.length}`)
   }
   log(`\nKlart. ${removed} filer raderade.`)
 }
