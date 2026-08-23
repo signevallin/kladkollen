@@ -1,5 +1,5 @@
 import * as Calendar from 'expo-calendar'
-import { translate } from './i18n'
+import { localeFor, translate } from './i18n'
 
 // Fyller i {platshållare} i en översatt sträng.
 function fill(s: string, vars?: Record<string, string | number>): string {
@@ -69,7 +69,7 @@ export async function planForDay(date = new Date(), lang: string = 'sv'): Promis
     // Kvällshändelse = börjar 17:00 eller senare och känns som en "kväll ute".
     if (!eveningEvent && startHour >= 17 && has(EVENING, t)) {
       eveningEvent = e.title || null
-      eveningTime = new Date(e.startDate as any).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
+      eveningTime = new Date(e.startDate as any).toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })
       eveningIsDate = has(DATE_WORDS, t)
     }
   }

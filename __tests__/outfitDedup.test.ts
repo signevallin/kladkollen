@@ -1,3 +1,4 @@
+import { localeFor } from '../utils/i18n'
 import { CHILD_CONTEXTS, OUTFIT_CONTEXTS } from '../utils/constants'
 import { dedupOutfitItems, childSizeFits, extraAlreadyPacked, categoryForChildGarment } from '../utils/outfit'
 
@@ -169,5 +170,24 @@ describe('CHILD_CONTEXTS', () => {
     for (const k of Object.keys(CHILD_CONTEXTS)) {
       expect(CHILD_CONTEXTS[k].logic).toMatch(/bekväm|leka|rör|praktisk/i)
     }
+  })
+})
+
+describe('lokaliserad sifferformatering', () => {
+  // Regressionsskydd: formatWithCurrency hårdkodade 'sv-SE', vilket gav svensk
+  // gruppering i fyra av fem språk. Testar Intl-beteendet vi förlitar oss på.
+  const n = 1234567
+  it('grupperar olika per språk', () => {
+    expect(n.toLocaleString('sv-SE')).not.toBe(n.toLocaleString('de-DE'))
+    expect(n.toLocaleString('de-DE')).not.toBe(n.toLocaleString('en-GB'))
+  })
+
+  it('localeFor ger en egen locale per språk', () => {
+    const locales = ['sv', 'en', 'de', 'es', 'fr'].map(localeFor)
+    expect(new Set(locales).size).toBe(5)
+  })
+
+  it('faller tillbaka på svenska för okänt språk', () => {
+    expect(localeFor('xx')).toBe('sv-SE')
   })
 })

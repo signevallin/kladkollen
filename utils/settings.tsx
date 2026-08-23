@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { localeFor } from './i18n'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { translate, LANGS, type Lang } from './i18n'
 import { setApiLang } from './api'
@@ -47,8 +48,11 @@ const COLORAI_KEY = 'kladkollen_use_color_analysis'
 const RATES_KEY = 'kladkollen_rates'
 const RATES_TTL = 12 * 60 * 60 * 1000 // 12 h
 
-function formatWithCurrency(n: number, currency: CurrencyCode): string {
-  const grouped = Math.round(n).toLocaleString('sv-SE')
+// Tusentalsavgränsaren skiljer sig mellan språken: svenska använder mellanslag
+// (1 234), tyska punkt (1.234) och engelska komma (1,234). Hårdkodat 'sv-SE'
+// gav därför svensk formatering i fyra av fem språk.
+function formatWithCurrency(n: number, currency: CurrencyCode, locale: string): string {
+  const grouped = Math.round(n).toLocaleString(locale)
   switch (currency) {
     case 'EUR': return `€${grouped}`
     case 'USD': return `$${grouped}`
@@ -209,7 +213,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setUseColorAnalysis,
     t: (key: string) => translate(lang, key),
     rate,
-    formatPrice: (sek) => formatWithCurrency((Number(sek) || 0) * rate, currency),
+    formatPrice: (sek) => formatWithCurrency((Number(sek) || 0) * rate, currency, localeFor(lang)),
     toBaseSEK: (amount) => (amount == null || amount === ('' as any)) ? null : Math.round((Number(amount) || 0) / rate),
     fromBaseSEK: (sek) => sek == null ? null : Math.round((Number(sek) || 0) * rate),
     tempValue: toUnit,
