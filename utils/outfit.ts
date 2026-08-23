@@ -32,6 +32,35 @@ export function seasonAppropriate(g: any, season: string): boolean {
 // också från butiker med egna benämningar.
 const SLEEPWEAR_RE = /sovkl(ä|a)der|nattkl(ä|a)der|pyjamas?|nattlinne|nattdr(ä|a)kt|sovdr(ä|a)kt|sparkdr(ä|a)kt|footie/i
 
+/** Nämner en fritext-sak sovkläder? ("Pyjamas", "nattlinne" …) */
+export function isSleepwearText(text: string): boolean {
+  return SLEEPWEAR_RE.test(text || '')
+}
+
+/**
+ * Ska en "glöm inte"-sak döljas för att den redan ligger i plagglistan?
+ *
+ * Sovkläder läggs till deterministiskt i packlistan, medan AI:n samtidigt gärna
+ * skriver "Pyjamas" bland extras – samma sak hamnade då på två ställen. Utöver
+ * det jämförs texten mot de packade plaggens namn, så "Regnjacka" försvinner ur
+ * extras när regnjackan faktiskt är packad.
+ */
+export function extraAlreadyPacked(
+  extra: string,
+  packed: { name?: string | null }[],
+  sleepwearPacked = false,
+): boolean {
+  const k = (extra || '').trim().toLowerCase()
+  if (!k) return false
+  if (sleepwearPacked && isSleepwearText(k)) return true
+  return packed.some(p => {
+    const n = (p?.name || '').trim().toLowerCase()
+    // Korta namn matchar för lätt mot godtycklig text – kräv lite substans.
+    if (!n || n.length < 4) return false
+    return n === k || n.includes(k) || k.includes(n)
+  })
+}
+
 export function isSleepwear(g: any): boolean {
   return SLEEPWEAR_RE.test([g?.category, g?.subcategory, g?.name].filter(Boolean).join(' '))
 }

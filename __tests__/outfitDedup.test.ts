@@ -1,4 +1,4 @@
-import { dedupOutfitItems, childSizeFits } from '../utils/outfit'
+import { dedupOutfitItems, childSizeFits, extraAlreadyPacked } from '../utils/outfit'
 
 const pool = [
   { id: 'sw', name: 'Sweatshirt',  category: 'Tröjor' },
@@ -55,5 +55,32 @@ describe('childSizeFits – skor', () => {
     // Klädstorleken är helt fel skala för en sko – den får inte spilla över.
     expect(childSizeFits(sko(24), null, 24)).toBe(true)
     expect(childSizeFits(sko(40), 62, 24)).toBe(false)
+  })
+})
+
+describe('extraAlreadyPacked', () => {
+  const packat = [{ name: 'Grön pyjamasoverall' }, { name: 'Regnjacka' }]
+
+  it('döljer "Pyjamas" ur glöm-inte när sovkläder redan är packade', () => {
+    // Det rapporterade fallet: pyjamasen låg både i plagglistan och i extras.
+    expect(extraAlreadyPacked('Pyjamas', packat, true)).toBe(true)
+    expect(extraAlreadyPacked('Nattlinne', packat, true)).toBe(true)
+  })
+
+  it('behåller sovkläder i glöm-inte när inga är packade', () => {
+    expect(extraAlreadyPacked('Pyjamas', [{ name: 'Regnjacka' }], false)).toBe(false)
+  })
+
+  it('döljer saker som matchar ett packat plaggnamn', () => {
+    expect(extraAlreadyPacked('Regnjacka', packat)).toBe(true)
+  })
+
+  it('behåller saker som inte är packade', () => {
+    expect(extraAlreadyPacked('Solkräm', packat, true)).toBe(false)
+    expect(extraAlreadyPacked('Napp', packat, true)).toBe(false)
+  })
+
+  it('låter korta plaggnamn inte svälja godtycklig text', () => {
+    expect(extraAlreadyPacked('Solkräm', [{ name: 'Sko' }])).toBe(false)
   })
 })

@@ -26,7 +26,7 @@ import Toggle from '../../components/Toggle'
 import GarmentPicker from '../../components/home/GarmentPicker'
 import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
-import { matchItemsToPool, dedupOutfitItems, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
+import { matchItemsToPool, dedupOutfitItems, extraAlreadyPacked, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
 import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { shoeSizeAtDate, sizeCmAtDate } from '../../utils/childSize'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
@@ -828,6 +828,10 @@ function isPast(date: Date) {
             // sådant som redan finns i den vuxnes lista (delade hushållssaker).
             const extras = mergeExtras(childSavedExtras[c.id] || [], Array.isArray(cp.extras) ? cp.extras : [])
               .filter((e: string) => !parentExtraSet.has(e.trim().toLowerCase()))
+              // Pyjamasen läggs till i plagglistan ovan medan AI:n samtidigt
+              // skriver "Pyjamas" bland glöm-inte-sakerna. Den ska bara stå på
+              // ett ställe – i plagglistan, där den har bild och kan bockas av.
+              .filter((e: string) => !extraAlreadyPacked(e, packingItems as { name?: string | null }[], sleepwear.length > 0))
             pools[c.id] = usePool
             childPacks.push({
               personId: c.id,
