@@ -119,6 +119,9 @@ export default function GarmentDetail() {
   const [personId, setPersonId] = useState<string | null>(null)
   const [sizeCm, setSizeCm] = useState<number | null>(null)
   const [familyStatus, setFamilyStatus] = useState<'in_use' | 'stored' | 'outgrown'>('in_use')
+  // Barnet plagget tillhör, om något. Styr att storleken visas överst i
+  // stället för nere i den ihopfällda garderobssektionen.
+  const childOwner = children.find(c => c.id === personId) ?? null
   const [ownBrands, setOwnBrands] = useState<string[]>([])
   const [locations, setLocations] = useState<Location[]>([])
   const [archived, setArchived] = useState(false)
@@ -147,6 +150,21 @@ export default function GarmentDetail() {
     else if (id) fetchGarment()
   }, [id, wishlistId, isWishlistItem])
   useEffect(() => { loadPartner().then(({ partner }) => setHasPartner(!!partner)) }, [])
+
+  // Barn i hushållet – styr om familjesektionen och barnstorleken visas.
+  // MÅSTE bero på familyOn: nivån läses via RPC:n effective_entitlement och är
+  // false de första millisekunderna. Hämtningen låg tidigare i fetchGarment(),
+  // som kör direkt när id:t finns – hann den före nivån sattes children till en
+  // tom lista och hämtades aldrig om, så familjesektionen uteblev tills man
+  // lämnade skärmen och kom tillbaka.
+  useEffect(() => {
+    if (!familyOn) { setChildren([]); return }
+    let alive = true
+    loadPeople()
+      .then(ppl => { if (alive) setChildren(ppl.filter(p => p.type === 'child')) })
+      .catch(() => { /* inget hushåll än */ })
+    return () => { alive = false }
+  }, [familyOn])
 
   async function fetchWishlistItem() {
     const { data } = await supabase.from('wishlist').select('*').eq('id', wishlistId).single()
@@ -186,8 +204,6 @@ export default function GarmentDetail() {
     if (all) setOwnBrands([...new Set(all.map((g: any) => g.brand).filter(Boolean))] as string[])
     // Egna platser (för att välja plats + avgöra arkiv)
     setLocations(await fetchLocations())
-    // Barn i hushållet – styr om familje-sektionen visas. Bara i familjeläget.
-    try { setChildren(familyOn ? (await loadPeople()).filter(p => p.type === 'child') : []) } catch { /* inget hushåll än */ }
   }
 
 
@@ -636,21 +652,52 @@ export default function GarmentDetail() {
             {sectionHeader('storlek', 'Storlek & passform')}
             {!collapsed.has('storlek') && (
             <>
-            <Text style={styles.label}>{tr('Storlek')}</Text>
-            <View style={styles.pills}>
-              {SIZES.map((s) => (
-                <TouchableOpacity key={s} style={[styles.pill, size === s && styles.pillActive]} onPress={() => setSize(size === s ? '' : s)}>
-                  <Text style={[styles.pillText, size === s && styles.pillTextActive]}>{s}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TextInput
-              style={styles.input}
-              placeholder={tr('Egen storlek, t.ex. 38 eller W29/L32')}
-              placeholderTextColor={t.placeholder}
-              value={SIZES.includes(size) ? '' : size}
-              onChangeText={setSize}
-            />
+            {/* Barnplagg: storleken är det man faktiskt öppnar plagget för att
+                ändra – barn växer ur kläder, vuxna gör inte det. Den låg
+                tidigare under "I garderoben", som är ihopfälld som standard,
+                så den viktigaste uppgiften krävde två tryck att nå. Person-
+                kopplingen står kvar där nere: den sätts en gång, storleken
+                justeras om och om igen. */}
+            {childOwner && (
+              <>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>{tr('Barnstorlek')}</Text>
+                  <Text style={styles.sizeOwner}>{childOwner.name}</Text>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
+                  {EU_CHILD_SIZES.map((s) => (
+                    <TouchableOpacity key={s} style={[styles.pill, sizeCm === s && styles.pillActive]} onPress={() => setSizeCm(sizeCm === s ? null : s)}>
+                      <Text style={[styles.pillText, sizeCm === s && styles.pillTextActive]}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
+
+            {/* Vuxenstorlekarna döljs för barnplagg: XXS–XXL och "W29/L32" är
+                brus när plagget mäts i centimeter. Fältet töms INTE – ett
+                befintligt värde ligger kvar i databasen och kommer tillbaka om
+                plagget kopplas loss från barnet. Passform visas för alla, den
+                är lika relevant för barnkläder. */}
+            {!childOwner && (
+              <>
+                <Text style={styles.label}>{tr('Storlek')}</Text>
+                <View style={styles.pills}>
+                  {SIZES.map((s) => (
+                    <TouchableOpacity key={s} style={[styles.pill, size === s && styles.pillActive]} onPress={() => setSize(size === s ? '' : s)}>
+                      <Text style={[styles.pillText, size === s && styles.pillTextActive]}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder={tr('Egen storlek, t.ex. 38 eller W29/L32')}
+                  placeholderTextColor={t.placeholder}
+                  value={SIZES.includes(size) ? '' : size}
+                  onChangeText={setSize}
+                />
+              </>
+            )}
 
             <Text style={styles.label}>{tr('Passform')}</Text>
             <View style={styles.pills}>
@@ -721,15 +768,7 @@ export default function GarmentDetail() {
 
                 {personId && (
                   <>
-                    <Text style={styles.label}>{tr('Barnstorlek')}</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
-                      {EU_CHILD_SIZES.map((s) => (
-                        <TouchableOpacity key={s} style={[styles.pill, sizeCm === s && styles.pillActive]} onPress={() => setSizeCm(sizeCm === s ? null : s)}>
-                          <Text style={[styles.pillText, sizeCm === s && styles.pillTextActive]}>{s}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-
+                    {/* Barnstorleken ligger överst i "Storlek & passform". */}
                     <Text style={styles.label}>{tr('Status')}</Text>
                     <View style={styles.pills}>
                       {([['in_use', 'Används'], ['stored', 'Sparad i låda'], ['outgrown', 'Urvuxen']] as const).map(([v, lbl]) => (
@@ -865,6 +904,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12, paddingHorizontal: 2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, paddingTop: 20 },
   sectionHeaderTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase' },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
+  sizeOwner: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13, fontStyle: 'italic', marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   lendRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8, marginBottom: 8 },
   lendHint: { fontFamily: 'Lora_400Regular', fontSize: 11, color: t.textSecondary, fontStyle: 'italic', marginTop: 2, marginRight: 8 },
