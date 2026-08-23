@@ -42,6 +42,7 @@ app-example
 /ios
 /android
 .env
+.env.*
 
 # graphify: behåll graph.html/graph.json/GRAPH_REPORT.md, ignorera interna arbetsfiler
 graphify-out/cache/
