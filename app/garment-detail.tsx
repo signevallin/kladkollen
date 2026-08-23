@@ -122,6 +122,10 @@ export default function GarmentDetail() {
   // Barnet plagget tillhör, om något. Styr att storleken visas överst i
   // stället för nere i den ihopfällda garderobssektionen.
   const childOwner = children.find(c => c.id === personId) ?? null
+  // Skor mäts varken i XXS–XXL eller i klädernas centimeterskala – de har en
+  // egen numrering. Utan det här undantaget kunde ett par barnskor bara få en
+  // klädstorlek i cm, alltså inget användbart mått alls.
+  const isShoe = category === 'Skor'
   const [ownBrands, setOwnBrands] = useState<string[]>([])
   const [locations, setLocations] = useState<Location[]>([])
   const [archived, setArchived] = useState(false)
@@ -658,7 +662,7 @@ export default function GarmentDetail() {
                 så den viktigaste uppgiften krävde två tryck att nå. Person-
                 kopplingen står kvar där nere: den sätts en gång, storleken
                 justeras om och om igen. */}
-            {childOwner && (
+            {childOwner && !isShoe && (
               <>
                 <View style={styles.labelRow}>
                   <Text style={styles.label}>{tr('Barnstorlek')}</Text>
@@ -679,7 +683,23 @@ export default function GarmentDetail() {
                 befintligt värde ligger kvar i databasen och kommer tillbaka om
                 plagget kopplas loss från barnet. Passform visas för alla, den
                 är lika relevant för barnkläder. */}
-            {!childOwner && (
+            {isShoe && (
+              <>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>{tr('Skostorlek')}</Text>
+                  {childOwner ? <Text style={styles.sizeOwner}>{childOwner.name}</Text> : null}
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder={tr('t.ex. 28 eller 42')}
+                  placeholderTextColor={t.placeholder}
+                  value={size}
+                  onChangeText={setSize}
+                />
+              </>
+            )}
+
+            {!childOwner && !isShoe && (
               <>
                 <Text style={styles.label}>{tr('Storlek')}</Text>
                 <View style={styles.pills}>

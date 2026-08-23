@@ -698,6 +698,8 @@ const enBySource: Dict = {
   'Anledning till arkivering': 'Reason for archiving',
   'Tillhör (familj)': 'Belongs to (family)',
   'Barnstorlek': 'Child size',
+  'Skostorlek': 'Shoe size',
+  't.ex. 28 eller 42': 'e.g. 28 or 42',
   'Lägg i säljlistan': 'Add to sale list',
   'Arkivera (passar inte / används ej)': 'Archive (doesn’t fit / not worn)',
   'Ta bort från köplistan': 'Remove from wishlist',

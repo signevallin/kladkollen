@@ -1246,5 +1246,7 @@
  "För vagnen och bärandet.": "Für den Kinderwagen und zum Tragen.",
  "Skrud Premium är en prenumeration som förnyas automatiskt. Betalningen dras från ditt Apple-ID vid köp och förnyas till samma pris om den inte sägs upp minst 24 timmar före periodens slut. Hantera eller säg upp i App Store-inställningarna.": "Skrud Premium ist ein automatisch verlängertes Abo. Die Zahlung wird beim Kauf über deine Apple-ID abgebucht und verlängert sich zum gleichen Preis, sofern nicht mindestens 24 Stunden vor Ablauf gekündigt wird. Verwalten oder kündigen kannst du in den App-Store-Einstellungen.",
  "Idag har du {event} inplanerat": "Heute hast du {event} geplant",
- "Idag: {event} + {n} till": "Heute: {event} + {n} weitere"
+ "Idag: {event} + {n} till": "Heute: {event} + {n} weitere",
+ "Skostorlek": "Schuhgröße",
+ "t.ex. 28 eller 42": "z.B. 28 oder 42"
 }
