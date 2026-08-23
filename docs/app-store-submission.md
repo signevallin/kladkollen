@@ -57,10 +57,11 @@ grunden för den (SCC / EU–US DPF) – det saknades tidigare helt.
 Ange URL:en i App Store Connect (t.ex. `https://<er-domän>/privacy` – samma
 sida som finns i appen). Krävs.
 
-> ⚠️ Innan inlämning: fyll i `[LEGAL FORM]`, `[REG. NO.]` och `[POSTAL ADDRESS]`
-> i avsnitt 1 av policyn (`app/privacy.tsx` + `public/privacy.html`). Så länge
-> platshållarna står kvar saknar policyn en identifierbar personuppgifts-
-> ansvarig, vilket bryter mot GDPR art. 13.1(a).
+> Personuppgiftsansvarig är komplett i avsnitt 1 av policyn: Elairis AB,
+> org.nr 559590-4946, Sjuhäradsgatan 93, 441 95 Alingsås. Samma uppgifter
+> behöver anges som handlarinformation i App Store Connect — enligt DSA visar
+> Apple namn, adress, telefon och e-post för näringsidkare på appens
+> produktsida.
 
 ### Privacy Manifest (PrivacyInfo.xcprivacy)
 Konfigurerad via `ios.privacyManifests` i `app.json`: `NSPrivacyTracking: false`,
@@ -151,8 +152,9 @@ The app is available in Swedish, English, German, Spanish and French.
 ---
 
 ## 3. Checklista före inlämning
-- [ ] Företagsuppgifter ifyllda i integritetspolicyns avsnitt 1 (inga `[...]` kvar).
-- [ ] `PrivacyInfo.xcprivacy` verifierad i prebuild-utdata.
+- [x] Företagsuppgifter ifyllda i integritetspolicyns avsnitt 1 (inga `[...]` kvar).
+- [ ] Handlarinformation (DSA) ifylld i App Store Connect: namn, adress, telefon, e-post.
+- [x] `PrivacyInfo.xcprivacy` verifierad i prebuild-utdata (fyra required-reason-API:er, tracking = false).
 - [ ] Demokonto skapat och fyllt med plagg; uppgifter inlagda i ASC.
 - [ ] App Privacy ifylld enligt tabellen ovan; Tracking = No.
 - [ ] Privacy Policy URL angiven.
