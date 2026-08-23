@@ -1128,7 +1128,7 @@ export default function Home() {
         {/* Generera outfits för hela hushållet, direkt här. Bara i familjeläget
             (livssituation Familj + åtkomst). Egen komponent (state + inline-resultat). */}
         {familyModeOn && (partner || childCount > 0) && (
-          <FamilyOutfits weather={weather} disabled={loading || coupleLoading} musicGenres={musicGenres} />
+          <FamilyOutfits weather={weather} disabled={loading || coupleLoading} musicGenres={musicGenres} context={CONTEXTS[selectedContext]} />
         )}
 
         {/* Outfit result */}

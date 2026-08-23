@@ -95,6 +95,23 @@ export const OUTFIT_CONTEXTS = [
   { label: 'Fest', logic: 'festligt, glansigt, statement pieces, dressy, kvällskänsla' },
 ]
 
+// Samma tillfällen, tolkade för ett barn. "Jobb" och "Date" gäller föräldern,
+// inte barnet – de mappas därför till barnets motsvarande vardag i stället för
+// att skickas rakt igenom. "Fest" och "Aktiv" betyder däremot precis samma sak
+// för en tvååring som för en vuxen, och går vidare oförändrade.
+//
+// Utan den här tabellen fick barnen ingen kontext alls, vilket gjorde att
+// familjeläget inte kunde hantera det tillfälle där det behövs mest: när hela
+// familjen ska klä sig för samma händelse.
+export const CHILD_CONTEXTS: Record<string, { label: string; logic: string }> = {
+  'Jobb':  { label: 'Förskola/vardag', logic: 'praktiskt och bekvämt för en dag på förskolan, tål lek, mat och utevistelse, lätt att röra sig i' },
+  'Skola': { label: 'Skola',           logic: 'bekvämt och praktiskt för en hel skoldag, tål rast och lek, inget som stramar' },
+  'Ledig': { label: 'Ledig',           logic: 'mjukt och vardagligt, hemma eller på lekplatsen, bekvämt före allt annat' },
+  'Aktiv': { label: 'Aktiv',           logic: 'rörelsevänligt och tåligt, för spring och klättring, inget löst som fastnar' },
+  'Date':  { label: 'Ledig',           logic: 'mjukt och vardagligt, hemma eller på lekplatsen, bekvämt före allt annat' },
+  'Fest':  { label: 'Fest/kalas',      logic: 'finare än vardagen men fortfarande möjligt att leka i – festligt utan styva eller kliande material' },
+}
+
 // Musikgenrer användaren kan välja i profilen. AI:n väljer då låtar ur dessa.
 export const MUSIC_GENRES = [
   'Pop', 'Rock', 'Hip-hop', 'R&B', 'Indie', 'Elektroniskt', 'Klassiskt',

@@ -10,7 +10,7 @@ import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
-import { OUTFIT_CONTEXTS } from '../../utils/constants'
+import { CHILD_CONTEXTS, OUTFIT_CONTEXTS } from '../../utils/constants'
 import { useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
 import { invalidateGarments, loadGarments } from '../../utils/garmentsStore'
 import { loadPartner } from '../../utils/household'
@@ -37,7 +37,7 @@ import { buildWeatherContext, childHeadwearRule, type WeatherInput } from '../..
 //
 // Bakom Familj-nivån (familjeläget) via familyFeaturesEnabled() – delad grind
 // med "packa barnen"-toggeln i reseläget.
-const LEDIG = OUTFIT_CONTEXTS[2] // vardaglig kontext för "dagens" outfit
+const LEDIG = OUTFIT_CONTEXTS[2] // reserv när inget tillfälle skickats in
 const MAX_ADDED = 3
 
 type Member = {
@@ -62,13 +62,25 @@ function seasonalOrFull(pool: any[], season: string): any[] {
 function today(): string { return new Date().toISOString().split('T')[0] }
 
 export default function FamilyOutfits(
-  { weather, disabled, musicGenres = '' }:
-  { weather: (WeatherInput & { emoji?: string }) | null; disabled?: boolean; musicGenres?: string },
+  { weather, disabled, musicGenres = '', context }:
+  {
+    weather: (WeatherInput & { emoji?: string }) | null
+    disabled?: boolean
+    musicGenres?: string
+    // Tillfället användaren valt på hemskärmen. Pillren sitter direkt ovanför
+    // familjeknappen, så de MÅSTE gälla även här – tidigare ignorerades de
+    // tyst och alla fick "Ledig".
+    context?: { label: string; logic: string }
+  },
 ) {
   const t = useTheme()
   const styles = makeStyles(t)
   const { t: tr, lang, showDailySong, useColorAnalysis } = useSettings()
   const { tier } = useEntitlements()
+  // Valt tillfälle, med Ledig som reserv. Barnen får en egen tolkning:
+  // "Jobb" och "Date" gäller föräldern, inte tvååringen.
+  const ctxAdult = context ?? LEDIG
+  const ctxChild = CHILD_CONTEXTS[ctxAdult.label] ?? CHILD_CONTEXTS['Ledig']
 
   // Seedas ur cachen som home.tsx redan fyller (household.partner/.children,
   // home.userName). Utan detta stod sektionen tom tills fyra nätverksanrop var
@@ -168,7 +180,7 @@ export default function FamilyOutfits(
   }, [])
 
   const memberByKey = (key: string) => members.find(m => m.key === key)
-  const nameFor = (m: Member) => results[m.key]?.outfit?.outfitName || `${m.name} – ${tr(LEDIG.label)}`
+  const nameFor = (m: Member) => results[m.key]?.outfit?.outfitName || `${m.name} – ${tr(ctxAdult.label)}`
 
   // Nollställ spar-/burit-status för en medlem efter manuell ändring.
   function resetMemberState(key: string) {
@@ -247,10 +259,14 @@ export default function FamilyOutfits(
         ? ''
         : m.kind === 'partner' ? (m.partnerPalette || '') : myPalette
       const body = m.kind === 'child'
-        ? { ...base, audience: 'child', childName: m.name, babyMode: baby, walks, pottyTraining: m.person?.potty_training === true }
+        ? {
+            ...base, audience: 'child', childName: m.name, babyMode: baby, walks,
+            pottyTraining: m.person?.potty_training === true,
+            contextLabel: ctxChild.label, contextLogic: ctxChild.logic,
+          }
         : {
             ...base, ...songFields, colorPalette: palette,
-            contextLabel: LEDIG.label, contextLogic: LEDIG.logic, intensity: 'Balanserad (3/5)',
+            contextLabel: ctxAdult.label, contextLogic: ctxAdult.logic, intensity: 'Balanserad (3/5)',
             // Gäller bara mig: partnerns stilregler, undvik-notering och
             // gravidläge ligger i deras egen profil och hämtas inte hit.
             ...(m.kind === 'me' ? {
@@ -363,7 +379,7 @@ export default function FamilyOutfits(
             user_id: user?.id,
             person_id: m.kind === 'child' ? m.person!.id : null,
             name: nameFor(m), garment_ids: ids, garment_names: names, image_urls: imageUrls,
-            mood: LEDIG.label, context: LEDIG.label.toLowerCase(), saved: true,
+            mood: ctxAdult.label, context: ctxAdult.label.toLowerCase(), saved: true,
           }]).select('id').single()
           if (error) throw error
           setSavedId(s => ({ ...s, [m.key]: data.id }))
@@ -398,7 +414,7 @@ export default function FamilyOutfits(
           const { data, error } = await supabase.from('outfits').insert([{
             user_id: user?.id, person_id: null, name: nameFor(m),
             garment_ids: ids, garment_names: names, image_urls: imageUrls,
-            mood: LEDIG.label, context: LEDIG.label.toLowerCase(),
+            mood: ctxAdult.label, context: ctxAdult.label.toLowerCase(),
           }]).select('id').single()
           if (error) throw error
           id = data.id; setSavedId(s => ({ ...s, [m.key]: id }))
@@ -419,7 +435,7 @@ export default function FamilyOutfits(
           const { data, error } = await supabase.from('outfits').insert([{
             user_id: user?.id, person_id: m.person!.id, name: nameFor(m),
             garment_ids: ids, garment_names: names, image_urls: imageUrls,
-            mood: LEDIG.label, context: LEDIG.label.toLowerCase(), saved: true,
+            mood: ctxAdult.label, context: ctxAdult.label.toLowerCase(), saved: true,
           }]).select('id').single()
           if (error) throw error
           id = data.id; setSavedId(s => ({ ...s, [m.key]: id }))

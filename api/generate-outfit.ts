@@ -65,6 +65,7 @@ export default async function handler(request: Request): Promise<Response> {
     if (audience === 'child') {
       const childPrompt = `Du hjälper en förälder att välja dagens outfit till ${babyMode ? 'sin bebis' : 'sitt barn'}${childName ? ` (${childName})` : ''} ur ${babyMode ? 'bebisens' : 'barnets'} garderob nedan.
 Prioritera i denna ordning: (1) rätt för vädret så ${babyMode ? 'bebisen' : 'barnet'} varken fryser eller blir för varmt, (2) bekvämt och rörelsevänligt för ${babyMode ? 'lek på golvet och att bäras' : 'lek/förskola/skola'}, (3) att det passar årstiden. Snygg färgmatchning är en bonus, inte huvudsaken – välj hellre praktiskt och bekvämt.
+${contextLabel ? `\nTILLFÄLLE: ${contextLabel} – ${contextLogic}\nVäg in tillfället, men ALDRIG på bekostnad av väder och bekvämlighet. Ett barn som fryser eller inte kan leka har fel kläder oavsett hur festliga de är.` : ''}
 ${!walks ? '\nVIKTIGT: Barnet går INTE själv än. VÄLJ INGA SKOR – strumpor eller mjuka sockor räcker. Ignorera all "obligatorisk"-märkning för skor i listan nedan.\n' : ''}${pottyTraining ? '\nPOTTRÄNING: barnet potttränar och måste kunna dra ner plagget SJÄLV på egen hand. Undvik hängselbyxor, byxor med knappgylf eller hårt knäppta plagg, och undvik body/onesie. Välj hellre byxor eller kjol med resår i midjan.\n' : ''}
 ${season ? `Årstid: det är ${season}.` : ''}
 ${weatherSummary}

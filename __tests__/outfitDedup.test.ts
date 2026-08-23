@@ -1,3 +1,4 @@
+import { CHILD_CONTEXTS, OUTFIT_CONTEXTS } from '../utils/constants'
 import { dedupOutfitItems, childSizeFits, extraAlreadyPacked, categoryForChildGarment } from '../utils/outfit'
 
 const pool = [
@@ -140,5 +141,33 @@ describe('categoryForChildGarment', () => {
 
   it('rör inte bodys som redan ligger rätt', () => {
     expect(categoryForChildGarment('Toppar', 'Body', 'Mönstrad body', true)).toBe('Toppar')
+  })
+})
+
+describe('CHILD_CONTEXTS', () => {
+  it('mappar förälderns tillfällen till barnets vardag', () => {
+    // "Jobb" och "Date" gäller föräldern – en tvååring går inte till jobbet.
+    expect(CHILD_CONTEXTS['Jobb'].label).toBe('Förskola/vardag')
+    expect(CHILD_CONTEXTS['Date'].label).toBe('Ledig')
+  })
+
+  it('släpper igenom tillfällen som betyder samma sak för barn', () => {
+    expect(CHILD_CONTEXTS['Fest'].label).toBe('Fest/kalas')
+    expect(CHILD_CONTEXTS['Aktiv'].label).toBe('Aktiv')
+    expect(CHILD_CONTEXTS['Skola'].label).toBe('Skola')
+  })
+
+  it('har en post för varje tillfälle i OUTFIT_CONTEXTS', () => {
+    // Läggs ett nytt tillfälle till ska det synas här och inte tyst falla
+    // tillbaka på Ledig.
+    for (const c of OUTFIT_CONTEXTS) {
+      expect(CHILD_CONTEXTS[c.label]).toBeDefined()
+    }
+  })
+
+  it('nämner alltid bekvämlighet – barn ska kunna leka i det', () => {
+    for (const k of Object.keys(CHILD_CONTEXTS)) {
+      expect(CHILD_CONTEXTS[k].logic).toMatch(/bekväm|leka|rör|praktisk/i)
+    }
   })
 })
