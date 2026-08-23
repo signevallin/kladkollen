@@ -1415,7 +1415,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   section: { paddingHorizontal: 28, marginBottom: 20, gap: 12 },
   sectionTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 14, color: 'rgba(64,45,33,0.6)', letterSpacing: 0.5 },
-  intensityLabel: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, fontStyle: 'italic' },
 
   // Slider
   sliderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },

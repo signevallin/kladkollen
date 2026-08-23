@@ -38,6 +38,12 @@ import { buildWeatherContext, childHeadwearRule, type WeatherInput } from '../..
 // Bakom Familj-nivån (familjeläget) via familyFeaturesEnabled() – delad grind
 // med "packa barnen"-toggeln i reseläget.
 const LEDIG = OUTFIT_CONTEXTS[2] // reserv när inget tillfälle skickats in
+
+// Används när väderdata saknas helt. Tidigare beräknades en väderkontext med
+// hårdkodad köldkänslighet 3 och skickades in i genForMember – men den skrevs
+// alltid över av medlemmens egen, och när väder saknades användes ändå det tomma
+// objektet. Beräkningen kunde alltså aldrig påverka något.
+const NO_WEATHER = { summary: '', rules: '', requiresOuterwear: false }
 const MAX_ADDED = 3
 
 type Member = {
@@ -198,7 +204,7 @@ export default function FamilyOutfits(
     resetMemberState(key)
   }
 
-  async function genForMember(m: Member, season: string, weatherCtx: { summary: string; rules: string; requiresOuterwear: boolean }, songHist: { avoidSongs: string; previousSong: string }) {
+  async function genForMember(m: Member, season: string, songHist: { avoidSongs: string; previousSong: string }) {
     let pool: any[] = []
     // full = allt medlemmen äger, pool = det AI:n får välja ur. De skiljer sig
     // bara för barn, där storleksfiltret gäller.
@@ -233,7 +239,7 @@ export default function FamilyOutfits(
       : m.kind === 'partner' ? (m.partnerCold ?? 3) : myCold.stated
     // Bara min egen graviditet är känd – partnerns exponeras inte med flit.
     const cold = m.kind === 'me' && myCold.pregnant ? Math.max(1, stated - 1) : stated
-    const ctx = weather ? buildWeatherContext(weather, cold, stated) : weatherCtx
+    const ctx = weather ? buildWeatherContext(weather, cold, stated) : NO_WEATHER
     const headwear = m.kind === 'child' ? childHeadwearRule(ageMonths(m.person?.birthdate), weather?.temp, stated) : ''
     const scoped = seasonalOrFull(pool, season)
     // Väljaren får hela garderoben, inte genereringens urval.
@@ -291,7 +297,6 @@ export default function FamilyOutfits(
     setRunning(true)
     setResults({}); setSaved({}); setSavedId({}); setWorn({}); setSong(null)
     const season = getCurrentSeason()
-    const weatherCtx = weather ? buildWeatherContext(weather, 3) : { summary: '', rules: '', requiresOuterwear: false }
     const songHist = showDailySong ? await songHistory() : { avoidSongs: '', previousSong: '' }
     let rawSong: any = null
     try {
@@ -304,7 +309,7 @@ export default function FamilyOutfits(
       let quotaHit = false
       const settled = await Promise.all(members.map(async m => {
         try {
-          const r = await genForMember(m, season, weatherCtx, songHist)
+          const r = await genForMember(m, season, songHist)
           setResults(prev => ({ ...prev, [m.key]: r }))
           return r
         } catch (e: any) {
