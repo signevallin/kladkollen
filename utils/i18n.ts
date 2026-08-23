@@ -699,6 +699,8 @@ const enBySource: Dict = {
   'Tillhör (familj)': 'Belongs to (family)',
   'Barnstorlek': 'Child size',
   'Skostorlek': 'Shoe size',
+  'Alla barn': 'All children',
+  'Inget att ta fram med de valda filtren.': 'Nothing to bring out with the selected filters.',
   'Får bära ett steg större': 'May wear one size up',
   'På = plagg i nästa storlek räknas som passande i outfits och packlistor': 'On = garments in the next size count as fitting in outfits and packing lists',
   'sko': 'shoe',

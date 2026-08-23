@@ -64,14 +64,40 @@ export default function Family() {
     () => computeSizeReminders(sizedGarments ?? [], children, new Date()),
     [sizedGarments, children],
   )
-  // Filtrera "redo att ta fram" på tillstånd (redo nu / snart / väntar på säsong).
+  // Två oberoende filter på "redo att ta fram": tillstånd (redo nu / snart /
+  // väntar på säsong) och barn. Med tre barn blir listan annars lång och det är
+  // svårt att se vems plagg som är vems.
   const [reminderFilter, setReminderFilter] = useState<'all' | 'ready' | 'upcoming' | 'waiting_season'>('all')
+  const [reminderChild, setReminderChild] = useState<string>('all')
+
+  // Räknarna KORSFILTRERAS: tillståndspillren räknar inom valt barn och
+  // barnpillren inom valt tillstånd. Annars kan ett pill visa "(4)" och ge en
+  // tom lista när det andra filtret redan uteslutit dem.
+  const withinChild = useMemo(
+    () => reminderChild === 'all' ? reminders : reminders.filter(r => r.childId === reminderChild),
+    [reminders, reminderChild],
+  )
+  const withinState = useMemo(
+    () => reminderFilter === 'all' ? reminders : reminders.filter(r => r.state === reminderFilter),
+    [reminders, reminderFilter],
+  )
   const reminderCounts = useMemo(() => ({
-    ready: reminders.filter(r => r.state === 'ready').length,
-    upcoming: reminders.filter(r => r.state === 'upcoming').length,
-    waiting_season: reminders.filter(r => r.state === 'waiting_season').length,
-  }), [reminders])
-  const shownReminders = reminderFilter === 'all' ? reminders : reminders.filter(r => r.state === reminderFilter)
+    ready: withinChild.filter(r => r.state === 'ready').length,
+    upcoming: withinChild.filter(r => r.state === 'upcoming').length,
+    waiting_season: withinChild.filter(r => r.state === 'waiting_season').length,
+  }), [withinChild])
+  const childCounts = useMemo(() => {
+    const m: Record<string, number> = {}
+    for (const r of withinState) m[r.childId] = (m[r.childId] || 0) + 1
+    return m
+  }, [withinState])
+
+  const shownReminders = useMemo(
+    () => reminders.filter(r =>
+      (reminderFilter === 'all' || r.state === reminderFilter) &&
+      (reminderChild === 'all' || r.childId === reminderChild)),
+    [reminders, reminderFilter, reminderChild],
+  )
 
   const [showAdd, setShowAdd] = useState(false)
   const [name, setName] = useState('')
@@ -188,7 +214,7 @@ export default function Family() {
             <Text style={styles.sectionTitle}>{tr('Redo att ta fram')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
               {([
-                ['all', `${tr('Alla')} (${reminders.length})`],
+                ['all', `${tr('Alla')} (${withinChild.length})`],
                 ['ready', `${tr('Redo nu')} (${reminderCounts.ready})`],
                 ['upcoming', `${tr('Snart')} (${reminderCounts.upcoming})`],
                 ['waiting_season', `${tr('Väntar på säsong')} (${reminderCounts.waiting_season})`],
@@ -203,6 +229,27 @@ export default function Family() {
                 )
               })}
             </ScrollView>
+
+            {/* Barnfilter. Med ett barn säger raden ingenting – då är namnet på
+                varje rad redan svaret på "vems är den här?". */}
+            {children.length > 1 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+                {[{ id: 'all', name: tr('Alla barn'), n: withinState.length },
+                  ...children.map(c => ({ id: c.id, name: c.name, n: childCounts[c.id] || 0 }))
+                ].map(c => {
+                  const on = reminderChild === c.id
+                  return (
+                    <TouchableOpacity key={c.id} style={[styles.filterChip, on && styles.filterChipActive]} onPress={() => setReminderChild(c.id)}>
+                      <Text style={[styles.filterChipText, on && styles.filterChipTextActive]}>{`${c.name} (${c.n})`}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </ScrollView>
+            )}
+
+            {shownReminders.length === 0 && (
+              <Text style={styles.reminderEmpty}>{tr('Inget att ta fram med de valda filtren.')}</Text>
+            )}
             {shownReminders.slice(0, 20).map(r => (
               <TouchableOpacity
                 key={`${r.garmentId}-${r.childId}`}
@@ -440,6 +487,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   remindersSection: { marginBottom: 24 },
   sectionTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase', marginBottom: 10, marginLeft: 4 },
   filterChips: { gap: 8, paddingBottom: 12, paddingRight: 4 },
+  reminderEmpty: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, fontStyle: 'italic', paddingVertical: 12 },
   filterChip: { paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   filterChipActive: { backgroundColor: t.primary, borderColor: t.primary },
   filterChipText: { fontFamily: 'Poppins_600SemiBold', fontSize: 12, color: t.textSecondary },
