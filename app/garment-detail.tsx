@@ -41,7 +41,7 @@ import { uploadUserImage } from '../utils/storage'
 import { resolveImageUrl } from '../utils/signedUrls'
 import { loadPartner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
-import { EU_CHILD_SIZES } from '../utils/childSize'
+import { EU_CHILD_SIZES, EU_SHOE_SIZES, suggestedShoeSize } from '../utils/childSize'
 import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
 
 const SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -118,6 +118,7 @@ export default function GarmentDetail() {
   const [children, setChildren] = useState<Person[]>([])
   const [personId, setPersonId] = useState<string | null>(null)
   const [sizeCm, setSizeCm] = useState<number | null>(null)
+  const [shoeSize, setShoeSize] = useState<number | null>(null)
   const [familyStatus, setFamilyStatus] = useState<'in_use' | 'stored' | 'outgrown'>('in_use')
   // Barnet plagget tillhör, om något. Styr att storleken visas överst i
   // stället för nere i den ihopfällda garderobssektionen.
@@ -199,6 +200,7 @@ export default function GarmentDetail() {
       setArchiveReason(data.archive_reason || null)
       setPersonId(data.person_id || null)
       setSizeCm(data.size_cm ?? null)
+      setShoeSize(data.shoe_size ?? null)
       setFamilyStatus((data.status as any) || 'in_use')
       setInitialSetId(data.set_id || null)
       setLoaded(true)
@@ -248,7 +250,8 @@ export default function GarmentDetail() {
           ...(archivedVal ? {} : { sold: false }),
           person_id: personId,
           household_id: personId ? (children.find(c => c.id === personId)?.household_id ?? null) : null,
-          size_cm: personId ? sizeCm : null,
+          size_cm: isShoe ? null : (personId ? sizeCm : null),
+          shoe_size: isShoe ? shoeSize : null,
           status: personId ? familyStatus : null,
         }).eq('id', id)
         if (error) throw error
@@ -271,7 +274,7 @@ export default function GarmentDetail() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(saveFields, 700)
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [name, category, subcategory, color, seasons, size, fit, lendable, maternityFriendly, pausedPregnancy, location, brand, price, link, archiveReason, personId, sizeCm, familyStatus])
+  }, [name, category, subcategory, color, seasons, size, fit, lendable, maternityFriendly, pausedPregnancy, location, brand, price, link, archiveReason, personId, sizeCm, shoeSize, familyStatus])
 
   // Håll arkiv-badgen i synk med vald plats.
   useEffect(() => {
@@ -689,13 +692,15 @@ export default function GarmentDetail() {
                   <Text style={styles.label}>{tr('Skostorlek')}</Text>
                   {childOwner ? <Text style={styles.sizeOwner}>{childOwner.name}</Text> : null}
                 </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder={tr('t.ex. 28 eller 42')}
-                  placeholderTextColor={t.placeholder}
-                  value={size}
-                  onChangeText={setSize}
-                />
+                {/* Numerisk skala, inte fritext: bara så kan appen räkna ut när
+                    skorna blir för små och ta med dem i storlekspåminnelserna. */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
+                  {EU_SHOE_SIZES.map((s) => (
+                    <TouchableOpacity key={s} style={[styles.pill, shoeSize === s && styles.pillActive]} onPress={() => setShoeSize(shoeSize === s ? null : s)}>
+                      <Text style={[styles.pillText, shoeSize === s && styles.pillTextActive]}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </>
             )}
 
@@ -777,7 +782,11 @@ export default function GarmentDetail() {
                         style={[styles.pill, on && styles.pillActive]}
                         onPress={() => {
                           setPersonId(on ? null : c.id)
-                          if (!on && sizeCm == null) setSizeCm(c.current_size_cm ?? null)
+                          if (!on && isShoe && shoeSize == null) {
+                            setShoeSize(c.current_shoe_size ?? suggestedShoeSize(c.birthdate))
+                          } else if (!on && !isShoe && sizeCm == null) {
+                            setSizeCm(c.current_size_cm ?? null)
+                          }
                         }}
                       >
                         <Text style={[styles.pillText, on && styles.pillTextActive]}>{c.name}</Text>

@@ -28,7 +28,7 @@ import SwapSheet from '../../components/home/SwapSheet'
 import { loadPeople, type Person } from '../../utils/people'
 import { matchItemsToPool, childSizeFits, childWalks, isBabyChild, ageMonths, renderGarmentGroups, tripSeasons, filterForTrip, sleepwearForTrip } from '../../utils/outfit'
 import { FREE_TRIPS_PER_WEEK, useEntitlements, familyFeaturesEnabled } from '../../utils/entitlements'
-import { sizeCmAtDate } from '../../utils/childSize'
+import { shoeSizeAtDate, sizeCmAtDate } from '../../utils/childSize'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { supabase } from '../../supabase'
 import { isWashable, OUTFIT_CONTEXTS } from '../../utils/constants'
@@ -767,7 +767,10 @@ function isPast(date: Date) {
           // plats – och sedan storleksfiltret skärptes blockeras dessutom
           // precis de plagg hon vuxit i till.
           const sizeOnTrip = sizeCmAtDate(c.current_size_cm ?? null, c.birthdate, start)
-          const sized = active.filter(g => childSizeFits(g, sizeOnTrip))
+          // Samma resonemang för fötterna: skostorleken projiceras fram till
+          // avresan, annars packas skor som är för små när de ska användas.
+          const shoeOnTrip = shoeSizeAtDate(c.current_shoe_size ?? null, c.birthdate, start)
+          const sized = active.filter(g => childSizeFits(g, sizeOnTrip, shoeOnTrip))
           const seasonal = filterForTrip(sized.length ? sized : active, seasons)
           const usePool = seasonal.length ? seasonal : (sized.length ? sized : active)
           if (usePool.length === 0) return null

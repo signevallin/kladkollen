@@ -1248,5 +1248,8 @@
  "Idag har du {event} inplanerat": "Hoy tienes {event} en la agenda",
  "Idag: {event} + {n} till": "Hoy: {event} + {n} más",
  "Skostorlek": "Talla de calzado",
- "t.ex. 28 eller 42": "p. ej. 28 o 42"
+ "t.ex. 28 eller 42": "p. ej. 28 o 42",
+ "sko": "calz.",
+ "Mindre skostorlek": "Talla de calzado menor",
+ "Större skostorlek": "Talla de calzado mayor"
 }

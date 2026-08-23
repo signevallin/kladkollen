@@ -152,6 +152,7 @@ export type Database = {
           price: number | null
           season: string | null
           set_id: string | null
+          shoe_size: number | null
           size: string | null
           size_cm: number | null
           sold: boolean | null
@@ -184,6 +185,7 @@ export type Database = {
           price?: number | null
           season?: string | null
           set_id?: string | null
+          shoe_size?: number | null
           size?: string | null
           size_cm?: number | null
           sold?: boolean | null
@@ -216,6 +218,7 @@ export type Database = {
           price?: number | null
           season?: string | null
           set_id?: string | null
+          shoe_size?: number | null
           size?: string | null
           size_cm?: number | null
           sold?: boolean | null
@@ -553,12 +556,14 @@ export type Database = {
           birthdate: string | null
           cold_sensitivity: number
           created_at: string | null
+          current_shoe_size: number | null
           current_size_cm: number | null
           gender: string | null
           household_id: string
           id: string
           name: string
           potty_training: boolean
+          shoe_size_updated_at: string | null
           size_updated_at: string | null
           type: string
           walks: boolean | null
@@ -568,12 +573,14 @@ export type Database = {
           birthdate?: string | null
           cold_sensitivity?: number
           created_at?: string | null
+          current_shoe_size?: number | null
           current_size_cm?: number | null
           gender?: string | null
           household_id: string
           id?: string
           name: string
           potty_training?: boolean
+          shoe_size_updated_at?: string | null
           size_updated_at?: string | null
           type?: string
           walks?: boolean | null
@@ -583,12 +590,14 @@ export type Database = {
           birthdate?: string | null
           cold_sensitivity?: number
           created_at?: string | null
+          current_shoe_size?: number | null
           current_size_cm?: number | null
           gender?: string | null
           household_id?: string
           id?: string
           name?: string
           potty_training?: boolean
+          shoe_size_updated_at?: string | null
           size_updated_at?: string | null
           type?: string
           walks?: boolean | null
@@ -907,6 +916,10 @@ export type Database = {
         Args: { max_calls: number; window_seconds: number }
         Returns: boolean
       }
+      can_read_garment_object: {
+        Args: { object_name: string; object_owner: string }
+        Returns: boolean
+      }
       create_partner_invite: { Args: never; Returns: string }
       effective_entitlement: {
         Args: never
@@ -963,6 +976,7 @@ export type Database = {
           price: number | null
           season: string | null
           set_id: string | null
+          shoe_size: number | null
           size: string | null
           size_cm: number | null
           sold: boolean | null

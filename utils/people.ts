@@ -10,6 +10,10 @@ export type Person = {
   gender: string | null
   current_size_cm: number | null
   size_updated_at: string | null
+  // Skostorlek i EU-nummer. Egen dimension eftersom fötter varken mäts i
+  // kroppslängd eller växer i samma takt som barnet i övrigt.
+  current_shoe_size: number | null
+  shoe_size_updated_at: string | null
   avatar_url: string | null
   // 1–5, 3 = lagom. Samma skala som profiles.cold_sensitivity. Justerar den
   // upplevda temperaturen i outfit-genereringen – och därmed mössgränsen.
@@ -73,6 +77,7 @@ export type PersonPatch = Partial<{
   birthdate: string | null
   gender: string | null
   current_size_cm: number | null
+  current_shoe_size: number | null
   avatar_url: string | null
   cold_sensitivity: number
   walks: boolean | null
@@ -104,8 +109,10 @@ export async function deletePerson(id: string): Promise<void> {
 export async function loadSizedGarments(): Promise<ReminderGarment[]> {
   const { data, error } = await supabase
     .from('garments')
-    .select('id, name, image_url, location, season, size_cm, status, person_id')
-    .not('size_cm', 'is', null)
+    // Skor mäts i shoe_size i stället för size_cm. Filtret måste släppa igenom
+    // BÅDA, annars faller alla skor bort ur påminnelserna.
+    .select('id, name, image_url, location, season, size_cm, shoe_size, status, person_id')
+    .or('size_cm.not.is.null,shoe_size.not.is.null')
   if (error) throw error
   return (data ?? []) as ReminderGarment[]
 }

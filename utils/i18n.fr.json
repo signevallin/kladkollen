@@ -1248,5 +1248,8 @@
  "Idag har du {event} inplanerat": "Aujourd’hui tu as {event} de prévu",
  "Idag: {event} + {n} till": "Aujourd’hui : {event} + {n} autres",
  "Skostorlek": "Pointure",
- "t.ex. 28 eller 42": "p. ex. 28 ou 42"
+ "t.ex. 28 eller 42": "p. ex. 28 ou 42",
+ "sko": "pointure",
+ "Mindre skostorlek": "Pointure plus petite",
+ "Större skostorlek": "Pointure plus grande"
 }

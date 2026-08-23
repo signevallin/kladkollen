@@ -1,4 +1,7 @@
-import { ageYearsFromBirthdate, growthCmPerMonth, sizeIndex, suggestedSizeCm } from './childSize'
+import {
+  ageYearsFromBirthdate, growthCmPerMonth, sizeIndex, suggestedSizeCm,
+  shoeGrowthPerMonth, shoeSizeIndex, suggestedShoeSize,
+} from './childSize'
 
 // Säsongssmart storlekspåminnelse (spec §2): korsa barnets storlek över tid ×
 // plaggets säsong × plaggtyp. Ren logik → enkel att testa.
@@ -29,6 +32,7 @@ export type ReminderGarment = {
   location: string | null
   season: string | null      // komma-separerad, t.ex. "Vår, Sommar"
   size_cm: number | null
+  shoe_size: number | null   // EU-nummer; sätts i stället för size_cm på skor
   status: string | null      // 'in_use' | 'stored' | 'outgrown'
   person_id: string | null
 }
@@ -38,6 +42,7 @@ export type ReminderChild = {
   name: string
   birthdate: string | null
   current_size_cm: number | null
+  current_shoe_size: number | null
 }
 
 export type SizeReminder = {
@@ -45,7 +50,8 @@ export type SizeReminder = {
   childId: string
   childName: string
   garmentName: string
-  sizeCm: number
+  sizeCm: number             // plaggets storlek i sin egen skala (cm eller EU-nummer)
+  isShoe: boolean            // avgör hur sizeCm ska presenteras
   location: string | null
   imageUrl: string | null
   monthsToFit: number
@@ -77,24 +83,32 @@ export function computeSizeReminders(
   const out: SizeReminder[] = []
 
   for (const child of children) {
-    // Barnets aktuella storlek: satt värde, annars gissat från ålder.
+    // Barnets aktuella mått i båda skalorna: satt värde, annars gissat från ålder.
     const cCm = child.current_size_cm ?? suggestedSizeCm(child.birthdate)
-    if (cCm == null) continue
-    const cIdx = sizeIndex(cCm)
+    const cShoe = child.current_shoe_size ?? suggestedShoeSize(child.birthdate)
     const ageYears = ageYearsFromBirthdate(child.birthdate) ?? 4
-    const growth = growthCmPerMonth(ageYears)
 
     for (const g of garments) {
-      if (g.size_cm == null) continue
       if (g.status === 'outgrown') continue
       // Öronmärkt för ett annat barn → hoppa över. Omärkt = valfritt barn.
       if (g.person_id && g.person_id !== child.id) continue
 
-      const steps = sizeIndex(g.size_cm) - cIdx
+      // Skor och kläder mäts i olika skalor. Välj rätt skala per plagg i
+      // stället för att duplicera hela loopen – resten av resonemanget
+      // (storlekssteg, säsong, beredskapsfönster) är identiskt för båda.
+      const isShoe = g.shoe_size != null
+      const gSize = isShoe ? g.shoe_size : g.size_cm
+      const cSize = isShoe ? cShoe : cCm
+      if (gSize == null || cSize == null) continue
+
+      const idxOf = isShoe ? shoeSizeIndex : sizeIndex
+      const growth = isShoe ? shoeGrowthPerMonth(ageYears) : growthCmPerMonth(ageYears)
+
+      const steps = idxOf(gSize) - idxOf(cSize)
       // Kandidat om plagget är 0–2 storlekssteg STÖRRE (snart, inte om år).
       if (steps < 0 || steps > 2) continue
 
-      const monthsToFit = Math.max(0, (g.size_cm - cCm) / growth)
+      const monthsToFit = Math.max(0, (gSize - cSize) / growth)
       const fitDate = new Date(now.getTime() + monthsToFit * 30.44 * 24 * 60 * 60 * 1000)
 
       const seasons = (g.season || '').split(',').map(s => s.trim()).filter(Boolean)
@@ -131,7 +145,8 @@ export function computeSizeReminders(
         childId: child.id,
         childName: child.name,
         garmentName: g.name,
-        sizeCm: g.size_cm,
+        sizeCm: gSize,
+        isShoe,
         location: g.location,
         imageUrl: g.image_url,
         monthsToFit,

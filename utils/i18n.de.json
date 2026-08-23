@@ -1248,5 +1248,8 @@
  "Idag har du {event} inplanerat": "Heute hast du {event} geplant",
  "Idag: {event} + {n} till": "Heute: {event} + {n} weitere",
  "Skostorlek": "Schuhgröße",
- "t.ex. 28 eller 42": "z.B. 28 oder 42"
+ "t.ex. 28 eller 42": "z.B. 28 oder 42",
+ "sko": "Schuh",
+ "Mindre skostorlek": "Kleinere Schuhgröße",
+ "Större skostorlek": "Größere Schuhgröße"
 }
