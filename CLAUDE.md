@@ -71,6 +71,26 @@ Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
   (`noUnusedLocals` är av, så oanvända imports/stilar fångas inte av tsc –
   rensa dem manuellt med grep.)
 
+## Migrationsfilerna kan ha drivit ifrån produktion
+
+`supabase/migrations/*.sql` är inte garanterat sanningen. Minst en funktion
+(`effective_entitlement()`) hade fått nya kolumner och en extra sorteringsnyckel
+applicerade direkt mot databasen, utan migrationsfil – repot var alltså flera
+ändringar efter.
+
+**Innan du skriver om en befintlig SQL-funktion: hämta den deployade
+definitionen först**, annars raderar din `create or replace` funktionalitet som
+bara finns i produktion:
+
+```sql
+select pg_get_functiondef(p.oid) from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public' and p.proname = 'funktionsnamn';
+```
+
+Symtomet när man missar det är antingen `42P13: cannot change return type of
+existing function` (om tur) eller en tyst funktionsförlust (om otur).
+
 ## Databastyper
 - `types/supabase.ts` är **autogenererad** från prod-schemat (redigera inte för
   hand). Regenerera vid schemaändringar:
