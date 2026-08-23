@@ -33,6 +33,69 @@ Arbetsflöde:
 Grafen täcker appskärmar, `utils/`, `api/`-routes och Supabase-schemat
 (`supabase/migrations/*.sql`).
 
+## Mät mot produktion innan du skriver en siffra
+
+Varje gång ett antagande om datan hamnade i kod eller kommentar under den här
+kodbasens historia har det visat sig fel. Några verkliga exempel:
+
+- En migration påstod "förväntat svar: 0 objekt under `public/`". Det verkliga
+  svaret var 717 av 979 – att köra den hade släckt tre fjärdedelar av alla bilder.
+- Ett städskript byggdes på att tre tabeller refererar bilder. Det är **nio**
+  (`garments`, `wishlist`, `moodboard`, `pending_imports`, `people.avatar_url`,
+  `profiles.avatar_url`, `outfits.image_urls`, `collages.items`, `trips.data`).
+  Med tre av dem hade nio levande bilder raderats som "föräldralösa".
+- En tillväxtmodell för skostorlekar skrevs på känsla och låg upp till 8
+  storlekar fel. Den fångades bara för att den testades mot kända referensvärden.
+
+**Regel:** har du en siffra om datan – fråga databasen först, skriv sedan. Och
+när en modell approximerar verkligheten (tillväxt, temperatur, storlekar), lägg
+referenspunkterna som testfall så den inte kan glida iväg obemärkt.
+
+Två oberoende metoder som ger samma svar är den enda bekräftelse som är värd
+något inför något oåterkalleligt. Städningen av 311 bilder kördes först när både
+en SQL-fråga och skriptets egen regex-extrahering landade på exakt samma tal.
+
+## Verifiering: vad som faktiskt bevisar något
+
+`tsc` och testsviten ser inte allt. Konkreta fall där grönt ljus var värdelöst:
+
+- **Layout.** Ett barnkort där namnet bröt ett tecken per rad passerade `tsc` och
+  94 tester. Det krävdes en skärmbild. **Ta alltid en skärmbild efter en
+  UI-ändring** – simulatorn nås via `mcp__Claude_Code_iOS_Simulator__control`.
+- **Att appen kör din kod.** Fast Refresh dör när Metro startas om, och deep
+  länkar navigerar då bara inom den gamla bundlen. Hård omstart krävs:
+  `xcrun simctl terminate <udid> se.kladkollen.app && xcrun simctl launch …`.
+  Vill du vara säker: hämta bundlen från Metro och grep:a efter en ny sträng
+  (`curl -s "http://localhost:8081/node_modules/expo-router/entry.bundle?platform=ios&dev=true"`).
+- **Att en säkerhetsfix biter.** Att appen visar en bild bevisar ingenting –
+  signerade URL:er honoreras oavsett RLS. Testa i stället policyn direkt:
+  `set local role authenticated; set local request.jwt.claims = '{"sub":"<uid>"}';`
+  och jämför antalet läsbara rader mot ett facit räknat som service role.
+
+## Tysta fel är de farliga i den här kodbasen
+
+Inget av följande kraschade något. De gav bara fel svar, i tysthet:
+
+- `storage.list()` returnerar **100 poster som default**. Kontoraderingen lämnade
+  kvar allt därutöver.
+- `catch { /* ... */ }` runt hämtningen av barn i `garment-detail` dolde att
+  `familyOn` var false när effekten kördes – familjesektionen uteblev helt.
+- `childSizeFits` returnerade `true` när `size_cm` var null, vilket lät **varje
+  sko** passera ofiltrerat (skor har `shoe_size`, inte `size_cm`).
+- En effekt som beror på route-parametrar men läser ett värde som kommer från en
+  RPC hinner köra före värdet finns. Beror alltid på det som faktiskt styr.
+
+## Var koden bor och vad du bygger
+
+Det finns (eller fanns) **två utcheckningar** av repot på maskinen. Bygget görs
+från `~/kladkollen` via terminal + Xcode – inte via EAS. Innan du felsöker "det
+fungerar inte": kontrollera att katalogen du ändrar i är den som byggs, och att
+appen kör din kod. Ett snabbt facit är om postadressen syns i integritetspolicyns
+avsnitt 1 – den kom sent och fungerar som markör för hela paketet.
+
+Ändras `app.json` (plugins, behörighetstexter, `privacyManifests`) krävs
+`npx expo prebuild` innan Xcode ser det. Ren JS kräver ingen prebuild.
+
 ## Kodstruktur & refaktorering
 - Stora skärmar bryts ned i delkomponenter, samlade i `components/<skärm>/`.
   Två mönster används:
@@ -181,6 +244,36 @@ existing function` (om tur) eller en tyst funktionsförlust (om otur).
   köldkänslighet sänks ett steg, och plaggvyn visar gravid-taggarna. Egen
   skärm `app/pregnancy-wardrobe.tsx` (essentials-checklista → köplista +
   återanvänd/låna ut). Par-flödet "Matcha" är inte gravidanpassat än.
+
+## Barn, storlekar och kategorier
+
+- **Två skalor, inte en.** Kläder mäts i `size_cm` (kroppslängd, `EU_CHILD_SIZES`),
+  skor i `shoe_size` (EU-nummer, `EU_SHOE_SIZES`). Barnet har `current_size_cm`
+  respektive `current_shoe_size`. Funktioner speglas med `Shoe`-suffix. Sätt
+  aldrig `size_cm` på en sko.
+- **`childSizeFits` är fönstret som styr allt** – outfitgenerering, familjeoutfits
+  och resepackning. Default är nuvarande storlek och ett steg NER.
+  `people.allow_larger_size` öppnar ett steg UPP, per barn. Påverkar medvetet
+  **inte** storlekspåminnelserna: de handlar om när ett plagg börjar passa, vilket
+  är en annan fråga än vad barnet får bära idag. Att blanda ihop dem var skälet
+  till att fönstret en gång skärptes.
+- **`categoryMap` i `buildGroupedGarmentList` bestämmer vad AI:n ens ser.**
+  `Sovkläder`, `Underkläder` och `Badkläder` saknas där med flit. Följden är att
+  ett plagg i fel kategori blir helt osynligt för genereringen – därför flyttas
+  barnets body till `Toppar` (`categoryForChildGarment`), eftersom `Body` finns
+  som underkategori under både `Toppar` och `Underkläder` och AI:n annars väljer
+  olika från gång till gång.
+- **`renderGarmentGroups` har en 7500-teckens budget** och klipper rundgångsvis
+  med "… och N till i den här kategorin". Barn ryms lätt; en vuxen garderob på
+  några hundra plagg gör det inte – då ser modellen bara en del.
+- **Sovkläder läggs till deterministiskt** i barnets packlista, eftersom AI:n
+  aldrig nämner dem (kategorin saknas i outfitgrupperna). Extras måste därför
+  rensas mot packlistan (`extraAlreadyPacked`), annars står pyjamasen på två
+  ställen.
+- **`dedupOutfitItems` ska köras på ALLA outfitresultat.** Prompten säger "exakt
+  EN överdel" men modellen bryter mot det. Barn-outfitskärmen dedupade,
+  resepackningen gjorde det inte – samma modell gav då olika resultat beroende på
+  var man frågade.
 
 ## Bildlagring & integritet (rör inte utan att läsa detta)
 
