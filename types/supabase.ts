@@ -677,6 +677,7 @@ export type Database = {
           id: string
           import_token: string | null
           lang: string | null
+          last_active_at: string | null
           last_import_status: string | null
           last_notif_date: string | null
           last_notif_kind: string | null
@@ -719,6 +720,7 @@ export type Database = {
           id: string
           import_token?: string | null
           lang?: string | null
+          last_active_at?: string | null
           last_import_status?: string | null
           last_notif_date?: string | null
           last_notif_kind?: string | null
@@ -761,6 +763,7 @@ export type Database = {
           id?: string
           import_token?: string | null
           lang?: string | null
+          last_active_at?: string | null
           last_import_status?: string | null
           last_notif_date?: string | null
           last_notif_kind?: string | null

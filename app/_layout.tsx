@@ -5,10 +5,11 @@ import * as Notifications from 'expo-notifications'
 import { Stack, router, usePathname } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useRef, useState } from 'react'
-import { View } from 'react-native'
+import { AppState, View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '../supabase'
 import { hydrateCache } from '../utils/cache'
+import { pingActivity, resetActivityPing } from '../utils/activity'
 import { registerForPush } from '../utils/push'
 import { scheduleSmartPush, scheduleLogReminder } from '../utils/smartPush'
 import { mirrorLocalTripToDb } from '../utils/trip'
@@ -49,13 +50,25 @@ function RootLayout() {
     Promise.all([hydrateCache(), supabase.auth.getSession()]).then(([, { data: { session } }]) => {
       setHasSession(!!session)
       setReady(true)
+      // Hjärtslag för gallring av inaktiva konton. Medvetet EFTER setReady –
+      // det får aldrig fördröja att appen ritas.
+      if (session) pingActivity()
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setHasSession(!!session)
+      // Vid utloggning: nollställ strypningen så nästa användare pingar direkt
+      // i stället för att ärva föregåendes dygnsspärr.
+      if (event === 'SIGNED_OUT') resetActivityPing()
+      else if (session) pingActivity()
     })
+    const appState = AppState.addEventListener('change', (st: string) => { if (st === 'active') pingActivity() })
     AsyncStorage.getItem(ONBOARDING_DONE_KEY)
       .then(v => setOnboarded(!!v))
       .catch(() => setOnboarded(true)) // vid fel: hoppa inte in i introt
+    return () => {
+      sub.subscription.unsubscribe()
+      appState.remove()
+    }
   }, [])
 
   useEffect(() => {
