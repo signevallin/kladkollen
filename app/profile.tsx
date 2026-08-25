@@ -392,7 +392,7 @@ export default function Profile() {
 
         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar} accessibilityLabel={tr('Byt profilbild')} accessibilityRole="button">
           {avatar
-            ? <SignedImage path={avatar} style={styles.avatar} resizeMode="cover" transform={{ width: 240, height: 240, resize: 'cover' }} />
+            ? <SignedImage path={avatar} style={styles.avatar} resizeMode="cover" transform={{ width: 240, height: 240, resize: 'cover', format: 'origin' }} />
             : <View style={styles.avatarPlaceholder}><MaterialIcons name="person" size={44} color={t.textSecondary} /></View>
           }
           <View style={styles.avatarBadge}><MaterialIcons name="photo-camera" size={16} color={t.onPrimary} /></View>
@@ -411,7 +411,7 @@ export default function Profile() {
                   accessibilityRole="button"
                 >
                   {partner.avatar_url
-                    ? <SignedImage path={partner.avatar_url} style={styles.householdAvatar} resizeMode="cover" transform={{ width: 160, height: 160, resize: 'cover' }} />
+                    ? <SignedImage path={partner.avatar_url} style={styles.householdAvatar} resizeMode="cover" transform={{ width: 160, height: 160, resize: 'cover', format: 'origin' }} />
                     : <View style={styles.householdAvatarPlaceholder}><MaterialIcons name="person" size={28} color={t.textSecondary} /></View>}
                   <Text style={styles.householdName} numberOfLines={1}>{partner.name}</Text>
                 </TouchableOpacity>
@@ -425,7 +425,7 @@ export default function Profile() {
                   accessibilityRole="button"
                 >
                   {child.avatar_url
-                    ? <SignedImage path={child.avatar_url} style={styles.householdAvatar} resizeMode="cover" transform={{ width: 160, height: 160, resize: 'cover' }} />
+                    ? <SignedImage path={child.avatar_url} style={styles.householdAvatar} resizeMode="cover" transform={{ width: 160, height: 160, resize: 'cover', format: 'origin' }} />
                     : <View style={styles.householdAvatarPlaceholder}><MaterialIcons name="child-care" size={26} color={t.textSecondary} /></View>}
                   <Text style={styles.householdName} numberOfLines={1}>{child.name}</Text>
                 </TouchableOpacity>

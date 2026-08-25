@@ -983,7 +983,7 @@ export default function Home() {
             accessibilityRole="button"
           >
             {userAvatar
-              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" transform={{ width: 120, height: 120, resize: 'cover' }} />
+              ? <SignedImage path={userAvatar} style={styles.profileBtnImage} resizeMode="cover" transform={{ width: 120, height: 120, resize: 'cover', format: 'origin' }} />
               : null
             }
           </TouchableOpacity>

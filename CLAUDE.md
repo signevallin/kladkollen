@@ -62,11 +62,18 @@ en SQL-fråga och skriptets egen regex-extrahering landade på exakt samma tal.
 - **Layout.** Ett barnkort där namnet bröt ett tecken per rad passerade `tsc` och
   94 tester. Det krävdes en skärmbild. **Ta alltid en skärmbild efter en
   UI-ändring** – simulatorn nås via `mcp__Claude_Code_iOS_Simulator__control`.
-- **Att appen kör din kod.** Fast Refresh dör när Metro startas om, och deep
-  länkar navigerar då bara inom den gamla bundlen. Hård omstart krävs:
-  `xcrun simctl terminate <udid> se.kladkollen.app && xcrun simctl launch …`.
-  Vill du vara säker: hämta bundlen från Metro och grep:a efter en ny sträng
-  (`curl -s "http://localhost:8081/node_modules/expo-router/entry.bundle?platform=ios&dev=true"`).
+- **Att appen kör din kod.** Debug-bygget bäddar in en `main.jsbundle`. En app
+  som startas med `simctl launch` (eller dev-client-deeplänken) kan därför köra
+  vidare på den *inbäddade* bundlen och aldrig kontakta Metro – den ser helt
+  normal ut, men ingen av dina ändringar finns i den. Att greppa bundlen som
+  Metro *serverar* bevisar därför ingenting om vad appen *kör*.
+  **Enda giltiga kvittot: Metro-loggen visar en `iOS Bundling`/`Bundled`-rad
+  efter din omstart.** Gör den inte det, kör appen gammal kod och bara
+  `npx expo run:ios` hjälper.
+- **Att du kan se loggarna.** Starta aldrig Metro med `… | tail -N` – pipen
+  buffrar och filen fylls först när Metro avslutas, så du läser en *tidigare*
+  körning. Skriv till en riktig fil (`> /tmp/metro.log 2>&1`) när du behöver
+  appens `console.log`.
 - **Att en promptregel biter.** Att strängen finns i prompten bevisar ingenting.
   Reglerna konkateneras och kan säga emot varandra: "ANVÄNDAREN ÄR LÄTTFRUSEN:
   lägg *hellre* till ett lager" stod bredvid "MILT VÄDER: ytterkläder är *inte
@@ -361,11 +368,17 @@ existing function` (om tur) eller en tyst funktionsförlust (om otur).
   (barnens namn/födelsedatum) raderingen.
 
 - Bild-miniatyrer: `SignedImage` tar en `transform`-prop. **Gotcha (kostnad):**
-  Supabase fakturerar per origin-bild som transformeras. Därför **hoppar
-  SignedImage medvetet över server-transformen när `format:'origin'`** (alla
-  plagg) och låter i stället `expo-image` skala ner till vyns storlek på enheten
-  (samma minnesvinst, ingen transform-kostnad). Bara avatarer (`resize:'cover'`
-  utan `format`) transformeras på servern – de är få. Håll därför uppladdade
-  plaggbilder rimligt små (`MAX_IMAGE_WIDTH` i add-garment = 1000) eftersom
-  origin laddas direkt. Transformerade bilder signeras var för sig (batch-API:t
-  stödjer inte `transform`) – ännu ett skäl att hålla dem få.
+  Supabase fakturerar per origin-bild som transformeras, och **varje storlek av
+  samma bild är en egen transformation**. Avatarerna var länge undantagna med
+  motiveringen "de är få" – men de begärdes i fem vystorlekar (96/120/160/220/
+  240), så sju avatarer drog 14 % av månadskvoten vid elva användare, medan 648
+  plaggbilder drog noll. Undantaget skalade alltså med *antalet vystorlekar*,
+  inte med antalet användare. Sedan 2026-08-25 använder **alla** bilder
+  `format:'origin'`: SignedImage hoppar då över server-transformen helt och låter
+  `expo-image` skala ner till vyns storlek på enheten. Avatarer förlorar inget –
+  `downscaleForUpload()` lagrar dem redan som 512 px WebP och beskärningen görs
+  av `contentFit:'cover'` lokalt. Håll uppladdade plaggbilder rimligt små
+  (`MAX_IMAGE_WIDTH` i add-garment = 1000) eftersom origin laddas direkt.
+  **Lägg inte tillbaka en server-transform** utan att först räkna vystorlekar ×
+  bilder mot kvoten – transformerade bilder signeras dessutom var för sig
+  (batch-API:t stödjer inte `transform`) och får en egen cache-nyckel per storlek.

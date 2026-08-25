@@ -113,7 +113,7 @@ export default function PersonSwitcher({ scope, current }: Props) {
         accessibilityLabel={tr('Byt person')}
       >
         {activeAvatar
-          ? <SignedImage path={activeAvatar} style={styles.triggerAvatar} resizeMode="cover" transform={{ width: 96, height: 96, resize: 'cover' }} />
+          ? <SignedImage path={activeAvatar} style={styles.triggerAvatar} resizeMode="cover" transform={{ width: 96, height: 96, resize: 'cover', format: 'origin' }} />
           : <View style={styles.triggerPlaceholder}><MaterialIcons name={activeIcon} size={20} color={t.onPrimary} /></View>}
         <View style={styles.chevronBadge}><MaterialIcons name="expand-more" size={13} color={t.onPrimary} /></View>
       </TouchableOpacity>
@@ -129,7 +129,7 @@ export default function PersonSwitcher({ scope, current }: Props) {
                 onPress={() => { setOpen(false); if (!m.active) m.select() }}
               >
                 {m.avatar
-                  ? <SignedImage path={m.avatar} style={styles.avatar} resizeMode="cover" transform={{ width: 96, height: 96, resize: 'cover' }} />
+                  ? <SignedImage path={m.avatar} style={styles.avatar} resizeMode="cover" transform={{ width: 96, height: 96, resize: 'cover', format: 'origin' }} />
                   : <View style={styles.avatarPlaceholder}><MaterialIcons name={m.icon} size={20} color={t.textSecondary} /></View>}
                 <Text style={[styles.rowLabel, m.active && styles.rowLabelActive]} numberOfLines={1}>{m.label}</Text>
                 {m.active && <MaterialIcons name="check" size={20} color={t.primary} />}
