@@ -1,0 +1,22 @@
+-- garments saknade index på user_id.
+--
+-- Varje fråga mot tabellen filtrerar på user_id – appens loadGarments via RLS
+-- (auth.uid() = user_id) och notisjobbet via .in('user_id', …). Utan index blir
+-- varenda sådan fråga en sekventiell scan av HELA tabellen.
+--
+-- Mätt före: en garderobshämtning för en användare läste 693 rader för att
+-- returnera 49. "Rows Removed by Filter: 644".
+--
+--   Seq Scan on garments (cost=0.00..37.66 rows=51) (actual rows=49)
+--     Filter: (... AND user_id = '…')
+--     Rows Removed by Filter: 644
+--
+-- Vid nuvarande storlek är det 0,3 ms och osynligt. Det skalar däremot linjärt
+-- med totala antalet plagg i hela databasen, inte med användarens egen garderob
+-- – så kostnaden växer för alla när någon annan lägger till plagg.
+--
+-- Indexet är avsiktligt INTE partiellt. Appen hämtar hela raden inklusive
+-- arkiverade och filtrerar i klienten (se CLAUDE.md), så ett partiellt index på
+-- "archived is not true" hade inte kunnat användas av den vanligaste frågan.
+
+create index if not exists garments_user_idx on public.garments (user_id);
