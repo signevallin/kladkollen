@@ -184,9 +184,8 @@ async function buildNotif(
 ): Promise<Notif | null> {
   const prefs = p.notif_prefs || {}
   const lang = p.lang || 'sv' // notistexten översätts till användarens språk
-  // Ett plagg man lagt ut till försäljning eller som ligger i tvätten är inget
-  // vettigt förslag. (archived filtreras redan i databasfrågan.)
-  const active = garments.filter(g => !g.for_sale && !g.in_laundry)
+  // Arkiverade, sålda och tvättade är redan bortfiltrerade i databasfrågan.
+  const active = garments
   const season = currentSeason()
 
   if (slot === 'evening') {
@@ -363,7 +362,16 @@ export default async function handler(request: Request): Promise<Response> {
       .from('garments')
       .select('user_id, id, name, brand, color, category, season, price, times_worn, last_worn, created_at, for_sale, in_laundry')
       .in('user_id', idsChunk)
-      .eq('archived', false)
+      // Alla tre filtren hör hemma i frågan, inte i koden: annars hämtas rader
+      // som ändå kastas, och kostnaden växer med antalet användare.
+      //
+      // "is not true" i stället för "eq false" är medvetet. archived och
+      // for_sale är NULLBARA (default false gäller bara när kolumnen utelämnas),
+      // och `col = false` är FALSKT även för NULL – sådana rader hade tyst
+      // uteslutits ur hämtningen och aldrig kunnat föreslås.
+      .not('archived', 'is', true)
+      .not('for_sale', 'is', true)
+      .eq('in_laundry', false)
     for (const g of (data || []) as (Garment & { user_id: string })[]) {
       const arr = garmentsByUser.get(g.user_id)
       if (arr) arr.push(g); else garmentsByUser.set(g.user_id, [g])
