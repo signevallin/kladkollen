@@ -104,13 +104,23 @@ async function revenueCat() {
 async function vercel() {
   const token = process.env.VERCEL_TOKEN
   if (!token) return null
-  const data = await get('https://api.vercel.com/v6/deployments?limit=5', { Authorization: `Bearer ${token}` })
+  // Utan projectId returnerar API:t deploys från ALLA projekt token når – då
+  // kan rutan visa ett annat projekts status. teamId behövs när projektet ligger
+  // under ett team i stället för ett personligt konto; utan den ser token bara
+  // det personliga scopet och svaret blir tomt.
+  const q = new URLSearchParams({ limit: '20', target: 'production' })
+  if (process.env.VERCEL_PROJECT_ID) q.set('projectId', process.env.VERCEL_PROJECT_ID)
+  if (process.env.VERCEL_TEAM_ID) q.set('teamId', process.env.VERCEL_TEAM_ID)
+
+  const data = await get(`https://api.vercel.com/v6/deployments?${q}`, { Authorization: `Bearer ${token}` })
   const d = data?.deployments
   if (!Array.isArray(d) || !d.length) return null
+  const dayAgo = Date.now() - 864e5
   return {
     latestState: d[0].state,
     latestAt: d[0].created,
-    failed24h: d.filter((x: any) => x.state === 'ERROR' && Date.now() - x.created < 864e5).length,
+    failed24h: d.filter((x: any) => x.state === 'ERROR' && x.created > dayAgo).length,
+    deploys24h: d.filter((x: any) => x.created > dayAgo).length,
   }
 }
 
@@ -246,12 +256,17 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   if (vc) {
-    parts.push(section('Vercel', [
-      { label: 'Senaste deploy', value: String(vc.latestState), tone: vc.latestState === 'READY' ? 'ok' : 'warn' },
+    parts.push(section('Vercel – produktion', [
+      {
+        label: 'Senaste deploy', value: String(vc.latestState),
+        hint: new Date(vc.latestAt).toLocaleString('sv-SE'),
+        tone: vc.latestState === 'READY' ? 'ok' : vc.latestState === 'ERROR' ? 'bad' : 'warn',
+      },
+      { label: 'Deploys (24 h)', value: String(vc.deploys24h) },
       { label: 'Misslyckade (24 h)', value: String(vc.failed24h), tone: vc.failed24h > 0 ? 'bad' : 'ok' },
-    ]))
+    ], 'Visar bygg- och deploystatus. Fel inuti funktionerna syns i Sentry, inte här.'))
   } else {
-    parts.push(missing('Vercel', ['VERCEL_TOKEN']))
+    parts.push(missing('Vercel', ['VERCEL_TOKEN', 'VERCEL_PROJECT_ID', 'VERCEL_TEAM_ID (bara för team)']))
   }
 
   const html = `<!DOCTYPE html>
