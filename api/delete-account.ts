@@ -82,14 +82,7 @@ export default async function handler(request: Request): Promise<Response> {
         if (error && error.code !== '42P01') throw new Error(`Kunde inte radera hushållet: ${error.message}`)
       }
     }
-
-    // ── 5. Väntelistan lagrar e-post separat från kontot ─────────────────
-    if (auth.email) {
-      const { error } = await admin.from('waitlist').delete().eq('email', auth.email)
-      if (error && error.code !== '42P01') throw new Error(`Kunde inte radera väntelisteposten: ${error.message}`)
-    }
-
-    // ── 6. Bilder och slutligen själva auth-användaren ───────────────────
+    // ── 5. Bilder och slutligen själva auth-användaren ───────────────────
     if (paths.size > 0) {
       await admin.storage.from('garments').remove([...paths])
     }
