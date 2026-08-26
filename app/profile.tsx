@@ -30,6 +30,7 @@ import { loadPartner, type Partner } from '../utils/household'
 import { loadPeople, type Person } from '../utils/people'
 import { uploadUserImage } from '../utils/storage'
 import { CURRENCIES, useSettings } from '../utils/settings'
+import { SIZE_SYSTEMS } from '../utils/childSize'
 import { invalidateGarments } from '../utils/garmentsStore'
 import { useEntitlements, partnerFeaturesEnabled, familyFeaturesEnabled } from '../utils/entitlements'
 import { TIER_LABEL } from '../utils/purchases'
@@ -50,7 +51,7 @@ export default function Profile() {
   const t = useTheme()
   const styles = makeStyles(t)
   const { preference, setPreference } = useThemeControl()
-  const { currency, setCurrency, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
+  const { currency, setCurrency, sizeSystem, setSizeSystem, tempUnit, setTempUnit, lang, setLang, showDailySong, setShowDailySong, t: tr } = useSettings()
   const { isPro, tier, sharedFrom } = useEntitlements()
   const partnerOn = partnerFeaturesEnabled(tier)
   const familyOn = familyFeaturesEnabled(tier)
@@ -762,6 +763,22 @@ export default function Profile() {
                 {CURRENCIES.map(c => (
                   <TouchableOpacity key={c.code} style={[styles.pill, currency === c.code && styles.pillActive]} onPress={() => setCurrency(c.code)}>
                     <Text style={[styles.pillText, currency === c.code && styles.pillTextActive]}>{c.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ),
+          })}
+          {/* Barnstorlekar visas i valt system. Lagringen är alltid cm respektive
+              EU-nummer – som priser alltid lagras i SEK – så tillväxtmodellen och
+              påminnelserna räknar vidare på en enda skala oavsett vad som visas. */}
+          {renderRow('storlekssystem', 'Barnstorlekar', {
+            icon: 'straighten',
+            value: SIZE_SYSTEMS.find(x => x.code === sizeSystem)?.label ?? 'EU',
+            body: (
+              <View style={styles.pills}>
+                {SIZE_SYSTEMS.map(x => (
+                  <TouchableOpacity key={x.code} style={[styles.pill, sizeSystem === x.code && styles.pillActive]} onPress={() => setSizeSystem(x.code)}>
+                    <Text style={[styles.pillText, sizeSystem === x.code && styles.pillTextActive]}>{x.label} · {tr(x.hint)}</Text>
                   </TouchableOpacity>
                 ))}
               </View>

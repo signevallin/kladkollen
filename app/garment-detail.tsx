@@ -62,7 +62,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 export default function GarmentDetail() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { currency, toBaseSEK, fromBaseSEK, t: tr, lang } = useSettings()
+  const { currency, toBaseSEK, fromBaseSEK, t: tr, lang , childSize, shoeSize: shoeSizeLbl} = useSettings()
   const locale = localeFor(lang)
   const { tier } = useEntitlements()
   // Att tilldela plagg till ett barn ligger bakom familjeläget, "får lånas av
@@ -674,7 +674,7 @@ export default function GarmentDetail() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
                   {EU_CHILD_SIZES.map((s) => (
                     <TouchableOpacity key={s} style={[styles.pill, sizeCm === s && styles.pillActive]} onPress={() => setSizeCm(sizeCm === s ? null : s)}>
-                      <Text style={[styles.pillText, sizeCm === s && styles.pillTextActive]}>{s}</Text>
+                      <Text style={[styles.pillText, sizeCm === s && styles.pillTextActive]}>{childSize(s)}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -693,11 +693,17 @@ export default function GarmentDetail() {
                   {childOwner ? <Text style={styles.sizeOwner}>{childOwner.name}</Text> : null}
                 </View>
                 {/* Numerisk skala, inte fritext: bara så kan appen räkna ut när
-                    skorna blir för små och ta med dem i storlekspåminnelserna. */}
+                    skorna blir för små och ta med dem i storlekspåminnelserna.
+
+                    UK/US-etiketter visas BARA för barnskor. Inställningen heter
+                    "Barnstorlekar", och omräkningen är bara entydig under EU 32 –
+                    över den storleken skiljer sig US dam och herr med ~1,5
+                    storlekar, och en sko kan tillhöra vem som helst i hushållet.
+                    En siffra som ser exakt ut men är fel är sämre än EU-numret. */}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
                   {EU_SHOE_SIZES.map((s) => (
                     <TouchableOpacity key={s} style={[styles.pill, shoeSize === s && styles.pillActive]} onPress={() => setShoeSize(shoeSize === s ? null : s)}>
-                      <Text style={[styles.pillText, shoeSize === s && styles.pillTextActive]}>{s}</Text>
+                      <Text style={[styles.pillText, shoeSize === s && styles.pillTextActive]}>{childOwner ? shoeSizeLbl(s) : s}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>

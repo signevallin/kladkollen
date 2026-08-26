@@ -209,3 +209,71 @@ export function prevShoeSize(size: number): number {
   const sizes = EU_SHOE_SIZES as readonly number[]
   return sizes[Math.max(shoeSizeIndex(size) - 1, 0)]
 }
+
+// ── UTLÄNDSKA STORLEKSSYSTEM ──────────────────────────────────────────────
+// Svenska/EU-storlekar är kroppslängd i cm. UK och US använder ålder respektive
+// egna nummer, och etiketten i ett plagg köpt från en brittisk eller amerikansk
+// butik säger alltså "3-4 yrs" eller "4T" i stället för 104.
+//
+// Lagringen är ALLTID kanonisk (cm för kläder, EU-nummer för skor) – exakt som
+// priser alltid lagras i SEK. Systemet nedan påverkar bara hur en storlek visas
+// och matas in, så tillväxtmodellen, påminnelserna och "passar nu"-filtret kan
+// fortsätta räkna på en enda skala.
+//
+// ⚠️  Tabellerna är BRANSCHSTANDARD-approximationer. Verkliga plagg varierar
+//     mellan märken – särskilt US-nummer för äldre barn, där skalan hoppar över
+//     vissa steg och därför inte kan mappa ett-till-ett mot EU:s 21 storlekar.
+//     Dubbletter nedan är alltså avsiktliga, inte slarv.
+
+export type SizeSystem = 'eu' | 'uk' | 'us'
+
+export const SIZE_SYSTEMS: { code: SizeSystem; label: string; hint: string }[] = [
+  { code: 'eu', label: 'EU', hint: 'Längd i cm (110)' },
+  { code: 'uk', label: 'UK', hint: 'Ålder (4-5 yrs)' },
+  { code: 'us', label: 'US', hint: 'Nummer (5, 4T)' },
+]
+
+// Index i EU_CHILD_SIZES → etikett. Samma ordning som EU_CHILD_SIZES.
+const CHILD_UK = [
+  'Newborn', '0-1 m', '2-4 m', '4-6 m', '6-9 m', '9-12 m', '12-18 m', '18-24 m',
+  '2-3 yrs', '3-4 yrs', '4-5 yrs', '5-6 yrs', '6-7 yrs', '7-8 yrs', '8-9 yrs',
+  '9-10 yrs', '10-11 yrs', '11-12 yrs', '12-13 yrs', '13-14 yrs', '14-15 yrs',
+]
+
+const CHILD_US = [
+  'NB', '0-3M', '3M', '6M', '9M', '12M', '18M', '2T',
+  '3T', '4T', '5', '6', '7', '8', '10',
+  '10', '12', '14', '14', '16', '18',
+]
+
+// Index i EU_SHOE_SIZES → etikett. UK och US byter numrering vid EU 33
+// ("youth"), vilket är varför siffrorna faller tillbaka till 1 där.
+const SHOE_UK = [
+  '0.5', '1.5', '2', '3', '3.5', '4.5', '5', '6', '7', '7.5', '8.5', '9', '10',
+  '11', '11.5', '12.5', '13', '1', '2', '2.5', '3.5', '4', '5', '6', '6.5',
+  '7.5', '8', '9', '9.5', '10.5', '11', '12', '13',
+]
+
+const SHOE_US = [
+  '1', '2', '3', '4', '4.5', '5.5', '6', '7', '8', '8.5', '9.5', '10', '11',
+  '12', '12.5', '13.5', '1Y', '2Y', '3Y', '3.5Y', '4.5Y', '5', '6', '7', '7.5',
+  '8.5', '9', '10', '10.5', '11.5', '12', '13', '14',
+]
+
+/** Visar en lagrad klädstorlek (cm) i valt system. */
+export function childSizeLabel(cm: number | null | undefined, system: SizeSystem = 'eu'): string {
+  if (cm == null) return '–'
+  if (system === 'eu') return String(cm)
+  const i = sizeIndex(cm)
+  if (i < 0) return String(cm)
+  return (system === 'uk' ? CHILD_UK : CHILD_US)[i] ?? String(cm)
+}
+
+/** Visar en lagrad skostorlek (EU-nummer) i valt system. */
+export function shoeSizeLabel(eu: number | null | undefined, system: SizeSystem = 'eu'): string {
+  if (eu == null) return '–'
+  if (system === 'eu') return String(eu)
+  const i = shoeSizeIndex(eu)
+  if (i < 0) return String(eu)
+  return (system === 'uk' ? SHOE_UK : SHOE_US)[i] ?? String(eu)
+}

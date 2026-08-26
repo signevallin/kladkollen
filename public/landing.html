@@ -164,7 +164,7 @@ em{font-style:italic;color:var(--brand-soft);}
 .how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;}
 
 /* Waitlist */
-#waitlist{background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+#ladda-ner{background:var(--cream);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .wl-box{max-width:640px;margin:0 auto;text-align:center;padding:104px 40px;}
 .wl-stage-label{font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--muted);margin:26px 0 12px;}
 .wl-stage{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;}
@@ -235,7 +235,7 @@ em{font-style:italic;color:var(--brand-soft);}
         <option value="es">Español</option>
         <option value="fr">Français</option>
       </select>
-      <a href="#waitlist" class="btn-primary" data-i18n="nav.cta">Join</a>
+      <a href="#" data-appstore class="btn-primary" data-i18n="nav.cta">Download</a>
     </div>
   </div>
 </nav>
@@ -250,7 +250,7 @@ em{font-style:italic;color:var(--brand-soft);}
       <p class="hero-tagline" data-i18n="hero.tagline">Skrud does the work for you and your family.</p>
       <p class="hero-sub" data-i18n="hero.sub">The wardrobe app for the whole household. Get proactive, weather-aware outfits, share clothes with your partner, keep up with growing kids and curb impulse buys — in a calm, Scandinavian design.</p>
       <div class="hero-actions">
-        <a href="#waitlist" class="btn-primary" data-i18n="hero.cta1">Join the waitlist</a>
+        <a href="#" data-appstore class="btn-primary" data-i18n="hero.cta1">Download on the App Store</a>
         <a href="#features" class="btn-ghost" data-i18n="hero.cta2">See how it works</a>
       </div>
     </div>
@@ -361,7 +361,7 @@ em{font-style:italic;color:var(--brand-soft);}
   <div class="reveal" style="position:relative;z-index:2;max-width:640px;margin:0 auto;">
     <h2 class="cta-h2" data-i18n-html="cta.h2">Ready to discover <em>an easier everyday?</em></h2>
     <p class="cta-sub" data-i18n="cta.sub">Join Skrud and see how much time you save with your family’s wardrobes in order. Join the waitlist and we’ll reach out the moment Skrud is ready for you.</p>
-    <a href="#waitlist" class="btn-primary" style="padding:16px 34px;font-size:15px;" data-i18n="cta.btn">Join the waitlist</a>
+    <a href="#" data-appstore class="btn-primary" style="padding:16px 34px;font-size:15px;" data-i18n="cta.btn">Download on the App Store</a>
   </div>
 </section>
 
@@ -393,25 +393,13 @@ em{font-style:italic;color:var(--brand-soft);}
 </section>
 
 <!-- WAITLIST -->
-<section id="waitlist">
+<section id="ladda-ner">
   <div class="wl-box">
     <div class="reveal">
-      <div class="eyebrow" data-i18n="wl.label">Waitlist</div>
-      <h2 class="section-h2" data-i18n-html="wl.h2" style="margin-top:12px;">Be first in<br><em>when we launch.</em></h2>
-      <p class="section-sub" data-i18n="wl.sub" style="max-width:480px;margin-left:auto;margin-right:auto;">Skrud is rolling out step by step. Leave your email and we’ll let you know the moment you can get started.</p>
-      <p class="wl-stage-label" data-i18n="wl.stageLabel">Where are you in life?</p>
-      <div class="wl-stage" role="group" aria-label="Life stage">
-        <button type="button" class="wl-pill" data-stage="single" data-i18n="wl.stageSingle">Single</button>
-        <button type="button" class="wl-pill" data-stage="couple" data-i18n="wl.stageCouple">Couple</button>
-        <button type="button" class="wl-pill" data-stage="family" data-i18n="wl.stageFamily">Family</button>
-      </div>
-      <form id="wlForm" class="wl-form" novalidate>
-        <input type="email" id="wlEmail" class="wl-input" required autocomplete="email" data-i18n-ph="wl.placeholder" placeholder="Your email address" aria-label="Email">
-        <input type="text" name="company" id="wlCompany" class="wl-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <button type="submit" class="wl-btn" data-i18n="wl.button">Join</button>
-      </form>
-      <p id="wlMsg" class="wl-msg" role="status" aria-live="polite"></p>
-      <p class="wl-note" data-i18n-html="wl.note">We’ll only email you when the app is ready. No spam, unsubscribe anytime. We store your email address and life stage so we can get in touch — read more in our <a href="/privacy">privacy policy</a>.</p>
+      <div class="eyebrow" data-i18n="dl.label">App Store</div>
+      <h2 class="section-h2" data-i18n-html="dl.h2" style="margin-top:12px;">Your wardrobe<br><em>is waiting for you.</em></h2>
+      <p class="section-sub" data-i18n="dl.sub" style="max-width:480px;margin-left:auto;margin-right:auto;">Get started in minutes. Free to begin — no card required.</p>
+      <a href="#" data-appstore class="btn-primary dl-btn" data-i18n="dl.btn">Download on the App Store</a>
     </div>
   </div>
 </section>
@@ -435,12 +423,12 @@ em{font-style:italic;color:var(--brand-soft);}
     sv: {
       'meta.title': 'Skrud — En morgon mindre kaos',
       'meta.desc': 'Skrud klär hela familjen med ett tryck. AI skapar dagens outfit till dig, partnern och varje barn — väderanpassat och i rätt storlek. Din digitala garderob.',
-      'nav.features': 'Funktioner', 'nav.how': 'Så fungerar det', 'nav.cta': 'Gå med',
+      'nav.features': 'Funktioner', 'nav.how': 'Så fungerar det', 'nav.cta': 'Ladda ner',
       'hero.badge': 'Din digitala garderob',
       'hero.h1': 'Sluta stirra på en full garderob och inget att ha på dig.',
       'hero.tagline': 'Skrud gör jobbet åt dig och familjen.',
       'hero.sub': 'Garderobsappen för hela hushållet. Få proaktiva väderanpassade outfits, dela kläder med partnern, håll koll på växande barn och stoppa impulsköpen – i en rofylld, skandinavisk design.',
-      'hero.cta1': 'Gå med i väntelistan', 'hero.cta2': 'Se hur det funkar',
+      'hero.cta1': 'Ladda ner på App Store', 'hero.cta2': 'Se hur det funkar',
       'mock.familyToday': 'FAMILJEN IDAG', 'mock.familyTitle': 'En outfit till var och en',
       'mock.weatherChip': '14° · lätt regn ikväll', 'mock.today': 'DAGENS OUTFIT',
       'mock.wardrobe': 'GARDEROB', 'mock.trip': 'RESA', 'mock.me': 'Jag', 'mock.child': 'Nova',
@@ -457,21 +445,20 @@ em{font-style:italic;color:var(--brand-soft);}
       's1.t': 'Fota garderoben', 's1.d': 'Fota ett plagg, importera orderhistorik eller kvitton — AI känner igen det och sparar det med namn, färg och säsong. Lägg till barnens och partnerns kläder på samma sätt.',
       's2.t': 'Berätta om er', 's2.d': 'Sätt stil, livssituation och barnens storlekar. Gör en färganalys. Ju mer Skrud vet, desto träffsäkrare blir förslagen.',
       's3.t': 'Tryck en gång', 's3.d': 'Generera dagens outfit — för dig eller hela familjen. Väderanpassad och redo, ur det ni redan äger.',
-      'wl.label': 'Väntelista', 'wl.h2': 'Var först in<br><em>när vi lanserar.</em>', 'wl.sub': 'Skrud rullar ut steg för steg. Lämna din e-post så hör vi av oss så fort du kan komma igång.', 'wl.placeholder': 'Din e-postadress', 'wl.button': 'Gå med', 'wl.note': 'Vi mejlar bara när appen är redo. Ingen spam, avsluta när du vill. Vi sparar din e-postadress och ditt livsskede för att kunna höra av oss – läs mer i <a href="/privacy">integritetspolicyn</a>.',
-      'wl.stageLabel': 'Var i livet är du?', 'wl.stageSingle': 'Singel', 'wl.stageCouple': 'Par', 'wl.stageFamily': 'Familj',
-      'wl.success': 'Tack! Du är med på väntelistan. 🎉', 'wl.invalid': 'Ange en giltig e-postadress.', 'wl.error': 'Något gick fel. Försök igen om en stund.',
-      'cta.h2': 'Redo att upptäcka <em>en enklare vardag?</em>', 'cta.sub': 'Gå med i Skrud och upplev hur mycket tid du kan spara med ordning i familjens garderober. Gå med i väntelistan så hör vi av oss så fort Skrud är redo för dig.', 'cta.btn': 'Gå med i väntelistan',
-      'footer.privacy': 'Integritetspolicy', 'footer.terms': 'Villkor', 'footer.support': 'Support', 'footer.contact': 'Kontakt'
+      'cta.h2': 'Redo att upptäcka <em>en enklare vardag?</em>', 'cta.sub': 'Se hur mycket tid du sparar med hela familjens garderober i ordning.', 'cta.btn': 'Ladda ner på App Store',
+      'footer.privacy': 'Integritetspolicy', 'footer.terms': 'Villkor', 'footer.support': 'Support', 'footer.contact': 'Kontakt',
+      'dl.label': 'App Store', 'dl.h2': 'Din garderob<br><em>väntar på dig.</em>', 'dl.sub': 'Kom igång på minuter. Gratis att börja – inga kortuppgifter.', 'dl.btn': 'Ladda ner på App Store',
+      
     },
     en: {
       'meta.title': 'Skrud — One less chaotic morning',
       'meta.desc': 'Skrud dresses the whole family in one tap. AI builds today’s outfit for you, your partner and every child — weather-aware and in the right size. Your digital wardrobe.',
-      'nav.features': 'Features', 'nav.how': 'How it works', 'nav.cta': 'Join',
+      'nav.features': 'Features', 'nav.how': 'How it works', 'nav.cta': 'Download',
       'hero.badge': 'Your digital wardrobe',
       'hero.h1': 'Stop staring at a full wardrobe with nothing to wear.',
       'hero.tagline': 'Skrud does the work for you and your family.',
       'hero.sub': 'The wardrobe app for the whole household. Get proactive, weather-aware outfits, share clothes with your partner, keep up with growing kids and curb impulse buys — in a calm, Scandinavian design.',
-      'hero.cta1': 'Join the waitlist', 'hero.cta2': 'See how it works',
+      'hero.cta1': 'Download on the App Store', 'hero.cta2': 'See how it works',
       'mock.familyToday': 'THE FAMILY TODAY', 'mock.familyTitle': 'An outfit for everyone',
       'mock.weatherChip': '14° · light rain tonight', 'mock.today': 'TODAY’S OUTFIT',
       'mock.wardrobe': 'WARDROBE', 'mock.trip': 'TRIP', 'mock.me': 'Me', 'mock.child': 'Nova',
@@ -488,23 +475,22 @@ em{font-style:italic;color:var(--brand-soft);}
       's1.t': 'Photograph your wardrobe', 's1.d': 'Photograph a garment, import order history or receipts — AI recognises it and saves it with name, colour and season. Add the kids’ and your partner’s clothes the same way.',
       's2.t': 'Tell us about you', 's2.d': 'Set style, life stage and the children’s sizes. Do a colour analysis. The more Skrud knows, the sharper the suggestions.',
       's3.t': 'Tap once', 's3.d': 'Generate today’s outfit — for yourself or the whole family. Weather-aware and ready, from what you already own.',
-      'wl.label': 'Waitlist', 'wl.h2': 'Be first in<br><em>when we launch.</em>', 'wl.sub': 'Skrud is rolling out step by step. Leave your email and we’ll let you know the moment you can get started.', 'wl.placeholder': 'Your email address', 'wl.button': 'Join', 'wl.note': 'We’ll only email you when the app is ready. No spam, unsubscribe anytime. We store your email address and life stage so we can get in touch — read more in our <a href="/privacy">privacy policy</a>.',
-      'wl.stageLabel': 'Where are you in life?', 'wl.stageSingle': 'Single', 'wl.stageCouple': 'Couple', 'wl.stageFamily': 'Family',
-      'wl.success': 'Thanks! You’re on the waitlist. 🎉', 'wl.invalid': 'Please enter a valid email address.', 'wl.error': 'Something went wrong. Please try again shortly.',
-      'cta.h2': 'Ready to discover <em>an easier everyday?</em>', 'cta.sub': 'Join Skrud and see how much time you save with your family’s wardrobes in order. Join the waitlist and we’ll reach out the moment Skrud is ready for you.', 'cta.btn': 'Join the waitlist',
-      'footer.privacy': 'Privacy policy', 'footer.terms': 'Terms', 'footer.support': 'Support', 'footer.contact': 'Contact'
+      'cta.h2': 'Ready to discover <em>an easier everyday?</em>', 'cta.sub': 'See how much time you save with your family’s wardrobes in order.', 'cta.btn': 'Download on the App Store',
+      'footer.privacy': 'Privacy policy', 'footer.terms': 'Terms', 'footer.support': 'Support', 'footer.contact': 'Contact',
+      'dl.label': 'App Store', 'dl.h2': 'Your wardrobe<br><em>is waiting for you.</em>', 'dl.sub': 'Get started in minutes. Free to begin — no card required.', 'dl.btn': 'Download on the App Store',
+      
     },
     de: {
       'meta.title': 'Skrud – Ein Morgen weniger Chaos',
       'meta.desc': 'Skrud kleidet die ganze Familie mit einem Tipp. Die KI stellt das heutige Outfit für dich, deine Partnerin/deinen Partner und jedes Kind zusammen – wetterbasiert und in der richtigen Größe. Deine digitale Garderobe.',
       'nav.features': 'Funktionen',
       'nav.how': 'So funktioniert’s',
-      'nav.cta': 'Beitreten',
+      'nav.cta': 'Laden',
       'hero.badge': 'Deine digitale Garderobe',
       'hero.h1': 'Schluss mit dem Blick in den vollen Schrank und dem Gefühl, nichts anzuziehen zu haben.',
       'hero.tagline': 'Skrud übernimmt die Arbeit für dich und deine Familie.',
       'hero.sub': 'Die Garderoben-App für den ganzen Haushalt. Erhalte proaktive, wetterbasierte Outfits, teile Kleidung mit deiner Partnerin oder deinem Partner, behalte wachsende Kinder im Blick und stoppe Impulskäufe – in einem ruhigen, skandinavischen Design.',
-      'hero.cta1': 'Auf die Warteliste',
+      'hero.cta1': 'Im App Store laden',
       'hero.cta2': 'So funktioniert’s',
       'so.1n': 'Familie',
       'so.1l': 'du, Partner & jedes Kind',
@@ -537,38 +523,27 @@ em{font-style:italic;color:var(--brand-soft);}
       's2.d': 'Lege Stil, Lebenssituation und die Größen der Kinder fest. Mach eine Farbanalyse. Je mehr Skrud weiß, desto treffsicherer die Vorschläge.',
       's3.t': 'Einmal tippen',
       's3.d': 'Generiere das heutige Outfit – für dich oder die ganze Familie. Wetterbasiert und bereit, aus dem, was du schon besitzt.',
-      'wl.label': 'Warteliste',
-      'wl.h2': 'Sei von Anfang an<br><em>dabei, wenn wir starten.</em>',
-      'wl.sub': 'Skrud wird Schritt für Schritt ausgerollt. Hinterlasse deine E-Mail und wir melden uns, sobald du loslegen kannst.',
-      'wl.placeholder': 'Deine E-Mail-Adresse',
-      'wl.button': 'Beitreten',
-      'wl.note': 'Wir schreiben dir nur, wenn die App bereit ist. Kein Spam, jederzeit abbestellbar. Wir speichern deine E-Mail-Adresse und deine Lebensphase, um dich erreichen zu können – mehr dazu in unserer <a href="/privacy">Datenschutzerklärung</a>.',
-      'wl.stageLabel': 'Wo stehst du im Leben?',
-      'wl.stageSingle': 'Single',
-      'wl.stageCouple': 'Paar',
-      'wl.stageFamily': 'Familie',
-      'wl.success': 'Danke! Du bist auf der Warteliste. 🎉',
-      'wl.invalid': 'Bitte gib eine gültige E-Mail-Adresse ein.',
-      'wl.error': 'Etwas ist schiefgelaufen. Bitte versuche es gleich noch einmal.',
       'cta.h2': 'Bereit für <em>einen leichteren Alltag?</em>',
-      'cta.sub': 'Werde Teil von Skrud und sieh, wie viel Zeit du sparst, wenn die Garderobe der ganzen Familie geordnet ist. Trag dich in die Warteliste ein und wir melden uns, sobald Skrud für dich bereit ist.',
-      'cta.btn': 'Auf die Warteliste',
+      'cta.sub': 'Sieh, wie viel Zeit du sparst, wenn die Garderoben der Familie in Ordnung sind.',
+      'cta.btn': 'Im App Store laden',
       'footer.privacy': 'Datenschutz',
       'footer.terms': 'Nutzungsbedingungen',
       'footer.support': 'Support',
       'footer.contact': 'Kontakt',
+      'dl.label': 'App Store', 'dl.h2': 'Deine Garderobe<br><em>wartet auf dich.</em>', 'dl.sub': 'In Minuten startklar. Kostenlos beginnen – ohne Kartendaten.', 'dl.btn': 'Im App Store laden',
+      
     },
     es: {
       'meta.title': 'Skrud: una mañana menos caótica',
       'meta.desc': 'Skrud viste a toda la familia con un toque. La IA crea el conjunto de hoy para ti, tu pareja y cada hijo, adaptado al tiempo y en la talla correcta. Tu armario digital.',
       'nav.features': 'Funciones',
       'nav.how': 'Cómo funciona',
-      'nav.cta': 'Unirme',
+      'nav.cta': 'Descargar',
       'hero.badge': 'Tu armario digital',
       'hero.h1': 'Deja de mirar un armario lleno sin nada que ponerte.',
       'hero.tagline': 'Skrud hace el trabajo por ti y por tu familia.',
       'hero.sub': 'La app de armario para todo el hogar. Consigue conjuntos proactivos adaptados al tiempo, comparte ropa con tu pareja, sigue el ritmo de niños que crecen y frena las compras impulsivas, con un diseño escandinavo y sereno.',
-      'hero.cta1': 'Unirme a la lista de espera',
+      'hero.cta1': 'Descargar en el App Store',
       'hero.cta2': 'Ver cómo funciona',
       'so.1n': 'Familia',
       'so.1l': 'tú, tu pareja y cada hijo',
@@ -601,38 +576,31 @@ em{font-style:italic;color:var(--brand-soft);}
       's2.d': 'Define estilo, situación vital y las tallas de los niños. Hazte un análisis de color. Cuanto más sabe Skrud, más acertadas son las sugerencias.',
       's3.t': 'Un solo toque',
       's3.d': 'Genera el conjunto de hoy, para ti o para toda la familia. Adaptado al tiempo y listo, con lo que ya tienes.',
-      'wl.label': 'Lista de espera',
-      'wl.h2': 'Sé de los primeros<br><em>cuando lancemos.</em>',
-      'wl.sub': 'Skrud se lanza paso a paso. Déjanos tu correo y te avisaremos en cuanto puedas empezar.',
-      'wl.placeholder': 'Tu dirección de correo',
-      'wl.button': 'Unirme',
-      'wl.note': 'Solo te escribiremos cuando la app esté lista. Sin spam, cancela cuando quieras. Guardamos tu correo electrónico y tu etapa vital para poder avisarte; más información en nuestra <a href="/privacy">política de privacidad</a>.',
-      'wl.stageLabel': '¿En qué momento de la vida estás?',
-      'wl.stageSingle': 'Soltero/a',
-      'wl.stageCouple': 'Pareja',
-      'wl.stageFamily': 'Familia',
-      'wl.success': '¡Gracias! Estás en la lista de espera. 🎉',
-      'wl.invalid': 'Introduce una dirección de correo válida.',
-      'wl.error': 'Algo salió mal. Inténtalo de nuevo en un momento.',
       'cta.h2': '¿Listo para descubrir <em>un día a día más fácil?</em>',
-      'cta.sub': 'Únete a Skrud y descubre cuánto tiempo ahorras con los armarios de tu familia en orden. Apúntate a la lista de espera y te avisaremos en cuanto Skrud esté listo para ti.',
-      'cta.btn': 'Unirme a la lista de espera',
+      'cta.sub': 'Descubre cuánto tiempo ahorras con los armarios de toda la familia en orden.',
+      'cta.btn': 'Descargar en el App Store',
       'footer.privacy': 'Política de privacidad',
       'footer.terms': 'Términos',
       'footer.support': 'Soporte',
       'footer.contact': 'Contacto',
+      'dl.label': 'App Store', 'dl.h2': 'Tu armario<br><em>te está esperando.</em>', 'dl.sub': 'Empieza en minutos. Gratis para comenzar, sin tarjeta.', 'dl.btn': 'Descargar en el App Store',
+      
     },
     fr: {
+      'dl.label': 'App Store',
+      'dl.h2': 'Votre garde-robe<br><em>vous attend.</em>',
+      'dl.sub': 'Prêt en quelques minutes. Gratuit pour commencer, sans carte.',
+      'dl.btn': 'Télécharger dans l’App Store',
       'meta.title': 'Skrud — Une matinée de moins dans le chaos',
       'meta.desc': 'Skrud habille toute la famille en un geste. L’IA compose la tenue du jour pour vous, votre partenaire et chaque enfant — adaptée à la météo et à la bonne taille. Votre garde-robe numérique.',
       'nav.features': 'Fonctionnalités',
       'nav.how': 'Comment ça marche',
-      'nav.cta': 'Rejoindre',
+      'nav.cta': 'Télécharger',
       'hero.badge': 'Votre garde-robe numérique',
       'hero.h1': 'Arrêtez de fixer une penderie pleine sans rien à vous mettre.',
       'hero.tagline': 'Skrud fait le travail pour vous et votre famille.',
       'hero.sub': 'L’appli de garde-robe pour tout le foyer. Recevez des tenues proactives adaptées à la météo, partagez des vêtements avec votre partenaire, suivez les enfants qui grandissent et freinez les achats impulsifs — dans un design scandinave et apaisant.',
-      'hero.cta1': 'Rejoindre la liste d’attente',
+      'hero.cta1': 'Télécharger dans l’App Store',
       'hero.cta2': 'Voir comment ça marche',
       'so.1n': 'Famille',
       'so.1l': 'vous, votre partenaire & chaque enfant',
@@ -665,22 +633,9 @@ em{font-style:italic;color:var(--brand-soft);}
       's2.d': 'Définissez le style, la situation de vie et les tailles des enfants. Faites une analyse colorimétrique. Plus Skrud en sait, plus les suggestions sont justes.',
       's3.t': 'Un seul geste',
       's3.d': 'Générez la tenue du jour — pour vous ou toute la famille. Adaptée à la météo et prête, à partir de ce que vous avez déjà.',
-      'wl.label': 'Liste d’attente',
-      'wl.h2': 'Soyez parmi les premiers<br><em>au lancement.</em>',
-      'wl.sub': 'Skrud se déploie étape par étape. Laissez votre e-mail et nous vous préviendrons dès que vous pourrez commencer.',
-      'wl.placeholder': 'Votre adresse e-mail',
-      'wl.button': 'Rejoindre',
-      'wl.note': 'Nous vous écrirons uniquement quand l’appli sera prête. Pas de spam, désinscription à tout moment. Nous conservons votre adresse e-mail et votre étape de vie pour vous contacter — en savoir plus dans notre <a href="/privacy">politique de confidentialité</a>.',
-      'wl.stageLabel': 'Où en êtes-vous dans la vie ?',
-      'wl.stageSingle': 'Célibataire',
-      'wl.stageCouple': 'En couple',
-      'wl.stageFamily': 'Famille',
-      'wl.success': 'Merci ! Vous êtes sur la liste d’attente. 🎉',
-      'wl.invalid': 'Saisissez une adresse e-mail valide.',
-      'wl.error': 'Une erreur s’est produite. Réessayez dans un instant.',
       'cta.h2': 'Prêt à découvrir <em>un quotidien plus simple ?</em>',
-      'cta.sub': 'Rejoignez Skrud et voyez combien de temps vous gagnez avec les garde-robes de toute la famille bien rangées. Inscrivez-vous à la liste d’attente et nous vous contacterons dès que Skrud est prêt pour vous.',
-      'cta.btn': 'Rejoindre la liste d’attente',
+      'cta.sub': 'Voyez le temps gagné quand les garde-robes de la famille sont en ordre.',
+      'cta.btn': 'Télécharger dans l’App Store',
       'footer.privacy': 'Confidentialité',
       'footer.terms': 'Conditions',
       'footer.support': 'Assistance',
@@ -702,6 +657,23 @@ em{font-style:italic;color:var(--brand-soft);}
     try { localStorage.setItem('skrud_lang', lang); } catch (e) {}
   }
 
+  // ── App Store-länk ───────────────────────────────────────────────────
+  // ENDA stället länken står. Ändras den (ny marknad, nytt Apple-ID) räcker det
+  // att byta här – alla knappar följer med.
+  //
+  // Knapparna DÖLJS om värdet inte är en giltig apps.apple.com-adress: en knapp
+  // som inte gör något är sämre än ingen knapp.
+  const APPSTORE_URL = 'https://apps.apple.com/se/app/skrud/id6791705330';
+
+  (function applyAppStoreLinks() {
+    const ready = /^https:\/\/apps\.apple\.com\//.test(APPSTORE_URL);
+    document.querySelectorAll('[data-appstore]').forEach(a => {
+      if (ready) { a.setAttribute('href', APPSTORE_URL); a.removeAttribute('hidden'); }
+      else { a.setAttribute('hidden', ''); }
+    });
+    if (!ready) console.warn('[Skrud] APPSTORE_URL är inte ifylld – nedladdningsknapparna är dolda.');
+  })();
+
   (function initLang() {
     let saved = null;
     try { saved = localStorage.getItem('skrud_lang'); } catch (e) {}
@@ -711,45 +683,6 @@ em{font-style:italic;color:var(--brand-soft);}
     const ls = document.getElementById('langSel');
     if (ls) ls.addEventListener('change', () => applyLang(ls.value));
   })();
-
-  // ── Waitlist ─────────────────────────────────────────────────────────
-  let selectedStage = '';
-  document.querySelectorAll('.wl-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const s = pill.getAttribute('data-stage');
-      if (selectedStage === s) { selectedStage = ''; pill.classList.remove('active'); return; }
-      selectedStage = s;
-      document.querySelectorAll('.wl-pill').forEach(x => x.classList.toggle('active', x === pill));
-    });
-  });
-
-  const wlForm = document.getElementById('wlForm');
-  if (wlForm) {
-    wlForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const lang = document.documentElement.lang || 'sv';
-      const dict = T[lang] || T.sv;
-      const email = document.getElementById('wlEmail').value.trim();
-      const company = document.getElementById('wlCompany').value; // honeypot
-      const msg = document.getElementById('wlMsg');
-      const btn = wlForm.querySelector('.wl-btn');
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = dict['wl.invalid']; msg.className = 'wl-msg err'; return; }
-      btn.disabled = true;
-      try {
-        const r = await fetch('/api/waitlist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, company, source: 'landing', lang, stage: selectedStage || null })
-        });
-        const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) { msg.textContent = dict['wl.success']; msg.className = 'wl-msg ok'; wlForm.reset(); }
-        else if (d.error === 'invalid_email') { msg.textContent = dict['wl.invalid']; msg.className = 'wl-msg err'; }
-        else { msg.textContent = dict['wl.error']; msg.className = 'wl-msg err'; }
-      } catch (err) {
-        msg.textContent = dict['wl.error']; msg.className = 'wl-msg err';
-      } finally { btn.disabled = false; }
-    });
-  }
 
   // ── Scroll reveal + nav ──────────────────────────────────────────────
   const observer = new IntersectionObserver(

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { childSizeLabel, shoeSizeLabel, type SizeSystem } from './childSize'
 import { localeFor } from './i18n'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { translate, LANGS, type Lang } from './i18n'
@@ -41,6 +42,7 @@ const FALLBACK_RATES: Record<CurrencyCode, number> = {
 }
 
 const CUR_KEY = 'kladkollen_currency'
+const SIZESYS_KEY = 'kladkollen_size_system'
 const TEMP_KEY = 'kladkollen_tempunit'
 const LANG_KEY = 'kladkollen_lang'
 const SONG_KEY = 'kladkollen_show_daily_song'
@@ -63,6 +65,8 @@ function formatWithCurrency(n: number, currency: CurrencyCode, locale: string): 
 
 type SettingsCtx = {
   currency: CurrencyCode
+  /** Vilket storlekssystem barnstorlekar VISAS i. Lagringen är alltid cm/EU. */
+  sizeSystem: SizeSystem
   tempUnit: TempUnit
   lang: Lang
   /** Om "Dagens låt" ska visas på hemskärmen (kan döljas under Profil → Musik). */
@@ -70,6 +74,7 @@ type SettingsCtx = {
   /** Om AI:n ska väga in användarens färganalys när outfits genereras. */
   useColorAnalysis: boolean
   setCurrency: (c: CurrencyCode) => void
+  setSizeSystem: (s: SizeSystem) => void
   setTempUnit: (u: TempUnit) => void
   setLang: (l: Lang) => void
   setShowDailySong: (v: boolean) => void
@@ -84,6 +89,20 @@ type SettingsCtx = {
   fromBaseSEK: (sek: number | null | undefined) => number | null
   /** Aktuell kurs SEK → vald valuta. */
   rate: number
+  /**
+   * Visar en lagrad klädstorlek (cm) i valt system, t.ex. 104 → "3-4 yrs".
+   * Avser barnstorlekar – skalan 50–170 är barnens.
+   */
+  childSize: (cm: number | null | undefined) => string
+  /**
+   * Visar en lagrad skostorlek (EU) i valt system, t.ex. 28 → "10".
+   *
+   * ⚠️  Använd BARA för barnskor. Omräkningen är entydig under EU 32; däröver
+   *     skiljer sig US dam och herr med ~1,5 storlekar och tabellen är
+   *     herrbaserad. En vuxensko ska visa EU-numret rakt av – en siffra som ser
+   *     exakt ut men är fel är sämre än ingen omräkning.
+   */
+  shoeSize: (eu: number | null | undefined) => string
   tempValue: (celsius: number) => number
   tempLabel: (celsius: number) => string
 }
@@ -106,6 +125,7 @@ const Ctx = createContext<SettingsCtx | null>(null)
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>('SEK')
+  const [sizeSystem, setSizeSystemState] = useState<SizeSystem>('eu')
   const [tempUnit, setTempUnitState] = useState<TempUnit>('C')
   const [lang, setLangState] = useState<Lang>('sv')
   const [showDailySong, setShowDailySongState] = useState<boolean>(true)
@@ -117,6 +137,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       try {
         const c = await AsyncStorage.getItem(CUR_KEY)
         if (c) setCurrencyState(c as CurrencyCode)
+        const ss = await AsyncStorage.getItem(SIZESYS_KEY)
+        if (ss) setSizeSystemState(ss as SizeSystem)
         const u = await AsyncStorage.getItem(TEMP_KEY)
         if (u === 'F' || u === 'C') setTempUnitState(u)
         // Språk: uttryckligt val (sparat) vinner. Annars följer vi telefonens
@@ -174,6 +196,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     } catch { /* behåll reserv/cache */ }
   }
 
+  function setSizeSystem(v: SizeSystem) {
+    setSizeSystemState(v)
+    AsyncStorage.setItem(SIZESYS_KEY, v).catch(() => {})
+  }
+
   function setCurrency(c: CurrencyCode) {
     setCurrencyState(c)
     AsyncStorage.setItem(CUR_KEY, c).catch(() => {})
@@ -202,11 +229,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const value: SettingsCtx = {
     currency,
+    sizeSystem,
     tempUnit,
     lang,
     showDailySong,
     useColorAnalysis,
     setCurrency,
+    setSizeSystem,
     setTempUnit,
     setLang,
     setShowDailySong,
@@ -214,6 +243,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     t: (key: string) => translate(lang, key),
     rate,
     formatPrice: (sek) => formatWithCurrency((Number(sek) || 0) * rate, currency, localeFor(lang)),
+    childSize: (cm) => childSizeLabel(cm, sizeSystem),
+    shoeSize: (eu) => shoeSizeLabel(eu, sizeSystem),
     toBaseSEK: (amount) => (amount == null || amount === ('' as any)) ? null : Math.round((Number(amount) || 0) / rate),
     fromBaseSEK: (sek) => sek == null ? null : Math.round((Number(sek) || 0) * rate),
     tempValue: toUnit,
