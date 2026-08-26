@@ -124,6 +124,58 @@ async function vercel() {
   }
 }
 
+// ── AI-kostnader ───────────────────────────────────────────────────────────
+// Kräver ADMIN-nycklar, skilda från de API-nycklar appen använder. Skillnaden är
+// inte formalia: admin-nyckeln får läsa organisationens fakturadata och ska
+// aldrig ligga någonstans där appkoden når den.
+
+const DAY = 86400
+
+/** Summerar OpenAI:s kostnadsbuckets sedan `days` dagar tillbaka. USD. */
+async function openaiCost(days: number, key: string): Promise<number | null> {
+  const start = Math.floor(Date.now() / 1000) - days * DAY
+  const data = await get(
+    `https://api.openai.com/v1/organization/costs?start_time=${start}&bucket_width=1d&limit=${Math.min(days, 180)}`,
+    { Authorization: `Bearer ${key}` },
+  )
+  const buckets = data?.data
+  if (!Array.isArray(buckets)) return null
+  let sum = 0
+  for (const b of buckets) {
+    for (const r of b?.results || []) sum += Number(r?.amount?.value || 0)
+  }
+  return sum
+}
+
+/** Summerar Anthropics cost_report sedan `days` dagar tillbaka. USD. */
+async function anthropicCost(days: number, key: string): Promise<number | null> {
+  const start = new Date(Date.now() - days * DAY * 1000).toISOString()
+  const data = await get(
+    `https://api.anthropic.com/v1/organizations/cost_report?starting_at=${encodeURIComponent(start)}&bucket_width=1d`,
+    { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+  )
+  const buckets = data?.data
+  if (!Array.isArray(buckets)) return null
+  let sum = 0
+  for (const b of buckets) {
+    for (const r of b?.results || []) sum += Number(r?.amount ?? r?.cost ?? 0)
+  }
+  return sum
+}
+
+async function aiCosts() {
+  const oa = process.env.OPENAI_ADMIN_KEY
+  const an = process.env.ANTHROPIC_ADMIN_KEY
+  if (!oa && !an) return null
+  const [oa7, oa30, an7, an30] = await Promise.all([
+    oa ? openaiCost(7, oa) : Promise.resolve(null),
+    oa ? openaiCost(30, oa) : Promise.resolve(null),
+    an ? anthropicCost(7, an) : Promise.resolve(null),
+    an ? anthropicCost(30, an) : Promise.resolve(null),
+  ])
+  return { oa7, oa30, an7, an30, hasOpenai: !!oa, hasAnthropic: !!an }
+}
+
 // ── Rendering ──────────────────────────────────────────────────────────────
 function cardHtml(c: Card) {
   return `<div class="card ${c.tone || ''}">
@@ -155,7 +207,9 @@ export default async function handler(request: Request): Promise<Response> {
   if (!expected) return json({ error: 'DASHBOARD_KEY saknas på servern' }, 500)
   if (key !== expected) return new Response('Not found', { status: 404 })
 
-  const [sb, sentry, rc, vc] = await Promise.all([supabaseStats(), sentryIssues(), revenueCat(), vercel()])
+  const [sb, sentry, rc, vc, ai] = await Promise.all([
+    supabaseStats(), sentryIssues(), revenueCat(), vercel(), aiCosts(),
+  ])
 
   const parts: string[] = []
 
@@ -267,6 +321,28 @@ export default async function handler(request: Request): Promise<Response> {
     ], 'Visar bygg- och deploystatus. Fel inuti funktionerna syns i Sentry, inte här.'))
   } else {
     parts.push(missing('Vercel', ['VERCEL_TOKEN', 'VERCEL_PROJECT_ID', 'VERCEL_TEAM_ID (bara för team)']))
+  }
+
+  if (ai) {
+    const usd = (n: number | null) => (n == null ? '–' : `$${n.toFixed(2)}`)
+    // Veckotakten säger mer än månadssumman: den fångar en kostnad som just
+    // börjat springa, medan månadssumman fortfarande ser lugn ut.
+    const weekRun = (n7: number | null) => (n7 == null ? undefined : `≈ $${(n7 * 4.35).toFixed(0)}/mån i den takten`)
+    const cards: Card[] = []
+    if (ai.hasOpenai) {
+      cards.push({ label: 'OpenAI · 7 d', value: usd(ai.oa7), hint: weekRun(ai.oa7) })
+      cards.push({ label: 'OpenAI · 30 d', value: usd(ai.oa30) })
+    }
+    if (ai.hasAnthropic) {
+      cards.push({ label: 'Anthropic · 7 d', value: usd(ai.an7), hint: weekRun(ai.an7) })
+      cards.push({ label: 'Anthropic · 30 d', value: usd(ai.an30) })
+    }
+    const total30 = (ai.oa30 ?? 0) + (ai.an30 ?? 0)
+    cards.push({ label: 'Totalt · 30 d', value: usd(total30), hint: 'exkl. Replicate' })
+    parts.push(section('AI-kostnader', cards,
+      'Replicate saknar kostnads-API och räknas inte in. Bildlagringens egress är fortfarande den kostnad som växer snabbast.'))
+  } else {
+    parts.push(missing('AI-kostnader', ['OPENAI_ADMIN_KEY', 'ANTHROPIC_ADMIN_KEY']))
   }
 
   const html = `<!DOCTYPE html>
