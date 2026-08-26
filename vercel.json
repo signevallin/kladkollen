@@ -21,6 +21,10 @@
       "dest": "/valkommen.html"
     },
     {
+      "src": "^/oversikt/?$",
+      "dest": "/api/dashboard"
+    },
+    {
       "handle": "filesystem"
     },
     {
