@@ -67,8 +67,16 @@ function daysBetween(a: Date, b: Date): number {
   return (b.getTime() - a.getTime()) / (24 * 60 * 60 * 1000)
 }
 
+// Formaterar i LOKAL tid, inte UTC. Datumen här byggs lokalt – nextSeasonStart
+// ger new Date(år, månad, 1), alltså lokal midnatt – och toISOString() hade då
+// backat till föregående dygn i alla tidszoner öster om Greenwich. 1 juni blev
+// "2027-05-31", så ett sommarplagg fick ett readyDate som låg i maj: fel dag,
+// fel månad och fel säsong i det som visas för användaren.
 function toISODate(d: Date): string {
-  return d.toISOString().slice(0, 10)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 /**

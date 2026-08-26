@@ -67,6 +67,21 @@ describe('computeSizeReminders – säsong', () => {
     expect(m).toBeLessThanOrEqual(8)
   })
 
+  // Regression: readyDate byggs som lokal midnatt (nextSeasonStart ger
+  // new Date(år, månad, 1)). Serialiseras det med toISOString() backar datumet
+  // ett dygn i varje tidszon öster om Greenwich – 1 juni blev "2027-05-31", och
+  // ett sommarplagg fick alltså ett readyDate i maj.
+  it('readyDate landar på säsongens första dag, inte dagen före', () => {
+    const now = new Date('2026-11-01')
+    const res = computeSizeReminders(
+      [garment({ season: 'Sommar', size_cm: 98 })],
+      [child({ current_size_cm: 92, birthdate: '2025-02-01' })],
+      now,
+    )
+    // Sommaren börjar 1 juni. Dag 1, inte 31 i månaden före.
+    expect(res[0].readyDate.slice(5)).toBe('06-01')
+  })
+
   it('plagg som passar nu i rätt storlek blir "ready"', () => {
     const res = computeSizeReminders(
       [garment({ season: 'Alla årstider', size_cm: 92 })],
