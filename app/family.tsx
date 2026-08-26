@@ -50,7 +50,7 @@ function showPottyRow(child: Person): boolean {
 export default function Family() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { t: tr, lang } = useSettings()
+  const { t: tr, lang , childSize, shoeSize: shoeSizeLbl} = useSettings()
   // Barnfunktioner ligger bakom familjeläget (Familj-nivån). Nås skärmen ändå
   // utan nivån (t.ex. gammal djuplänk) – skicka till paywall.
   const { tier, loading: tierLoading } = useEntitlements()
@@ -315,7 +315,7 @@ export default function Family() {
                   <MaterialIcons name="remove" size={16} color={t.textPrimary} />
                   </TouchableOpacity>
                   <View style={styles.sizeValue}>
-                    <Text style={styles.sizeNum}>{child.current_size_cm ?? '–'}</Text>
+                    <Text style={styles.sizeNum}>{childSize(child.current_size_cm)}</Text>
                     <Text style={styles.sizeUnit}>{tr('stl')}</Text>
                   </View>
                   <TouchableOpacity style={styles.stepBtn} onPress={() => bump(child, 1)} accessibilityLabel={tr('Större storlek')}>
@@ -327,7 +327,7 @@ export default function Family() {
                   <MaterialIcons name="remove" size={16} color={t.textPrimary} />
                   </TouchableOpacity>
                   <View style={styles.sizeValue}>
-                    <Text style={styles.sizeNum}>{child.current_shoe_size ?? '–'}</Text>
+                    <Text style={styles.sizeNum}>{shoeSizeLbl(child.current_shoe_size)}</Text>
                     <Text style={styles.sizeUnit}>{tr('sko')}</Text>
                   </View>
                   <TouchableOpacity style={styles.stepBtn} onPress={() => bumpShoe(child, 1)} accessibilityLabel={tr('Större skostorlek')}>

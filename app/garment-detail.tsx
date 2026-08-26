@@ -62,7 +62,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 export default function GarmentDetail() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { currency, toBaseSEK, fromBaseSEK, t: tr, lang } = useSettings()
+  const { currency, toBaseSEK, fromBaseSEK, t: tr, lang , childSize, shoeSize: shoeSizeLbl} = useSettings()
   const locale = localeFor(lang)
   const { tier } = useEntitlements()
   // Att tilldela plagg till ett barn ligger bakom familjeläget, "får lånas av
@@ -674,7 +674,7 @@ export default function GarmentDetail() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
                   {EU_CHILD_SIZES.map((s) => (
                     <TouchableOpacity key={s} style={[styles.pill, sizeCm === s && styles.pillActive]} onPress={() => setSizeCm(sizeCm === s ? null : s)}>
-                      <Text style={[styles.pillText, sizeCm === s && styles.pillTextActive]}>{s}</Text>
+                      <Text style={[styles.pillText, sizeCm === s && styles.pillTextActive]}>{childSize(s)}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -697,7 +697,7 @@ export default function GarmentDetail() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
                   {EU_SHOE_SIZES.map((s) => (
                     <TouchableOpacity key={s} style={[styles.pill, shoeSize === s && styles.pillActive]} onPress={() => setShoeSize(shoeSize === s ? null : s)}>
-                      <Text style={[styles.pillText, shoeSize === s && styles.pillTextActive]}>{s}</Text>
+                      <Text style={[styles.pillText, shoeSize === s && styles.pillTextActive]}>{shoeSizeLbl(s)}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
