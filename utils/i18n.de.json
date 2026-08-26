@@ -1262,5 +1262,9 @@
  "Nummer (5, 4T)": "Nummer (5, 4T)",
  "Alla burna idag": "Alle heute getragen",
  "Markera allas outfits som burna idag": "Outfits aller als heute getragen markieren",
- "Några kunde inte loggas": "Einige konnten nicht gespeichert werden"
+ "Några kunde inte loggas": "Einige konnten nicht gespeichert werden",
+ "Din garderob är tom": "Deine Garderobe ist leer",
+ "Lägg till några plagg först, så kan Skrud sätta ihop en outfit åt dig.": "Füge zuerst ein paar Kleidungsstücke hinzu, dann stellt Skrud ein Outfit für dich zusammen.",
+ "Inget att bygga på än": "Noch nichts zum Kombinieren",
+ "Dina plagg ligger i kategorier som inte används för outfits, till exempel sovkläder och underkläder. Lägg till en överdel, en nederdel och ett par skor.": "Deine Kleidungsstücke liegen in Kategorien, die nicht für Outfits verwendet werden, etwa Nachtwäsche und Unterwäsche. Füge ein Oberteil, ein Unterteil und ein Paar Schuhe hinzu."
 }

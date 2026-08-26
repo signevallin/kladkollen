@@ -357,3 +357,22 @@ export function dedupOutfitItems(items: any[], pool: any[]): any[] {
     return true
   })
 }
+
+/**
+ * Varför garderoben inte kan bli en outfit – eller null om den kan.
+ *
+ * buildGroupedGarmentList returnerar en TOM sträng när ingen grupp fick
+ * innehåll, och servern avvisar det. Att upptäcka det på klienten gör två
+ * saker: användaren får ett besked som säger vad hen ska göra i stället för
+ * "Garderobslista saknas", och anropet blir aldrig av – vilket sparar både
+ * väntetid och en AI-kredit.
+ *
+ * Skiljer på de två fallen med flit. Tom garderob är självförklarande. Att ha
+ * plagg men ändå få tom lista är däremot förvirrande, och beror på att
+ * Sovkläder, Underkläder och Badkläder medvetet saknas bland outfit-
+ * kategorierna – de plaggen är osynliga för genereringen.
+ */
+export function wardrobeGapReason(groupedList: string, garmentCount: number): 'empty' | 'no-usable' | null {
+  if (groupedList) return null
+  return garmentCount > 0 ? 'no-usable' : 'empty'
+}

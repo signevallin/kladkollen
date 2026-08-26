@@ -38,7 +38,7 @@ import { supabase } from '../../supabase'
 import { showAlert } from '../../utils/alert'
 import { apiPost } from '../../utils/api'
 import { buildWeatherContext, summarizeDayForecast } from '../../utils/weather'
-import { buildGroupedGarmentList, validateOutfit, matchItemsToPool, dedupOutfitItems, getCurrentSeason, seasonAppropriate } from '../../utils/outfit'
+import { buildGroupedGarmentList, wardrobeGapReason, validateOutfit, matchItemsToPool, dedupOutfitItems, getCurrentSeason, seasonAppropriate } from '../../utils/outfit'
 import { pregnancyPromptContext, trimesterFromDueDate, nursingPromptContext } from '../../utils/pregnancy'
 import { colorPalettePrompt } from '../../utils/colorAnalysis'
 import { useEntitlements, FREE_AI_PER_WEEK, partnerFeaturesEnabled, familyFeaturesEnabled } from '../../utils/entitlements'
@@ -357,6 +357,20 @@ export default function Home() {
       const baseSetStr = setGarments.map(annot).join(', ')
 
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
+      // Tom lista = servern skulle avvisa anropet ändå. Att stanna här ger ett
+      // besked som säger vad man ska göra, och kostar varken väntetid eller
+      // AI-kredit.
+      const gap = wardrobeGapReason(groupedList, pool.length)
+      if (gap) {
+        showAlert(
+          gap === 'empty' ? tr('Din garderob är tom') : tr('Inget att bygga på än'),
+          gap === 'empty'
+            ? tr('Lägg till några plagg först, så kan Skrud sätta ihop en outfit åt dig.')
+            : tr('Dina plagg ligger i kategorier som inte används för outfits, till exempel sovkläder och underkläder. Lägg till en överdel, en nederdel och ett par skor.'),
+        )
+        return
+      }
+
 
       const intensityStr = INTENSITY_LABELS[intensity - 1]
 

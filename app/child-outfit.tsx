@@ -13,7 +13,7 @@ import { goBack } from '../utils/nav'
 import { loadPeople, type Person } from '../utils/people'
 import { ageMonths } from '../utils/outfit'
 import { useSettings } from '../utils/settings'
-import { buildGroupedGarmentList, childSizeFits, childWalks, dedupOutfitItems, getCurrentSeason, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit } from '../utils/outfit'
+import { buildGroupedGarmentList, wardrobeGapReason, childSizeFits, childWalks, dedupOutfitItems, getCurrentSeason, isBabyChild, matchItemsToPool, seasonAppropriate, validateOutfit } from '../utils/outfit'
 import { buildWeatherContext, childHeadwearRule, summarizeDayForecast, type WeatherInput } from '../utils/weather'
 
 // Dagens outfit för ett barn: en fristående, förenklad version av hemskärmens
@@ -97,6 +97,20 @@ export default function ChildOutfit() {
       const pool = canForm(seasonal) ? seasonal : canForm(sized) ? sized : active
 
       const groupedList = buildGroupedGarmentList(pool, weatherCtx.requiresOuterwear)
+      // Tom lista = servern skulle avvisa anropet ändå. Att stanna här ger ett
+      // besked som säger vad man ska göra, och kostar varken väntetid eller
+      // AI-kredit.
+      const gap = wardrobeGapReason(groupedList, pool.length)
+      if (gap) {
+        showAlert(
+          gap === 'empty' ? tr('Din garderob är tom') : tr('Inget att bygga på än'),
+          gap === 'empty'
+            ? tr('Lägg till några plagg först, så kan Skrud sätta ihop en outfit åt dig.')
+            : tr('Dina plagg ligger i kategorier som inte används för outfits, till exempel sovkläder och underkläder. Lägg till en överdel, en nederdel och ett par skor.'),
+        )
+        return
+      }
+
       const previousItems: string = (outfit?.items || []).join(', ')
       // Tilltal (bebis vs barn) och skor avgörs var för sig: ett barn kan gå
       // men fortfarande vara bebis, och tvärtom.

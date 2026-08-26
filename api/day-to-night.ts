@@ -2,6 +2,8 @@ import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, OPEN
 
 export const config = { runtime: 'edge' }
 
+const EMPTY_WARDROBE = 'Din garderob har inga plagg som kan bli en outfit än. Lägg till minst en överdel, en nederdel och ett par skor.'
+
 // "Dag till fest": bygger en vardagslook för utgångskontexten och visar hur man
 // förvandlar den till kvällskontexten genom att byta ut 1–3 plagg – som de gamla
 // veckotidningsreportagen. Allt väljs ur användarens egen garderob.
@@ -22,7 +24,7 @@ export default async function handler(request: Request): Promise<Response> {
     const groupedList = clip(body.groupedList, 8000)
     const avoidItems = clip(body.avoidItems, 400)
 
-    if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
+    if (!groupedList) return json({ error: EMPTY_WARDROBE, code: 'empty_wardrobe' }, 400)
 
     const prompt = `Du är en personlig stylist som gör ett klassiskt "från dag till kväll"-reportage.
 Bygg FÖRST en komplett vardagslook för dagkontexten, och visa sedan hur man med
