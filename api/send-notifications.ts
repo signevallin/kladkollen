@@ -16,6 +16,7 @@ type Garment = {
   id: string; name: string | null; brand: string | null; color: string | null
   category: string | null; season: string | null; price: number | null
   times_worn: number | null; last_worn: string | null; created_at: string
+  for_sale: boolean | null; in_laundry: boolean | null
 }
 
 type Profile = {
@@ -23,10 +24,13 @@ type Profile = {
   notif_prefs: Record<string, boolean> | null
   push_lat: number | null; push_lon: number | null
   last_notif_date: string | null
+  last_notif_garment: string | null
   lang: string | null
 }
 
-type Notif = { kind: string; title: string; body: string; route: string }
+// garmentId sätts av de notiser som pekar ut ett specifikt plagg, så att det
+// kan uteslutas nästa gång och inte föreslås två gånger i rad.
+type Notif = { kind: string; title: string; body: string; route: string; garmentId?: string }
 
 const EXPO_PUSH = 'https://exp.host/--/api/v2/push/send'
 
@@ -152,6 +156,24 @@ async function getWeather(lat: number, lon: number) {
 }
 
 // Väljer dagens notis för en användare. Prioriterad ordning, hoppar över
+/**
+ * Väljer bland de N mest bortglömda i stället för att alltid ta den översta.
+ *
+ * Sorteringen är deterministisk och last_worn ändras inte av att en notis
+ * skickas, så `[0]` gav exakt samma plagg varje gång tills det faktiskt bars.
+ * Poolen behåller avsikten – de längst oanvända prioriteras – men gör valet
+ * varierat. Plagget som föreslogs senast utesluts helt.
+ */
+export function pickVaried<T extends { id: string }>(
+  sorted: T[],
+  excludeId: string | null,
+  poolSize = 10,
+): T | null {
+  const pool = sorted.filter(g => g.id !== excludeId).slice(0, poolSize)
+  if (pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
 // kategorier användaren stängt av. Returnerar null om inget passar.
 async function buildNotif(
   slot: 'morning' | 'evening',
@@ -162,7 +184,9 @@ async function buildNotif(
 ): Promise<Notif | null> {
   const prefs = p.notif_prefs || {}
   const lang = p.lang || 'sv' // notistexten översätts till användarens språk
-  const active = garments.filter(g => g)
+  // Ett plagg man lagt ut till försäljning eller som ligger i tvätten är inget
+  // vettigt förslag. (archived filtreras redan i databasfrågan.)
+  const active = garments.filter(g => !g.for_sale && !g.in_laundry)
   const season = currentSeason()
 
   if (slot === 'evening') {
@@ -218,24 +242,31 @@ async function buildNotif(
 
   // "Äntligen rätt väder": ett säsongsplagg du inte burit på länge.
   if (weather && prefs.weather) {
-    const cand = active
-      .filter(g => (g.season || '').includes(season) && daysSince(g.last_worn) >= 30)
-      .sort((a, b) => daysSince(b.last_worn) - daysSince(a.last_worn))[0]
+    const cand = pickVaried(
+      active
+        .filter(g => (g.season || '').includes(season) && daysSince(g.last_worn) >= 30)
+        .sort((a, b) => daysSince(b.last_worn) - daysSince(a.last_worn)),
+      p.last_notif_garment,
+    )
     if (cand) {
       return {
         kind: 'rightweather',
         title: t(lang, 'right.title', { temp: weather.temp }),
         body: t(lang, 'right.body', { desc: describe(cand, lang) }),
         route: `/garment-detail?id=${cand.id}`,
+        garmentId: cand.id,
       }
     }
   }
 
   // Glömda skatter: plagget som legat orört längst.
   if (prefs.rediscovery) {
-    const forgotten = active
-      .filter(g => daysSince(g.last_worn) >= 45 && daysSince(g.created_at) >= 21)
-      .sort((a, b) => daysSince(b.last_worn) - daysSince(a.last_worn))[0]
+    const forgotten = pickVaried(
+      active
+        .filter(g => daysSince(g.last_worn) >= 45 && daysSince(g.created_at) >= 21)
+        .sort((a, b) => daysSince(b.last_worn) - daysSince(a.last_worn)),
+      p.last_notif_garment,
+    )
     if (forgotten) {
       const d = daysSince(forgotten.last_worn)
       const when = d === Infinity ? t(lang, 'forgot.whenNever') : t(lang, 'forgot.whenDays', { d })
@@ -244,6 +275,7 @@ async function buildNotif(
         title: t(lang, 'forgot.title'),
         body: t(lang, 'forgot.body', { desc: describe(forgotten, lang), when }),
         route: `/garment-detail?id=${forgotten.id}`,
+        garmentId: forgotten.id,
       }
     }
   }
@@ -298,7 +330,7 @@ export default async function handler(request: Request): Promise<Response> {
   // Har push-token = användaren gav notistillstånd. registerForPush sätter inte
   // notif_enabled, så den kan vara null (aldrig öppnat notisinställningarna) –
   // behandla null som PÅ. Bara ett uttryckligt false stänger av.
-  const baseCols = 'id, push_token, notif_enabled, notif_prefs, push_lat, push_lon, last_notif_date'
+  const baseCols = 'id, push_token, notif_enabled, notif_prefs, push_lat, push_lon, last_notif_date, last_notif_garment'
   let { data: profiles, error: profErr } = await admin
     .from('profiles').select(`${baseCols}, lang`)
     .not('push_token', 'is', null)
@@ -329,7 +361,7 @@ export default async function handler(request: Request): Promise<Response> {
   for (const idsChunk of chunk(ids, ID_CHUNK)) {
     const { data } = await admin
       .from('garments')
-      .select('user_id, id, name, brand, color, category, season, price, times_worn, last_worn, created_at')
+      .select('user_id, id, name, brand, color, category, season, price, times_worn, last_worn, created_at, for_sale, in_laundry')
       .in('user_id', idsChunk)
       .eq('archived', false)
     for (const g of (data || []) as (Garment & { user_id: string })[]) {
@@ -385,6 +417,7 @@ export default async function handler(request: Request): Promise<Response> {
   // Samla vilka användare som fick vilken notistyp, så dedup-uppdateringen kan
   // göras som en fråga per notistyp (max ~8) i stället för en per användare.
   const notifiedByKind = new Map<string, string[]>()
+  const suggestedGarment = new Map<string, string>()
 
   for (const p of candidates) {
     const notif = await buildNotif(slot, p, garmentsByUser.get(p.id) || [], hasOutfitSet.has(p.id), plannedByUser.get(p.id) || null)
@@ -399,6 +432,9 @@ export default async function handler(request: Request): Promise<Response> {
     })
     const arr = notifiedByKind.get(notif.kind)
     if (arr) arr.push(p.id); else notifiedByKind.set(notif.kind, [p.id])
+    // Plagg-id:t är olika per användare och kan därför inte batchas per
+    // notistyp som raderna nedan. Samlas separat och skrivs i EN upsert.
+    if (notif.garmentId) suggestedGarment.set(p.id, notif.garmentId)
   }
 
   if (messages.length) await sendBatch(messages)
@@ -414,6 +450,16 @@ export default async function handler(request: Request): Promise<Response> {
       )
     )
   )
+
+  // Vilket plagg som föreslogs skiljer sig per användare, så det kan inte gå i
+  // samma batch som dedup-raderna ovan. En upsert räcker för alla – raderna
+  // finns redan, så ON CONFLICT gör en update av just den här kolumnen.
+  if (suggestedGarment.size) {
+    const rows = [...suggestedGarment.entries()].map(([id, last_notif_garment]) => ({ id, last_notif_garment }))
+    for (const part of chunk(rows, ID_CHUNK)) {
+      await admin.from('profiles').upsert(part, { onConflict: 'id' })
+    }
+  }
 
   return new Response(JSON.stringify({ ok: true, slot, considered: candidates.length, sent: messages.length }), {
     status: 200,
