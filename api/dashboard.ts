@@ -65,8 +65,12 @@ async function sentryIssues() {
   const org = process.env.SENTRY_ORG
   const proj = process.env.SENTRY_PROJECT
   if (!token || !org || !proj) return null
+  // Sentry har regionala API-värdar. En organisation på EU-regionen svarar på
+  // de.sentry.io – anrop till sentry.io hittar den inte. Regionen syns i DSN:en
+  // (ingest.de.sentry.io = EU). Default är US eftersom det är vanligast.
+  const host = process.env.SENTRY_HOST || 'sentry.io'
   const data = await get(
-    `https://sentry.io/api/0/projects/${org}/${proj}/issues/?statsPeriod=24h&query=is:unresolved`,
+    `https://${host}/api/0/projects/${org}/${proj}/issues/?statsPeriod=24h&query=is:unresolved`,
     { Authorization: `Bearer ${token}` },
   )
   if (!Array.isArray(data)) return null
@@ -227,7 +231,7 @@ export default async function handler(request: Request): Promise<Response> {
       ...sentry.top.map((i: any) => ({ label: i.culprit || 'issue', value: String(i.count), hint: i.title })),
     ]))
   } else {
-    parts.push(missing('Sentry', ['SENTRY_AUTH_TOKEN', 'SENTRY_ORG', 'SENTRY_PROJECT']))
+    parts.push(missing('Sentry', ['SENTRY_AUTH_TOKEN', 'SENTRY_ORG', 'SENTRY_PROJECT', 'SENTRY_HOST (de.sentry.io för EU)']))
   }
 
   if (rc) {
