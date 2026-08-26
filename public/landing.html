@@ -85,6 +85,11 @@ em{font-style:italic;color:var(--brand-soft);}
 .wordmark{font-family:'Poppins',sans-serif;font-size:21px;font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:var(--brand);text-decoration:none;display:inline-flex;align-items:center;gap:11px;}
 .wordmark img{width:34px;height:34px;border-radius:9px;display:block;}
 .nav-links{margin-left:auto;display:flex;gap:6px;align-items:center;}
+/* Textlänkarna har 14px egen padding, så 6px gap ger 34px optiskt avstånd.
+   Språkväljaren och knappen är fyllda piller utan genomskinlig padding –
+   där ÄR 6px hela avståndet, och de klibbade ihop. Extra marginal bara
+   före knappen, så textlänkarna behåller sin rytm. */
+.nav-links .btn-primary{margin-left:12px;}
 .nav-link{font-family:'Poppins',sans-serif;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:8px;transition:.15s;}
 .nav-link:hover{color:var(--brand);background:rgba(207,181,158,.16);}
 .lang-sel{font-family:'Poppins',sans-serif;color:var(--brand-soft);border:1px solid rgba(108,77,56,.26);padding:8px 30px 8px 13px;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;transition:.15s;-webkit-appearance:none;-moz-appearance:none;appearance:none;background-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236C4D38' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
