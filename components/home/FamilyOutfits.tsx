@@ -133,6 +133,7 @@ export default function FamilyOutfits(
   const [worn, setWorn] = useState<Record<string, boolean>>({})
   const [savingKey, setSavingKey] = useState<string | null>(null)
   const [wearingKey, setWearingKey] = useState<string | null>(null)
+  const [wearingAll, setWearingAll] = useState(false)
 
   const [swapTarget, setSwapTarget] = useState<{ key: string; index: number } | null>(null)
   const [addTarget, setAddTarget] = useState<{ key: string } | null>(null)
@@ -398,70 +399,109 @@ export default function FamilyOutfits(
     }
   }
 
-  async function wearMember(m: Member) {
+  /**
+   * Loggar EN medlems outfit som buren idag.
+   *
+   * Kastar vid fel i stället för att visa dialogen själv: "Alla burna idag"
+   * kör flera i följd och vill samla ihop misslyckandena till ett meddelande
+   * i stället för en dialog per person.
+   */
+  async function wearOne(m: Member) {
     const r = results[m.key]
-    if (!r?.outfit || wearingKey) return
-    setWearingKey(m.key)
+    if (!r?.outfit) return
     const day = today()
-    try {
-      const items = r.outfit.itemsWithImages
-      const names = items.map((i: any) => i.name)
-      const imageUrls = items.map((i: any) => i.image_url).filter(Boolean)
-      const ids = items.map((i: any) => i.id).filter(Boolean)
-      const { data: { user } } = await supabase.auth.getUser()
+    const items = r.outfit.itemsWithImages
+    const names = items.map((i: any) => i.name)
+    const imageUrls = items.map((i: any) => i.image_url).filter(Boolean)
+    const ids = items.map((i: any) => i.id).filter(Boolean)
+    const { data: { user } } = await supabase.auth.getUser()
 
-      if (m.kind === 'partner' && m.partnerId) {
-        const { error } = await supabase.rpc('wear_partner_outfit', { target: m.partnerId, p_name: nameFor(m), p_garment_names: names, p_image_urls: imageUrls, p_date: day })
+    if (m.kind === 'partner' && m.partnerId) {
+      const { error } = await supabase.rpc('wear_partner_outfit', { target: m.partnerId, p_name: nameFor(m), p_garment_names: names, p_image_urls: imageUrls, p_date: day })
+      if (error) throw error
+    } else if (m.kind === 'me') {
+      let id = savedId[m.key]
+      if (!id) {
+        const { data, error } = await supabase.from('outfits').insert([{
+          user_id: user?.id, person_id: null, name: nameFor(m),
+          garment_ids: ids, garment_names: names, image_urls: imageUrls,
+          mood: ctxAdult.label, context: ctxAdult.label.toLowerCase(),
+        }]).select('id').single()
         if (error) throw error
-      } else if (m.kind === 'me') {
-        let id = savedId[m.key]
-        if (!id) {
-          const { data, error } = await supabase.from('outfits').insert([{
-            user_id: user?.id, person_id: null, name: nameFor(m),
-            garment_ids: ids, garment_names: names, image_urls: imageUrls,
-            mood: ctxAdult.label, context: ctxAdult.label.toLowerCase(),
-          }]).select('id').single()
-          if (error) throw error
-          id = data.id; setSavedId(s => ({ ...s, [m.key]: id }))
-        }
-        const { error: calErr } = await supabase.from('outfit_calendar').upsert({ user_id: user?.id, outfit_id: id, date: day }, { onConflict: 'user_id,date' })
-        if (calErr) throw calErr
-        markOutfitLoggedToday()
-        if (ids.length) {
-          await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
-          // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
-          invalidateGarments()
-        }
-      } else if (m.kind === 'child') {
-        // Barnets outfit sparas (person_id) och läggs på dagens datum i barnets
-        // egna kalender (person_outfit_calendar). Plaggen räknas som använda.
-        let id = savedId[m.key]
-        if (!id) {
-          const { data, error } = await supabase.from('outfits').insert([{
-            user_id: user?.id, person_id: m.person!.id, name: nameFor(m),
-            garment_ids: ids, garment_names: names, image_urls: imageUrls,
-            mood: ctxAdult.label, context: ctxAdult.label.toLowerCase(), saved: true,
-          }]).select('id').single()
-          if (error) throw error
-          id = data.id; setSavedId(s => ({ ...s, [m.key]: id }))
-        } else {
-          await supabase.from('outfits').update({ saved: true }).eq('id', id)
-        }
-        const { error: calErr } = await supabase.from('person_outfit_calendar')
-          .upsert({ user_id: user!.id, person_id: m.person!.id, outfit_id: id!, date: day }, { onConflict: 'person_id,date' })
-        if (calErr) throw calErr
-        setSaved(s => ({ ...s, [m.key]: true }))
-        if (ids.length) {
-          await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
-          // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
-          invalidateGarments()
-        }
+        id = data.id; setSavedId(s => ({ ...s, [m.key]: id }))
       }
-      setWorn(w => ({ ...w, [m.key]: true }))
+      const { error: calErr } = await supabase.from('outfit_calendar').upsert({ user_id: user?.id, outfit_id: id, date: day }, { onConflict: 'user_id,date' })
+      if (calErr) throw calErr
+      markOutfitLoggedToday()
+      if (ids.length) {
+        await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
+        // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
+        invalidateGarments()
+      }
+    } else if (m.kind === 'child') {
+      // Barnets outfit sparas (person_id) och läggs på dagens datum i barnets
+      // egna kalender (person_outfit_calendar). Plaggen räknas som använda.
+      let id = savedId[m.key]
+      if (!id) {
+        const { data, error } = await supabase.from('outfits').insert([{
+          user_id: user?.id, person_id: m.person!.id, name: nameFor(m),
+          garment_ids: ids, garment_names: names, image_urls: imageUrls,
+          mood: ctxAdult.label, context: ctxAdult.label.toLowerCase(), saved: true,
+        }]).select('id').single()
+        if (error) throw error
+        id = data.id; setSavedId(s => ({ ...s, [m.key]: id }))
+      } else {
+        await supabase.from('outfits').update({ saved: true }).eq('id', id)
+      }
+      const { error: calErr } = await supabase.from('person_outfit_calendar')
+        .upsert({ user_id: user!.id, person_id: m.person!.id, outfit_id: id!, date: day }, { onConflict: 'person_id,date' })
+      if (calErr) throw calErr
+      setSaved(s => ({ ...s, [m.key]: true }))
+      if (ids.length) {
+        await supabase.rpc('adjust_garment_wear', { p_ids: ids, p_delta: 1, p_date: day })
+        // invalidateGarments() // RPC:n kan ha flyttat plagg till tvätten – cachen måste släppas
+        invalidateGarments()
+      }
+    }
+    setWorn(w => ({ ...w, [m.key]: true }))
+  }
+
+  async function wearMember(m: Member) {
+    if (!results[m.key]?.outfit || wearingKey || wearingAll) return
+    setWearingKey(m.key)
+    try {
+      await wearOne(m)
     } catch (e: any) {
       showAlert(tr('Något gick fel'), e.message)
     } finally {
       setWearingKey(null)
+    }
+  }
+
+  /**
+   * Markerar allas outfits som burna idag i ett svep. Med fyra i familjen är
+   * det annars fyra tryck på exakt samma knapp.
+   *
+   * Körs SEKVENTIELLT, inte parallellt: varje medlem gör flera skrivningar och
+   * anropar adjust_garment_wear. Delar syskon ett plagg skulle parallella anrop
+   * tävla om samma rad. Redan loggade hoppas över, annars räknas plagget som
+   * buret två gånger.
+   */
+  async function wearAll() {
+    if (wearingKey || wearingAll) return
+    setWearingAll(true)
+    const failed: string[] = []
+    try {
+      for (const m of members) {
+        if (!results[m.key]?.outfit || worn[m.key]) continue
+        try { await wearOne(m) } catch { failed.push(m.name) }
+      }
+    } finally {
+      setWearingAll(false)
+    }
+    // Delvis lyckat är bättre än inget – de som gick igenom står kvar loggade.
+    if (failed.length) {
+      showAlert(tr('Några kunde inte loggas'), failed.join(', '))
     }
   }
 
@@ -530,7 +570,7 @@ export default function FamilyOutfits(
                           <TouchableOpacity
                             style={[styles.actionBtn, saved[m.key] && styles.actionBtnDone]}
                             onPress={() => saveMember(m)}
-                            disabled={savingKey === m.key || saved[m.key]}
+                            disabled={savingKey === m.key || saved[m.key] || wearingAll}
                           >
                             {savingKey === m.key
                               ? <ActivityIndicator size="small" color={t.primary} />
@@ -539,9 +579,9 @@ export default function FamilyOutfits(
                           <TouchableOpacity
                             style={[styles.actionBtn, styles.actionBtnPrimary, worn[m.key] && styles.actionBtnDone]}
                             onPress={() => wearMember(m)}
-                            disabled={wearingKey === m.key || worn[m.key]}
+                            disabled={wearingKey === m.key || worn[m.key] || wearingAll}
                           >
-                            {wearingKey === m.key
+                            {wearingKey === m.key || (wearingAll && !worn[m.key])
                               ? <ActivityIndicator size="small" color={t.onPrimary} />
                               : <Text style={[styles.actionTextPrimary, worn[m.key] && styles.actionTextDone]}>{worn[m.key] ? `✓ ${tr('Buren idag')}` : tr('Buren idag')}</Text>}
                           </TouchableOpacity>
@@ -551,6 +591,23 @@ export default function FamilyOutfits(
               </View>
             )
           })}
+          {/* Ett tryck i stället för ett per person. Visas bara när det finns
+              mer än en outfit kvar att logga – med en enda medlem gör knappen
+              exakt samma sak som medlemmens egen. */}
+          {members.filter(m => results[m.key]?.outfit && !worn[m.key]).length > 1 && (
+            <TouchableOpacity
+              style={[styles.wearAllBtn, wearingAll && styles.wearAllBtnBusy]}
+              onPress={wearAll}
+              disabled={wearingAll || !!wearingKey}
+              accessibilityRole="button"
+              accessibilityLabel={tr('Markera allas outfits som burna idag')}
+            >
+              {wearingAll
+                ? <ActivityIndicator size="small" color={t.onPrimary} />
+                : <Text style={styles.wearAllText}>{tr('Alla burna idag')}</Text>}
+            </TouchableOpacity>
+          )}
+
           {song && showDailySong && <SongCard song={song} />}
         </View>
       )}
@@ -601,6 +658,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   actionBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 11, borderRadius: 12, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface, minHeight: 42 },
   actionBtnPrimary: { backgroundColor: t.primary, borderColor: t.primary },
+  wearAllBtn: { marginTop: 4, paddingVertical: 15, borderRadius: 999, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
+  wearAllBtnBusy: { opacity: 0.7 },
+  wearAllText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
   actionBtnDone: { opacity: 0.6 },
   actionText: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.textPrimary },
   actionTextPrimary: { fontFamily: 'Poppins_600SemiBold', fontSize: 13, color: t.onPrimary },
