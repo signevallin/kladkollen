@@ -2,6 +2,8 @@ import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, useA
 
 export const config = { runtime: 'edge' }
 
+const EMPTY_WARDROBE = 'Din garderob har inga plagg som kan bli en outfit än. Lägg till minst en överdel, en nederdel och ett par skor.'
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
@@ -21,6 +23,13 @@ export default async function handler(request: Request): Promise<Response> {
     // audience 'child' → packa till ett barn (bekvämt/praktiskt/väderanpassat före
     // mode; bebisar behöver inga skor). Default 'adult'.
     const audience = body.audience === 'child' ? 'child' : 'adult'
+
+    // Validera FÖRE krediten. En tom garderob är inget AI-anrop och ska inte
+    // kosta något – annars förlorar den som ännu inte lagt in kläder en kredit
+    // på ett fel hen inte kunde undvika.
+    if (!clip(body.groupedList, 8000)) {
+      return json({ error: EMPTY_WARDROBE, code: 'empty_wardrobe' }, 400)
+    }
 
     // Freemium: gratis-användare får ett fåtal packningar per vecka, Premium är
     // obegränsat. Kvoten dras BARA på vuxenanropet – en familjeresa gör ett
@@ -44,7 +53,6 @@ export default async function handler(request: Request): Promise<Response> {
     const avoid = audience === 'child' ? '' : clip(body.avoid, 300)
 
     if (!destination) return json({ error: 'Destination saknas' }, 400)
-    if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
 
     // Antal outfitsförslag: ungefär en per dag, men rimligt tak.
     const outfitCount = Math.max(2, Math.min(days, 7))

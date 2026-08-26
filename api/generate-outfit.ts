@@ -2,12 +2,31 @@ import { clip, json, langInstruction, openaiChat, parseAiJson, requireUser, useA
 
 export const config = { runtime: 'edge' }
 
+// Meddelandet går till användaren, så det säger vad man ska GÖRA i stället för
+// vad som saknas tekniskt. Koden 'empty_wardrobe' låter klienten välja en
+// egen formulering och länka vidare till att lägga till plagg.
+const EMPTY_WARDROBE = 'Din garderob har inga plagg som kan bli en outfit än. Lägg till minst en överdel, en nederdel och ett par skor.'
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
   }
   const auth = await requireUser(request)
   if (auth instanceof Response) return auth
+
+  // Läs och validera indata INNAN krediten dras. En tom garderob är inget
+  // AI-anrop och ska inte kosta något – tidigare förlorade en ny användare som
+  // tryckte på knappen före sitt första plagg en av tre gratiskrediter, och fick
+  // dessutom ett tekniskt felmeddelande tillbaka.
+  let body: any
+  try {
+    body = await request.json()
+  } catch {
+    return json({ error: 'Ogiltig förfrågan' }, 400)
+  }
+  if (!clip(body.groupedList, 8000)) {
+    return json({ error: EMPTY_WARDROBE, code: 'empty_wardrobe' }, 400)
+  }
 
   // Freemium: gratis-användare har en veckokvot; Premium är obegränsat. Koden
   // 'quota_exceeded' talar om för klienten att visa paywall.
@@ -16,7 +35,6 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   try {
-    const body = (await request.json()) as any
     const contextLabel = clip(body.contextLabel, 40)
     const contextLogic = clip(body.contextLogic, 200)
     const intensity = clip(body.intensity, 40)
@@ -55,7 +73,6 @@ export default async function handler(request: Request): Promise<Response> {
     const walks = body.walks !== false
     const pottyTraining = body.pottyTraining === true
 
-    if (!groupedList) return json({ error: 'Garderobslista saknas' }, 400)
 
     const retryInstruction = retry
       ? '\nVIKTIGT: Föregående försök saknade obligatoriska plagg. Se till att inkludera SKOR och NEDERDEL (eller klänning) denna gång.'
