@@ -123,7 +123,18 @@ export default function Login() {
       if (isSignUp) {
         // Skicka med appspråket som metadata så bekräftelsemejlets mall kan
         // väljas på rätt språk ({{ .Data.lang }} i Supabase-mallen).
-        const { error } = await supabase.auth.signUp({ email, password, options: { data: { lang } } })
+        // Utan emailRedirectTo faller Supabase tillbaka på Site URL, som är
+        // landningssidan – den som just skapat ett konto möttes alltså av
+        // marknadsföring i stället för av appen. Målet MÅSTE vara https av
+        // samma skäl som återställningslänken ovan: Safari kan inte följa en
+        // 303 till kladkollen:// utan en användargest. /valkommen är därför en
+        // liten sida med en knapp som gör det hoppet.
+        const webBase = Platform.OS === 'web' ? window.location.origin : (process.env.EXPO_PUBLIC_API_URL || '')
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { lang }, emailRedirectTo: `${webBase}/valkommen` },
+        })
         if (error) throw error
         await rememberMethod('email')
         showAlert(tr('Konto skapat!'), tr('Kolla din email för att verifiera ditt konto.'))

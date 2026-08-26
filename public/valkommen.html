@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex">
+<title>Skrud — Kontot är bekräftat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  color-scheme:light;
+  --brand:#402D21; --brand-soft:#6C4D38; --tan:#CFB59E;
+  --cream:#F8EADE; --bg:#FEFAF8; --border:rgba(108,77,56,0.14);
+}
+html{background:var(--bg);}
+body{
+  background:var(--bg); color:var(--brand);
+  font-family:'Lora',Georgia,serif; line-height:1.6;
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:32px 24px;
+}
+.card{max-width:440px; width:100%; text-align:center;}
+
+/* Ordmärket: versaler, Poppins 700, luftig spärr, mörkbrunt – se CLAUDE.md. */
+.wordmark{
+  font-family:'Poppins',sans-serif; font-weight:700; font-size:19px;
+  letter-spacing:.22em; text-transform:uppercase; color:var(--brand);
+  display:block; margin-bottom:40px;
+}
+.mark{
+  width:56px; height:56px; margin:0 auto 24px; border-radius:50%;
+  background:var(--cream); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+}
+.mark svg{width:26px; height:26px; stroke:var(--brand); fill:none; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round;}
+
+h1{font-family:'Poppins',sans-serif; font-weight:700; font-size:28px; line-height:1.2; letter-spacing:-.02em; margin-bottom:12px;}
+.lede{color:var(--brand-soft); font-size:16px; margin-bottom:32px;}
+
+.btn{
+  display:block; width:100%; padding:15px 24px; border-radius:999px;
+  font-family:'Poppins',sans-serif; font-weight:600; font-size:15px;
+  text-decoration:none; cursor:pointer; border:1px solid transparent;
+}
+.btn-primary{background:var(--brand); color:var(--bg); margin-bottom:12px;}
+.btn-secondary{background:transparent; color:var(--brand-soft); border-color:var(--border);}
+.btn:focus-visible{outline:2px solid var(--brand); outline-offset:3px;}
+
+.hint{margin-top:22px; font-size:13.5px; color:var(--brand-soft); opacity:.85;}
+.hint a{color:var(--brand-soft);}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <span class="wordmark">Skrud</span>
+
+  <div class="mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+  </div>
+
+  <h1 data-t="title">Ditt konto är bekräftat</h1>
+  <p class="lede" data-t="lede">Nu kan du logga in i appen och börja fylla din garderob.</p>
+
+  <!--
+    Knapp, inte automatisk vidarebefordran. Safari kan varken rendera ett custom
+    scheme eller lämna över till appen utan en användargest – ett automatiskt
+    hopp till kladkollen:// ger en tom sida. Samma lärdom som står i
+    app/login.tsx om återställningslänken.
+  -->
+  <a class="btn btn-primary" id="openApp" href="kladkollen://home" data-t="open">Öppna Skrud</a>
+  <a class="btn btn-secondary" id="appStore" href="https://apps.apple.com/se/app/skrud/id6791705330" data-t="install">Hämta appen i App Store</a>
+
+  <p class="hint" data-t="hint">Öppnas inte appen? Starta Skrud från hemskärmen och logga in med din e-post.</p>
+</div>
+
+<script>
+  // Samma fem språk som resten av sajten. Faller tillbaka på svenska.
+  const T = {
+    sv: { title:'Ditt konto är bekräftat', lede:'Nu kan du logga in i appen och börja fylla din garderob.',
+          open:'Öppna Skrud', install:'Hämta appen i App Store',
+          hint:'Öppnas inte appen? Starta Skrud från hemskärmen och logga in med din e-post.' },
+    en: { title:'Your account is confirmed', lede:'You can now sign in and start filling your wardrobe.',
+          open:'Open Skrud', install:'Get the app on the App Store',
+          hint:'App didn’t open? Launch Skrud from your home screen and sign in with your email.' },
+    de: { title:'Dein Konto ist bestätigt', lede:'Du kannst dich jetzt anmelden und deine Garderobe füllen.',
+          open:'Skrud öffnen', install:'App im App Store laden',
+          hint:'App öffnet nicht? Starte Skrud über den Startbildschirm und melde dich mit deiner E-Mail an.' },
+    es: { title:'Tu cuenta está confirmada', lede:'Ya puedes iniciar sesión y empezar a llenar tu armario.',
+          open:'Abrir Skrud', install:'Descargar en el App Store',
+          hint:'¿No se abre la app? Abre Skrud desde la pantalla de inicio e inicia sesión con tu correo.' },
+    fr: { title:'Votre compte est confirmé', lede:'Vous pouvez maintenant vous connecter et remplir votre garde-robe.',
+          open:'Ouvrir Skrud', install:'Télécharger dans l’App Store',
+          hint:'L’appli ne s’ouvre pas ? Lancez Skrud depuis l’écran d’accueil et connectez-vous avec votre e-mail.' },
+  };
+
+  const lang = (navigator.language || 'sv').slice(0, 2).toLowerCase();
+  const dict = T[lang] || T.sv;
+  document.documentElement.lang = T[lang] ? lang : 'sv';
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const v = dict[el.getAttribute('data-t')];
+    if (v) el.textContent = v;
+  });
+  document.title = 'Skrud — ' + dict.title;
+
+</script>
+
+</body>
+</html>
