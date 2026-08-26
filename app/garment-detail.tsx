@@ -693,11 +693,17 @@ export default function GarmentDetail() {
                   {childOwner ? <Text style={styles.sizeOwner}>{childOwner.name}</Text> : null}
                 </View>
                 {/* Numerisk skala, inte fritext: bara så kan appen räkna ut när
-                    skorna blir för små och ta med dem i storlekspåminnelserna. */}
+                    skorna blir för små och ta med dem i storlekspåminnelserna.
+
+                    UK/US-etiketter visas BARA för barnskor. Inställningen heter
+                    "Barnstorlekar", och omräkningen är bara entydig under EU 32 –
+                    över den storleken skiljer sig US dam och herr med ~1,5
+                    storlekar, och en sko kan tillhöra vem som helst i hushållet.
+                    En siffra som ser exakt ut men är fel är sämre än EU-numret. */}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills}>
                   {EU_SHOE_SIZES.map((s) => (
                     <TouchableOpacity key={s} style={[styles.pill, shoeSize === s && styles.pillActive]} onPress={() => setShoeSize(shoeSize === s ? null : s)}>
-                      <Text style={[styles.pillText, shoeSize === s && styles.pillTextActive]}>{shoeSizeLbl(s)}</Text>
+                      <Text style={[styles.pillText, shoeSize === s && styles.pillTextActive]}>{childOwner ? shoeSizeLbl(s) : s}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>

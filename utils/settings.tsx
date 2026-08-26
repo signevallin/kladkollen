@@ -89,9 +89,19 @@ type SettingsCtx = {
   fromBaseSEK: (sek: number | null | undefined) => number | null
   /** Aktuell kurs SEK → vald valuta. */
   rate: number
-  /** Visar en lagrad klädstorlek (cm) i valt system, t.ex. 104 → "3-4 yrs". */
+  /**
+   * Visar en lagrad klädstorlek (cm) i valt system, t.ex. 104 → "3-4 yrs".
+   * Avser barnstorlekar – skalan 50–170 är barnens.
+   */
   childSize: (cm: number | null | undefined) => string
-  /** Visar en lagrad skostorlek (EU) i valt system, t.ex. 28 → "10". */
+  /**
+   * Visar en lagrad skostorlek (EU) i valt system, t.ex. 28 → "10".
+   *
+   * ⚠️  Använd BARA för barnskor. Omräkningen är entydig under EU 32; däröver
+   *     skiljer sig US dam och herr med ~1,5 storlekar och tabellen är
+   *     herrbaserad. En vuxensko ska visa EU-numret rakt av – en siffra som ser
+   *     exakt ut men är fel är sämre än ingen omräkning.
+   */
   shoeSize: (eu: number | null | undefined) => string
   tempValue: (celsius: number) => number
   tempLabel: (celsius: number) => string
