@@ -146,20 +146,33 @@ export default async function handler(request: Request): Promise<Response> {
   const parts: string[] = []
 
   if (sb) {
+    // Färska konton FÖRST, och utan omdöme. De visar fart, inte kvalitet – ett
+    // konto som är fyra timmar gammalt har inte "misslyckats" med att aktivera
+    // sig. Utan den uppdelningen rasade siffran varje gång appen fick nya
+    // användare, alltså precis när man tittar på den.
+    const f = sb.fresh || {}
+    parts.push(section('Senaste dygnet', [
+      { label: 'Nya konton', value: String(f.last_24h ?? 0) },
+      { label: 'Har lagt in plagg', value: String(f.with_garment ?? 0), hint: pct(f.with_garment ?? 0, f.last_24h ?? 0) },
+    ], 'För färskt för att bedöma. Redovisas som fart, inte som resultat.'))
+
     const a = sb.activation || {}
     const rate = a.cohort > 0 ? a.activated / a.cohort : 0
-    // Aktivering är enligt playbooken den viktigaste siffran. Under 25 % betyder
-    // att onboardingen läcker – då spelar marknadsföring ingen roll än.
-    parts.push(section('Aktivering – senaste 30 dagarna', [
-      { label: 'Nya konton', value: String(a.cohort ?? 0) },
+    // Bara konton äldre än 48 h bedöms, och interna konton är uteslutna. Med
+    // för litet underlag säger andelen ingenting – då visas antalet i stället.
+    const thin = (a.cohort ?? 0) < 10
+    parts.push(section('Aktivering – mogna konton', [
+      { label: 'I kohorten', value: String(a.cohort ?? 0), hint: 'äldre än 48 h' },
       { label: 'Lagt in plagg', value: `${a.with_garment ?? 0}`, hint: pct(a.with_garment ?? 0, a.cohort ?? 0) },
       { label: 'Genererat outfit', value: `${a.with_outfit ?? 0}`, hint: pct(a.with_outfit ?? 0, a.cohort ?? 0) },
       {
-        label: 'Aktiverade', value: pct(a.activated ?? 0, a.cohort ?? 0),
+        label: 'Aktiverade', value: thin ? `${a.activated ?? 0} av ${a.cohort ?? 0}` : pct(a.activated ?? 0, a.cohort ?? 0),
         hint: 'plagg + outfit',
-        tone: rate >= 0.4 ? 'ok' : rate >= 0.25 ? 'warn' : 'bad',
+        tone: thin ? undefined : rate >= 0.4 ? 'ok' : rate >= 0.25 ? 'warn' : 'bad',
       },
-    ], 'Andelen som både lagt in plagg och genererat en outfit. Är den låg läcker onboardingen, och annonser gör bara läckaget dyrare.'))
+    ], thin
+      ? 'Färre än tio mogna konton – underlaget räcker inte för en andel än, så antalet visas i stället.'
+      : 'Andelen som både lagt in plagg och genererat en outfit. Är den låg läcker onboardingen, och annonser gör bara läckaget dyrare.'))
 
     const u = sb.users || {}
     parts.push(section('Användare', [
