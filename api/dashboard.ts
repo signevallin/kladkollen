@@ -92,12 +92,41 @@ async function revenueCat() {
   )
   if (!data?.metrics) return null
   const by = Object.fromEntries(data.metrics.map((m: any) => [m.id, m]))
-  return {
-    mrr: by.mrr?.value ?? null,
-    activeSubs: by.active_subscriptions?.value ?? null,
-    activeTrials: by.active_trials?.value ?? null,
-    revenue28: by.revenue?.value ?? null,
+  // Ta MED enheten. RevenueCat rapporterar i kontots visningsvaluta, och ett
+  // naket "3" går inte att tolka – är det tre kronor, tre dollar eller tre
+  // abonnemang? Enheten kommer från API:t i stället för att gissas här.
+  const m = (id: string) => {
+    const x = by[id]
+    return x ? { value: x.value ?? null, unit: (x.unit ?? '').trim() } : { value: null, unit: '' }
   }
+  return {
+    mrr: m('mrr'),
+    activeSubs: m('active_subscriptions'),
+    activeTrials: m('active_trials'),
+    revenue28: m('revenue'),
+  }
+}
+
+/**
+ * Formaterar ett RevenueCat-mått med sin enhet.
+ *
+ * "#" betyder antal och skrivs naket. En symbol ($, €, kr) sätts före talet,
+ * en valutakod (USD) efter. Saknas enheten faller vi tillbaka på
+ * REVENUECAT_CURRENCY – hellre en tydlig gissning än en naken siffra.
+ */
+function rcValue(m: { value: number | null; unit: string }): string {
+  if (m.value == null) return '–'
+  const n = Number(m.value)
+  const u = m.unit
+  if (!u || u === '#') {
+    if (!u && !Number.isInteger(n)) {
+      const fb = process.env.REVENUECAT_CURRENCY || 'USD'
+      return `${n.toFixed(2)} ${fb}`
+    }
+    return String(n)
+  }
+  if (/^[A-Z]{3}$/.test(u)) return `${n.toFixed(2)} ${u}`
+  return `${u}${n.toFixed(2)}`
 }
 
 // ── Vercel ─────────────────────────────────────────────────────────────────
@@ -300,11 +329,11 @@ export default async function handler(request: Request): Promise<Response> {
 
   if (rc) {
     parts.push(section('RevenueCat', [
-      { label: 'MRR', value: rc.mrr != null ? String(rc.mrr) : '–' },
-      { label: 'Aktiva abonnemang', value: rc.activeSubs != null ? String(rc.activeSubs) : '–' },
-      { label: 'Aktiva provperioder', value: rc.activeTrials != null ? String(rc.activeTrials) : '–' },
-      { label: 'Intäkt (28 d)', value: rc.revenue28 != null ? String(rc.revenue28) : '–' },
-    ]))
+      { label: 'MRR', value: rcValue(rc.mrr), hint: 'månadsåterkommande' },
+      { label: 'Aktiva abonnemang', value: rcValue(rc.activeSubs) },
+      { label: 'Aktiva provperioder', value: rcValue(rc.activeTrials) },
+      { label: 'Intäkt · 28 d', value: rcValue(rc.revenue28) },
+    ], 'Belopp visas i den valuta RevenueCat rapporterar i, inte nödvändigtvis den du säljer i.'))
   } else {
     parts.push(missing('RevenueCat', ['REVENUECAT_SECRET_KEY', 'REVENUECAT_PROJECT_ID']))
   }
