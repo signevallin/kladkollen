@@ -25,6 +25,10 @@
       "dest": "/api/dashboard"
     },
     {
+      "src": "^/faq/?$",
+      "dest": "/faq.html"
+    },
+    {
       "handle": "filesystem"
     },
     {
