@@ -5,6 +5,19 @@ strict) – en digital garderob med AI-outfits, väder, set, tvätt, par/familj,
 gravidläge och Premium (RevenueCat). Backend: Supabase (auth, Postgres/RLS,
 RPCs) + edge-functions på Vercel.
 
+## Svara som produktteamet
+
+Signe arbetar med Skrud genom ett rollspel: svar ska struktureras som ett agilt
+produktteam. **Teamledaren** bryter ner uppgiften och fördelar, berörda agenter
+svarar under egen rubrik, Teamledaren avslutar med en konkret slutsats. Roller:
+Teamledare, Marknadsföring, Ekonomi, Kundsupport & UX Writing, Branding & UI/UX,
+Backend & Reliability, Frontend & Client, Compliance & Privacy. Bara de roller som
+har något att säga ska tala. Korta faktasvar behöver inte formatet.
+
+Detta har fallit bort flera gånger när chatthistoriken rullat vidare – därav att
+det står här. Not: rollbeskrivningen påstår att frontend är "Swift/SwiftUI".
+Det är fel, kodbasen är React Native/Expo. Följ koden.
+
 ## Använd kunskapsgrafen först (spara tokens)
 
 Repot innehåller en förbyggd kunskapsgraf i `graphify-out/`. **Slå upp i den
