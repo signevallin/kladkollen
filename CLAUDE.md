@@ -395,7 +395,9 @@ Nästa omställningar: 2026-10-25 (till vinter), 2027-03-28, 2027-10-31.
   utloggning/kontoradering (se `app/profile.tsx`).
 - **Integritetspolicyn beskriver det här.** `app/privacy.tsx` och
   `public/privacy.html` innehåller samma text och måste ändras i SAMMA PR som
-  bildlagring, tredjepartsleverantörer eller lagringstider ändras. Policyn
+  bildlagring, tredjepartsleverantörer eller lagringstider ändras. Sedan
+  2026-08-28 gäller det även `public/faq.html`, vars svar om bilder,
+  tredjeländer och kontoradering är formulerade för att inte gå utöver policyn. Policyn
   påstod tidigare "private storage … time-limited signed links" medan bucketen
   var publik – ett osant påstående i policyn är i sig ett GDPR-brott.
 - `api/delete-account.ts` sidindelar `storage.list()` (default är 100 poster)
