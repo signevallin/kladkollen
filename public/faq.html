@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -327,9 +327,10 @@ a{color:#6C4D38;}
   (function initLang() {
     let saved = null;
     try { saved = localStorage.getItem('skrud_lang'); } catch (e) {}
-    // Samma standard som landing.html, så sidorna inte byter språk mellan klick.
+    // Svenska är standard, samma som landing.html, så sidorna inte byter
+    // språk mellan klick.
     const LANGS = ['sv', 'en', 'de', 'es', 'fr'];
-    applyLang(LANGS.indexOf(saved) !== -1 ? saved : 'en');
+    applyLang(LANGS.indexOf(saved) !== -1 ? saved : 'sv');
     const ls = document.getElementById('langSel');
     if (ls) ls.addEventListener('change', () => applyLang(ls.value));
   })();

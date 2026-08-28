@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Skrud — One less chaotic morning</title>
-<meta name="description" content="Skrud dresses the whole family in one tap. AI builds today’s outfit for you, your partner and every child — weather-aware and in the right size. Your digital wardrobe.">
+<title>Skrud — En morgon mindre kaos</title>
+<meta name="description" content="Skrud klär hela familjen med ett tryck. AI skapar dagens outfit till dig, partnern och varje barn — väderanpassat och i rätt storlek. Din digitala garderob.">
 <meta name="keywords" content="digital garderob, AI outfit, garderobsapp, familjegarderob, outfit hela familjen, väderbaserad outfit, barnkläder storlek, färganalys, packlista resa, Skrud">
 <meta name="robots" content="index,follow">
 <meta name="theme-color" content="#FEFAF8">
@@ -668,9 +668,10 @@ em{font-style:italic;color:var(--brand-soft);}
   (function initLang() {
     let saved = null;
     try { saved = localStorage.getItem('skrud_lang'); } catch (e) {}
-    // Engelska är standard; ett tidigare val (något av språken) respekteras.
+    // Svenska är standard – appen säljs på den svenska marknaden. Ett
+    // tidigare val respekteras och delas med sajtens övriga sidor.
     const LANGS = ['sv', 'en', 'de', 'es', 'fr'];
-    applyLang(LANGS.indexOf(saved) !== -1 ? saved : 'en');
+    applyLang(LANGS.indexOf(saved) !== -1 ? saved : 'sv');
     const ls = document.getElementById('langSel');
     if (ls) ls.addEventListener('change', () => applyLang(ls.value));
   })();
