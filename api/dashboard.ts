@@ -23,6 +23,14 @@ type Card = { label: string; value: string; hint?: string; tone?: 'ok' | 'warn' 
 const esc = (s: unknown) =>
   String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!))
 
+/**
+ * Tider i svensk lokaltid. Vercel kör funktionen med TZ=UTC, så enbart
+ * toLocaleString('sv-SE') ger svenskt FORMAT men UTC-klockslag – två timmar fel
+ * på sommaren, en på vintern. Tidszonen måste anges explicit.
+ */
+const when = (d: Date | string | number) =>
+  new Date(d).toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm' }) + ' (svensk tid)'
+
 const bytes = (n: number) => {
   if (!n) return '0 B'
   const u = ['B', 'kB', 'MB', 'GB']
@@ -342,7 +350,7 @@ export default async function handler(request: Request): Promise<Response> {
     parts.push(section('Vercel – produktion', [
       {
         label: 'Senaste deploy', value: String(vc.latestState),
-        hint: new Date(vc.latestAt).toLocaleString('sv-SE'),
+        hint: when(vc.latestAt),
         tone: vc.latestState === 'READY' ? 'ok' : vc.latestState === 'ERROR' ? 'bad' : 'warn',
       },
       { label: 'Deploys (24 h)', value: String(vc.deploys24h) },
@@ -407,7 +415,7 @@ code{font-family:'Poppins',sans-serif;font-size:12.5px;background:#fff;padding:1
 </style></head><body><div class="wrap">
 <span class="wordmark">Skrud</span>
 <h1>Översikt</h1>
-<p class="stamp">${esc(new Date().toLocaleString('sv-SE'))}</p>
+<p class="stamp">${esc(when(Date.now()))}</p>
 ${parts.join('\n')}
 </div></body></html>`
 
