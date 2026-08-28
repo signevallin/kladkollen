@@ -20,6 +20,8 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 type Card = { label: string; value: string; hint?: string; tone?: 'ok' | 'warn' | 'bad' }
 
+import { DEPLOYED_CRONS, cronDrift } from '../utils/cronSchedule'
+
 const esc = (s: unknown) =>
   String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!))
 
@@ -315,12 +317,25 @@ export default async function handler(request: Request): Promise<Response> {
     const last = String(sb.cron?.last_notification || '')
     const day = last.split(':')[0]
     const stale = !day || (Date.now() - Date.parse(day)) > 36 * 3600e3
-    parts.push(section('Cron', [
+    // Vercel-cron går i UTC. När Sverige ställer om klockan går jobben på fel
+    // svenskt klockslag utan att något går sönder – därför visas det här.
+    const drift = cronDrift(DEPLOYED_CRONS)
+    const cronCards: Card[] = [
       {
         label: 'Senaste notisutskick', value: day || 'aldrig',
         hint: last.split(':')[1] || '', tone: stale ? 'bad' : 'ok',
       },
-    ], stale ? 'Inget utskick på över 36 timmar – kontrollera Vercel cron.' : undefined))
+      ...drift.map((d): Card => ({
+        label: d.label, value: 'fel klockslag',
+        hint: `${d.actual} → ${d.expected} i vercel.json`, tone: 'bad',
+      })),
+    ]
+    const cronNote = stale
+      ? 'Inget utskick på över 36 timmar – kontrollera Vercel cron.'
+      : drift.length
+        ? 'Sverige har ställt om klockan. Vercel-cron går i UTC, så schemat måste flyttas en timme för att jobben ska gå på samma svenska tid som förut.'
+        : 'Jobben går 08:30 respektive söndagar 18:00 svensk tid.'
+    parts.push(section('Cron', cronCards, cronNote))
   } else {
     parts.push(missing('Supabase', ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']))
   }
