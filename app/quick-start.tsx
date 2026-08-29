@@ -144,8 +144,8 @@ export default function QuickStart() {
                       accessibilityRole="button"
                       accessibilityLabel={`${composeName(color, item.name)}${on ? ' ✓' : ''}`}
                     >
-                      {/* Färgad platshållare bakom – syns tills den riktiga bilden finns. */}
-                      <View style={[styles.thumb, { backgroundColor: colorHex(color) }]}>
+                      {/* Samma neutrala bildbakgrund som i garderoben (t.imageBg). */}
+                      <View style={styles.thumb}>
                         <SignedImage
                           path={basicImagePath(gender, item, color)}
                           style={styles.thumbImage}
@@ -165,7 +165,9 @@ export default function QuickStart() {
                             key={c}
                             style={[styles.swatch, { backgroundColor: colorHex(c) }, color === c && styles.swatchOn]}
                             onPress={() => pickColor(item, c)}
+                            hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
                             accessibilityLabel={tr(c)}
+                            accessibilityState={{ selected: color === c }}
                           />
                         ))}
                       </View>
@@ -213,14 +215,14 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   cardWrap: { width: '30%', alignItems: 'center' },
   card: { width: '100%', aspectRatio: 0.85, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
   cardOn: { borderColor: t.primary },
-  thumb: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  thumb: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.imageBg },
   thumbImage: { width: '100%', height: '100%' },
   check: { position: 'absolute', top: 6, right: 6, width: 24, height: 24, borderRadius: 12, backgroundColor: t.primary, alignItems: 'center', justifyContent: 'center' },
   checkText: { fontFamily: 'Poppins_700Bold', color: t.onPrimary, fontSize: 14 },
   cardName: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textPrimary, marginTop: 6, textAlign: 'center' },
-  swatchRow: { flexDirection: 'row', gap: 6, marginTop: 6, justifyContent: 'center' },
-  swatch: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: 'transparent' },
-  swatchOn: { borderColor: t.primary, transform: [{ scale: 1.15 }] },
+  swatchRow: { flexDirection: 'row', gap: 12, marginTop: 8, justifyContent: 'center', flexWrap: 'wrap' },
+  swatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: t.border },
+  swatchOn: { borderWidth: 3, borderColor: t.primary },
 
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: 16, paddingBottom: 28, backgroundColor: t.bg, borderTopWidth: 1, borderTopColor: t.border },
   saveBtn: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center' },

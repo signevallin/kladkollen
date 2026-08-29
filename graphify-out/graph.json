@@ -3945,7 +3945,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "app/quick-start.tsx",
-      "source_location": "L196",
+      "source_location": "L198",
       "_origin": "ast",
       "id": "app_quick_start_makestyles",
       "community": 140,
@@ -6368,8 +6368,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "package_dependencies_expo_audio",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 143,
+      "community_name": "expo-audio",
       "norm_label": "expo-audio"
     },
     {
@@ -6379,8 +6379,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "expo_audio",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 143,
+      "community_name": "expo-audio",
       "norm_label": "expo-audio"
     },
     {
@@ -6412,8 +6412,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "package_dependencies_expo_calendar",
-      "community": 143,
-      "community_name": "expo-calendar",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-calendar"
     },
     {
@@ -6423,8 +6423,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "expo_calendar",
-      "community": 143,
-      "community_name": "expo-calendar",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-calendar"
     },
     {
@@ -34065,7 +34065,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/quick-start.tsx",
-      "source_location": "L196",
+      "source_location": "L198",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_quick_start",
@@ -34425,7 +34425,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/quick-start.tsx",
-      "source_location": "L148",
+      "source_location": "L166",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_quick_start_quickstart",
@@ -54352,5 +54352,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "e0288791922dd4fdb6f05262bdd55d449a32a702"
+  "built_at_commit": "d6034237307fcedf4868f1304b69a6cc066a6979"
 }
