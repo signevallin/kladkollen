@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-29)
 
 ## Corpus Check
-- 233 files · ~640,524 words
+- 233 files · ~640,534 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e0288791`
+- Built from commit: `d6034237`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -134,7 +134,7 @@
 - garments
 - constants.ts
 - profiles
-- expo-calendar
+- expo-audio
 - expo-clipboard
 - screens/README.md
 - reset-password.html — "Reset Password"
@@ -245,7 +245,7 @@ Nodes (4): makeStyles(), Props, ScanResult, WishlistAddModals()
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-audio, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-calendar, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.18
