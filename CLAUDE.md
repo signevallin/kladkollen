@@ -404,6 +404,20 @@ Nästa omställningar: 2026-10-25 (till vinter), 2027-03-28, 2027-10-31.
   och raderar hushåll som blir tomma, annars överlever `people`-raderna
   (barnens namn/födelsedatum) raderingen.
 
+- **Snabbstart / basplaggs-bibliotek:** `utils/basics.ts` är ett kurerat bibliotek
+  av generiska basplagg uppdelat på `women`/`men` (arketyp + färgvarianter, mappat
+  mot befintliga `CATEGORIES`/`SUBCATEGORIES`/`COLOR_OPTIONS`). `app/quick-start.tsx`
+  låter en ny användare bocka i basplaggen hen äger → sparas som vanliga plagg
+  (snabb onboarding utan att fota). Nås via "Snabbstart" i add-garment. Bilderna är
+  AI-genererade flatlays i `garments`-bucketen under `basics/{kön}/{id}/{färg-slug}.png`
+  (deterministisk sökväg → laddas upp separat, syns automatiskt). Genererings-
+  prompt + fullständig fil-lista: `docs/basics-images.md`. Saknad bild → färgad
+  platshållare i väljaren.
+- **Skanna flera plagg** (add-garment): `api/detect-garments` hittar flera plagg i
+  EN bild (bounding boxes 0–1000) → klienten beskär + kör bakgrundsborttagning per
+  plagg → utkast i granska-flödet. **Skanna i butik** (köplistan,
+  `WishlistAddModals`): `api/evaluate-purchase` bedömer ett plagg mot egna garderoben
+  ("smart köp?" med score/motivering) innan det läggs på köplistan.
 - Bild-miniatyrer: `SignedImage` tar en `transform`-prop. **Gotcha (kostnad):**
   Supabase fakturerar per origin-bild som transformeras, och **varje storlek av
   samma bild är en egen transformation**. Avatarerna var länge undantagna med

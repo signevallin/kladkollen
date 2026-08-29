@@ -38,9 +38,26 @@ export default function AddGarmentChooser({
               <Text style={styles.modalClose}>✕</Text>
             </TouchableOpacity>
           </View>
+          {/* Snabbstart (basplaggs-bibliotek) – bara för egen garderob, inte barn. */}
+          {!person && (
+            <TouchableOpacity style={[styles.choiceBtn, styles.choiceHighlight]} onPress={() => goto('/quick-start')}>
+              <View style={styles.choiceTitleRow}>
+                <Text style={styles.choiceTitle}>{tr('Snabbstart')}</Text>
+                <Text style={styles.betaTag}>{tr('NYTT')}</Text>
+              </View>
+              <Text style={styles.choiceHint}>{tr('Bocka i basplaggen du äger och fyll garderoben på en minut – utan att fota')}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/add-garment?start=photos${personQs}`)}>
             <Text style={styles.choiceTitle}>{tr('Välj foton')}</Text>
             <Text style={styles.choiceHint}>{tr('Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/add-garment?start=scan${personQs}`)}>
+            <View style={styles.choiceTitleRow}>
+              <Text style={styles.choiceTitle}>{tr('Skanna flera plagg')}</Text>
+              <Text style={styles.betaTag}>{tr('NYTT')}</Text>
+            </View>
+            <Text style={styles.choiceHint}>{tr('Lägg ut plaggen och ta EN bild – AI:n hittar varje plagg och delar upp dem åt dig')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/import-purchases${personQ1}`)}>
             <Text style={styles.choiceTitle}>{tr('Importera via butiker')}</Text>
@@ -63,6 +80,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   modalTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary },
   modalClose: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textSecondary, padding: 4 },
   choiceBtn: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: t.border },
+  choiceHighlight: { borderColor: t.primary, borderWidth: 1.5 },
+  choiceTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
   choiceTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, marginBottom: 3 },
   choiceHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 18 },
+  betaTag: { fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 1, color: t.onPrimary, backgroundColor: t.primary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden' },
 })

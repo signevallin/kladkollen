@@ -44,12 +44,29 @@ import { useEntitlements, familyFeaturesEnabled } from '../utils/entitlements'
 // och håller nedladdningen liten.
 const MAX_IMAGE_WIDTH = 1000
 
-// Skalar ner (aldrig upp) och komprimerar till JPEG. Returnerar uri + base64.
-async function compressImage(uri: string, srcWidth?: number): Promise<{ uri: string; base64: string }> {
+// Skalar ner (aldrig upp) och komprimerar till JPEG. Returnerar uri + base64 +
+// de renderade måtten (behövs för att beskära ut enskilda plagg vid skanning).
+async function compressImage(uri: string, srcWidth?: number): Promise<{ uri: string; base64: string; width: number; height: number }> {
   const context = ImageManipulator.manipulate(uri)
   if (!srcWidth || srcWidth > MAX_IMAGE_WIDTH) context.resize({ width: MAX_IMAGE_WIDTH })
   const rendered = await context.renderAsync()
   const result = await rendered.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true })
+  return { uri: result.uri, base64: result.base64 || '', width: result.width, height: result.height }
+}
+
+// Beskär ut en ruta (0–1000-rutnät från detect-garments) ur en bild och
+// returnerar uri + base64 för det enskilda plagget. Koordinaterna räknas om
+// till pixlar utifrån bildens faktiska mått och klampas inom bilden.
+async function cropRegion(
+  uri: string, imgW: number, imgH: number,
+  box: { x: number; y: number; w: number; h: number },
+): Promise<{ uri: string; base64: string }> {
+  const originX = Math.max(0, Math.min(imgW - 1, Math.round((box.x / 1000) * imgW)))
+  const originY = Math.max(0, Math.min(imgH - 1, Math.round((box.y / 1000) * imgH)))
+  const width = Math.max(1, Math.min(imgW - originX, Math.round((box.w / 1000) * imgW)))
+  const height = Math.max(1, Math.min(imgH - originY, Math.round((box.h / 1000) * imgH)))
+  const rendered = await ImageManipulator.manipulate(uri).crop({ originX, originY, width, height }).renderAsync()
+  const result = await rendered.saveAsync({ compress: 0.8, format: SaveFormat.JPEG, base64: true })
   return { uri: result.uri, base64: result.base64 || '' }
 }
 
@@ -91,6 +108,7 @@ export default function AddGarment() {
   const [step, setStep] = useState<'pick' | 'review'>('pick')
   const [drafts, setDrafts] = useState<GarmentDraft[]>([])
   const [saving, setSaving] = useState(false)
+  const [scanning, setScanning] = useState(false)
   const [bgError, setBgError] = useState<string | null>(null)
   const [ownBrands, setOwnBrands] = useState<string[]>([])
   const [locations, setLocations] = useState<Location[]>([])
@@ -139,11 +157,12 @@ export default function AddGarment() {
   const autoStarted = useRef(false)
   useFocusEffect(
     useCallback(() => {
-      if (start !== 'photos' || autoStarted.current) return
+      if (autoStarted.current) return
+      if (start !== 'photos' && start !== 'scan') return
       autoStarted.current = true
       let timer: ReturnType<typeof setTimeout> | undefined
       const task = InteractionManager.runAfterInteractions(() => {
-        timer = setTimeout(() => pickImages(true), 250)
+        timer = setTimeout(() => { start === 'scan' ? scanMultiple() : pickImages(true) }, 250)
       })
       return () => { task.cancel(); if (timer) clearTimeout(timer) }
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -245,6 +264,101 @@ export default function AddGarment() {
           }
         })(),
       ])
+    }
+  }
+
+  // Skanna flera plagg ur EN bild: lägg ut plaggen, ta ett foto → AI:n hittar
+  // varje plagg (detect-garments) och vi beskär ut dem till separata utkast som
+  // går vidare i samma granska-flöde. Sparar tid mot att fota ett i taget.
+  async function scanMultiple() {
+    setBgError(null)
+    let result: ImagePicker.ImagePickerResult
+    try {
+      result = await pickImageSmart({
+        mediaTypes: ['images'] as any,
+        allowsMultipleSelection: false,
+        quality: 0.7,
+        base64: true,
+      })
+    } catch {
+      return
+    }
+    if (result.canceled || result.assets.length === 0) return
+    const asset = result.assets[0]
+
+    setScanning(true)
+    try {
+      const c = await compressImage(asset.uri, asset.width)
+      let detected: any[] = []
+      try {
+        const data = await apiPost('/api/detect-garments', { base64: c.base64 })
+        detected = data.garments || []
+      } catch {
+        detected = []
+      }
+
+      if (detected.length === 0) {
+        setScanning(false)
+        showAlert(
+          tr('Inga plagg hittades'),
+          tr('Vi kunde inte hitta separata plagg i bilden. Lägg ut plaggen med lite mellanrum mot en enfärgad bakgrund och prova igen – eller lägg till dem ett i taget med "Välj foton".'),
+        )
+        return
+      }
+
+      const baseId = Date.now()
+      const newDrafts: GarmentDraft[] = detected.map((g, i) => ({
+        id: `${baseId}-${i}`,
+        uri: c.uri, // hela bilden tills beskärningen är klar
+        base64: '',
+        processedBase64: null,
+        name: g.name || '',
+        category: g.category || '',
+        subcategory: g.subcategory || '',
+        color: g.color || '',
+        seasons: g.seasons || [],
+        size: '',
+        fit: '',
+        brand: '',
+        price: '',
+        location: batchMode ? batchLocation : '',
+        personId: batchMode ? batchPersonId : null,
+        sizeCm: batchMode ? batchSizeCm : null,
+        familyStatus: batchMode ? batchStatus : 'in_use',
+        analyzing: false, // attributen är redan ifyllda av detect-garments
+        removingBg: true,
+      }))
+      setDrafts(newDrafts)
+      setStep('review')
+      setScanning(false)
+
+      // Beskär ut varje plagg och ta bort bakgrunden – ett i taget för att inte
+      // överbelasta bakgrundsborttagningen.
+      for (let i = 0; i < detected.length; i++) {
+        const g = detected[i]
+        const draftId = `${baseId}-${i}`
+        try {
+          const crop = await cropRegion(c.uri, c.width, c.height, g.box)
+          setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, uri: crop.uri, base64: crop.base64 } : d))
+          try {
+            const b64 = await removeBackground(crop.base64)
+            if (b64) {
+              setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, processedBase64: b64, uri: `data:image/png;base64,${b64}`, removingBg: false } : d))
+            } else {
+              setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, removingBg: false } : d))
+            }
+          } catch (e: any) {
+            setBgError(e?.message || 'okänt fel')
+            setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, removingBg: false } : d))
+          }
+        } catch {
+          // Beskärningen misslyckades → behåll hela bilden för det plagget.
+          setDrafts(prev => prev.map(d => d.id === draftId ? { ...d, base64: c.base64, removingBg: false } : d))
+        }
+      }
+    } catch (e: any) {
+      setScanning(false)
+      showAlert(tr('Något gick fel'), e?.message || '')
     }
   }
 
@@ -447,9 +561,28 @@ export default function AddGarment() {
             </View>
           )}
 
+          <TouchableOpacity style={[styles.pickBtn, styles.pickBtnHighlight]} onPress={() => router.push('/quick-start')}>
+            <Text style={styles.pickBtnTitle}>{tr('Snabbstart')}</Text>
+            <Text style={styles.pickBtnHint}>{tr('Bocka i basplaggen du äger och fyll garderoben på en minut – utan att fota')}</Text>
+            <Text style={styles.betaTag}>{tr('NYTT')}</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.pickBtn} onPress={() => pickImages()}>
             <Text style={styles.pickBtnTitle}>{tr('Välj foton')}</Text>
             <Text style={styles.pickBtnHint}>{tr('Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.pickBtn, scanning && styles.pickBtnDisabled]} onPress={() => scanMultiple()} disabled={scanning}>
+            {scanning ? (
+              <>
+                <ActivityIndicator color={t.primary} />
+                <Text style={styles.pickBtnHint}>{tr('Letar efter plagg i bilden…')}</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.pickBtnTitle}>{tr('Skanna flera plagg')}</Text>
+                <Text style={styles.pickBtnHint}>{tr('Lägg ut plaggen och ta EN bild – AI:n hittar varje plagg och delar upp dem åt dig')}</Text>
+                <Text style={styles.betaTag}>{tr('NYTT')}</Text>
+              </>
+            )}
           </TouchableOpacity>
           <TouchableOpacity style={styles.pickBtn} onPress={() => router.push('/import-purchases')}>
             <Text style={styles.pickBtnTitle}>{tr('Importera köp')}</Text>
@@ -538,6 +671,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     borderWidth: 1.5,
     borderColor: t.border,
     borderStyle: 'dashed',
+  },
+  pickBtnDisabled: { opacity: 0.6 },
+  pickBtnHighlight: { borderColor: t.primary, borderStyle: 'solid', backgroundColor: t.surface },
+  betaTag: {
+    fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 1,
+    color: t.onPrimary, backgroundColor: t.primary,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, overflow: 'hidden', marginTop: 2,
   },
   pickBtnIcon: { fontFamily: 'Lora_400Regular', fontSize: 48 },
   pickBtnTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 18, color: t.textPrimary },

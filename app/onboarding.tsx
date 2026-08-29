@@ -34,7 +34,7 @@ const SLIDES: Slide[] = [
   {
     icon: 'cloud-download-outline',
     title: 'Fyll garderoben på minuter',
-    body: 'Du behöver inte fota allt. Importera dina plagg direkt från kvitton och butiker – eller fota en favorit, så fyller Skrud i namn, färg och säsong åt dig.',
+    body: 'Du behöver inte fota allt. Bocka i dina basplagg, importera från kvitton och butiker, eller fota en favorit – Skrud fyller i namn, färg och säsong åt dig.',
   },
   {
     icon: 'shirt-outline',
@@ -113,9 +113,13 @@ export default function Onboarding() {
       <View style={styles.footer}>
         {isLast ? (
           <>
-            <TouchableOpacity style={styles.primaryBtn} onPress={() => finish('/import-purchases')}>
-              <Ionicons name="cloud-download-outline" size={18} color={t.onPrimary} />
-              <Text style={styles.primaryBtnText}>{tr('Importera mina plagg')}</Text>
+            <TouchableOpacity style={styles.primaryBtn} onPress={() => finish('/quick-start')}>
+              <Ionicons name="checkbox-outline" size={18} color={t.onPrimary} />
+              <Text style={styles.primaryBtnText}>{tr('Bocka i mina basplagg')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryBtn} onPress={() => finish('/import-purchases')}>
+              <Ionicons name="cloud-download-outline" size={18} color={t.primary} />
+              <Text style={styles.secondaryBtnText}>{tr('Importera mina plagg')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.secondaryBtn} onPress={() => finish('/add-garment')}>
               <Ionicons name="camera-outline" size={18} color={t.primary} />
