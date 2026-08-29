@@ -756,6 +756,9 @@ export default function Wardrobe() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.grid}
             style={styles.flatList}
+            initialNumToRender={18}
+            maxToRenderPerBatch={18}
+            windowSize={7}
             ListHeaderComponent={
               !readOnly && (laundryFilter === 'in' || showLaundryClear) && laundryCount > 0 ? (
                 <TouchableOpacity style={styles.clearLaundryBtn} onPress={clearLaundry} accessibilityRole="button">

@@ -7,6 +7,7 @@ import * as Sharing from 'expo-sharing'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
+  FlatList,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -1421,6 +1422,117 @@ function isPast(date: Date) {
       {/* automaticallyAdjustKeyboardInsets: skjuter upp innehållet när tangent-
           bordet visas (t.ex. destinations-/känsla-fälten i resa) så man ser vad
           man skriver. keyboardDismissMode='interactive' låter en dra ner det. */}
+      {/* Outfits-fliken renderas som virtualiserad FlatList i stället för
+          ScrollView + .map: bara korten på skärmen monteras, så de fullstora
+          plaggbilderna inte alla dekodas till minnet samtidigt (RAM-topp som
+          annars kan utlösa iOS watchdog-krasch för garderober med många sparade
+          outfits). Kalender/Resa har textfält och blandat innehåll och behåller
+          den tangentbordsmedvetna ScrollView:en nedan. */}
+      {activeTab === 'outfits' ? (
+        <FlatList
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          data={filteredOutfits}
+          keyExtractor={(item: any) => item.id}
+          initialNumToRender={6}
+          maxToRenderPerBatch={6}
+          windowSize={7}
+          ListHeaderComponent={
+            showOutfitFilter ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, paddingHorizontal: 4 }}>
+                <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 4 }}>
+                  {partnerLikedIds.size > 0 && (
+                    <TouchableOpacity
+                      style={[styles.pill, styles.likedPill, showOnlyLiked && styles.pillActive]}
+                      onPress={() => setShowOnlyLiked(v => !v)}
+                    >
+                      <Ionicons name="heart" size={13} color={showOnlyLiked ? t.onPrimary : t.danger} />
+                      <Text style={[styles.pillText, showOnlyLiked && styles.pillTextActive]}>{tr('Gillade av partner')}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {['Alla', ...OUTFIT_CONTEXTS.map(c => c.label), ...STYLE_TAGS].map(s => (
+                    <TouchableOpacity key={s} style={[styles.pill, activeStyleFilter === s && styles.pillActive]} onPress={() => setActiveStyleFilter(s)}>
+                      <Text style={[styles.pillText, activeStyleFilter === s && styles.pillTextActive]}>{tr(s)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            ) : null
+          }
+          ListEmptyComponent={
+            dispOutfits.length === 0 ? (
+              <View style={styles.empty}>
+                {isPartner ? (
+                  <Text style={styles.emptyText}>{tr('Inga sparade outfits.')}</Text>
+                ) : isPerson ? (
+                  <Text style={styles.emptyText}>{tr('Inga sparade outfits för barnet än.')}{'\n'}{tr('Generera via "Familjen idag" på hemskärmen.')}</Text>
+                ) : (
+                  <>
+                    <Text style={styles.emptyText}>{tr('Inga outfits sparade än!')}{'\n'}{tr('Skapa din första eller generera via AI')}</Text>
+                    <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/home')}>
+                      <Text style={styles.goBtnText}>{tr('Generera med AI')}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            ) : null
+          }
+          renderItem={({ item: outfit }) => (
+            <TouchableOpacity style={styles.outfitCard} activeOpacity={isPartner ? 1 : 0.2} onPress={() => { if (!isPartner) wearOutfit(outfit) }} onLongPress={isPartner ? undefined : () => deleteOutfit(outfit.id)}>
+              <View style={styles.outfitCardHeader}>
+                <View style={styles.outfitNameWrap}>
+                  {partnerLikedIds.has(outfit.id) && (
+                    <Ionicons name="heart" size={16} color={t.danger} style={{ marginRight: 6 }} />
+                  )}
+                  <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
+                </View>
+                <View style={styles.outfitCardHeaderRight}>
+                  {readOnly && (
+                    <TouchableOpacity
+                      onPress={() => togglePartnerLike(outfit.id)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityLabel={tr('Gilla outfit')}
+                      accessibilityRole="button"
+                    >
+                      <Ionicons name={myLikedIds.has(outfit.id) ? 'heart' : 'heart-outline'} size={22} color={myLikedIds.has(outfit.id) ? t.danger : t.textSecondary} />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    onPress={() => shareSavedOutfit(outfit)}
+                    disabled={sharing}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityLabel={tr('Dela outfit')}
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="share-outline" size={20} color={t.primary} />
+                  </TouchableOpacity>
+                  {!isPartner && (
+                    <TouchableOpacity
+                      onPress={() => startEditOutfit(outfit)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityLabel={tr('Ändra outfit')}
+                      accessibilityRole="button"
+                    >
+                      <Ionicons name="create-outline" size={20} color={t.primary} />
+                    </TouchableOpacity>
+                  )}
+                  <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString(locale)}</Text>
+                </View>
+              </View>
+              <View style={styles.outfitImages}>
+                {(outfit.image_urls || []).map((url: string, i: number) => (
+                  <SignedImage key={i} path={url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
+                ))}
+                {(outfit.garment_names || []).filter((_: any, i: number) => !outfit.image_urls?.[i]).map((_: string, i: number) => (
+                  <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
+                ))}
+              </View>
+              {!isPartner && <Text style={styles.holdToDelete}>{tr('Håll inne för att ta bort · Tryck för att registrera som använd')}</Text>}
+            </TouchableOpacity>
+          )}
+        />
+      ) : (
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
@@ -1504,104 +1616,6 @@ function isPast(date: Date) {
               </View>
             </View>
           </View>
-        )}
-
-        {/* OUTFITS */}
-        {activeTab === 'outfits' && (
-          <>
-            {showOutfitFilter && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, paddingHorizontal: 4 }}>
-              <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 4 }}>
-                {partnerLikedIds.size > 0 && (
-                  <TouchableOpacity
-                    style={[styles.pill, styles.likedPill, showOnlyLiked && styles.pillActive]}
-                    onPress={() => setShowOnlyLiked(v => !v)}
-                  >
-                    <Ionicons name="heart" size={13} color={showOnlyLiked ? t.onPrimary : t.danger} />
-                    <Text style={[styles.pillText, showOnlyLiked && styles.pillTextActive]}>{tr('Gillade av partner')}</Text>
-                  </TouchableOpacity>
-                )}
-                {['Alla', ...OUTFIT_CONTEXTS.map(c => c.label), ...STYLE_TAGS].map(s => (
-                  <TouchableOpacity key={s} style={[styles.pill, activeStyleFilter === s && styles.pillActive]} onPress={() => setActiveStyleFilter(s)}>
-                    <Text style={[styles.pillText, activeStyleFilter === s && styles.pillTextActive]}>{tr(s)}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-            )}
-
-            {dispOutfits.length === 0 ? (
-              <View style={styles.empty}>
-                {isPartner ? (
-                  <Text style={styles.emptyText}>{tr('Inga sparade outfits.')}</Text>
-                ) : isPerson ? (
-                  <Text style={styles.emptyText}>{tr('Inga sparade outfits för barnet än.')}{'\n'}{tr('Generera via "Familjen idag" på hemskärmen.')}</Text>
-                ) : (
-                  <>
-                    <Text style={styles.emptyText}>{tr('Inga outfits sparade än!')}{'\n'}{tr('Skapa din första eller generera via AI')}</Text>
-                    <TouchableOpacity style={styles.goBtn} onPress={() => router.push('/home')}>
-                      <Text style={styles.goBtnText}>{tr('Generera med AI')}</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            ) : (
-              filteredOutfits.map((outfit: any) => (
-                <TouchableOpacity key={outfit.id} style={styles.outfitCard} activeOpacity={isPartner ? 1 : 0.2} onPress={() => { if (!isPartner) wearOutfit(outfit) }} onLongPress={isPartner ? undefined : () => deleteOutfit(outfit.id)}>
-                  <View style={styles.outfitCardHeader}>
-                    <View style={styles.outfitNameWrap}>
-                      {partnerLikedIds.has(outfit.id) && (
-                        <Ionicons name="heart" size={16} color={t.danger} style={{ marginRight: 6 }} />
-                      )}
-                      <Text style={styles.outfitName} numberOfLines={1}>{outfit.name}</Text>
-                    </View>
-                    <View style={styles.outfitCardHeaderRight}>
-                      {/* Läsläge: gilla partnerns outfit (❤). */}
-                      {readOnly && (
-                        <TouchableOpacity
-                          onPress={() => togglePartnerLike(outfit.id)}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                          accessibilityLabel={tr('Gilla outfit')}
-                          accessibilityRole="button"
-                        >
-                          <Ionicons name={myLikedIds.has(outfit.id) ? 'heart' : 'heart-outline'} size={22} color={myLikedIds.has(outfit.id) ? t.danger : t.textSecondary} />
-                        </TouchableOpacity>
-                      )}
-                      <TouchableOpacity
-                        onPress={() => shareSavedOutfit(outfit)}
-                        disabled={sharing}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        accessibilityLabel={tr('Dela outfit')}
-                        accessibilityRole="button"
-                      >
-                        <Ionicons name="share-outline" size={20} color={t.primary} />
-                      </TouchableOpacity>
-                      {!isPartner && (
-                        <TouchableOpacity
-                          onPress={() => startEditOutfit(outfit)}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                          accessibilityLabel={tr('Ändra outfit')}
-                          accessibilityRole="button"
-                        >
-                          <Ionicons name="create-outline" size={20} color={t.primary} />
-                        </TouchableOpacity>
-                      )}
-                      <Text style={styles.outfitDate}>{new Date(outfit.created_at).toLocaleDateString(locale)}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.outfitImages}>
-                    {(outfit.image_urls || []).map((url: string, i: number) => (
-                      <SignedImage key={i} path={url} style={styles.outfitImage} transform={{ width: 800, height: 800, resize: 'contain', format: 'origin' }} />
-                    ))}
-                    {(outfit.garment_names || []).filter((_: any, i: number) => !outfit.image_urls?.[i]).map((_: string, i: number) => (
-                      <View key={`emoji-${i}`} style={styles.outfitImageEmpty} />
-                    ))}
-                  </View>
-                  {!isPartner && <Text style={styles.holdToDelete}>{tr('Håll inne för att ta bort · Tryck för att registrera som använd')}</Text>}
-                </TouchableOpacity>
-              ))
-            )}
-          </>
         )}
 
         {/* RESA */}
@@ -1987,6 +2001,7 @@ function isPast(date: Date) {
           )
         )}
       </ScrollView>
+      )}
 
       {/* Byt ut ett plagg i en reseoutfit */}
       <SwapSheet

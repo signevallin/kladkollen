@@ -1,8 +1,9 @@
 import * as ImagePicker from 'expo-image-picker'
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
-  KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
+  ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
 import SignedImage from '../SignedImage'
 import { supabase } from '../../supabase'
@@ -11,10 +12,30 @@ import { showAlert } from '../../utils/alert'
 import { parsePrice } from '../../utils/brands'
 import { CATEGORIES as WISH_CATEGORIES, COLOR_OPTIONS, SEASONS as WISH_SEASONS, SUBCATEGORIES } from '../../utils/constants'
 import { pickImageSmart } from '../../utils/imagePicker'
+import { loadGarments } from '../../utils/garmentsStore'
 import { useSettings } from '../../utils/settings'
 import { uploadUserImage } from '../../utils/storage'
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
+
+// "Smart köp?"-bedömning från evaluate-purchase.
+type ScanResult = {
+  garment: { name: string; category: string; subcategory: string; color: string; seasons: string[] }
+  verdict: 'smart' | 'maybe' | 'skip'
+  score: number
+  headline: string
+  reasons: string[]
+  pairsWith: string[]
+  gap: boolean
+  duplicate: boolean
+}
+
+// Skalar ner till 1000 px och ger base64 (JPEG) för AI-anropet – billigare/snabbare.
+async function compressForScan(uri: string): Promise<string> {
+  const rendered = await ImageManipulator.manipulate(uri).resize({ width: 1000 }).renderAsync()
+  const result = await rendered.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true })
+  return result.base64 || ''
+}
 
 // Hela flödet för att lägga till på köplistan: valrutan (foto/butik/URL), URL-
 // hämtaren och det fullständiga formuläret. All wish-state bor här så att
@@ -49,6 +70,11 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
   const [saving, setSaving] = useState(false)
   const [url, setUrl] = useState('')
   const [fetchingUrl, setFetchingUrl] = useState(false)
+
+  // "Skanna i butik" (smart köp?)
+  const [scanning, setScanning] = useState(false)
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const [scanImageUri, setScanImageUri] = useState<string | null>(null)
 
   function resetForm() {
     setShowForm(false)
@@ -91,6 +117,63 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
     } finally {
       setFetchingUrl(false)
     }
+  }
+
+  // Skanna ett plagg i butiken och få en "smart köp?"-bedömning mot den egna
+  // garderoben innan man lägger det på köplistan.
+  async function scanInStore() {
+    onChooserClose()
+    // Vänta in att valrutan (Modal) hinner stängas innan bildväljaren
+    // presenteras – annars kan iOS låsa sig ("cannot present view controller
+    // while another is being dismissed") och hela appen fryser.
+    await new Promise(r => setTimeout(r, 450))
+    let result: ImagePicker.ImagePickerResult
+    try {
+      result = await pickImageSmart({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: false, quality: 0.7 })
+    } catch { return }
+    if (result.canceled || result.assets.length === 0) return
+    const uri = result.assets[0].uri
+    setScanImageUri(uri)
+    setScanResult(null)
+    setScanning(true)
+    try {
+      const base64 = await compressForScan(uri)
+      // Kompakt sammanfattning av EGNA plagg (inte barn/arkiv/till salu).
+      let wardrobe: any[] = []
+      try {
+        const all = await loadGarments()
+        wardrobe = (all || [])
+          .filter((g: any) => g.person_id == null && !g.archived && !g.for_sale)
+          .map((g: any) => ({ name: g.name, category: g.category, subcategory: g.subcategory, color: g.color, season: g.season }))
+      } catch { /* tom garderob duger */ }
+      // Timeout så en hängande/ej deployad endpoint aldrig låser spinnern.
+      const data = await Promise.race([
+        apiPost('/api/evaluate-purchase', { base64, wardrobe }),
+        new Promise<never>((_, rej) => setTimeout(() => rej(new Error(tr('Det tog för lång tid. Försök igen.'))), 30000)),
+      ]) as ScanResult & { error?: string }
+      if ((data as any).error) throw new Error((data as any).error)
+      setScanResult(data)
+    } catch (e: any) {
+      setScanImageUri(null)
+      showAlert(tr('Något gick fel'), e?.message || tr('Försök igen.'))
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  // Från bedömningen → öppna formuläret med allt förifyllt.
+  function addScanToWishlist() {
+    if (!scanResult) return
+    const g = scanResult.garment
+    setName(g.name || '')
+    setCategory(g.category || '')
+    setSubcategory(g.subcategory || '')
+    setColor(g.color || '')
+    setSeasons(g.seasons || [])
+    setBrand(''); setPrice(''); setLink('')
+    setImage(scanImageUri)
+    setScanResult(null)
+    setShowForm(true)
   }
 
   async function addItem() {
@@ -138,6 +221,13 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
               <Text style={styles.modalTitle}>{tr('Lägg till på köplistan')}</Text>
               <TouchableOpacity onPress={onChooserClose}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
             </View>
+            <TouchableOpacity style={[styles.wishChoiceBtn, styles.wishChoiceHighlight]} onPress={scanInStore}>
+              <View style={styles.wishChoiceTitleRow}>
+                <Text style={styles.wishChoiceTitle}>{tr('Skanna i butik')}</Text>
+                <Text style={styles.betaTag}>{tr('NYTT')}</Text>
+              </View>
+              <Text style={styles.wishChoiceHint}>{tr('Fota ett plagg i butiken – AI:n säger om det är ett smart köp för din garderob')}</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.wishChoiceBtn} onPress={() => { onChooserClose(); resetForm(); setShowForm(true) }}>
               <Text style={styles.wishChoiceTitle}>{tr('Välj foto')}</Text>
               <Text style={styles.wishChoiceHint}>{tr('Ta eller välj en bild och fyll i detaljerna själv')}</Text>
@@ -150,6 +240,83 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
               <Text style={styles.wishChoiceTitle}>{tr('Via URL')}</Text>
               <Text style={styles.wishChoiceHint}>{tr('Klistra in en produktlänk – namn och bild hämtas automatiskt')}</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Skanna i butik: laddar-läge medan AI:n bedömer */}
+      <Modal visible={scanning} animationType="fade" transparent>
+        <View style={[styles.modalOverlay, { justifyContent: 'center', alignItems: 'center' }]}>
+          <View style={styles.scanLoadingCard}>
+            <ActivityIndicator color={t.primary} size="large" />
+            <Text style={styles.scanLoadingText}>{tr('Bedömer plagget mot din garderob…')}</Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Skanna i butik: "smart köp?"-resultatet */}
+      <Modal visible={!!scanResult} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{tr('Smart köp?')}</Text>
+              <TouchableOpacity onPress={() => { setScanResult(null); setScanImageUri(null) }} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            {scanResult && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.scanTop}>
+                  {scanImageUri && <Image source={{ uri: scanImageUri }} style={styles.scanImage} />}
+                  <View style={styles.scanTopInfo}>
+                    {(() => {
+                      const v = scanResult.verdict
+                      const col = v === 'smart' ? t.primary : v === 'skip' ? t.danger : t.textSecondary
+                      const label = v === 'smart' ? tr('Smart köp') : v === 'skip' ? tr('Tänk efter') : tr('Kanske')
+                      return (
+                        <>
+                          <View style={[styles.verdictBadge, { backgroundColor: col }]}>
+                            <Text style={styles.verdictBadgeText}>{label}</Text>
+                          </View>
+                          <Text style={styles.scanGarmentName}>{scanResult.garment.name}</Text>
+                          <View style={styles.scoreBarTrack}>
+                            <View style={[styles.scoreBarFill, { width: `${scanResult.score}%`, backgroundColor: col }]} />
+                          </View>
+                          <Text style={styles.scoreLabel}>{tr('Matchning med din garderob')}: {scanResult.score}/100</Text>
+                        </>
+                      )
+                    })()}
+                  </View>
+                </View>
+
+                {!!scanResult.headline && <Text style={styles.scanHeadline}>{scanResult.headline}</Text>}
+
+                {scanResult.reasons.length > 0 && (
+                  <View style={styles.scanReasons}>
+                    {scanResult.reasons.map((r, i) => (
+                      <View key={i} style={styles.scanReasonRow}>
+                        <Text style={styles.scanReasonDot}>•</Text>
+                        <Text style={styles.scanReasonText}>{r}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                {scanResult.pairsWith.length > 0 && (
+                  <View style={styles.scanPairsBox}>
+                    <Text style={styles.scanPairsLabel}>{tr('Passar ihop med')}</Text>
+                    <Text style={styles.scanPairsText}>{scanResult.pairsWith.join(' · ')}</Text>
+                  </View>
+                )}
+
+                <TouchableOpacity style={styles.modalSaveBtn} onPress={addScanToWishlist}>
+                  <Text style={styles.modalSaveBtnText}>{tr('Lägg till på köplistan')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.scanDismissBtn} onPress={() => { setScanResult(null); setScanImageUri(null) }}>
+                  <Text style={styles.scanDismissText}>{tr('Nej tack')}</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
@@ -277,8 +444,33 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   modalSaveBtn: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 20, marginBottom: 8 },
   modalSaveBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
   wishChoiceBtn: { backgroundColor: t.surfaceMuted, borderRadius: 16, padding: 18, marginBottom: 12, borderWidth: 1, borderColor: t.border },
+  wishChoiceHighlight: { borderColor: t.primary, borderWidth: 1.5 },
+  wishChoiceTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
   wishChoiceTitle: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary, marginBottom: 3 },
   wishChoiceHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textSecondary, lineHeight: 18 },
+  betaTag: { fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 1, color: t.onPrimary, backgroundColor: t.primary, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden' },
+
+  scanLoadingCard: { backgroundColor: t.surface, borderRadius: 20, padding: 28, alignItems: 'center', gap: 14, marginHorizontal: 40 },
+  scanLoadingText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, textAlign: 'center' },
+  scanTop: { flexDirection: 'row', gap: 16, marginBottom: 16 },
+  scanImage: { width: 110, height: 140, borderRadius: 14, backgroundColor: t.surfaceMuted },
+  scanTopInfo: { flex: 1, justifyContent: 'center', gap: 8 },
+  verdictBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
+  verdictBadgeText: { fontFamily: 'Poppins_700Bold', fontSize: 13, color: t.onPrimary },
+  scanGarmentName: { fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: t.textPrimary },
+  scoreBarTrack: { height: 8, borderRadius: 4, backgroundColor: t.surfaceMuted, overflow: 'hidden', marginTop: 2 },
+  scoreBarFill: { height: 8, borderRadius: 4 },
+  scoreLabel: { fontFamily: 'Lora_400Regular', fontSize: 12, color: t.textSecondary },
+  scanHeadline: { fontFamily: 'Lora_500Medium', fontSize: 17, color: t.textPrimary, lineHeight: 24, marginBottom: 14 },
+  scanReasons: { gap: 8, marginBottom: 16 },
+  scanReasonRow: { flexDirection: 'row', gap: 8 },
+  scanReasonDot: { fontFamily: 'Poppins_700Bold', fontSize: 14, color: t.primary, lineHeight: 20 },
+  scanReasonText: { flex: 1, fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textSecondary, lineHeight: 20 },
+  scanPairsBox: { backgroundColor: t.surfaceMuted, borderRadius: 14, padding: 14, marginBottom: 4 },
+  scanPairsLabel: { fontFamily: 'Poppins_700Bold', fontSize: 11, letterSpacing: 1, color: t.textFaint, marginBottom: 4 },
+  scanPairsText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary, lineHeight: 20 },
+  scanDismissBtn: { alignItems: 'center', paddingVertical: 14 },
+  scanDismissText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textFaint, textDecorationLine: 'underline' },
   pillsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   pill: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   pillActive: { backgroundColor: t.primary, borderColor: t.primary },
