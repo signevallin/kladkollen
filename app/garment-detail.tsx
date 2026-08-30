@@ -733,10 +733,7 @@ export default function GarmentDetail() {
               <TouchableOpacity style={styles.evalBtn} onPress={runPurchaseEval} disabled={evaluating}>
                 {evaluating
                   ? <ActivityIndicator color={t.onPrimary} size="small" />
-                  : <>
-                      <Ionicons name="sparkles-outline" size={16} color={t.onPrimary} />
-                      <Text style={styles.evalBtnText}>{tr('Är det ett smart köp?')}</Text>
-                    </>}
+                  : <Text style={styles.evalBtnText}>{tr('Är det ett smart köp?')}</Text>}
               </TouchableOpacity>
             )}
           </>
