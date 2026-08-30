@@ -1,16 +1,16 @@
 # Graph Report - kladkollen  (2026-08-30)
 
 ## Corpus Check
-- 236 files · ~642,866 words
+- 236 files · ~642,859 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1404 nodes · 3371 edges · 190 communities (103 shown, 87 thin omitted)
+- 1404 nodes · 3371 edges · 191 communities (104 shown, 87 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.65)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f596996c`
+- Built from commit: `9f747d2a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -60,6 +60,7 @@
 - people
 - expo-font
 - @expo-google-fonts/lora
+- settings.tsx
 - expo-haptics
 - expo-image
 - app/_layout.tsx
@@ -157,7 +158,7 @@
 - @react-navigation/native
 - family.tsx
 - Theme
-- constants.ts
+- WishlistAddModals.tsx
 - useSettings
 - SignedImage.tsx
 - expo-calendar
@@ -189,7 +190,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (190 total, 87 thin omitted)
+## Communities (191 total, 87 thin omitted)
 
 ### Community 0 - "requireUser"
 Cohesion: 0.05
@@ -328,8 +329,8 @@ Cohesion: 0.20
 Nodes (7): effective_entitlement(), me, my_households, own, shared, sharers, tier_of
 
 ### Community 40 - "expo-router"
-Cohesion: 0.14
-Nodes (14): AddGarmentChooser(), makeStyles(), addOptions, BottomNav(), makeStyles(), tabs, CATEGORIES, COLORS (+6 more)
+Cohesion: 0.25
+Nodes (7): AddGarmentChooser(), makeStyles(), addOptions, BottomNav(), makeStyles(), tabs, expo-router
 
 ### Community 41 - "ArchiveView.tsx"
 Cohesion: 0.20
@@ -337,15 +338,19 @@ Nodes (12): ArchiveView(), CATEGORIES, COLOR_ORDER, COLORS, makeStyles(), Props,
 
 ### Community 42 - "ThemeProvider.tsx"
 Cohesion: 0.15
-Nodes (14): BrandInput(), makeStyles(), makeStyles(), Props, QueryState(), darkColors, darkTheme, lightColors (+6 more)
+Nodes (14): CapsuleView(), makeStyles(), makeStyles(), Props, QueryState(), darkColors, darkTheme, lightColors (+6 more)
 
 ### Community 43 - "people"
 Cohesion: 0.22
 Nodes (6): ensure_household(), people, my_household_person_ids(), person_outfit_calendar, auth.users, outfits
 
+### Community 46 - "settings.tsx"
+Cohesion: 0.16
+Nodes (13): DraftCard(), FAMILY_STATUS_LABELS, makeStyles(), Props, SIZES, BrandInput(), makeStyles(), FITS (+5 more)
+
 ### Community 49 - "app/_layout.tsx"
-Cohesion: 0.27
-Nodes (9): PUBLIC_ROUTES, RootLayout(), ThemeProvider(), useThemeControl(), pingActivity(), resetActivityPing(), hydrateCache(), initSentry() (+1 more)
+Cohesion: 0.25
+Nodes (10): PUBLIC_ROUTES, RootLayout(), ThemeProvider(), useThemeControl(), pingActivity(), resetActivityPing(), hydrateCache(), initSentry() (+2 more)
 
 ### Community 50 - "calendar.ts"
 Cohesion: 0.21
@@ -360,12 +365,12 @@ Cohesion: 0.50
 Nodes (3): affiliateConfigured, affiliateUrl(), NETWORK
 
 ### Community 62 - "trip.ts"
-Cohesion: 0.33
-Nodes (6): fetchTripWeather(), geocodeDestination(), GeoResult, mirrorLocalTripToDb(), TripWeather, ymd()
+Cohesion: 0.40
+Nodes (5): fetchTripWeather(), geocodeDestination(), GeoResult, TripWeather, ymd()
 
 ### Community 68 - "wardrobe.tsx"
-Cohesion: 0.16
-Nodes (15): CATEGORIES, COLOR_ORDER, COLORS, makeStyles(), SEASONS, SORT_LABEL, SORT_OPTIONS, Wardrobe() (+7 more)
+Cohesion: 0.14
+Nodes (19): CATEGORIES, COLOR_ORDER, COLORS, makeStyles(), SEASONS, SORT_LABEL, SORT_OPTIONS, Wardrobe() (+11 more)
 
 ### Community 82 - "entitlements"
 Cohesion: 0.33
@@ -415,13 +420,13 @@ Nodes (23): Family(), loadChildren(), makeStyles(), reminderLabel(), showPottyRo
 Cohesion: 0.27
 Nodes (9): makeStyles(), Mode, MODES, WardrobeAnalysis(), makeStyles(), Props, SaleAddModal(), Theme (+1 more)
 
-### Community 188 - "constants.ts"
-Cohesion: 0.13
-Nodes (21): DraftCard(), FAMILY_STATUS_LABELS, makeStyles(), Props, SIZES, GarmentPicker(), makeStyles(), Props (+13 more)
+### Community 188 - "WishlistAddModals.tsx"
+Cohesion: 0.12
+Nodes (18): GarmentPicker(), makeStyles(), Props, CATEGORIES, COLORS, CreateOutfitView(), makeStyles(), Props (+10 more)
 
 ### Community 189 - "useSettings"
-Cohesion: 0.11
-Nodes (23): Group, GROUPS, HowItWorks(), Item, makeStyles(), makeStyles(), Onboarding(), ONBOARDING_DONE_KEY (+15 more)
+Cohesion: 0.14
+Nodes (16): Group, GROUPS, HowItWorks(), Item, makeStyles(), makeStyles(), Onboarding(), ONBOARDING_DONE_KEY (+8 more)
 
 ### Community 190 - "SignedImage.tsx"
 Cohesion: 0.14
@@ -435,7 +440,7 @@ Nodes (15): makeStyles(), Member, Partner(), DayToNightShareCard(), makeStyles()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `expo-router` connect `expo-router` to `my-outfit.tsx`, `expo`, `wardrobe.tsx`, `login.tsx`, `home.tsx`, `profile.tsx`, `ArchiveView.tsx`, `garment-detail.tsx`, `entitlements.tsx`, `child-outfit.tsx`, `app/_layout.tsx`, `stats.tsx`, `useTheme`, `GarmentSetSection.tsx`, `family.tsx`, `constants.ts`, `useSettings`, `SignedImage.tsx`?**
+- **Why does `expo-router` connect `expo-router` to `my-outfit.tsx`, `expo`, `login.tsx`, `home.tsx`, `profile.tsx`, `garment-detail.tsx`, `entitlements.tsx`, `child-outfit.tsx`, `useTheme`, `ArchiveView.tsx`, `ThemeProvider.tsx`, `settings.tsx`, `app/_layout.tsx`, `stats.tsx`, `GarmentSetSection.tsx`, `family.tsx`, `WishlistAddModals.tsx`, `useSettings`, `SignedImage.tsx`, `wardrobe.tsx`?**
   _High betweenness centrality (0.060) - this node is a cross-community bridge._
 - **Why does `plugins` connect `expo` to `expo-router`?**
   _High betweenness centrality (0.051) - this node is a cross-community bridge._
