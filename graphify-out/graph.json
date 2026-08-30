@@ -3945,7 +3945,7 @@
       "label": "makeStyles()",
       "file_type": "code",
       "source_file": "app/quick-start.tsx",
-      "source_location": "L198",
+      "source_location": "L202",
       "_origin": "ast",
       "id": "app_quick_start_makestyles",
       "community": 85,
@@ -6346,8 +6346,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_dependencies_expo_apple_authentication",
-      "community": 194,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -6357,8 +6357,8 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "expo_apple_authentication",
-      "community": 194,
-      "community_name": "expo-apple-authentication",
+      "community": 17,
+      "community_name": "dependencies",
       "norm_label": "expo-apple-authentication"
     },
     {
@@ -6412,8 +6412,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "package_dependencies_expo_calendar",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 194,
+      "community_name": "expo-calendar",
       "norm_label": "expo-calendar"
     },
     {
@@ -6423,8 +6423,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "expo_calendar",
-      "community": 17,
-      "community_name": "dependencies",
+      "community": 194,
+      "community_name": "expo-calendar",
       "norm_label": "expo-calendar"
     },
     {
@@ -34131,7 +34131,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/quick-start.tsx",
-      "source_location": "L198",
+      "source_location": "L202",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_quick_start",
@@ -34467,7 +34467,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/quick-start.tsx",
-      "source_location": "L150",
+      "source_location": "L154",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_quick_start_quickstart",
@@ -34479,7 +34479,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/quick-start.tsx",
-      "source_location": "L51",
+      "source_location": "L54",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_quick_start_quickstart",
@@ -34491,7 +34491,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/quick-start.tsx",
-      "source_location": "L166",
+      "source_location": "L170",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_quick_start_quickstart",
@@ -34503,7 +34503,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/quick-start.tsx",
-      "source_location": "L112",
+      "source_location": "L117",
       "weight": 1.0,
       "_origin": "ast",
       "source": "app_quick_start_quickstart",
@@ -54509,5 +54509,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "2763929b52a20650114919de0ce145669056f5e3"
+  "built_at_commit": "ffb1d2cde17b012e02bcd4c54763f749cbafc25c"
 }

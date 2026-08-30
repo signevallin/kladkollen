@@ -1200,8 +1200,8 @@
     "semantic_hash": ""
   },
   "app/quick-start.tsx": {
-    "mtime": 1788033532.8303802,
-    "ast_hash": "61f9a6d02f19da19aa9c374b8958db14",
+    "mtime": 1788090854.4982686,
+    "ast_hash": "fe0bd38f2bbfe1f418a9095831774d07",
     "semantic_hash": ""
   },
   "scripts/cleanup-orphan-images.mjs": {

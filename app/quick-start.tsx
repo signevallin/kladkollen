@@ -24,8 +24,11 @@ export default function QuickStart() {
   const { t: tr } = useSettings()
 
   const [gender, setGender] = useState<BasicGender>('women')
-  // Nyckel: `${gender}:${id}` → vald färg. Val bevaras när man byter kön.
-  const [selected, setSelected] = useState<Record<string, string>>({})
+  // Ikryssade plagg (nyckel `${gender}:${id}`) resp. vald färg per plagg. Färgen
+  // hålls SEPARAT från valet: att byta färg markerar inte plagget – man kryssar i
+  // det genom att trycka på bilden. Båda bevaras när man växlar kön.
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [colorByKey, setColorByKey] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   // Om användaren själv inte hunnit trycka på köntabben förväljer vi den från
   // profilen (profiles.gender = 'Kvinna'/'Man'/…). Annat/tomt → behåll standard.
@@ -49,23 +52,24 @@ export default function QuickStart() {
   }, [])
 
   const sections = useMemo(() => basicsByCategory(gender), [gender])
-  const selectedCount = Object.keys(selected).length
+  const selectedCount = selected.size
 
   function keyFor(item: BasicItem) { return `${gender}:${item.id}` }
 
+  // Kryssa i/ur plagget (endast via bilden).
   function toggle(item: BasicItem) {
     const k = keyFor(item)
     setSelected(prev => {
-      const next = { ...prev }
-      if (next[k]) delete next[k]
-      else next[k] = item.colors[0]
+      const next = new Set(prev)
+      if (next.has(k)) next.delete(k)
+      else next.add(k)
       return next
     })
   }
 
+  // Byt färg utan att markera plagget.
   function pickColor(item: BasicItem, color: string) {
-    const k = keyFor(item)
-    setSelected(prev => ({ ...prev, [k]: color }))
+    setColorByKey(prev => ({ ...prev, [keyFor(item)]: color }))
   }
 
   function composeName(color: string, name: string) {
@@ -80,9 +84,10 @@ export default function QuickStart() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error(tr('Inte inloggad'))
       // Bygg rader ur alla val (båda könen om man växlat fram och tillbaka).
-      const rows = Object.entries(selected).map(([k, color]) => {
+      const rows = [...selected].map((k) => {
         const [g, id] = k.split(':') as [BasicGender, string]
         const item = basicsByCategory(g).flatMap(s => s.items).find(i => i.id === id)!
+        const color = colorByKey[k] || item.colors[0]
         return {
           user_id: user.id,
           name: composeName(color, item.name),
@@ -132,9 +137,8 @@ export default function QuickStart() {
             <View style={styles.grid}>
               {section.items.map(item => {
                 const k = keyFor(item)
-                const chosen = selected[k]
-                const on = !!chosen
-                const color = chosen || item.colors[0]
+                const on = selected.has(k)
+                const color = colorByKey[k] || item.colors[0]
                 return (
                   <View key={item.id} style={styles.cardWrap}>
                     <TouchableOpacity
