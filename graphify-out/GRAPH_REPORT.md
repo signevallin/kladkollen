@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-30)
 
 ## Corpus Check
-- 234 files · ~640,937 words
+- 234 files · ~641,038 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1f8b80ec`
+- Built from commit: `f83c2c65`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -150,9 +150,9 @@
 - profiles
 - garments
 - stats.tsx
-- home.tsx
+- FamilyOutfits.tsx
 - GarmentSetSection.tsx
-- pregnancy.ts
+- home.tsx
 - useSettings
 - constants.ts
 - my-outfit.tsx
@@ -259,8 +259,8 @@ Cohesion: 0.18
 Nodes (17): buildNotif(), chunk(), config, currentSeason(), daysSince(), describe(), Garment, getWeather() (+9 more)
 
 ### Community 19 - "SongCard.tsx"
-Cohesion: 0.39
-Nodes (5): AppleMusicBadge(), makeStyles(), openLink(), SongCard(), SpotifyFullLogo()
+Cohesion: 0.22
+Nodes (9): AppleMusicBadge(), makeStyles(), openLink(), SongCard(), SongData, SpotifyFullLogo(), RawSong, resolveSong() (+1 more)
 
 ### Community 20 - "1. App Privacy ("nutrition label")"
 Cohesion: 0.15
@@ -382,17 +382,17 @@ Nodes (8): Att tänka på inför lansering, confirm-signup.html — "Confirm sig
 Cohesion: 0.11
 Nodes (20): COLOR_EMOJIS, ColorInsight, CTX_META, makeStyles(), MoodROI, MoodStat, PIE_PALETTE, PowerPiece (+12 more)
 
-### Community 178 - "home.tsx"
-Cohesion: 0.17
-Nodes (14): INTENSITY_LABELS, makeStyles(), Member, NO_WEATHER, seasonalOrFull(), makeStyles(), Props, SwapSheet() (+6 more)
+### Community 178 - "FamilyOutfits.tsx"
+Cohesion: 0.24
+Nodes (7): makeStyles(), Member, NO_WEATHER, seasonalOrFull(), colorPalettePrompt(), filterForTrip(), seasonAppropriate()
 
 ### Community 182 - "GarmentSetSection.tsx"
 Cohesion: 0.35
 Nodes (9): GarmentSetSection(), makeStyles(), Props, createSet(), fetchSetMembers(), fetchSets(), GarmentSet, setGarmentSet() (+1 more)
 
-### Community 184 - "pregnancy.ts"
-Cohesion: 0.31
-Nodes (7): dueInWeeks(), NOW, nursingPromptContext(), pregnancyPromptContext(), Trimester, trimesterFromDueDate(), trimesterLabel()
+### Community 184 - "home.tsx"
+Cohesion: 0.29
+Nodes (8): INTENSITY_LABELS, dueInWeeks(), NOW, nursingPromptContext(), pregnancyPromptContext(), Trimester, trimesterFromDueDate(), trimesterLabel()
 
 ### Community 187 - "useSettings"
 Cohesion: 0.12
@@ -403,8 +403,8 @@ Cohesion: 0.15
 Nodes (15): GarmentPicker(), makeStyles(), Props, pool, CHILD_CONTEXTS, COLOR_HEX, isWashable(), MUSIC_GENRES (+7 more)
 
 ### Community 190 - "my-outfit.tsx"
-Cohesion: 0.18
-Nodes (11): makeStyles(), monthLabel(), STYLE_TAGS, weekdayLabels(), filterForTrip(), tripSeasons(), fetchTripWeather(), geocodeDestination() (+3 more)
+Cohesion: 0.15
+Nodes (13): makeStyles(), monthLabel(), STYLE_TAGS, weekdayLabels(), makeStyles(), Props, SwapSheet(), tripSeasons() (+5 more)
 
 ## Knowledge Gaps
 - **433 isolated node(s):** `vercel`, `sorted`, `pool`, `AuthedUser`, `hits` (+428 more)
@@ -414,7 +414,7 @@ Nodes (11): makeStyles(), monthLabel(), STYLE_TAGS, weekdayLabels(), filterForTr
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `expo-router` connect `wardrobe.tsx` to `profile.tsx`, `family.tsx`, `expo`, `login.tsx`, `supabase.ts`, `ArchiveView.tsx`, `useTheme`, `ThemeProvider.tsx`, `garment-detail.tsx`, `entitlements.tsx`, `child-outfit.tsx`, `app/_layout.tsx`, `stats.tsx`, `home.tsx`, `GarmentSetSection.tsx`, `useSettings`, `my-outfit.tsx`?**
+- **Why does `expo-router` connect `wardrobe.tsx` to `profile.tsx`, `family.tsx`, `expo`, `login.tsx`, `supabase.ts`, `ArchiveView.tsx`, `useTheme`, `ThemeProvider.tsx`, `garment-detail.tsx`, `entitlements.tsx`, `child-outfit.tsx`, `app/_layout.tsx`, `stats.tsx`, `FamilyOutfits.tsx`, `GarmentSetSection.tsx`, `home.tsx`, `useSettings`, `my-outfit.tsx`?**
   _High betweenness centrality (0.058) - this node is a cross-community bridge._
 - **Why does `plugins` connect `expo` to `wardrobe.tsx`?**
   _High betweenness centrality (0.049) - this node is a cross-community bridge._

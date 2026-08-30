@@ -51,6 +51,10 @@ const A = 'Alla årstider'
 
 // Återkommande form-hintar till bildgenereringen (löser vanliga AI-artefakter).
 const TROUSERS_HINT = 'a single pair of trousers laid completely flat on its back and photographed straight from directly above (top-down), waistband at the top of the frame, both legs extended straight down to full length and lying parallel side by side, symmetrical, fully unfolded, NOT folded in half, NOT bent at the knee, no creases across the middle, not on a hanger, not worn'
+// Kostymbyxor: klassisk katalogbild = benen SAMLADE till en rak, smal pelare med
+// pressveck (inte brett isär som jeans), i full längd. "side by side"-varianten
+// får modellen att vika dem.
+const DRESS_TROUSERS_HINT = 'a single pair of tailored dress trousers (suit trousers) laid flat and photographed straight from directly above (top-down), the two legs neatly aligned together forming one straight narrow vertical column with a sharp pressed centre crease, waistband at the top and hems at the bottom, shown in full length, fully unfolded, NOT folded in half, NOT bent at the knee, not on a hanger, not worn'
 const BLAZER_HINT = 'single-breasted, both sleeves laid straight and flat alongside the body, not folded or tucked in'
 const KNIT_HINT = 'chunky knitted sweater with clearly visible knit texture and ribbed cuffs and hem, wool knitwear, not a smooth sweatshirt'
 const LONGSLEEVE_SHIRT_HINT = 'long-sleeved button-up shirt with full-length sleeves'
@@ -64,7 +68,7 @@ const WOMEN: BasicItem[] = [
   { id: 'w-sweatshirt', category: 'Tröjor', subcategory: 'Sweatshirt', name: 'Sweatshirt', colors: ['Grå', 'Svart'], season: [A] },
   { id: 'w-kofta', category: 'Tröjor', subcategory: 'Kofta', name: 'Kofta', colors: ['Beige', 'Svart'], season: ['Höst'] },
   { id: 'w-jeans', category: 'Byxor', subcategory: 'Jeans', name: 'Jeans', colors: ['Blå', 'Svart', 'Grå', 'Mörkblå'], season: [A], promptHint: TROUSERS_HINT },
-  { id: 'w-kostymbyxor', category: 'Byxor', subcategory: 'Kostymbyxor', name: 'Kostymbyxor', colors: ['Svart', 'Beige'], season: [A], promptHint: TROUSERS_HINT },
+  { id: 'w-kostymbyxor', category: 'Byxor', subcategory: 'Kostymbyxor', name: 'Kostymbyxor', colors: ['Svart', 'Beige'], season: [A], promptHint: DRESS_TROUSERS_HINT },
   { id: 'w-chinos', category: 'Byxor', subcategory: 'Chinos', name: 'Chinos', colors: ['Beige', 'Blå', 'Mörkblå'], season: [A], promptHint: TROUSERS_HINT },
   { id: 'w-leggings', category: 'Byxor', subcategory: 'Leggings', name: 'Leggings', colors: ['Svart'], season: [A] },
   { id: 'w-midikjol', category: 'Kjolar', subcategory: 'Midikjol', name: 'Midikjol', colors: ['Svart', 'Beige'], season: [A] },
@@ -92,7 +96,7 @@ const MEN: BasicItem[] = [
   { id: 'm-stickad', category: 'Tröjor', subcategory: 'Stickad tröja', name: 'Stickad tröja', colors: ['Beige', 'Blå'], season: ['Höst', 'Vinter'], promptHint: KNIT_HINT },
   { id: 'm-jeans', category: 'Byxor', subcategory: 'Jeans', name: 'Jeans', colors: ['Blå', 'Svart', 'Mörkblå'], season: [A], promptHint: TROUSERS_HINT },
   { id: 'm-chinos', category: 'Byxor', subcategory: 'Chinos', name: 'Chinos', colors: ['Beige', 'Blå', 'Mörkblå'], season: [A], promptHint: TROUSERS_HINT },
-  { id: 'm-kostymbyxor', category: 'Byxor', subcategory: 'Kostymbyxor', name: 'Kostymbyxor', colors: ['Svart', 'Grå'], season: [A], promptHint: TROUSERS_HINT },
+  { id: 'm-kostymbyxor', category: 'Byxor', subcategory: 'Kostymbyxor', name: 'Kostymbyxor', colors: ['Svart', 'Grå'], season: [A], promptHint: DRESS_TROUSERS_HINT },
   { id: 'm-mjukisbyxor', category: 'Byxor', subcategory: 'Mjukisbyxor', name: 'Mjukisbyxor', colors: ['Grå', 'Svart'], season: [A] },
   { id: 'm-shorts', category: 'Shorts', subcategory: 'Chinosshorts', name: 'Chinosshorts', colors: ['Beige', 'Blå'], season: ['Sommar'] },
   { id: 'm-kavaj', category: 'Kavajer', subcategory: 'Kavaj', name: 'Kavaj', colors: ['Svart', 'Blå'], season: [A], promptHint: BLAZER_HINT },
