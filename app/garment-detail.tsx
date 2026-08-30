@@ -28,6 +28,7 @@ import { showAlert, showConfirm } from '../utils/alert'
 import { toast } from '../components/Toast'
 import { apiPost } from '../utils/api'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
+import * as FileSystem from 'expo-file-system/legacy'
 import { loadGarments } from '../utils/garmentsStore'
 import PurchaseEvalResult, { type PurchaseEval } from '../components/PurchaseEvalResult'
 import { parsePrice } from '../utils/brands'
@@ -202,9 +203,14 @@ export default function GarmentDetail() {
     if (!imageUrl) { showAlert(tr('Lägg till en bild först'), tr('Bedömningen behöver en bild på plagget.')); return }
     setEvaluating(true)
     try {
+      // ImageManipulator läser lokala filer, inte fjärr-URL:er – ladda ner först
+      // (samma mönster som CropModal), annars "File ... is not readable".
       const signed = await resolveImageUrl(imageUrl)
-      const rendered = await ImageManipulator.manipulate(signed).resize({ width: 1000 }).renderAsync()
+      const local = FileSystem.cacheDirectory + `eval-${Date.now()}.jpg`
+      await FileSystem.downloadAsync(signed, local)
+      const rendered = await ImageManipulator.manipulate(local).resize({ width: 1000 }).renderAsync()
       const { base64 } = await rendered.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true })
+      FileSystem.deleteAsync(local, { idempotent: true }).catch(() => {})
       let wardrobe: any[] = []
       try {
         const all = await loadGarments()

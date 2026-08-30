@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-30)
 
 ## Corpus Check
-- 236 files · ~642,509 words
+- 236 files · ~642,553 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e9ac5d7f`
+- Built from commit: `6d4f88af`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -94,7 +94,7 @@
 - public.wishlist
 - @sentry/react-native
 - @supabase/supabase-js
-- expo-location
+- expo
 - entitlements
 - effective_entitlement
 - Basplaggs-bilder (Snabbstart)
@@ -253,7 +253,7 @@ Nodes (18): makeStyles(), confirmDialog(), ColorAnalysis(), ColorAnalysisData, C
 
 ### Community 17 - "dependencies"
 Cohesion: 0.08
-Nodes (25): expo, expo-apple-authentication, expo-audio, expo-image-manipulator, expo-image-picker, expo-linking, expo-symbols, expo-web-browser (+17 more)
+Nodes (25): expo-apple-authentication, expo-audio, expo-image-manipulator, expo-image-picker, expo-linking, expo-location, expo-symbols, expo-web-browser (+17 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.18
