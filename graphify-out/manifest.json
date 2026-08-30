@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "scripts/generate-basics.ts": {
-    "mtime": 1788031686.0120583,
-    "ast_hash": "f1b55f1be31fad7a76b1d8618fc9b01f",
+    "mtime": 1788082041.0299058,
+    "ast_hash": "467b8acacc59985fd52c330a178b1337",
     "semantic_hash": ""
   },
   "supabase/migrations/20260825_manual_grant_family.sql": {
@@ -1275,8 +1275,8 @@
     "semantic_hash": ""
   },
   "utils/basics.ts": {
-    "mtime": 1788031686.0120583,
-    "ast_hash": "bbfe8d85b4723fbedef5292af8f9fe9c",
+    "mtime": 1788082022.2139046,
+    "ast_hash": "a56a41eb330d7684c0533a8a7832fcf2",
     "semantic_hash": ""
   },
   "utils/cronSchedule.ts": {

@@ -87,9 +87,15 @@ function promptFor(genderEn: string, colorSv: string, item: { name: string; prom
     'laid flat and perfectly centered on a plain pure white seamless background,',
     'front view, symmetrical, realistic seams and natural fabric folds,',
     'soft even studio lighting, no person, no hanger, no props, no text, no logo, minimal shadow,',
-    'photorealistic e-commerce catalogue product photo, square 1:1.',
+    'photorealistic e-commerce catalogue product photo.',
   ].filter(Boolean).join(' ')
 }
+
+// Långa plagg (byxor/leggings) genereras i stående format så modellen kan lägga
+// dem i full längd i stället för att vika ihop dem (huvudorsaken till vikta/
+// felvända byxor i fyrkantigt format).
+const TALL = new Set(['Jeans', 'Kostymbyxor', 'Chinos', 'Leggings', 'Mjukisbyxor'])
+function aspectFor(name: string): string { return TALL.has(name) ? '3:4' : '1:1' }
 
 // Deterministisk seed per (id,färg) så omkörningar blir reproducerbara.
 function seedFrom(s: string): number {
@@ -245,7 +251,7 @@ async function main() {
       if (!FORCE && await fileExists(job.dir, job.file)) { skipped++; console.log(`↷ finns redan, hoppar: ${label}`); return }
       const whiteUrl = await replicateRun(FLUX_MODEL, {
         prompt,
-        aspect_ratio: '1:1',
+        aspect_ratio: aspectFor(job.item.name),
         output_format: 'png',
         prompt_upsampling: false,
         seed: seedFrom(`${job.gender}:${job.item.id}:${job.color}`),

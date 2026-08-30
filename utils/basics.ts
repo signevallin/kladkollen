@@ -50,7 +50,7 @@ export function basicImagePath(gender: BasicGender, item: BasicItem, color: stri
 const A = 'Alla årstider'
 
 // Återkommande form-hintar till bildgenereringen (löser vanliga AI-artefakter).
-const TROUSERS_HINT = 'shown full-length, laid out flat and completely unfolded, both legs straight and fully visible, no folding'
+const TROUSERS_HINT = 'a single pair of trousers laid completely flat on its back and photographed straight from directly above (top-down), waistband at the top of the frame, both legs extended straight down to full length and lying parallel side by side, symmetrical, fully unfolded, NOT folded in half, NOT bent at the knee, no creases across the middle, not on a hanger, not worn'
 const BLAZER_HINT = 'single-breasted, both sleeves laid straight and flat alongside the body, not folded or tucked in'
 const KNIT_HINT = 'chunky knitted sweater with clearly visible knit texture and ribbed cuffs and hem, wool knitwear, not a smooth sweatshirt'
 const LONGSLEEVE_SHIRT_HINT = 'long-sleeved button-up shirt with full-length sleeves'
