@@ -53,6 +53,12 @@ const ONLY_COLORS = val('--color')?.split(',').map(s => s.trim().toLowerCase()).
 // för vissa färger). Kombinera med --only/--color/--force för att bara göra om
 // de plagg/färger som blev dåliga.
 const REROLL = has('--reroll')
+// Färga om en BEFINTLIG basplaggsbild till målfärgen i stället för att generera
+// från grunden. --from=<färg-slug> = källbilden (samma plagg, annan färg som
+// redan blev bra). Behåller form/komposition, byter bara färg (Flux Kontext).
+// Ex: --only=m-balte --color=svart --from=brun --force
+const FROM = val('--from')?.trim().toLowerCase()
+const KONTEXT_MODEL = val('--edit-model') || 'black-forest-labs/flux-kontext-pro'
 const FLUX_MODEL = val('--model') || 'black-forest-labs/flux-1.1-pro'
 const CONCURRENCY = Math.max(1, Number(val('--concurrency') || 2))
 // Replicate strypter konton med < $5 kredit till 6 skapade prediktioner/minut
@@ -257,13 +263,25 @@ async function main() {
     if (DRY) { console.log(`· ${label}\n   ${prompt}`); return }
     try {
       if (!FORCE && await fileExists(job.dir, job.file)) { skipped++; console.log(`↷ finns redan, hoppar: ${label}`); return }
-      const whiteUrl = await replicateRun(FLUX_MODEL, {
-        prompt,
-        aspect_ratio: aspectFor(job.item.name),
-        output_format: 'png',
-        prompt_upsampling: false,
-        seed: REROLL ? Math.floor(Math.random() * 2_000_000_000) : seedFrom(`${job.gender}:${job.item.id}:${job.color}`),
-      })
+      let whiteUrl: string
+      if (FROM) {
+        // Färga om en befintlig bild i stället för att generera från grunden.
+        const srcPath = `basics/${job.gender}/${job.item.id}/${FROM}.png`
+        const signed = await supa!.storage.from(BUCKET).createSignedUrl(srcPath, 900)
+        if (signed.error || !signed.data?.signedUrl) throw new Error(`källbild saknas: ${srcPath}`)
+        const colorEn = COLOR_EN[job.color] || job.color.toLowerCase()
+        const garmentEn = GARMENT_EN[job.item.name] || job.item.name.toLowerCase()
+        const editPrompt = `Change only the colour of this ${garmentEn} to solid ${colorEn}. Keep the exact same shape, angle, composition, metal buckle and hardware, stitching, framing and background identical — recolour the leather/fabric only, do not change anything else.`
+        whiteUrl = await replicateRun(KONTEXT_MODEL, { prompt: editPrompt, input_image: signed.data.signedUrl, output_format: 'png' })
+      } else {
+        whiteUrl = await replicateRun(FLUX_MODEL, {
+          prompt,
+          aspect_ratio: aspectFor(job.item.name),
+          output_format: 'png',
+          prompt_upsampling: false,
+          seed: REROLL ? Math.floor(Math.random() * 2_000_000_000) : seedFrom(`${job.gender}:${job.item.id}:${job.color}`),
+        })
+      }
       const cutUrl = await replicateRun(REMBG_MODEL, { image: whiteUrl })
       const bytes = new Uint8Array(await (await fetch(cutUrl)).arrayBuffer())
       const { error } = await supa!.storage.from(BUCKET).upload(job.path, bytes, { contentType: 'image/png', upsert: true })
