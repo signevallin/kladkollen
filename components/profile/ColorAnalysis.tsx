@@ -3,6 +3,7 @@ import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacit
 import { supabase } from '../../supabase'
 import { apiPost } from '../../utils/api'
 import { showAlert } from '../../utils/alert'
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import { pickImageSmart } from '../../utils/imagePicker'
 import { useSettings } from '../../utils/settings'
 import Toggle from '../Toggle'
@@ -69,8 +70,16 @@ export default function ColorAnalysis({ onAnalyzed }: Props) {
 
   async function pickColorImage() {
     const result = await pickImageSmart({ mediaTypes: ['images'] as any, allowsEditing: true, base64: true, quality: 0.7 })
-    if (!result.canceled) {
-      setColorImage(result.assets[0].uri)
+    if (result.canceled) return
+    const uri = result.assets[0].uri
+    setColorImage(uri)
+    // Skala ner till 1000 px innan analysen – ett fullstort foto gjorde
+    // requesten så tung att serveranropet hann timeouta ("tog för lång tid").
+    try {
+      const rendered = await ImageManipulator.manipulate(uri).resize({ width: 1000 }).renderAsync()
+      const out = await rendered.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true })
+      setColorBase64(out.base64 || result.assets[0].base64 || null)
+    } catch {
       setColorBase64(result.assets[0].base64 || null)
     }
   }
