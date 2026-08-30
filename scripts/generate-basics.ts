@@ -271,7 +271,7 @@ async function main() {
         if (signed.error || !signed.data?.signedUrl) throw new Error(`källbild saknas: ${srcPath}`)
         const colorEn = COLOR_EN[job.color] || job.color.toLowerCase()
         const garmentEn = GARMENT_EN[job.item.name] || job.item.name.toLowerCase()
-        const editPrompt = `Change only the colour of this ${garmentEn} to solid ${colorEn}. Keep the exact same shape, angle, composition, metal buckle and hardware, stitching, framing and background identical — recolour the leather/fabric only, do not change anything else.`
+        const editPrompt = `Change only the colour of this ${garmentEn} to solid ${colorEn}. Keep the exact same shape, angle, position, scale, composition, metal buckle and hardware, stitching, framing and background identical — recolour the leather/fabric only. Keep the ENTIRE ${garmentEn} fully inside the frame exactly as in the source; do NOT crop, cut off, move, zoom or reframe it.`
         whiteUrl = await replicateRun(KONTEXT_MODEL, { prompt: editPrompt, input_image: signed.data.signedUrl, output_format: 'png' })
       } else {
         whiteUrl = await replicateRun(FLUX_MODEL, {
