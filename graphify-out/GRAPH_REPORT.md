@@ -1,16 +1,16 @@
-# Graph Report - kladkollen  (2026-08-29)
+# Graph Report - kladkollen  (2026-08-30)
 
 ## Corpus Check
-- 233 files · ~640,534 words
+- 234 files · ~640,771 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1392 nodes · 3345 edges · 176 communities (90 shown, 86 thin omitted)
+- 1393 nodes · 3345 edges · 177 communities (91 shown, 86 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.65)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d6034237`
+- Built from commit: `d615ccc8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -60,7 +60,7 @@
 - people
 - expo-font
 - @expo-google-fonts/lora
-- expo-apple-authentication
+- expo-calendar
 - expo-haptics
 - expo-image
 - expo-image-manipulator
@@ -177,7 +177,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (176 total, 86 thin omitted)
+## Communities (177 total, 86 thin omitted)
 
 ### Community 0 - "requireUser"
 Cohesion: 0.07
@@ -245,7 +245,7 @@ Nodes (4): makeStyles(), Props, ScanResult, WishlistAddModals()
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-calendar, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-apple-authentication, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.18

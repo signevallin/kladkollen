@@ -349,9 +349,19 @@ export default async function handler(request: Request): Promise<Response> {
 
   // Kandidater: har push-token och har inte redan fått en notis den här sloten
   // idag (max en notis per slot och dag, dedup lagras som "YYYY-MM-DD:slot").
-  const candidates = ((profiles || []) as Profile[]).filter(
+  const eligible = ((profiles || []) as Profile[]).filter(
     p => p.push_token && p.last_notif_date !== slotTag
   )
+  // Dedupa per push-token: en push-token identifierar en ENHET, inte ett konto.
+  // Har någon varit inloggad på flera konton på samma telefon får den telefonen
+  // annars en notis PER konto (dubbelnotiser). Skicka bara en per token.
+  const seenTokens = new Set<string>()
+  const candidates = eligible.filter(p => {
+    const tok = p.push_token as string
+    if (seenTokens.has(tok)) return false
+    seenTokens.add(tok)
+    return true
+  })
   const ids = candidates.map(p => p.id)
 
   // Batcha plagg-hämtningen: EN fråga per id-batch i stället för en per
