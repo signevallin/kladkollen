@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "scripts/generate-basics.ts": {
-    "mtime": 1788082041.0299058,
-    "ast_hash": "467b8acacc59985fd52c330a178b1337",
+    "mtime": 1788082518.1899343,
+    "ast_hash": "5f6ea34665d8d6bc7abc49cbc391500c",
     "semantic_hash": ""
   },
   "supabase/migrations/20260825_manual_grant_family.sql": {

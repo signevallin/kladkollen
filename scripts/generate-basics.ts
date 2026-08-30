@@ -47,6 +47,12 @@ const val = (f: string) => { const a = args.find(x => x.startsWith(`${f}=`)); re
 const FORCE = has('--force')
 const DRY = has('--dry')
 const ONLY = val('--only')?.toLowerCase()
+// Rikta in på enskilda färger (färg-slugs, komma-separerat), t.ex. --color=gra,morkbla
+const ONLY_COLORS = val('--color')?.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+// Slå om med ny slumpseed (den fasta seed:en kan fastna på en dålig komposition
+// för vissa färger). Kombinera med --only/--color/--force för att bara göra om
+// de plagg/färger som blev dåliga.
+const REROLL = has('--reroll')
 const FLUX_MODEL = val('--model') || 'black-forest-labs/flux-1.1-pro'
 const CONCURRENCY = Math.max(1, Number(val('--concurrency') || 2))
 // Replicate strypter konton med < $5 kredit till 6 skapade prediktioner/minut
@@ -235,7 +241,9 @@ async function main() {
         if (ONLY && !(item.id.toLowerCase().includes(ONLY) || gender === ONLY)) continue
         const path = basics.basicImagePath(gender, item, color)
         const slash = path.lastIndexOf('/')
-        jobs.push({ gender, genderEn, item, color, path, dir: path.slice(0, slash), file: path.slice(slash + 1) })
+        const file = path.slice(slash + 1)
+        if (ONLY_COLORS && !ONLY_COLORS.includes(file.replace(/\.png$/i, ''))) continue
+        jobs.push({ gender, genderEn, item, color, path, dir: path.slice(0, slash), file })
       }
     }
   }
@@ -254,7 +262,7 @@ async function main() {
         aspect_ratio: aspectFor(job.item.name),
         output_format: 'png',
         prompt_upsampling: false,
-        seed: seedFrom(`${job.gender}:${job.item.id}:${job.color}`),
+        seed: REROLL ? Math.floor(Math.random() * 2_000_000_000) : seedFrom(`${job.gender}:${job.item.id}:${job.color}`),
       })
       const cutUrl = await replicateRun(REMBG_MODEL, { image: whiteUrl })
       const bytes = new Uint8Array(await (await fetch(cutUrl)).arrayBuffer())
