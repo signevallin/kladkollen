@@ -27,6 +27,9 @@ import { removeBackground } from '../utils/removeBg'
 import { showAlert, showConfirm } from '../utils/alert'
 import { toast } from '../components/Toast'
 import { apiPost } from '../utils/api'
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
+import { loadGarments } from '../utils/garmentsStore'
+import PurchaseEvalResult, { type PurchaseEval } from '../components/PurchaseEvalResult'
 import { parsePrice } from '../utils/brands'
 import { fetchLocations, type Location } from '../utils/locations'
 import { goBack } from '../utils/nav'
@@ -114,6 +117,10 @@ export default function GarmentDetail() {
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
   const [link, setLink] = useState('') // produktlänk (bara köplistan)
+  // "Smart köp?"-bedömning (köplistan): sparad på raden, kan köras/visas här.
+  const [purchaseEval, setPurchaseEval] = useState<PurchaseEval | null>(null)
+  const [evaluating, setEvaluating] = useState(false)
+  const [showEval, setShowEval] = useState(false)
   // Familjeläge: vem plagget tillhör + barnstorlek + hand-me-down-status.
   const [children, setChildren] = useState<Person[]>([])
   const [personId, setPersonId] = useState<string | null>(null)
@@ -183,7 +190,37 @@ export default function GarmentDetail() {
       setPrice(data.price != null ? String(fromBaseSEK(data.price)) : '')
       setLink(data.url || '')
       setImageUrl(data.image_url)
+      const saved = (data as any).purchase_eval
+      if (saved && typeof saved === 'object') setPurchaseEval(saved as PurchaseEval)
       setLoaded(true)
+    }
+  }
+
+  // Kör "smart köp?"-bedömningen på köplistepostens bild mot egna garderoben,
+  // visar resultatet och sparar det på raden så det går att se igen.
+  async function runPurchaseEval() {
+    if (!imageUrl) { showAlert(tr('Lägg till en bild först'), tr('Bedömningen behöver en bild på plagget.')); return }
+    setEvaluating(true)
+    try {
+      const signed = await resolveImageUrl(imageUrl)
+      const rendered = await ImageManipulator.manipulate(signed).resize({ width: 1000 }).renderAsync()
+      const { base64 } = await rendered.saveAsync({ compress: 0.7, format: SaveFormat.JPEG, base64: true })
+      let wardrobe: any[] = []
+      try {
+        const all = await loadGarments()
+        wardrobe = (all || [])
+          .filter((g: any) => g.person_id == null && !g.archived && !g.for_sale)
+          .map((g: any) => ({ name: g.name, category: g.category, subcategory: g.subcategory, color: g.color, season: g.season }))
+      } catch { /* tom garderob duger */ }
+      const data = await apiPost('/api/evaluate-purchase', { base64, wardrobe }) as PurchaseEval & { error?: string }
+      if ((data as any).error) throw new Error((data as any).error)
+      setPurchaseEval(data)
+      setShowEval(true)
+      await supabase.from('wishlist').update({ purchase_eval: data } as any).eq('id', wishlistId)
+    } catch (e: any) {
+      showAlert(tr('Något gick fel'), e?.message || tr('Försök igen.'))
+    } finally {
+      setEvaluating(false)
     }
   }
 
@@ -650,8 +687,46 @@ export default function GarmentDetail() {
               autoCorrect={false}
               keyboardType="url"
             />
+
+            {/* Smart köp? – bedöm plagget mot garderoben, spara & visa igen. */}
+            <Text style={styles.label}>{tr('Smart köp?')}</Text>
+            {purchaseEval ? (
+              <View style={styles.evalRow}>
+                <TouchableOpacity style={styles.evalSeeBtn} onPress={() => setShowEval(true)}>
+                  <Ionicons name="sparkles-outline" size={16} color={t.onPrimary} />
+                  <Text style={styles.evalSeeBtnText}>{tr('Se bedömningen')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.evalRedoBtn} onPress={runPurchaseEval} disabled={evaluating}>
+                  <Text style={styles.evalRedoText}>{evaluating ? tr('Bedömer…') : tr('Bedöm igen')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.evalBtn} onPress={runPurchaseEval} disabled={evaluating}>
+                {evaluating
+                  ? <ActivityIndicator color={t.onPrimary} size="small" />
+                  : <>
+                      <Ionicons name="sparkles-outline" size={16} color={t.onPrimary} />
+                      <Text style={styles.evalBtnText}>{tr('Är det ett smart köp?')}</Text>
+                    </>}
+              </TouchableOpacity>
+            )}
           </>
         )}
+
+        {/* "Smart köp?"-resultat */}
+        <Modal visible={showEval} animationType="slide" transparent onRequestClose={() => setShowEval(false)}>
+          <View style={styles.evalModalOverlay}>
+            <View style={styles.evalModalContent}>
+              <View style={styles.evalModalHeader}>
+                <Text style={styles.evalModalTitle}>{tr('Smart köp?')}</Text>
+                <TouchableOpacity onPress={() => setShowEval(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                  <Text style={styles.evalModalClose}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              {purchaseEval && <PurchaseEvalResult result={purchaseEval} />}
+            </View>
+          </View>
+        </Modal>
 
         {/* Storlek & plats – bara för egna plagg */}
         {!isWishlistItem && (
@@ -939,6 +1014,19 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12, paddingHorizontal: 2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, paddingTop: 20 },
   sectionHeaderTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase' },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
+
+  evalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: t.primary, borderRadius: 14, paddingVertical: 14, marginBottom: 4 },
+  evalBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
+  evalRow: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 4 },
+  evalSeeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: t.primary, borderRadius: 14, paddingVertical: 14 },
+  evalSeeBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
+  evalRedoBtn: { paddingVertical: 14, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: t.border },
+  evalRedoText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14 },
+  evalModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+  evalModalContent: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '85%' },
+  evalModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  evalModalTitle: { fontFamily: 'Poppins_700Bold', fontSize: 20, color: t.textPrimary },
+  evalModalClose: { fontFamily: 'Lora_400Regular', fontSize: 18, color: t.textSecondary, padding: 4 },
   sizeOwner: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 13, fontStyle: 'italic', marginBottom: 8, marginTop: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   lendRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8, marginBottom: 8 },
