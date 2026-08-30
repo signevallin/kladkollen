@@ -109,7 +109,7 @@ const MEN: BasicItem[] = [
   { id: 'm-boots', category: 'Skor', subcategory: 'Boots', name: 'Boots', colors: ['Brun', 'Svart'], season: ['Höst', 'Vinter'] },
   { id: 'm-loafers', category: 'Skor', subcategory: 'Loafers', name: 'Loafers', colors: ['Brun', 'Svart'], season: [A] },
   { id: 'm-ryggsack', category: 'Väskor', subcategory: 'Ryggsäck', name: 'Ryggsäck', colors: ['Svart'], season: [A] },
-  { id: 'm-balte', category: 'Accessoarer', subcategory: 'Bälte', name: 'Bälte', colors: ['Brun', 'Svart'], season: [A] },
+  { id: 'm-balte', category: 'Accessoarer', subcategory: 'Bälte', name: 'Bälte', colors: ['Brun', 'Svart'], season: [A], promptHint: 'a single leather belt laid out completely flat and fully extended straight across the frame horizontally, the metal buckle at one end, unrolled and not coiled, viewed straight from directly above, sharp clean edges' },
   { id: 'm-keps', category: 'Accessoarer', subcategory: 'Keps', name: 'Keps', colors: ['Svart'], season: ['Sommar'] },
   { id: 'm-mossa', category: 'Accessoarer', subcategory: 'Mössa', name: 'Mössa', colors: ['Grå', 'Svart'], season: ['Vinter'] },
 ]
