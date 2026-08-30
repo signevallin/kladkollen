@@ -200,8 +200,8 @@
     "semantic_hash": ""
   },
   "app/garment-detail.tsx": {
-    "mtime": 1788107380.3958063,
-    "ast_hash": "5b6b4caef32ff986872445d6bbb8a8ba",
+    "mtime": 1788108915.4545133,
+    "ast_hash": "f5837ee99dcc5fd6e86e41c411307383",
     "semantic_hash": ""
   },
   "app/how-it-works.tsx": {
@@ -645,23 +645,23 @@
     "semantic_hash": ""
   },
   "utils/i18n.de.json": {
-    "mtime": 1788106629.1047258,
-    "ast_hash": "773e855df5e23e8ca2247205409c0572",
+    "mtime": 1788108932.6165242,
+    "ast_hash": "27c42efdfcaa1fe701711b0cf49d4a80",
     "semantic_hash": ""
   },
   "utils/i18n.es.json": {
-    "mtime": 1788106629.107445,
-    "ast_hash": "0403e35f8bc6672d487b6881bab5de1e",
+    "mtime": 1788108932.6785195,
+    "ast_hash": "86b1f16e9e192cd85a83c623b1c6059c",
     "semantic_hash": ""
   },
   "utils/i18n.fr.json": {
-    "mtime": 1788106629.1099534,
-    "ast_hash": "f3e9fba70015a1a43220cc1c6a11df5d",
+    "mtime": 1788108932.6825144,
+    "ast_hash": "b2b574de868cb3ee60d5dd6b9505809b",
     "semantic_hash": ""
   },
   "utils/i18n.ts": {
-    "mtime": 1788106622.3360453,
-    "ast_hash": "7766c6d9fb797a6acfc721dd848344fa",
+    "mtime": 1788108925.370514,
+    "ast_hash": "f635d01a3bf62118159348da76cb4012",
     "semantic_hash": ""
   },
   "utils/id.ts": {
@@ -1195,8 +1195,8 @@
     "semantic_hash": ""
   },
   "api/evaluate-purchase.ts": {
-    "mtime": 1788031364.135084,
-    "ast_hash": "0245b51f97bfb0990151629ee1099ac0",
+    "mtime": 1788108855.9761968,
+    "ast_hash": "0a161e76cb71801329276d9596612087",
     "semantic_hash": ""
   },
   "app/quick-start.tsx": {

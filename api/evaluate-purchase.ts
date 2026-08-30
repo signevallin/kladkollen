@@ -15,16 +15,19 @@ const SUBCATEGORY_HINT = Object.entries(SUBCATEGORIES)
 // språk.
 type WardrobeItem = { name?: string; category?: string; subcategory?: string; color?: string; season?: string }
 
-function buildPrompt(lang: unknown, wardrobe: WardrobeItem[]): string {
+function buildPrompt(lang: unknown, wardrobe: WardrobeItem[], colorPalette?: string): string {
   const ln = langName(lang)
   // Kompakt garderobssammanfattning: en rad per plagg (kategori/färg/namn).
   const list = wardrobe.length
     ? wardrobe.map(g => `- ${g.category || '?'}${g.subcategory ? '/' + g.subcategory : ''}, ${g.color || '?'}: ${g.name || ''}`).join('\n')
     : '(tom garderob)'
+  const colorSection = colorPalette
+    ? `\n\nANVÄNDARENS FÄRGANALYS: ${colorPalette}\nVäg in färganalysen i bedömningen: plagg vars färg ligger i användarens bas-/komplement-/accentfärger är ett bättre köp; en färg som står i "Undvik" drar ner bedömningen. Nämn färgpassningen i motiveringen.`
+    : ''
   return `Du är en personlig stylist. Användaren står i en butik och funderar på att köpa plagget i bilden. Bedöm om det är ett smart köp för just DEM, utifrån deras befintliga garderob nedan.
 
 ANVÄNDARENS GARDEROB (${wardrobe.length} plagg):
-${list}
+${list}${colorSection}
 
 Svara ENDAST med ett JSON-objekt (inget annat):
 {
@@ -59,7 +62,7 @@ export default async function handler(request: Request): Promise<Response> {
   const auth = await requireUser(request)
   if (auth instanceof Response) return auth
   try {
-    const { base64, lang, wardrobe } = await request.json() as any
+    const { base64, lang, wardrobe, colorPalette } = await request.json() as any
     const key = process.env.ANTHROPIC_API_KEY
     if (!key) {
       return new Response(JSON.stringify({ error: 'API-nyckel saknas' }), { status: 500 })
@@ -79,7 +82,7 @@ export default async function handler(request: Request): Promise<Response> {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-            { type: 'text', text: buildPrompt(lang, wb) },
+            { type: 'text', text: buildPrompt(lang, wb, typeof colorPalette === 'string' && colorPalette ? colorPalette.slice(0, 600) : undefined) },
           ],
         }],
       }),

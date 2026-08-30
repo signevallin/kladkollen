@@ -30,6 +30,7 @@ import { apiPost } from '../utils/api'
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 import * as FileSystem from 'expo-file-system/legacy'
 import { loadGarments } from '../utils/garmentsStore'
+import { colorPalettePrompt } from '../utils/colorAnalysis'
 import PurchaseEvalResult, { type PurchaseEval } from '../components/PurchaseEvalResult'
 import { parsePrice } from '../utils/brands'
 import { fetchLocations, type Location } from '../utils/locations'
@@ -66,7 +67,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 export default function GarmentDetail() {
   const t = useTheme()
   const styles = makeStyles(t)
-  const { currency, toBaseSEK, fromBaseSEK, t: tr, lang , childSize, shoeSize: shoeSizeLbl} = useSettings()
+  const { currency, toBaseSEK, fromBaseSEK, t: tr, lang , childSize, shoeSize: shoeSizeLbl, useColorAnalysis } = useSettings()
   const locale = localeFor(lang)
   const { tier } = useEntitlements()
   // Att tilldela plagg till ett barn ligger bakom familjeläget, "får lånas av
@@ -122,6 +123,10 @@ export default function GarmentDetail() {
   const [purchaseEval, setPurchaseEval] = useState<PurchaseEval | null>(null)
   const [evaluating, setEvaluating] = useState(false)
   const [showEval, setShowEval] = useState(false)
+  // Användarens färganalys som palett-sträng (tom = ingen analys gjord) + val att
+  // väga in den i bedömningen (förvalt från globala inställningen).
+  const [colorPalette, setColorPalette] = useState('')
+  const [weighColors, setWeighColors] = useState(useColorAnalysis)
   // Familjeläge: vem plagget tillhör + barnstorlek + hand-me-down-status.
   const [children, setChildren] = useState<Person[]>([])
   const [personId, setPersonId] = useState<string | null>(null)
@@ -195,6 +200,14 @@ export default function GarmentDetail() {
       if (saved && typeof saved === 'object') setPurchaseEval(saved as PurchaseEval)
       setLoaded(true)
     }
+    // Färganalys (för "väg in min färganalys"-valet i smart köp-bedömningen).
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: prof } = await supabase.from('profiles').select('color_analysis').eq('id', user.id).maybeSingle()
+        setColorPalette(colorPalettePrompt((prof as any)?.color_analysis))
+      }
+    } catch { /* ingen färganalys – valet döljs */ }
   }
 
   // Kör "smart köp?"-bedömningen på köplistepostens bild mot egna garderoben,
@@ -218,7 +231,11 @@ export default function GarmentDetail() {
           .filter((g: any) => g.person_id == null && !g.archived && !g.for_sale)
           .map((g: any) => ({ name: g.name, category: g.category, subcategory: g.subcategory, color: g.color, season: g.season }))
       } catch { /* tom garderob duger */ }
-      const data = await apiPost('/api/evaluate-purchase', { base64, wardrobe }) as PurchaseEval & { error?: string }
+      const data = await apiPost('/api/evaluate-purchase', {
+        base64,
+        wardrobe,
+        colorPalette: weighColors && colorPalette ? colorPalette : undefined,
+      }) as PurchaseEval & { error?: string }
       if ((data as any).error) throw new Error((data as any).error)
       setPurchaseEval(data)
       setShowEval(true)
@@ -696,6 +713,12 @@ export default function GarmentDetail() {
 
             {/* Smart köp? – bedöm plagget mot garderoben, spara & visa igen. */}
             <Text style={styles.label}>{tr('Smart köp?')}</Text>
+            {colorPalette ? (
+              <TouchableOpacity style={styles.evalColorToggle} onPress={() => setWeighColors(v => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: weighColors }}>
+                <Ionicons name={weighColors ? 'checkbox' : 'square-outline'} size={20} color={weighColors ? t.primary : t.textFaint} />
+                <Text style={styles.evalColorToggleText}>{tr('Väg in min färganalys')}</Text>
+              </TouchableOpacity>
+            ) : null}
             {purchaseEval ? (
               <View style={styles.evalRow}>
                 <TouchableOpacity style={styles.evalSeeBtn} onPress={() => setShowEval(true)}>
@@ -1021,6 +1044,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   sectionHeaderTitle: { fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 1, color: t.textSecondary, textTransform: 'uppercase' },
   label: { fontFamily: 'Poppins_600SemiBold', color: t.textPrimary, fontSize: 14, marginBottom: 8, marginTop: 4 },
 
+  evalColorToggle: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, marginBottom: 4 },
+  evalColorToggleText: { fontFamily: 'Lora_400Regular', fontSize: 14, color: t.textPrimary },
   evalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: t.primary, borderRadius: 14, paddingVertical: 14, marginBottom: 4 },
   evalBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 15 },
   evalRow: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 4 },
