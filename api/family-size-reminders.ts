@@ -96,6 +96,9 @@ export default async function handler(request: Request): Promise<Response> {
   const day = today()
   const messages: any[] = []
   let householdsWithReady = 0
+  // Dedupa per push-token över hela körningen: en token = en enhet. Samma
+  // telefon inloggad på flera konton ska bara få EN notis (inte en per konto).
+  const sentTokens = new Set<string>()
 
   for (const hid of householdIds) {
     const children = childrenByHousehold.get(hid) || []
@@ -135,6 +138,9 @@ export default async function handler(request: Request): Promise<Response> {
       if (p.notif_prefs && p.notif_prefs.sizereminder === false) continue
       // Max en digest per vecka.
       if (daysSince(p.last_size_digest) < 6) continue
+      // En notis per enhet, även om telefonen varit inloggad på flera konton.
+      if (sentTokens.has(p.push_token)) continue
+      sentTokens.add(p.push_token)
 
       messages.push({
         to: p.push_token,
