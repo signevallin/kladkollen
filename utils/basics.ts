@@ -61,7 +61,7 @@ const LONGSLEEVE_SHIRT_HINT = 'long-sleeved button-up shirt with full-length sle
 
 const WOMEN: BasicItem[] = [
   { id: 'w-tshirt', category: 'Toppar', subcategory: 'T-shirt', name: 'T-shirt', colors: ['Vit', 'Svart', 'Grå'], season: [A] },
-  { id: 'w-linne', category: 'Toppar', subcategory: 'Linne', name: 'Linne', colors: ['Vit', 'Svart'], season: ['Sommar'], promptHint: 'relaxed straight-cut tank top with medium-wide flat opaque shoulder straps that are clearly defined and laid flat, sharp crisp edges, solid opaque cotton jersey (not sheer or transparent), smooth plain front, no darts, no gathering, no shaping over the bust' },
+  { id: 'w-linne', category: 'Toppar', subcategory: 'Linne', name: 'Linne', colors: ['Vit', 'Svart'], season: ['Sommar'], promptHint: 'a classic ribbed cotton vest tank top with THICK WIDE shoulder straps (about 3 cm / 1.2 inch wide), the straps solid opaque and fully connected to the top with crisp clean edges, straight scoop neckline, laid perfectly flat and symmetrical, solid opaque cotton (not sheer, not transparent, no thin spaghetti straps), smooth plain front, no darts, no gathering' },
   { id: 'w-blus', category: 'Toppar', subcategory: 'Blus', name: 'Blus', colors: ['Vit', 'Svart'], season: [A], promptHint: 'long-sleeved flowy blouse with full-length sleeves' },
   { id: 'w-skjorta', category: 'Toppar', subcategory: 'Skjorta', name: 'Skjorta', colors: ['Vit', 'Blå'], season: [A], promptHint: LONGSLEEVE_SHIRT_HINT },
   { id: 'w-stickad', category: 'Tröjor', subcategory: 'Stickad tröja', name: 'Stickad tröja', colors: ['Beige', 'Grå', 'Svart'], season: ['Höst', 'Vinter'], promptHint: KNIT_HINT },
