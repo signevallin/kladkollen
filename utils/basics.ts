@@ -54,7 +54,7 @@ const TROUSERS_HINT = 'a single pair of trousers laid completely flat on its bac
 // Kostymbyxor: klassisk katalogbild = benen SAMLADE till en rak, smal pelare med
 // pressveck (inte brett isär som jeans), i full längd. "side by side"-varianten
 // får modellen att vika dem.
-const DRESS_TROUSERS_HINT = 'a single pair of tailored dress trousers (suit trousers) laid flat and photographed straight from directly above (top-down), the two legs neatly aligned together forming one straight narrow vertical column with a sharp pressed centre crease, waistband at the top and hems at the bottom, shown in full length, fully unfolded, NOT folded in half, NOT bent at the knee, not on a hanger, not worn'
+const DRESS_TROUSERS_HINT = 'a single pair of tailored dress trousers (suit trousers) laid flat and photographed straight from directly above (top-down), the two legs neatly aligned together forming one straight narrow vertical column with a sharp pressed centre crease, waistband at the top and the hems at the very bottom, full ankle-length reaching all the way down to the ankle, NOT cropped, NOT ankle-cropped, NOT culottes, NOT three-quarter length, fully unfolded, NOT folded in half, NOT bent at the knee, not on a hanger, not worn'
 const BLAZER_HINT = 'single-breasted, both sleeves laid straight and flat alongside the body, not folded or tucked in'
 const KNIT_HINT = 'chunky knitted sweater with clearly visible knit texture and ribbed cuffs and hem, wool knitwear, not a smooth sweatshirt'
 const LONGSLEEVE_SHIRT_HINT = 'long-sleeved button-up shirt with full-length sleeves'
