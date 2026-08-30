@@ -35,6 +35,7 @@ import { fetchLocations, type Location } from '../utils/locations'
 import { loadPeople, type Person } from '../utils/people'
 import { EU_CHILD_SIZES } from '../utils/childSize'
 import { useEntitlements, familyFeaturesEnabled } from '../utils/entitlements'
+import { SCAN_MULTIPLE_ENABLED } from '../utils/featureFlags'
 
 // Max bredd på lagrade/skickade bilder. En mobilbild är ofta 3000–4000 px;
 // 1400 px räcker gott för en telefonskärm och kapar filstorleken ~85–90 %.
@@ -158,7 +159,7 @@ export default function AddGarment() {
   useFocusEffect(
     useCallback(() => {
       if (autoStarted.current) return
-      if (start !== 'photos' && start !== 'scan') return
+      if (start !== 'photos' && !(start === 'scan' && SCAN_MULTIPLE_ENABLED)) return
       autoStarted.current = true
       let timer: ReturnType<typeof setTimeout> | undefined
       const task = InteractionManager.runAfterInteractions(() => {
@@ -570,6 +571,7 @@ export default function AddGarment() {
             <Text style={styles.pickBtnTitle}>{tr('Välj foton')}</Text>
             <Text style={styles.pickBtnHint}>{tr('Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden automatiskt')}</Text>
           </TouchableOpacity>
+          {SCAN_MULTIPLE_ENABLED && (
           <TouchableOpacity style={[styles.pickBtn, scanning && styles.pickBtnDisabled]} onPress={() => scanMultiple()} disabled={scanning}>
             {scanning ? (
               <>
@@ -584,6 +586,7 @@ export default function AddGarment() {
               </>
             )}
           </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.pickBtn} onPress={() => router.push('/import-purchases')}>
             <Text style={styles.pickBtnTitle}>{tr('Importera köp')}</Text>
             <Text style={styles.pickBtnHint}>{tr('Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando, Zara m.fl.')}</Text>
