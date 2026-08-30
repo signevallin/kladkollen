@@ -132,6 +132,7 @@ const enBySource: Dict = {
   'Det tog för lång tid. Försök igen.': 'That took too long. Please try again.',
   'Smart köp?': 'Smart buy?',
   'Är det ett smart köp?': 'Is it a smart buy?',
+  'Väg in min färganalys': 'Factor in my colour analysis',
   'Se bedömningen': 'See the assessment',
   'Bedöm igen': 'Assess again',
   'Bedömer…': 'Assessing…',
