@@ -119,6 +119,7 @@ const enBySource: Dict = {
   'Lägg ut plaggen och ta EN bild – AI:n hittar varje plagg och delar upp dem åt dig': 'Lay out your items and take ONE photo – AI finds each item and splits them up for you',
   'NYTT': 'NEW',
   'Snabbstart': 'Quick start',
+  'Introduktion till Skrud': 'Intro to Skrud',
   'Bocka i mina basplagg': 'Tick off my basics',
   'Du behöver inte fota allt. Bocka i dina basplagg, importera från kvitton och butiker, eller fota en favorit – Skrud fyller i namn, färg och säsong åt dig.': 'You don\'t have to photograph everything. Tick off your basics, import from receipts and stores, or snap a favourite – Skrud fills in the name, colour and season for you.',
   'Bocka i basplaggen du äger och fyll garderoben på en minut – utan att fota': 'Tick off the basics you own and fill your wardrobe in a minute – no photos needed',

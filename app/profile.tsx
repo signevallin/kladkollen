@@ -829,6 +829,7 @@ export default function Profile() {
         {sectionHeader('omskrud', 'Om Skrud')}
         {!collapsedSections.has('omskrud') && (
         <View style={styles.listCard}>
+          {renderRow('intro', 'Introduktion till Skrud', { icon: 'play-circle-outline', onPress: () => router.push('/onboarding?replay=1') })}
           {renderRow('safunkar', 'Så funkar Skrud', { icon: 'help-outline', onPress: () => router.push('/how-it-works') })}
           {renderRow('villkor', 'Användarvillkor', { icon: 'description', onPress: () => router.push('/terms') })}
           {renderRow('integritet', 'Integritetspolicy', { icon: 'privacy-tip', onPress: () => router.push('/privacy') })}

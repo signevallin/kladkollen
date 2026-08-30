@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { useRef, useState } from 'react'
 import {
   NativeScrollEvent,
@@ -57,8 +57,18 @@ export default function Onboarding() {
   const [index, setIndex] = useState(0)
   const isLast = index === SLIDES.length - 1
 
+  // replay=1 = uppspelning från "Om Skrud" (inte första gången). Då ska vi gå
+  // TILLBAKA dit man kom ifrån, inte tvinga till /home, och inte röra done-nyckeln.
+  const { replay } = useLocalSearchParams<{ replay?: string }>()
+  const isReplay = replay === '1'
+
   async function finish(target?: string) {
-    try { await AsyncStorage.setItem(ONBOARDING_DONE_KEY, '1') } catch {}
+    if (!isReplay) { try { await AsyncStorage.setItem(ONBOARDING_DONE_KEY, '1') } catch {} }
+    if (isReplay) {
+      if (target) router.replace(target as any)
+      else router.back()
+      return
+    }
     router.replace('/home')
     // Öppna ev. import-/fotoflödet ovanpå hemskärmen så bakåt landar rätt.
     if (target) setTimeout(() => router.push(target as any), 0)
