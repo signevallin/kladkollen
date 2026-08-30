@@ -1,7 +1,7 @@
 # Graph Report - kladkollen  (2026-08-30)
 
 ## Corpus Check
-- 234 files · ~641,264 words
+- 234 files · ~641,324 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2763929b`
+- Built from commit: `ffb1d2cd`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -166,7 +166,7 @@
 - analyze-inspo-couple.ts
 - SaleTab.tsx
 - WishlistTab.tsx
-- expo-apple-authentication
+- expo-calendar
 
 ## God Nodes (most connected - your core abstractions)
 1. `useTheme()` - 107 edges
@@ -263,7 +263,7 @@ Nodes (9): IMG_TRANSFORM, isSmall(), LOWER, OutfitShareCard(), rankOf(), roleOf(
 
 ### Community 17 - "dependencies"
 Cohesion: 0.15
-Nodes (13): expo, expo-calendar, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
+Nodes (13): expo, expo-apple-authentication, expo-crypto, @expo/metro-runtime, expo-symbols, expo-web-browser, dependencies, expo (+5 more)
 
 ### Community 18 - "send-notifications.ts"
 Cohesion: 0.18
