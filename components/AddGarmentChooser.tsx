@@ -3,6 +3,7 @@ import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useTheme } from '../theme/ThemeProvider'
 import type { Theme } from '../theme/theme'
 import { useSettings } from '../utils/settings'
+import { SCAN_MULTIPLE_ENABLED } from '../utils/featureFlags'
 
 // Delad valruta för "Lägg till plagg" så att flödet ser likadant ut oavsett
 // varifrån man öppnar det (hemskärmen, garderoben, ...). Tidigare gick plus →
@@ -52,13 +53,15 @@ export default function AddGarmentChooser({
             <Text style={styles.choiceTitle}>{tr('Välj foton')}</Text>
             <Text style={styles.choiceHint}>{tr('Välj ett eller flera plagg – AI fyller i detaljerna & tar bort bakgrunden')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/add-garment?start=scan${personQs}`)}>
-            <View style={styles.choiceTitleRow}>
-              <Text style={styles.choiceTitle}>{tr('Skanna flera plagg')}</Text>
-              <Text style={styles.betaTag}>{tr('NYTT')}</Text>
-            </View>
-            <Text style={styles.choiceHint}>{tr('Lägg ut plaggen och ta EN bild – AI:n hittar varje plagg och delar upp dem åt dig')}</Text>
-          </TouchableOpacity>
+          {SCAN_MULTIPLE_ENABLED && (
+            <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/add-garment?start=scan${personQs}`)}>
+              <View style={styles.choiceTitleRow}>
+                <Text style={styles.choiceTitle}>{tr('Skanna flera plagg')}</Text>
+                <Text style={styles.betaTag}>{tr('NYTT')}</Text>
+              </View>
+              <Text style={styles.choiceHint}>{tr('Lägg ut plaggen och ta EN bild – AI:n hittar varje plagg och delar upp dem åt dig')}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.choiceBtn} onPress={() => goto(`/import-purchases${personQ1}`)}>
             <Text style={styles.choiceTitle}>{tr('Importera via butiker')}</Text>
             <Text style={styles.choiceHint}>{tr('Hämta plagg automatiskt från din orderhistorik hos H&M, Zalando m.fl.')}</Text>
