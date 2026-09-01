@@ -15,6 +15,7 @@ import { pickImageSmart } from '../../utils/imagePicker'
 import { loadGarments } from '../../utils/garmentsStore'
 import { useSettings } from '../../utils/settings'
 import { uploadUserImage } from '../../utils/storage'
+import { downscaleForUpload, UPLOAD_MAX_WIDTH } from '../../utils/image'
 import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 
@@ -87,9 +88,8 @@ export default function WishlistAddModals({ chooserVisible, onChooserClose, wish
   }
 
   async function uploadImg(uri: string) {
-    const response = await fetch(uri)
-    const arrayBuffer = await response.arrayBuffer()
-    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+    const opt = await downscaleForUpload(uri, UPLOAD_MAX_WIDTH)
+    return uploadUserImage(opt.bytes, opt.ext, opt.contentType)
   }
 
   async function parseUrl() {

@@ -38,6 +38,7 @@ import { goBack } from '../utils/nav'
 import { cacheGet } from '../utils/cache'
 import { newImageId } from '../utils/id'
 import { base64ToBytes, pngToWebp } from '../utils/image'
+import { downscaleForUpload, UPLOAD_MAX_WIDTH } from '../utils/image'
 import { CATEGORIES, COLOR_OPTIONS as COLORS, FITS, SEASONS, SUBCATEGORIES } from '../utils/constants'
 import GarmentSetSection from '../components/garment-detail/GarmentSetSection'
 import { useSettings } from '../utils/settings'
@@ -452,9 +453,8 @@ export default function GarmentDetail() {
   }
 
   async function uploadImage(uri: string) {
-    const response = await fetch(uri)
-    const arrayBuffer = await response.arrayBuffer()
-    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+    const opt = await downscaleForUpload(uri, UPLOAD_MAX_WIDTH)
+    return uploadUserImage(opt.bytes, opt.ext, opt.contentType)
   }
 
   async function deleteGarment() {
