@@ -39,7 +39,7 @@
   "crons": [
     {
       "path": "/api/send-notifications",
-      "schedule": "30 6 * * *"
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/family-size-reminders",
