@@ -283,7 +283,7 @@ Vercel kör både funktioner och cron med `TZ=UTC`. Två fällor följer av det:
   vintern, utan att se fel ut. Ange alltid `{ timeZone: 'Europe/Stockholm' }`
   (hjälparen `when()` i `api/dashboard.ts`).
 - **Cron-scheman i `vercel.json` är UTC och måste bytas två gånger om året** för
-  att jobben ska gå på samma svenska klockslag. Målen är 08:30 (dagens outfit)
+  att jobben ska gå på samma svenska klockslag. Målen är 07:00 (dagens outfit)
   och söndagar 18:00 (storlekspåminnelser).
 
 `utils/cronSchedule.ts` är enda källan: `CRON_TARGETS` (svenska klockslag),

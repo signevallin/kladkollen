@@ -11,7 +11,7 @@
 
 /** Klockslagen i svensk lokaltid som ska ligga fast året runt. */
 export const CRON_TARGETS = [
-  { path: '/api/send-notifications', hour: 8, minute: 30, dayOfWeek: '*', label: 'Dagens outfit' },
+  { path: '/api/send-notifications', hour: 7, minute: 0, dayOfWeek: '*', label: 'Dagens outfit' },
   { path: '/api/family-size-reminders', hour: 18, minute: 0, dayOfWeek: '0', label: 'Storlekspåminnelser' },
 ] as const
 
@@ -46,7 +46,7 @@ export function expectedSchedules(at: Date = new Date()) {
  * ett ställe och inte det andra blir röd.
  */
 export const DEPLOYED_CRONS = [
-  { path: '/api/send-notifications', schedule: '30 6 * * *' },
+  { path: '/api/send-notifications', schedule: '0 5 * * *' },
   { path: '/api/family-size-reminders', schedule: '0 16 * * 0' },
 ]
 

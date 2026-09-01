@@ -20,11 +20,11 @@ describe('svensk offset', () => {
 })
 
 describe('schemat för ett fast svenskt klockslag', () => {
-  it('ger 06:30 UTC på sommaren och 07:30 UTC på vintern för 08:30 svensk tid', () => {
+  it('ger 05:00 UTC på sommaren och 06:00 UTC på vintern för 07:00 svensk tid', () => {
     const sommar = expectedSchedules(new Date('2026-07-15T12:00:00Z'))
     const vinter = expectedSchedules(new Date('2026-12-15T12:00:00Z'))
-    expect(sommar.find(s => s.path === '/api/send-notifications')!.schedule).toBe('30 6 * * *')
-    expect(vinter.find(s => s.path === '/api/send-notifications')!.schedule).toBe('30 7 * * *')
+    expect(sommar.find(s => s.path === '/api/send-notifications')!.schedule).toBe('0 5 * * *')
+    expect(vinter.find(s => s.path === '/api/send-notifications')!.schedule).toBe('0 6 * * *')
   })
 
   it('behåller veckodagen för söndagsjobbet', () => {
