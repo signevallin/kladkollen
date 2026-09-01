@@ -291,11 +291,16 @@ export default function AddGarment() {
     try {
       const c = await compressImage(asset.uri, asset.width)
       let detected: any[] = []
+      // Skilj på "modellen hittade inga plagg" (tom bild) och "anropet gick
+      // fel" (nätverk/nyckel/modell) – annars ser ett riktigt fel ut som en
+      // tom bild och användaren felsöker fel sak.
       try {
         const data = await apiPost('/api/detect-garments', { base64: c.base64 })
         detected = data.garments || []
-      } catch {
-        detected = []
+      } catch (e: any) {
+        setScanning(false)
+        showAlert(tr('Något gick fel'), e?.message || tr('Kunde inte analysera bilden. Prova igen om en stund.'))
+        return
       }
 
       if (detected.length === 0) {

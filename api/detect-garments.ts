@@ -29,7 +29,9 @@ function buildPrompt(lang: unknown): string {
 }
 
 Regler:
-- "box" anger plaggets ruta i ett 0–1000-rutnät över bilden: x,y = övre vänstra hörnet, w,h = bredd/höjd. Lägg lite marginal runt plagget så inget klipps bort, men ta inte med intilliggande plagg.
+- "box" anger plaggets ruta i ett 0–1000-rutnät över bilden: x,y = övre vänstra hörnet, w,h = bredd/höjd. Mät noga: rutan ska omsluta HELA plagget (även ärmar och ben) och så tajt som möjligt runt just det plagget. Lägg bara någon enstaka procents marginal – ta ALDRIG med ett intilliggande plagg i rutan.
+- Dubbelkolla rutan mot bilden: rätt plagg ska ligga i mitten av rutan. Är du osäker på var ett plagg börjar och slutar, hoppa hellre över det än att gissa en ruta som fångar fel plagg.
+- Bilden ska innehålla plagg som ligger UTLAGDA med mellanrum. Ligger plaggen omlott (t.ex. en hel buren outfit) går de inte att särskilja – ta då bara med de plagg som tydligt går att avgränsa var för sig.
 - Ta bara med faktiska klädesplagg och accessoarer. Ignorera galgar, tomma ytor, händer, möbler och bakgrund.
 - Ett plagg per objekt. Lägg INTE ihop t.ex. en tröja och en byxa till ett objekt.
 - Endast "name" ska vara på ${ln}. "category", "subcategory", "color" och "seasons" MÅSTE vara exakt de svenska värdena ur listorna – översätt dem INTE.
@@ -68,7 +70,11 @@ export default async function handler(request: Request): Promise<Response> {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        // Sonnet i stället för Haiku: lokalisering (bounding boxes) är den svaga
+        // punkten i multi-detekteringen, och Sonnet är märkbart bättre på var i
+        // bilden ett plagg faktiskt ligger. Anropet är sällan (bulk-inläggning),
+        // så kostnaden är försumbar mot att beskärningen faktiskt stämmer.
+        model: 'claude-sonnet-4-5',
         max_tokens: 1500,
         messages: [{
           role: 'user',
@@ -80,6 +86,11 @@ export default async function handler(request: Request): Promise<Response> {
       }),
     })
     const claudeData = await claudeRes.json()
+    // Surfa Claude-fel i stället för att låta dem falla igenom som "0 plagg" –
+    // annars ser en trasig modell/nyckel ut precis som en tom bild i appen.
+    if (claudeData.error) {
+      return new Response(JSON.stringify({ error: claudeData.error.message || 'Bildanalys misslyckades' }), { status: 400 })
+    }
     const text = claudeData.content?.[0]?.text || '{}'
     const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
     const rawList: any[] = Array.isArray(parsed) ? parsed : (parsed.garments || [])
