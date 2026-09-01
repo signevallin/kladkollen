@@ -33,9 +33,19 @@ import io, json, os, sys, urllib.request, urllib.error
 from pathlib import Path
 
 BUCKET = 'garments'
-PREFIX = 'basics/'
-MAX_PX = 768
-QUALITY = 88
+
+def _arg(flagga, standard=None):
+    a = sys.argv[1:]
+    return a[a.index(flagga) + 1] if flagga in a else standard
+
+# Urval: ett prefix som listas rekursivt, och/eller en fil med en sökväg per rad.
+# Legacy-filer (public/, moodboard/, avatars/) går inte att matcha på mappnamn –
+# de måste attribueras via storage.objects.owner, vilket kräver databasen. Därför
+# finns --paths: manifestet byggs med SQL och granskas innan det körs.
+PREFIX = _arg('--prefix', 'basics/')
+PATHS_FILE = _arg('--paths')
+MAX_PX = int(_arg('--max-px', '768'))
+QUALITY = int(_arg('--quality', '88'))
 
 URL = os.environ.get('SUPABASE_URL') or os.environ.get('EXPO_PUBLIC_SUPABASE_URL')
 KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -92,11 +102,19 @@ def lista(prefix=PREFIX):
 def main():
     from PIL import Image
 
-    print('Listar basics/ …')
-    vagar = lista()
-    print(f'  {len(vagar)} objekt\n')
+    vagar = []
+    if PREFIX:
+        print(f'Listar {PREFIX} …')
+        vagar += lista(PREFIX)
+        print(f'  {len(vagar)} objekt under prefixet')
+    if PATHS_FILE:
+        extra = [r.strip() for r in Path(PATHS_FILE).read_text().splitlines() if r.strip()]
+        print(f'  {len(extra)} sökvägar ur {PATHS_FILE}')
+        vagar += extra
+    vagar = sorted(set(vagar))
+    print(f'  {len(vagar)} unika objekt totalt\n')
     if not vagar:
-        sys.exit('Inga objekt under basics/ – avbryter.')
+        sys.exit('Inget att bearbeta – avbryter.')
 
     if BACKUP:
         Path(BACKUP).mkdir(parents=True, exist_ok=True)
@@ -105,8 +123,14 @@ def main():
     sakerhetskopierade = []
     resultat = []
 
+    hoppade = []
     for i, vag in enumerate(vagar, 1):
-        orig = api('GET', f'/storage/v1/object/{BUCKET}/{vag}')
+        try:
+            orig = api('GET', f'/storage/v1/object/{BUCKET}/{vag}')
+        except urllib.error.HTTPError as e:
+            # En sökväg kan ha hunnit försvinna sedan manifestet byggdes.
+            print(f'  HOPPAR ÖVER (kunde inte hämtas, {e.code}): {vag}')
+            continue
         fore += len(orig)
 
         if BACKUP:
@@ -120,14 +144,21 @@ def main():
         buf = io.BytesIO()
         im.save(buf, format='WEBP', quality=QUALITY, method=6)
         ny_data = buf.getvalue()
-        efter += len(ny_data)
-        resultat.append((vag, len(orig), len(ny_data), ny_data))
+        # Vissa filer är redan optimala – en omkodning skulle då GÖRA dem större.
+        # Behåll originalet i så fall; poängen är att spara plats, inte att byta format.
+        if len(ny_data) >= len(orig):
+            hoppade.append(vag)
+            efter += len(orig)
+        else:
+            efter += len(ny_data)
+            resultat.append((vag, len(orig), len(ny_data), ny_data))
 
         if i % 20 == 0 or i == len(vagar):
             print(f'  bearbetade {i}/{len(vagar)}')
 
     print(f'\nFöre:  {fore/1024/1024:6.1f} MB')
-    print(f'Efter: {efter/1024/1024:6.1f} MB  ({fore/efter:.0f}x mindre)\n')
+    print(f'Efter: {efter/1024/1024:6.1f} MB  ({fore/efter:.1f}x mindre)')
+    print(f'Bearbetas: {len(resultat)}   redan optimala (orörda): {len(hoppade)}\n')
 
     if BACKUP:
         print(f'{len(sakerhetskopierade)} filer säkerhetskopierade till {BACKUP}\n')
@@ -144,7 +175,7 @@ def main():
         sys.exit('--apply kräver även --yes. Originalen skrivs över.')
     if not BACKUP:
         sys.exit('--apply kräver --backup. Bilderna är AI-genererade och går inte att återskapa exakt.')
-    if len(sakerhetskopierade) != len(vagar):
+    if len(sakerhetskopierade) < len(resultat):
         sys.exit('Alla filer kunde inte säkerhetskopieras – avbryter.')
 
     print('Laddar upp …')
