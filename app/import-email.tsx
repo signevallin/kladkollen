@@ -25,6 +25,7 @@ import { useSettings } from '../utils/settings'
 import { toast } from '../components/Toast'
 import { newImageId } from '../utils/id'
 import { uploadUserImage } from '../utils/storage'
+import { base64ToBytes, reencodeForUpload, UPLOAD_MAX_WIDTH } from '../utils/image'
 import { fetchLocations, type Location } from '../utils/locations'
 
 // Domänen där import-adresserna tas emot. Ligger på Elairis (företaget) så den
@@ -143,11 +144,12 @@ export default function ImportEmail() {
               if (b64) { uploadBase64 = b64; uploadType = 'image/png' }
             } catch { /* misslyckad borttagning → originalbilden */ }
             try {
-              const ext = uploadType.includes('png') ? 'png' : 'jpg'
-              const binaryStr = atob(uploadBase64)
-              const bytes = new Uint8Array(binaryStr.length)
-              for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i)
-              imageUrl = await uploadUserImage(bytes, ext, uploadType)
+              // Produktbilder från butiker kan vara stora, och den
+              // bakgrundsborttagna versionen är en förlustfri PNG. Koda om till
+              // WebP och skala ner innan uppladdning – SignedImage hämtar alltid
+              // originalet, så det som lagras är också det som laddas ner.
+              const opt = await reencodeForUpload(uploadBase64, uploadType, UPLOAD_MAX_WIDTH)
+              imageUrl = await uploadUserImage(base64ToBytes(opt.base64), opt.ext, opt.contentType)
             } catch { /* bild är bonus */ }
           }
         }

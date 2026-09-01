@@ -30,6 +30,7 @@ import { apiPost } from '../../utils/api'
 import { showAlert, showConfirm } from '../../utils/alert'
 import { loadPartner } from '../../utils/household'
 import { uploadUserImage } from '../../utils/storage'
+import { downscaleForUpload, UPLOAD_MAX_WIDTH } from '../../utils/image'
 import { pickImageSmart } from '../../utils/imagePicker'
 import { useSettings } from '../../utils/settings'
 import { localeFor } from '../../utils/i18n'
@@ -155,9 +156,10 @@ export default function Inspiration() {
       setUploadingMoodboard(true)
       try {
         const uri = result.assets[0].uri
-        const response = await fetch(uri)
-        const arrayBuffer = await response.arrayBuffer()
-        const publicUrl = await uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+        // Skalas ner och kodas om till WebP först. Ett orört kamerarullsfoto är
+        // flera megabyte, och SignedImage hämtar alltid originalet.
+        const opt = await downscaleForUpload(uri, UPLOAD_MAX_WIDTH)
+        const publicUrl = await uploadUserImage(opt.bytes, opt.ext, opt.contentType)
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
         const { error: dbError } = await supabase.from('moodboard').insert({

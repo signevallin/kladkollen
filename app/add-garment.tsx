@@ -8,6 +8,7 @@ import { newImageId } from '../utils/id'
 import { toast } from '../components/Toast'
 import { showAlert } from '../utils/alert'
 import { base64ToBytes, pngToWebp } from '../utils/image'
+import { downscaleForUpload } from '../utils/image'
 import { uploadUserImage } from '../utils/storage'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -397,10 +398,10 @@ export default function AddGarment() {
       return uploadUserImage(base64ToBytes(opt.base64), opt.ext, opt.contentType)
     }
 
-    // Fallback: originalfotot
-    const response = await fetch(draft.uri)
-    const arrayBuffer = await response.arrayBuffer()
-    return uploadUserImage(new Uint8Array(arrayBuffer), 'jpg', 'image/jpeg')
+    // Fallback: originalfotot. Redan nedskalat av compressImage, men JPEG –
+    // omkodningen till WebP tar bort resten.
+    const opt = await downscaleForUpload(draft.uri, MAX_IMAGE_WIDTH)
+    return uploadUserImage(opt.bytes, opt.ext, opt.contentType)
   }
 
   async function saveAll() {
