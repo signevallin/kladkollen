@@ -7,7 +7,7 @@
 // UTLAGDA med mellanrum mot en enfärgad bakgrund, inte som en buren/
 // överlappande outfit (då går plaggen inte att särskilja i en ruta).
 //
-// AV inför 1.0.2: förbättringen i #466 är inte handtestad än. Koden ligger
-// kvar och slås på genom att sätta true igen – meningen är att den ska med i
-// en release som faktiskt hunnit provas, inte glida ut oprövad.
-export const SCAN_MULTIPLE_ENABLED = false
+// PÅ igen i 1.0.3. Var av i 1.0.2 därför att förbättringen i #466 inte hunnit
+// handtestas – den ska med i en release som faktiskt provats. Testa mot en
+// bild med plaggen UTLAGDA och isär innan bygget skickas in.
+export const SCAN_MULTIPLE_ENABLED = true
