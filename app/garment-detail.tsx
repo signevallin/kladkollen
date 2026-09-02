@@ -157,6 +157,7 @@ export default function GarmentDetail() {
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveError, setSaveError] = useState('')
   const [redoing, setRedoing] = useState(false)
+  const [zoomed, setZoomed] = useState(false)
   const [cropUri, setCropUri] = useState<string | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -574,21 +575,38 @@ export default function GarmentDetail() {
           </View>
         )}
 
-        <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+        {/*
+          Bildytan har två anslag: själva bilden förstorar den, remsan längst ner
+          byter foto. Tidigare öppnade hela ytan fotoväljaren, vilket gjorde det
+          omöjligt att bara titta närmare på plagget.
+        */}
+        <View style={styles.imagePicker}>
           {newImage || imageUrl ? (
-            <SignedImage path={newImage || imageUrl} style={styles.previewImage} />
+            <>
+              <TouchableOpacity
+                style={styles.imageTouch}
+                onPress={() => setZoomed(true)}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={tr('Visa bilden större')}
+              >
+                <SignedImage path={newImage || imageUrl} style={styles.previewImage} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.imageOverlay}
+                onPress={pickImage}
+                accessibilityRole="button"
+                accessibilityLabel={tr('Byt foto')}
+              >
+                <Text style={styles.imageOverlayText}>{tr('Byt foto')}</Text>
+              </TouchableOpacity>
+            </>
           ) : (
-            <View style={styles.imagePickerInner}>
+            <TouchableOpacity style={styles.imagePickerInner} onPress={pickImage} accessibilityRole="button">
               <Text style={styles.imagePickerEmoji}>{isWishlistItem ? '' : ''}</Text>
               <Text style={styles.imagePickerText}>{isWishlistItem ? 'Lägg till bild när du köpt plagget' : 'Välj foto'}</Text>
-            </View>
+            </TouchableOpacity>
           )}
-          {(newImage || imageUrl) && (
-            <View style={styles.imageOverlay}>
-              <Text style={styles.imageOverlayText}>{tr('Byt foto')}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        </View>
 
         {(imageUrl || newImage) && (
           <View style={styles.imageActionsRow}>
@@ -1009,6 +1027,30 @@ export default function GarmentDetail() {
           <Text style={styles.deleteButtonText}>{isWishlistItem ? tr('Ta bort från köplistan') : tr('Ta bort plagg')}</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Helskärmsvisning. Tryck var som helst för att stänga. */}
+      <Modal
+        visible={zoomed}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setZoomed(false)}
+        statusBarTranslucent
+      >
+        <TouchableOpacity
+          style={styles.zoomBackdrop}
+          activeOpacity={1}
+          onPress={() => setZoomed(false)}
+          accessibilityRole="button"
+          accessibilityLabel={tr('Stäng')}
+        >
+          {(newImage || imageUrl) ? (
+            <SignedImage path={newImage || imageUrl} style={styles.zoomImage} />
+          ) : null}
+          <View style={styles.zoomClose}>
+            <Ionicons name="close" size={26} color={t.primary} />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -1027,6 +1069,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   imagePickerEmoji: { fontFamily: 'Lora_400Regular', fontSize: 40 },
   imagePickerText: { fontFamily: 'Lora_400Regular', color: t.textSecondary, fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
   previewImage: { width: '100%', height: '100%', resizeMode: 'contain', backgroundColor: 'transparent' },
+  imageTouch: { width: '100%', height: '100%' },
+  // Ogenomskinlig och i temats ytfärg, inte svart. Plaggbilderna är urklippta
+  // med transparent bakgrund – ett svart plagg mot en svart platta försvinner,
+  // och en halvgenomskinlig platta lät sidan under lysa igenom som spökbild.
+  zoomBackdrop: { flex: 1, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
+  zoomImage: { width: '100%', height: '82%', resizeMode: 'contain', backgroundColor: 'transparent' },
+  zoomClose: { position: 'absolute', top: 64, right: 20, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border },
   imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, alignItems: 'center' },
   imageOverlayText: { fontFamily: 'Lora_500Medium', color: t.onPrimary, fontSize: 12 },
   imageActionsRow: { flexDirection: 'row', gap: 10, marginTop: -12, marginBottom: 22 },
