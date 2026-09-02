@@ -29,7 +29,7 @@ Pillow är inte ett projektberoende – kör i en venv:
   python3 -m venv /tmp/pil && /tmp/pil/bin/pip install Pillow
   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... /tmp/pil/bin/python scripts/...
 """
-import io, json, os, sys, urllib.request, urllib.error
+import io, json, os, sys, time, urllib.request, urllib.error
 from pathlib import Path
 
 BUCKET = 'garments'
@@ -58,21 +58,41 @@ CONFIRMED = '--yes' in args
 BACKUP = args[args.index('--backup') + 1] if '--backup' in args else None
 
 
+# urlopen har INGEN timeout som standard: en anslutning som stannar av blockerar
+# för alltid. Utan det här hängde en körning i 21 timmar mitt i listan – processen
+# levde, loggen stod still, och det såg ut som om den bara var långsam.
+TIMEOUT = 60
+FORSOK = 3
+
+
 def api(method, path, body=None, headers=None, raw=False):
-    req = urllib.request.Request(f'{URL}{path}', method=method)
-    req.add_header('Authorization', f'Bearer {KEY}')
-    req.add_header('apikey', KEY)
-    for k, v in (headers or {}).items():
-        req.add_header(k, v)
-    data = None
-    if body is not None:
-        if raw:
-            data = body
-        else:
-            data = json.dumps(body).encode()
-            req.add_header('Content-Type', 'application/json')
-    with urllib.request.urlopen(req, data) as r:
-        return r.read()
+    sista = None
+    for forsok in range(FORSOK):
+        req = urllib.request.Request(f'{URL}{path}', method=method)
+        req.add_header('Authorization', f'Bearer {KEY}')
+        req.add_header('apikey', KEY)
+        for k, v in (headers or {}).items():
+            req.add_header(k, v)
+        data = None
+        if body is not None:
+            if raw:
+                data = body
+            else:
+                data = json.dumps(body).encode()
+                req.add_header('Content-Type', 'application/json')
+        try:
+            with urllib.request.urlopen(req, data, timeout=TIMEOUT) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            # 4xx är permanenta – att försöka igen ändrar ingenting.
+            if e.code < 500:
+                raise
+            sista = e
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            sista = e
+        if forsok < FORSOK - 1:
+            time.sleep(2 ** forsok)
+    raise sista
 
 
 def lista(prefix=PREFIX):
