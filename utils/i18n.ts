@@ -381,6 +381,7 @@ const enBySource: Dict = {
   'Alla plagg är redan till salu eller garderoben är tom': 'All garments are already for sale or the wardrobe is empty',
   'Lägg till bild (valfritt)': 'Add photo (optional)',
   'Byt foto': 'Change photo',
+  'Visa bilden större': 'View image larger',
   // Aviseringar
   'Kunde inte hämta länken': 'Couldn’t fetch the link',
   'Försök med en annan länk.': 'Try a different link.',
