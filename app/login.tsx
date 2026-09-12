@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { router } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { StatusBar } from 'expo-status-bar'
+import Constants from 'expo-constants'
 import * as WebBrowser from 'expo-web-browser'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -48,7 +49,14 @@ try { GoogleSignin = require('@react-native-google-signin/google-signin').Google
 // iOS-klient-id från Google Cloud (OAuth 2.0 Client IDs → iOS). Inte hemligt –
 // det ligger ändå i appbundlen. Måste också läggas till som "Authorized Client
 // ID" på Googles provider i Supabase, annars avvisas id-token.
-const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || ''
+//
+// Bor i app.json (extra.googleIosClientId) tillsammans med pluginens
+// iosUrlScheme, som är samma id baklänges. Låg det bara i .env – gitignorerad –
+// skulle en färsk utcheckning tyst falla tillbaka på webbflödet.
+const GOOGLE_IOS_CLIENT_ID =
+  (Constants.expoConfig?.extra as { googleIosClientId?: string } | undefined)?.googleIosClientId ||
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
+  ''
 const googleNativeReady = Platform.OS !== 'web' && !!GoogleSignin && !!GOOGLE_IOS_CLIENT_ID
 
 // Vilken inloggningsmetod som användes senast – visas som "Senast använd".
