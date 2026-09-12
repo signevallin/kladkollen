@@ -381,6 +381,8 @@ const enBySource: Dict = {
   'Alla plagg är redan till salu eller garderoben är tom': 'All garments are already for sale or the wardrobe is empty',
   'Lägg till bild (valfritt)': 'Add photo (optional)',
   'Byt foto': 'Change photo',
+  'Ingen identitetstoken från Apple.': 'No identity token from Apple.',
+  'Ingen identitetstoken från Google.': 'No identity token from Google.',
   'Visa bilden större': 'View image larger',
   // Aviseringar
   'Kunde inte hämta länken': 'Couldn’t fetch the link',

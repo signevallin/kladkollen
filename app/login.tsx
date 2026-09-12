@@ -34,6 +34,23 @@ WebBrowser.maybeCompleteAuthSession()
 let AppleAuthentication: any = null
 try { AppleAuthentication = require('expo-apple-authentication') } catch { AppleAuthentication = null }
 
+// Nativ Google-inloggning. Laddas skyddat av samma skäl som Apple ovan: saknas
+// modulen eller klient-id:t faller signInWithGoogle tillbaka på webbflödet i
+// stället för att knappen slutar fungera.
+//
+// Webbflödet öppnar ASWebAuthenticationSession, och iOS visar då sin egen ruta
+// "Skrud vill logga in med hjälp av <supabase-domänen>". Den går inte att
+// påverka från Google Cloud – domänen kommer från redirect-URL:en. Den nativa
+// vägen har ingen webbläsare alls och därmed ingen sådan ruta.
+let GoogleSignin: any = null
+try { GoogleSignin = require('@react-native-google-signin/google-signin').GoogleSignin } catch { GoogleSignin = null }
+
+// iOS-klient-id från Google Cloud (OAuth 2.0 Client IDs → iOS). Inte hemligt –
+// det ligger ändå i appbundlen. Måste också läggas till som "Authorized Client
+// ID" på Googles provider i Supabase, annars avvisas id-token.
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || ''
+const googleNativeReady = Platform.OS !== 'web' && !!GoogleSignin && !!GOOGLE_IOS_CLIENT_ID
+
 // Vilken inloggningsmetod som användes senast – visas som "Senast använd".
 const LAST_METHOD_KEY = 'skrud.lastLoginMethod'
 type Method = 'google' | 'apple' | 'email'
@@ -92,6 +109,9 @@ export default function Login() {
   useEffect(() => {
     if (Platform.OS === 'ios' && AppleAuthentication?.isAvailableAsync) {
       AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => setAppleAvailable(false))
+    }
+    if (googleNativeReady) {
+      try { GoogleSignin.configure({ iosClientId: GOOGLE_IOS_CLIENT_ID }) } catch { /* faller tillbaka på webbflödet */ }
     }
     AsyncStorage.getItem(LAST_METHOD_KEY).then(m => {
       if (m === 'google' || m === 'apple' || m === 'email') setLastMethod(m)
@@ -184,7 +204,7 @@ export default function Login() {
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       })
-      if (!credential.identityToken) throw new Error('Ingen identitetstoken från Apple.')
+      if (!credential.identityToken) throw new Error(tr('Ingen identitetstoken från Apple.'))
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
@@ -206,10 +226,31 @@ export default function Login() {
     }
   }
 
-  // ── Logga in med Google (OAuth) ─────────────────────────────────────────
+  // ── Logga in med Google ─────────────────────────────────────────────────
+  // Nativt när modulen och klient-id:t finns (inget webbläsarsteg, inget
+  // iOS-samtycke för domändelning), annars via OAuth i webbläsaren.
+  async function signInWithGoogleNative() {
+    await GoogleSignin.hasPlayServices?.().catch(() => {}) // no-op på iOS
+    const res = await GoogleSignin.signIn()
+    // v16 svarar { type, data: { idToken } }; äldre versioner { idToken }.
+    if (res?.type === 'cancelled') return false
+    const idToken = res?.data?.idToken ?? res?.idToken
+    if (!idToken) throw new Error(tr('Ingen identitetstoken från Google.'))
+    const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
+    if (error) throw error
+    return true
+  }
+
   async function signInWithGoogle() {
     setSocial('google')
     try {
+      if (googleNativeReady) {
+        const ok = await signInWithGoogleNative()
+        if (!ok) return // användaren avbröt
+        await rememberMethod('google')
+        goHome()
+        return
+      }
       if (Platform.OS === 'web') {
         await rememberMethod('google')
         const { error } = await supabase.auth.signInWithOAuth({
@@ -241,6 +282,9 @@ export default function Login() {
         }
       }
     } catch (e: any) {
+      // Googles nativa modul rapporterar avbrott som en kastad felkod.
+      const kod = String(e?.code ?? '')
+      if (kod === 'SIGN_IN_CANCELLED' || kod === '-5' || kod === '12501') return
       showAlert(tr('Kunde inte logga in med Google'), e.message || tr('Försök igen.'))
     } finally {
       setSocial(null)
