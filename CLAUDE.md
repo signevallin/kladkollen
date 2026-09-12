@@ -296,6 +296,43 @@ finns, för en kalenderpåminnelse går att missa:
 
 Nästa omställningar: 2026-10-25 (till vinter), 2027-03-28, 2027-10-31.
 
+## Google-inloggning är nativ, inte webb
+
+Apple-inloggningen var nativ från början, Google gick via
+`signInWithOAuth` + `WebBrowser.openAuthSessionAsync`. Det gav iOS egen ruta
+**"Skrud vill logga in med hjälp av kplapbfyetzeyplmllto.supaba…"** – en
+slumpsträng som bad om åtkomst till användarens Google-konto, i det allra
+första ögonblicket av appen. Alla tre Google-konton som någonsin skapats har
+noll plagg.
+
+Den rutan går **inte** att påverka från Google Cloud Console. Den kommer från
+iOS och namnger `redirectTo`-domänen, alltså Supabase-projektets URL.
+Appnamn, logotyp och publiceringsstatus ändrar den inte.
+
+Nu används `GoogleSignin.signIn()` → `signInWithIdToken({ provider: 'google' })`,
+samma mönster som Apple. Ingen webbläsare, ingen domän, nativ kontoväljare.
+
+Tre saker måste stämma, annars **faller koden tyst tillbaka på webbflödet** –
+och då är rutan tillbaka. Ser du den igen är det här listan att gå igenom:
+
+1. `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` = iOS-klient-id:t från Google Cloud
+   (OAuth 2.0 Client IDs → iOS, bundle `se.kladkollen.app`).
+2. `app.json` → pluginen `@react-native-google-signin/google-signin` →
+   `iosUrlScheme` = **omvänt** klient-id
+   (`123-abc.apps.googleusercontent.com` → `com.googleusercontent.apps.123-abc`).
+   Ändras app.json krävs `npx expo prebuild -p ios`.
+3. Samma iOS-klient-id måste ligga som **Authorized Client ID** på Googles
+   provider i Supabase. Saknas det avvisas id-token av Supabase, inte av Google –
+   felet ser då ut att komma från fel håll.
+
+Webbflödet är kvar med flit: det används på webben, och som reserv i en byggnad
+utan den nativa modulen. Klient-id:t är inte hemligt (det ligger i appbundlen).
+
+**Separat problem:** OAuth-appens *Publishing status* i Google Cloud. I "Testing"
+kan bara konton på testanvändarlistan logga in alls – övriga blockeras efter
+den nativa rutan. Basscopes (`email`, `profile`, `openid`) kräver ingen
+verifiering i produktion, men en uppladdad **logotyp** utlöser verifieringskrav.
+
 ## Övrigt värt att minnas
 - **Insikter** (tredje fliken i statistik): `components/stats/InsightsTab.tsx` +
   `utils/insights.ts` (deterministiskt, inga AI-anrop). Varje insikt visas bara

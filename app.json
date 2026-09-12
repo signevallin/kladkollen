@@ -108,7 +108,13 @@
           "calendarPermission": "Skrud läser din kalender för att föreslå en outfit som passar dagens planer."
         }
       ],
-      "expo-background-task"
+      "expo-background-task",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.269562502657-2r7r6oss5sbq3ndrrnn5b7rn5lp3kv0h"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -117,7 +123,8 @@
     "extra": {
       "eas": {
         "projectId": "2f95b5b1-c506-4d79-9aba-94d15424e860"
-      }
+      },
+      "googleIosClientId": "269562502657-2r7r6oss5sbq3ndrrnn5b7rn5lp3kv0h.apps.googleusercontent.com"
     }
   }
 }
