@@ -310,10 +310,19 @@ iOS och namnger `redirectTo`-domänen, alltså Supabase-projektets URL.
 Appnamn, logotyp och publiceringsstatus ändrar den inte.
 
 Nu används `GoogleSignin.signIn()` → `signInWithIdToken({ provider: 'google' })`,
-samma mönster som Apple. Ingen webbläsare, ingen domän, nativ kontoväljare.
+samma mönster som Apple.
 
-Tre saker måste stämma, annars **faller koden tyst tillbaka på webbflödet** –
-och då är rutan tillbaka. Ser du den igen är det här listan att gå igenom:
+**Rutan försvinner inte** – det trodde jag först, och det stämde inte. Googles
+iOS-SDK använder också `ASWebAuthenticationSession`, så iOS frågar fortfarande.
+Skillnaden är vad den frågar om: **"accounts.google.com"** i stället för
+projekt-id:t. Googles egen sida visar sedan "Fortsätt till Skrud" med länkar till
+policy och villkor – den delen kommer från OAuth consent screen i Google Cloud,
+alltså en annan källa än iOS-rutan. Två skärmar, två konfigurationer; blanda
+inte ihop dem när något ser fel ut.
+
+Fyra saker måste stämma. Missas 1–3 **faller koden tyst tillbaka på webbflödet**
+(och då är projekt-id:t tillbaka i rutan); missas 4 avvisas inloggningen med ett
+felmeddelande. Listan att gå igenom:
 
 1. `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` = iOS-klient-id:t från Google Cloud
    (OAuth 2.0 Client IDs → iOS, bundle `se.kladkollen.app`).
@@ -324,6 +333,22 @@ och då är rutan tillbaka. Ser du den igen är det här listan att gå igenom:
 3. Samma iOS-klient-id måste ligga som **Authorized Client ID** på Googles
    provider i Supabase. Saknas det avvisas id-token av Supabase, inte av Google –
    felet ser då ut att komma från fel håll.
+4. **"Skip nonce checks" måste vara PÅ** på samma provider i Supabase. Annars:
+   *"Passed nonce and nonce in id_token should either both exist or not."*
+   Nonce-stöd är en betalfunktion i `@react-native-google-signin/google-signin`,
+   så gratisversionen kan aldrig få de två sidorna att matcha. Växeln är en
+   serverinställning och kräver alltså inget nytt bygge.
+
+Notera att `expo prebuild` **inte** kör `pod install`. Podfile.lock låg tre
+veckor efter när den nativa modulen lades till – allt såg rätt ut, appen byggde
+och startade, och Google-knappen använde tyst webbflödet vidare. Kör
+`cd ios && LANG=en_US.UTF-8 pod install` manuellt när ett nativt beroende
+tillkommer. (Debug-bygget kan dessutom falla på `SwiftUICore` via preview-dyliben;
+Release bygger rent, och det är Release som arkiveras.)
+
+Ett Google-inlogg mot en adress som redan finns som e-postkonto **länkas** till
+det kontot. `raw_app_meta_data->>'provider'` står då kvar på det ursprungliga –
+räkna `auth.identities` i stället när du vill veta om Google faktiskt användes.
 
 Webbflödet är kvar med flit: det används på webben, och som reserv i en byggnad
 utan den nativa modulen. Klient-id:t är inte hemligt (det ligger i appbundlen).
