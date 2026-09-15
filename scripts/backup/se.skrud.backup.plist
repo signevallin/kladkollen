@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Kör Skruds backup varje natt 03:30. Installeras till ~/Library/LaunchAgents/.
+  StartCalendarInterval körs i efterhand om datorn sov vid tidpunkten – men
+  INTE om den var avstängd. Kontrollera därför loggarna i ~/Backups/skrud/logs.
+  SKRUD_DB_HOST fylls i vid installation (se README).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>se.skrud.backup</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/signevallin/kladkollen/scripts/backup/backup-db.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>SKRUD_DB_HOST</key><string>aws-1-eu-west-1.pooler.supabase.com</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>3</integer><key>Minute</key><integer>30</integer></dict>
+  <key>StandardErrorPath</key><string>/Users/signevallin/Backups/skrud/logs/launchd.err</string>
+  <key>StandardOutPath</key><string>/Users/signevallin/Backups/skrud/logs/launchd.out</string>
+</dict>
+</plist>
