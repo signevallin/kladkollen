@@ -40,8 +40,14 @@ FileVault krypterar disken.
 
 ```
 pg_restore --list ~/Backups/skrud/db/skrud-<datum>.dump     # innehåll
-pg_restore --no-owner --no-privileges --dbname=<mål> <fil>  # återställ
+scripts/backup/restore-test.sh ~/Backups/skrud/db/skrud-<datum>.dump
 ```
+
+`restore-test.sh` återställer till ett tillfälligt lokalt Postgres 17-kluster
+(`brew install postgresql@17`), skriver radantal per tabell och raderar klustret
+efteråt. Jämför antalen mot produktionen. Två fällor som redan bitit: `initdb`
+faller tyst med svensk locale (skriptet sätter `LC_ALL`), och unix-socketens
+sökväg får vara högst 103 byte – lägg aldrig klustret i en djup katalog.
 
 En backup som aldrig återställts är inte bevisad. Prova mot en tom databas
 då och då.
