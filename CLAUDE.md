@@ -358,6 +358,26 @@ kan bara konton på testanvändarlistan logga in alls – övriga blockeras efte
 den nativa rutan. Basscopes (`email`, `profile`, `openid`) kräver ingen
 verifiering i produktion, men en uppladdad **logotyp** utlöser verifieringskrav.
 
+## Egen backup (Supabase-gratisplanen har ingen)
+
+`scripts/backup/` – nattlig körning 03:30 via LaunchAgent `se.skrud.backup` på
+Signes Mac. `pg_dump` av `auth`, `public`, `storage`, `supabase_migrations` +
+inkrementell spegel av `garments`-bucketen, till `~/Backups/skrud`. Detaljer och
+installation i `scripts/backup/README.md`.
+
+**Bevisad 2026-09-15:** dumpen återställd till ett tomt Postgres 17-kluster med
+`restore-test.sh`; alla 22 radantal identiska med produktionen. En körning
+startad av launchd själv (inte bara manuellt) gick igenom med exitkod 0.
+
+Fällor som redan bitit, alla vid första riktiga körningen:
+- Databasen saknar IPv4 – använd session-poolern `aws-1-eu-west-1` (inte `aws-0`).
+- `security add-generic-password -w` utan värde **klipper tyst efter 128 tecken**.
+  Service role-nyckeln är 219. Använd `-w "$(pbpaste)"`.
+- launchd har inte nvm i PATH; skriptet letar upp node själv.
+- `initdb` faller tyst med svensk locale; restore-test sätter `LC_ALL`.
+- launchd kör **inte** om datorn är avstängd kl. 03:30. En saknad dagslogg i
+  `~/Backups/skrud/logs/` betyder en saknad backup.
+
 ## Persondata får inte hamna i ~/Documents
 
 **`~/Documents` synkas till iCloud Drive** på den här maskinen. Säkerhetskopiorna
