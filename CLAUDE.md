@@ -358,6 +358,22 @@ kan bara konton på testanvändarlistan logga in alls – övriga blockeras efte
 den nativa rutan. Basscopes (`email`, `profile`, `openid`) kräver ingen
 verifiering i produktion, men en uppladdad **logotyp** utlöser verifieringskrav.
 
+## Persondata får inte hamna i ~/Documents
+
+**`~/Documents` synkas till iCloud Drive** på den här maskinen. Säkerhetskopiorna
+från bildkrympningen skrevs dit och låg där i två veckor: 638 MB andra användares
+foton, inklusive konton utan relation till ägaren, på Apples servrar. Det är en
+tredjelandsöverföring som integritetspolicyn inte nämner. Flyttat till
+`~/Backups/skrud/icloud-flytt-2026-09-15/` den 2026-09-15.
+
+Regel: allt som innehåller användardata (backuper, dumpar, manifest, loggar med
+sökvägar) skrivs till **`~/Backups/skrud/`**. Aldrig `~/Documents` eller
+`~/Desktop`. Den dagliga backupen följer det (`scripts/backup/`).
+
+Samma sak gäller hemligheter: `~/Documents/kladkollen/.env` innehåller
+service role-nyckeln och synkas därmed till iCloud. Backupskriptet läser därför
+nycklarna ur Nyckelringen i stället för ur någon `.env`.
+
 ## Övrigt värt att minnas
 - **Insikter** (tredje fliken i statistik): `components/stats/InsightsTab.tsx` +
   `utils/insights.ts` (deterministiskt, inga AI-anrop). Varje insikt visas bara
