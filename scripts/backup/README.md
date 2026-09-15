@@ -13,12 +13,15 @@ FileVault krypterar disken.
 ## Installera (en gång)
 
 1. Klientverktyg: `brew install libpq` (pg_dump måste vara ≥ serverns version, 17).
-2. Lägg hemligheterna i Nyckelringen. Kommandona frågar efter värdet – skriv det
-   där, inte på kommandoraden, annars hamnar det i skalhistoriken:
+2. Lägg hemligheterna i Nyckelringen. Kopiera värdet till urklipp före respektive
+   rad – skalhistoriken sparar då bara `$(pbpaste)`, inte hemligheten:
    ```
-   security add-generic-password -a postgres -s skrud-db-backup -w
-   security add-generic-password -a service-role -s skrud-service-role -w
+   security add-generic-password -U -a postgres     -s skrud-db-backup    -w "$(pbpaste)"
+   security add-generic-password -U -a service-role -s skrud-service-role -w "$(pbpaste)"
+   pbcopy < /dev/null
    ```
+   **Använd inte den interaktiva frågan** (`-w` utan värde). Den klipper tyst
+   efter 128 tecken; service role-nyckeln är 219 och blev oanvändbar.
    Databaslösenordet: Supabase → Project Settings → Database.
 3. Aktivera schemat:
    ```
