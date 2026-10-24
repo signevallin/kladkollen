@@ -12,6 +12,36 @@ export function setApiLang(lang: string) { currentLang = lang }
 /** Aktuellt appspråk (för icke-React-kod, t.ex. seed av standardplatser). */
 export function getApiLang(): string { return currentLang }
 
+/** GET mot en av våra endpoints, med samma felhantering som apiPost. */
+export async function apiGet<T = any>(path: string): Promise<T> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+  })
+  let data: any = null
+  try {
+    data = await res.json()
+  } catch {
+    const timedOut = res.status === 504 || res.status === 502 || res.status === 503 || res.status === 408
+    const err = new Error(timedOut
+      ? 'Det tog för lång tid att svara. Försök igen om en stund.'
+      : `Servern svarade oväntat (${res.status})`)
+    captureError(err, { path, status: res.status })
+    throw err
+  }
+  if (!res.ok || data?.error) {
+    const err: any = new Error(data?.error || `Serverfel (${res.status})`)
+    err.code = data?.code
+    err.status = res.status
+    // not_connected/expired är förväntade lägen i Pinterest-flödet, inte fel.
+    if (data?.code !== 'not_connected' && data?.code !== 'expired') {
+      captureError(err, { path, status: res.status })
+    }
+    throw err
+  }
+  return data as T
+}
+
 /** POST till en av våra serverless-endpoints med Supabase-sessionen som Bearer-token. */
 export async function apiPost<T = any>(path: string, body: unknown): Promise<T> {
   const { data: { session } } = await supabase.auth.getSession()
