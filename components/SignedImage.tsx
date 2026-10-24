@@ -57,8 +57,14 @@ export default function SignedImage({ path, style, flat, resizeMode, contentFit,
     effTransform?.quality, effTransform?.format,
   ].join(',')
 
+  // Bilder som inte ligger i vår bucket (t.ex. en pin från Pinterest, där vi
+  // sparar länken i stället för att kopiera filen) kan inte signeras –
+  // storagePathFrom() ger null för allt som börjar med https:. De skickas
+  // direkt till expo-image. Utan det här ritade komponenten en tom ruta.
+  const remote = !!path && /^https?:\/\//i.test(path) && !/\/storage\/v1\/object\//i.test(path)
+
   const key = path ? `${path}|${transformKey}` : ''
-  const cached = path ? cachedSignedUrl(path, effTransform) : null
+  const cached = remote ? path : path ? cachedSignedUrl(path, effTransform) : null
 
   // Hämtade signaturer nycklas på bilden de tillhör. Utan nyckeln skulle ett
   // byte av `path` (t.ex. återanvänd rad i en lista) visa FÖREGÅENDE plaggs
@@ -67,7 +73,7 @@ export default function SignedImage({ path, style, flat, resizeMode, contentFit,
   const uri = cached ?? (fetched?.key === key ? fetched.url : null)
 
   useEffect(() => {
-    if (!path || cached) return
+    if (!path || cached || remote) return
     let alive = true
     signedUrl(path, effTransform).then(url => {
       if (alive && url) setFetched({ key, url })
