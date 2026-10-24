@@ -32,6 +32,7 @@ import { loadPartner } from '../../utils/household'
 import { uploadUserImage } from '../../utils/storage'
 import { downscaleForUpload, UPLOAD_MAX_WIDTH } from '../../utils/image'
 import { pickImageSmart } from '../../utils/imagePicker'
+import PinterestPicker from '../../components/inspiration/PinterestPicker'
 import { useSettings } from '../../utils/settings'
 import { localeFor } from '../../utils/i18n'
 
@@ -109,6 +110,7 @@ export default function Inspiration() {
 
   // Moodboard state
   const [moodboardImages, setMoodboardImages] = useState<any[]>(() => cacheGet('inspo.moodboard') ?? [])
+  const [pinterestOpen, setPinterestOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [uploadingMoodboard, setUploadingMoodboard] = useState(false)
 
@@ -635,6 +637,13 @@ export default function Inspiration() {
               }
             </TouchableOpacity>
 
+            {/* Egna sparade pins. Sekundär knapp: att fota/välja en egen bild
+                är fortfarande huvudvägen, Pinterest är en genväg för den som
+                redan samlar inspiration där. */}
+            <TouchableOpacity style={styles.pinterestBtn} onPress={() => setPinterestOpen(true)}>
+              <Text style={styles.pinterestBtnText}>{tt('Hämta från Pinterest')}</Text>
+            </TouchableOpacity>
+
             {moodboardImages.length === 0 ? (
               <View style={styles.moodboardEmpty}>
                 <Text style={styles.moodboardEmptyText}>{tt('Din moodboard är tom')}</Text>
@@ -694,6 +703,12 @@ export default function Inspiration() {
           </>
         )}
       </ScrollView>
+
+      <PinterestPicker
+        visible={pinterestOpen}
+        onClose={() => setPinterestOpen(false)}
+        onAdded={fetchMoodboard}
+      />
 
       <BottomNav />
     </SafeAreaView>
@@ -772,6 +787,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
 
   moodboardUploadBtn: { backgroundColor: t.primary, borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 12 },
   moodboardUploadBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.onPrimary, fontSize: 16 },
+  pinterestBtn: { backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.border, borderRadius: 16, padding: 14, alignItems: 'center', marginBottom: 12 },
+  pinterestBtnText: { fontFamily: 'Poppins_600SemiBold', color: t.primary, fontSize: 15 },
   moodboardEmpty: { alignItems: 'center', paddingTop: 60, gap: 8 },
   moodboardEmptyIcon: { fontFamily: 'Lora_400Regular', fontSize: 48 },
   moodboardEmptyText: { fontFamily: 'Lora_500Medium', color: t.textSecondary, fontSize: 16 },
