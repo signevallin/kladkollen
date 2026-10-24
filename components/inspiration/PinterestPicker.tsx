@@ -10,7 +10,6 @@ import { useTheme } from '../../theme/ThemeProvider'
 import type { Theme } from '../../theme/theme'
 import { supabase } from '../../supabase'
 import { apiGet, apiPost } from '../../utils/api'
-import { showAlert } from '../../utils/alert'
 import { useSettings } from '../../utils/settings'
 
 // Väljare för egna Pinterest-pins → moodboarden.
@@ -44,6 +43,9 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
   const [cursor, setCursor] = useState<string | null>(null)
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
+  // Toasten (showAlert) ritas av ToastHost i rot-layouten och hamnar DÄRFÖR
+  // bakom den här fullskärmsmodalen på iOS – fel måste visas inuti modalen.
+  const [error, setError] = useState<string | null>(null)
 
   const checkStatus = useCallback(async () => {
     setChecking(true)
@@ -63,6 +65,7 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
 
   const loadPins = useCallback(async (next?: string) => {
     setLoading(true)
+    setError(null)
     try {
       const q = next ? `?cursor=${encodeURIComponent(next)}` : ''
       const data = await apiGet<{ pins: Pin[]; cursor: string | null }>(`/api/pinterest-pins${q}`)
@@ -74,7 +77,7 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
       if (e?.code === 'not_connected' || e?.code === 'expired') {
         setConnected(false)
       } else {
-        showAlert(tt('Kunde inte hämta från Pinterest'), e?.message || tt('Försök igen.'))
+        setError(e?.message || tt('Kunde inte hämta från Pinterest.'))
       }
     } finally {
       setLoading(false)
@@ -84,11 +87,13 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
   useEffect(() => {
     if (!visible) return
     setPicked(new Set())
+    setError(null)
     checkStatus().then(ok => { if (ok) loadPins() })
   }, [visible, checkStatus, loadPins])
 
   async function connect() {
     setConnecting(true)
+    setError(null)
     try {
       const { url } = await apiPost<{ url: string }>('/api/pinterest-auth', {})
       const res = await WebBrowser.openAuthSessionAsync(url, RETURN_URL)
@@ -96,9 +101,9 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
       // Servern har skrivit token vid det här laget; läs om statusen.
       const ok = await checkStatus()
       if (ok) loadPins()
-      else showAlert(tt('Kopplingen blev inte klar'), tt('Försök igen.'))
+      else setError(tt('Kopplingen blev inte klar. Försök igen.'))
     } catch (e: any) {
-      showAlert(tt('Kunde inte koppla Pinterest'), e?.message || tt('Försök igen.'))
+      setError(e?.message || tt('Kunde inte koppla Pinterest.'))
     } finally {
       setConnecting(false)
     }
@@ -117,6 +122,7 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
   async function addPicked() {
     if (picked.size === 0) return
     setSaving(true)
+    setError(null)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error(tt('Inte inloggad'))
@@ -128,7 +134,7 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
       onAdded()
       onClose()
     } catch (e: any) {
-      showAlert(tt('Kunde inte spara'), e?.message || tt('Försök igen.'))
+      setError(e?.message || tt('Kunde inte spara bilderna.'))
     } finally {
       setSaving(false)
     }
@@ -143,6 +149,13 @@ export default function PinterestPicker({ visible, onClose, onAdded }: Props) {
             <Ionicons name="close" size={26} color={t.primary} />
           </TouchableOpacity>
         </View>
+
+        {!!error && (
+          <View style={styles.errorBox}>
+            <Ionicons name="alert-circle" size={18} color={t.danger} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
         {checking ? (
           <ActivityIndicator color={t.primary} style={{ marginTop: 40 }} />
@@ -219,6 +232,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16 },
   title: { fontFamily: 'Poppins_600SemiBold', fontSize: 20, color: t.primary },
   connectBox: { paddingTop: 40, gap: 12 },
+  errorBox: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+    backgroundColor: t.surfaceMuted, borderWidth: 1, borderColor: t.danger,
+    borderRadius: 12, padding: 12, marginBottom: 12,
+  },
+  errorText: { flex: 1, fontFamily: 'Lora_400Regular', fontSize: 13.5, color: t.danger, lineHeight: 19 },
   connectText: { fontFamily: 'Lora_500Medium', fontSize: 16, color: t.textSecondary, textAlign: 'center' },
   connectHint: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, textAlign: 'center', marginBottom: 8 },
   connectedAs: { fontFamily: 'Lora_400Regular', fontSize: 13, color: t.textFaint, marginBottom: 8 },
